@@ -1,0 +1,362 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model profiles {
+  id              String    @id @db.Uuid
+  nombre_completo String    @db.VarChar(150)
+  rol             String    @default("empleado") @db.VarChar(20)
+  telefono        String?   @db.VarChar(20)
+  salario_base    Decimal?  @db.Decimal(12, 2)
+  activo          Boolean   @default(true)
+  created_at      DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime  @default(now()) @db.Timestamptz(6)
+
+  ventas_registradas  ventas[]
+  ventas_anuladas     ventas[]          @relation("VentasAnuladas")
+  movimientos_inv     movimientos_inventario[]
+  movimientos_caja    movimientos_caja[]
+  gastos_registrados  gastos[]
+  nominas             nominas[]
+  horarios            horario_laboral[]
+  retiros             retiros[]
+  pagos_factura       pagos_factura_proveedor[]
+  caja_menor_reg      caja_menor[]
+
+  @@map("profiles")
+}
+
+model categorias_producto {
+  id          String    @id @default(uuid()) @db.Uuid
+  nombre      String    @unique @db.VarChar(100)
+  descripcion String?   @db.Text
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+  productos   productos[]
+
+  @@map("categorias_producto")
+}
+
+model proveedores {
+  id          String    @id @default(uuid()) @db.Uuid
+  nombre      String    @db.VarChar(150)
+  contacto    String?   @db.VarChar(150)
+  telefono    String?   @db.VarChar(30)
+  email       String?   @db.VarChar(150)
+  direccion   String?   @db.Text
+  nit_ruc     String?   @db.VarChar(50)
+  notas       String?   @db.Text
+  activo      Boolean   @default(true)
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime  @default(now()) @db.Timestamptz(6)
+
+  productos_asociados producto_proveedores[]
+  facturas            facturas_proveedor[]
+  gastos              gastos[]
+
+  @@map("proveedores")
+}
+
+model productos {
+  id                String    @id @default(uuid()) @db.Uuid
+  nombre            String    @db.VarChar(200)
+  descripcion       String?   @db.Text
+  codigo            String?   @unique @db.VarChar(100)
+  categoria_id      String?   @db.Uuid
+  precio_venta      Decimal   @db.Decimal(12, 2)
+  precio_costo_base Decimal?  @db.Decimal(12, 2)
+  margen_calculado  Decimal?  @db.Decimal(5, 2)
+  tiene_iva         Boolean   @default(true)
+  iva_incluido      Boolean   @default(false)
+  porcentaje_iva    Decimal   @default(19.00) @db.Decimal(5, 2)
+  stock_actual      Int       @default(0)
+  stock_minimo      Int       @default(0)
+  prioridad         Int       @default(3)
+  unidad_medida     String?   @db.VarChar(30)
+  imagen_url        String?   @db.Text
+  activo            Boolean   @default(true)
+  created_at        DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime  @default(now()) @db.Timestamptz(6)
+
+  categoria         categorias_producto?  @relation(fields: [categoria_id], references: [id])
+  proveedores       producto_proveedores[]
+  venta_items       venta_items[]
+  movimientos_inv   movimientos_inventario[]
+
+  @@map("productos")
+}
+
+model producto_proveedores {
+  id                      String    @id @default(uuid()) @db.Uuid
+  producto_id             String    @db.Uuid
+  proveedor_id            String    @db.Uuid
+  precio_costo            Decimal   @db.Decimal(12, 2)
+  es_proveedor_principal  Boolean   @default(false)
+  referencia_proveedor    String?   @db.VarChar(100)
+  notas                   String?   @db.Text
+  created_at              DateTime  @default(now()) @db.Timestamptz(6)
+
+  producto    productos    @relation(fields: [producto_id], references: [id], onDelete: Cascade)
+  proveedor   proveedores  @relation(fields: [proveedor_id], references: [id], onDelete: Cascade)
+
+  @@unique([producto_id, proveedor_id])
+  @@map("producto_proveedores")
+}
+
+model clientes {
+  id                  String    @id @default(uuid()) @db.Uuid
+  nombre              String    @db.VarChar(200)
+  telefono            String?   @db.VarChar(30)
+  email               String?   @db.VarChar(150)
+  nit_cc              String?   @db.VarChar(50)
+  direccion           String?   @db.Text
+  notas               String?   @db.Text
+  es_cliente_generico Boolean   @default(false)
+  activo              Boolean   @default(true)
+  created_at          DateTime  @default(now()) @db.Timestamptz(6)
+
+  ventas  ventas[]
+
+  @@map("clientes")
+}
+
+model ventas {
+  id                  String    @id @default(uuid()) @db.Uuid
+  numero_ticket       Int
+  fecha               DateTime  @default(now()) @db.Date
+  hora                DateTime  @default(now()) @db.Timetz(6)
+  empleado_id         String    @db.Uuid
+  cliente_id          String    @db.Uuid
+  tipo_pago           String    @db.VarChar(20)
+  subtotal            Decimal   @db.Decimal(12, 2)
+  descuento_global    Decimal   @default(0) @db.Decimal(12, 2)
+  total_descuentos    Decimal   @default(0) @db.Decimal(12, 2)
+  total_iva           Decimal   @default(0) @db.Decimal(12, 2)
+  total               Decimal   @db.Decimal(12, 2)
+  factura_electronica Boolean   @default(false)
+  observaciones       String?   @db.Text
+  estado              String    @default("completada") @db.VarChar(20)
+  anulada_por         String?   @db.Uuid
+  motivo_anulacion    String?   @db.Text
+  created_at          DateTime  @default(now()) @db.Timestamptz(6)
+
+  empleado      profiles    @relation(fields: [empleado_id], references: [id])
+  anulador      profiles?   @relation("VentasAnuladas", fields: [anulada_por], references: [id])
+  cliente       clientes    @relation(fields: [cliente_id], references: [id])
+  items         venta_items[]
+
+  @@unique([numero_ticket, fecha])
+  @@map("ventas")
+}
+
+model venta_items {
+  id              String    @id @default(uuid()) @db.Uuid
+  venta_id        String    @db.Uuid
+  producto_id     String    @db.Uuid
+  nombre_producto String    @db.VarChar(200)
+  precio_unitario Decimal   @db.Decimal(12, 2)
+  iva_unitario    Decimal   @default(0) @db.Decimal(12, 2)
+  cantidad        Int       @default(1)
+  descuento_linea Decimal   @default(0) @db.Decimal(12, 2)
+  subtotal_linea  Decimal   @db.Decimal(12, 2)
+
+  venta     ventas      @relation(fields: [venta_id], references: [id], onDelete: Cascade)
+  producto  productos   @relation(fields: [producto_id], references: [id])
+
+  @@map("venta_items")
+}
+
+model movimientos_inventario {
+  id              String    @id @default(uuid()) @db.Uuid
+  producto_id     String    @db.Uuid
+  tipo            String    @db.VarChar(20)
+  cantidad        Int
+  stock_anterior  Int
+  stock_nuevo     Int
+  referencia_id   String?   @db.Uuid
+  referencia_tipo String?   @db.VarChar(50)
+  notas           String?   @db.Text
+  empleado_id     String?   @db.Uuid
+  created_at      DateTime  @default(now()) @db.Timestamptz(6)
+
+  producto  productos   @relation(fields: [producto_id], references: [id])
+  empleado  profiles?   @relation(fields: [empleado_id], references: [id])
+
+  @@map("movimientos_inventario")
+}
+
+model facturas_proveedor {
+  id                  String    @id @default(uuid()) @db.Uuid
+  proveedor_id        String    @db.Uuid
+  numero_factura      String?   @db.VarChar(100)
+  fecha_emision       DateTime  @db.Date
+  fecha_vencimiento   DateTime? @db.Date
+  monto_total         Decimal   @db.Decimal(12, 2)
+  monto_pagado        Decimal   @default(0) @db.Decimal(12, 2)
+  saldo_pendiente     Decimal   @db.Decimal(12, 2)
+  estado              String    @default("pendiente") @db.VarChar(20)
+  notas               String?   @db.Text
+  created_at          DateTime  @default(now()) @db.Timestamptz(6)
+
+  proveedor   proveedores             @relation(fields: [proveedor_id], references: [id])
+  pagos       pagos_factura_proveedor[]
+
+  @@map("facturas_proveedor")
+}
+
+model pagos_factura_proveedor {
+  id              String    @id @default(uuid()) @db.Uuid
+  factura_id      String    @db.Uuid
+  monto           Decimal   @db.Decimal(12, 2)
+  metodo_pago     String    @db.VarChar(20)
+  fecha_pago      DateTime  @db.Date
+  registrado_por  String?   @db.Uuid
+  observaciones   String?   @db.Text
+  created_at      DateTime  @default(now()) @db.Timestamptz(6)
+
+  factura     facturas_proveedor  @relation(fields: [factura_id], references: [id])
+  registrador profiles?           @relation(fields: [registrado_por], references: [id])
+
+  @@map("pagos_factura_proveedor")
+}
+
+model caja_menor {
+  id                      String    @id @default(uuid()) @db.Uuid
+  fecha                   DateTime  @unique @db.Date
+  monto_base              Decimal   @db.Decimal(12, 2)
+  ingresos_efectivo       Decimal   @default(0) @db.Decimal(12, 2)
+  egresos_efectivo        Decimal   @default(0) @db.Decimal(12, 2)
+  saldo_calculado         Decimal   @db.Decimal(12, 2)
+  transferido_caja_mayor  Decimal   @default(0) @db.Decimal(12, 2)
+  saldo_real              Decimal?  @db.Decimal(12, 2)
+  diferencia              Decimal?  @db.Decimal(12, 2)
+  cerrada                 Boolean   @default(false)
+  registrado_por          String?   @db.Uuid
+  notas                   String?   @db.Text
+  created_at              DateTime  @default(now()) @db.Timestamptz(6)
+
+  empleado    profiles?       @relation(fields: [registrado_por], references: [id])
+  conteos     conteo_billetes[]
+
+  @@map("caja_menor")
+}
+
+model conteo_billetes {
+  id              String    @id @default(uuid()) @db.Uuid
+  caja_menor_id   String    @db.Uuid
+  denominacion    Decimal   @db.Decimal(10, 2)
+  tipo            String    @db.VarChar(20)
+  cantidad        Int       @default(0)
+  subtotal        Decimal   @db.Decimal(12, 2)
+
+  caja_menor  caja_menor  @relation(fields: [caja_menor_id], references: [id], onDelete: Cascade)
+
+  @@map("conteo_billetes")
+}
+
+model caja_mayor {
+  id              String    @id @default(uuid()) @db.Uuid
+  saldo_actual    Decimal   @default(0) @db.Decimal(12, 2)
+  updated_at      DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@map("caja_mayor")
+}
+
+model movimientos_caja {
+  id                  String    @id @default(uuid()) @db.Uuid
+  fecha               DateTime  @db.Date
+  hora                DateTime  @default(now()) @db.Timetz(6)
+  tipo_movimiento     String    @db.VarChar(30)
+  origen_destino      String    @db.VarChar(20)
+  monto               Decimal   @db.Decimal(12, 2)
+  referencia_id       String?   @db.Uuid
+  referencia_tipo     String?   @db.VarChar(50)
+  empleado_id         String?   @db.Uuid
+  observaciones       String?   @db.Text
+  created_at          DateTime  @default(now()) @db.Timestamptz(6)
+
+  empleado  profiles?   @relation(fields: [empleado_id], references: [id])
+
+  @@map("movimientos_caja")
+}
+
+model saldos_medios_pago {
+  id                String    @id @default(uuid()) @db.Uuid
+  medio             String    @unique @db.VarChar(20)
+  saldo_acumulado   Decimal   @default(0) @db.Decimal(12, 2)
+  updated_at        DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@map("saldos_medios_pago")
+}
+
+model gastos {
+  id              String    @id @default(uuid()) @db.Uuid
+  concepto        String    @db.VarChar(200)
+  categoria_gasto String?   @db.VarChar(100)
+  monto           Decimal   @db.Decimal(12, 2)
+  metodo_pago     String    @db.VarChar(20)
+  fecha           DateTime  @db.Date
+  proveedor_id    String?   @db.Uuid
+  comprobante_url String?   @db.Text
+  notas           String?   @db.Text
+  registrado_por  String?   @db.Uuid
+  created_at      DateTime  @default(now()) @db.Timestamptz(6)
+
+  proveedor   proveedores?  @relation(fields: [proveedor_id], references: [id])
+  empleado    profiles?     @relation(fields: [registrado_por], references: [id])
+
+  @@map("gastos")
+}
+
+model nominas {
+  id                      String    @id @default(uuid()) @db.Uuid
+  empleado_id             String    @db.Uuid
+  periodo_inicio          DateTime  @db.Date
+  periodo_fin             DateTime  @db.Date
+  salario_base            Decimal   @db.Decimal(12, 2)
+  horas_trabajadas        Decimal?  @db.Decimal(6, 2)
+  bonificaciones          Decimal   @default(0) @db.Decimal(12, 2)
+  concepto_bonificacion   String?   @db.Text
+  deducciones             Decimal   @default(0) @db.Decimal(12, 2)
+  concepto_deduccion      String?   @db.Text
+  total_pago              Decimal   @db.Decimal(12, 2)
+  fecha_pago              DateTime? @db.Date
+  estado                  String    @default("pendiente") @db.VarChar(20)
+  notas                   String?   @db.Text
+  created_at              DateTime  @default(now()) @db.Timestamptz(6)
+
+  empleado  profiles  @relation(fields: [empleado_id], references: [id])
+
+  @@map("nominas")
+}
+
+model horario_laboral {
+  id            String    @id @default(uuid()) @db.Uuid
+  empleado_id   String    @db.Uuid
+  dia_semana    String    @db.VarChar(20)
+  hora_inicio   DateTime  @db.Time(6)
+  hora_fin      DateTime  @db.Time(6)
+  activo        Boolean   @default(true)
+  created_at    DateTime  @default(now()) @db.Timestamptz(6)
+
+  empleado  profiles  @relation(fields: [empleado_id], references: [id], onDelete: Cascade)
+
+  @@map("horario_laboral")
+}
+
+model retiros {
+  id              String    @id @default(uuid()) @db.Uuid
+  monto           Decimal   @db.Decimal(12, 2)
+  origen          String    @db.VarChar(20)
+  fecha           DateTime  @db.Date
+  realizado_por   String    @db.Uuid
+  observaciones   String    @db.Text
+  created_at      DateTime  @default(now()) @db.Timestamptz(6)
+
+  empleado  profiles  @relation(fields: [realizado_por], references: [id])
+
+  @@map("retiros")
+}
