@@ -45,8 +45,8 @@ export function VentasTable({ ventas }: { ventas: VentaListItem[] }) {
 
   return (
     <div>
-      <div className="mb-4 relative max-w-sm">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <div className="relative mb-4 max-w-sm">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-300" />
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -55,10 +55,10 @@ export function VentasTable({ ventas }: { ventas: VentaListItem[] }) {
         />
       </div>
 
-      <div className="rounded-lg border bg-white">
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-slate-50">
               <TableHead>Ticket #</TableHead>
               <TableHead>Hora</TableHead>
               <TableHead>Cliente</TableHead>
@@ -76,12 +76,12 @@ export function VentasTable({ ventas }: { ventas: VentaListItem[] }) {
                 className="cursor-pointer hover:bg-slate-50"
                 onClick={() => router.push(`/dashboard/ventas/${venta.id}`)}
               >
-                <TableCell className="font-medium">#{venta.numero_ticket}</TableCell>
-                <TableCell className="text-slate-500">{venta.hora?.slice(0, 5)}</TableCell>
-                <TableCell className="text-slate-500">{venta.clientes?.nombre ?? '—'}</TableCell>
-                <TableCell className="text-slate-500">{venta.empleado?.nombre_completo ?? '—'}</TableCell>
-                <TableCell className="text-right font-medium">${Number(venta.total).toLocaleString('es-CO')}</TableCell>
-                <TableCell className="text-slate-500">{TIPO_PAGO_LABEL[venta.tipo_pago] ?? venta.tipo_pago}</TableCell>
+                <TableCell className="font-medium text-brand-blue">#{venta.numero_ticket}</TableCell>
+                <TableCell className="text-steel-500">{venta.hora?.slice(0, 5)}</TableCell>
+                <TableCell className="text-steel-500">{venta.clientes?.nombre ?? '—'}</TableCell>
+                <TableCell className="text-steel-500">{venta.empleado?.nombre_completo ?? '—'}</TableCell>
+                <TableCell className="text-right font-semibold text-steel-900">${Number(venta.total).toLocaleString('es-CO')}</TableCell>
+                <TableCell className="text-steel-500">{TIPO_PAGO_LABEL[venta.tipo_pago] ?? venta.tipo_pago}</TableCell>
                 <TableCell>
                   <Badge variant={
                     venta.estado === 'anulada' ? 'destructive' :
@@ -95,7 +95,7 @@ export function VentasTable({ ventas }: { ventas: VentaListItem[] }) {
                   <Link
                     href={`/dashboard/ventas/${venta.id}`}
                     onClick={(e) => e.stopPropagation()}
-                    className="text-sm text-slate-500 hover:text-slate-900 hover:underline"
+                    className="text-sm text-brand-blue hover:underline"
                   >
                     Ver
                   </Link>
@@ -105,7 +105,7 @@ export function VentasTable({ ventas }: { ventas: VentaListItem[] }) {
           </TableBody>
         </Table>
         {filtradas.length === 0 && (
-          <p className="p-8 text-center text-sm text-slate-500">
+          <p className="p-8 text-center text-sm text-steel-500">
             {ventas.length === 0
               ? 'No hay ventas registradas para este filtro.'
               : 'No se encontraron ventas con esa búsqueda.'}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { calcularPrecioVentaSugerido, calcularMargenCalculado } from '@/lib/precio-utils'
 import { esAdmin, type Rol } from '@/lib/permissions'
@@ -70,7 +70,7 @@ interface Proveedor {
 
 export interface ProductoExistente {
   id: string
-  precio_costo_base: number  // change 1: added field
+  precio_costo_base: number
   nombre: string
   descripcion: string | null
   codigo: string | null
@@ -109,6 +109,7 @@ interface ProductoFormProps {
   producto?: ProductoExistente
   onSuccess?: () => void
   isSheet?: boolean
+  margenDefault?: number
 }
 
 function parseUnidadMedida(value: string | null): { medida: string; unidad: string } {
@@ -118,7 +119,7 @@ function parseUnidadMedida(value: string | null): { medida: string; unidad: stri
   return { medida: '', unidad: value.trim() }
 }
 
-function estadoInicial(producto?: ProductoExistente): ProductoFormState {
+function estadoInicial(producto?: ProductoExistente, margenDefault = 40): ProductoFormState {
   if (!producto) {
     return {
       nombre: '',
@@ -130,7 +131,7 @@ function estadoInicial(producto?: ProductoExistente): ProductoFormState {
       medida: '',
       unidad_medida_select: '',
       precio_venta: 0,
-      margen_deseado: 0,
+      margen_deseado: margenDefault,
       tiene_iva: true,
       iva_incluido: false,
       porcentaje_iva: 19,
@@ -158,7 +159,6 @@ function estadoInicial(producto?: ProductoExistente): ProductoFormState {
     medida,
     unidad_medida_select: unidad,
     precio_venta: producto.precio_venta,
-    // change 3: calculate margen automatically
     margen_deseado: (() => {
       const costo = producto.proveedores.length > 0
         ? Math.min(...producto.proveedores.map(p => p.precio_costo))
@@ -179,7 +179,6 @@ function estadoInicial(producto?: ProductoExistente): ProductoFormState {
     cantidad_total_unidad: producto.cantidad_total_unidad ?? 0,
     cantidad_minima_venta: producto.cantidad_minima_venta ?? 0,
     precio_por_unidad_medida: producto.precio_por_unidad_medida ?? 0,
-    // change 2: initialize empty provider with precio_costo_base
     proveedores: producto.proveedores.length > 0
       ? producto.proveedores.map((p) => ({
           id: p.id,
@@ -192,11 +191,24 @@ function estadoInicial(producto?: ProductoExistente): ProductoFormState {
   }
 }
 
-export function ProductoForm({ categorias, proveedores, empleadoId, rol, producto, onSuccess, isSheet }: ProductoFormProps) {
+function generarSKU(nombre: string, categoria: string, marca: string, medida: string, unidad: string): string {
+  const tomar3 = (s: string) => s.trim().replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 3)
+  const pNombre = tomar3(nombre)
+  const pCat = tomar3(categoria)
+  const pMarca = tomar3(marca)
+  if (!pNombre || !pCat || !pMarca) return ''
+  const pMedida = medida.trim().replace(' ', '')
+  const pUnidad = tomar3(unidad)
+  if (!pMedida || !pUnidad) return ''
+  return `${pNombre}-${pCat}-${pMarca}-${pMedida}${pUnidad}`
+}
+
+export function ProductoForm({ categorias, proveedores, empleadoId, rol, producto, onSuccess, isSheet, margenDefault = 40 }: ProductoFormProps) {
   const esEdicion = !!producto
   const supabase = createClient()
   const router = useRouter()
   const [precioSugerido, setPrecioSugerido] = useState<number | null>(null)
+  const [skuSugerido, setSkuSugerido] = useState('')
   const [mostrarNuevaCategoria, setMostrarNuevaCategoria] = useState(false)
   const [nuevaCategoriaNombre, setNuevaCategoriaNombre] = useState('')
   const [categoriasList, setCategoriasList] = useState<Categoria[]>(categorias)
@@ -209,10 +221,17 @@ export function ProductoForm({ categorias, proveedores, empleadoId, rol, product
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDesactivando, setIsDesactivando] = useState(false)
-  const [form, setForm] = useState<ProductoFormState>(estadoInicial(producto))
+  const [form, setForm] = useState<ProductoFormState>(estadoInicial(producto, margenDefault))
   const [proveedoresEliminados, setProveedoresEliminados] = useState<string[]>([])
   const [moverCantidad, setMoverCantidad] = useState(0)
   const [moverDireccion, setMoverDireccion] = useState<'bodega_a_almacen' | 'almacen_a_bodega'>('bodega_a_almacen')
+
+  // Auto-generar SKU
+  useMemo(() => {
+    const cat = categoriasList.find(c => c.id === form.categoria_id)?.nombre ?? ''
+    const sku = generarSKU(form.nombre, cat, form.marca, form.medida, form.unidad_medida_select)
+    setSkuSugerido(sku)
+  }, [form.nombre, form.categoria_id, form.marca, form.medida, form.unidad_medida_select, categoriasList])
 
   const handleChange = (field: keyof ProductoFormState, value: any) => {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -330,7 +349,6 @@ export function ProductoForm({ categorias, proveedores, empleadoId, rol, product
       newErrors.medida = 'Solo número entero o fracción (ej: 50 o 1/2)'
     }
     if (form.proveedores.length === 0) newErrors.proveedores = 'Debes agregar al menos un proveedor'
-    // change 4: only require proveedor_id if there's more than one provider
     form.proveedores.forEach((p, i) => {
       if (form.proveedores.length > 1 && !p.proveedor_id) newErrors[`proveedor_${i}`] = 'Selecciona un proveedor'
       if (p.precio_costo <= 0) newErrors[`precio_${i}`] = 'El precio debe ser mayor a 0'
@@ -508,6 +526,13 @@ export function ProductoForm({ categorias, proveedores, empleadoId, rol, product
             onChange={(e) => handleChange('codigo', e.target.value)}
             placeholder="Ej: PRD-001"
           />
+          {skuSugerido && skuSugerido !== form.codigo && (
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-slate-400">Sugerido: <span className="font-mono text-slate-600">{skuSugerido}</span></p>
+              <button type="button" onClick={() => handleChange('codigo', skuSugerido)}
+                className="text-xs text-blue-600 hover:underline">Usar</button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -640,8 +665,9 @@ export function ProductoForm({ categorias, proveedores, empleadoId, rol, product
               id="porcentaje_iva"
               type="number"
               step="0.01"
-value={form.porcentaje_iva || ''}
-              onFocus={e => e.target.select()}              onChange={(e) => handleChange('porcentaje_iva', parseFloat(e.target.value))}
+              value={form.porcentaje_iva || ''}
+              onFocus={e => e.target.select()}
+              onChange={(e) => handleChange('porcentaje_iva', parseFloat(e.target.value))}
             />
           </div>
         )}
@@ -681,8 +707,9 @@ value={form.porcentaje_iva || ''}
               <Input
                 type="number"
                 step="0.01"
-value={proveedor.precio_costo || ''}
-                onFocus={e => e.target.select()}                onChange={(e) => handleProveedorChange(index, 'precio_costo', parseFloat(e.target.value) || 0)}
+                value={proveedor.precio_costo || ''}
+                onFocus={e => e.target.select()}
+                onChange={(e) => handleProveedorChange(index, 'precio_costo', parseFloat(e.target.value) || 0)}
               />
               {errors[`precio_${index}`] && <p className="text-xs text-red-500">{errors[`precio_${index}`]}</p>}
             </div>
@@ -741,8 +768,9 @@ value={proveedor.precio_costo || ''}
             <Input
               id="stock_bodega"
               type="number"
-value={form.stock_bodega || ''}
-              onFocus={e => e.target.select()}              onChange={(e) => handleChange('stock_bodega', parseInt(e.target.value) || 0)}
+              value={form.stock_bodega || ''}
+              onFocus={e => e.target.select()}
+              onChange={(e) => handleChange('stock_bodega', parseInt(e.target.value) || 0)}
             />
           </div>
           <div className="space-y-2">
@@ -750,8 +778,9 @@ value={form.stock_bodega || ''}
             <Input
               id="stock_almacen"
               type="number"
-value={form.stock_almacen || ''}
-              onFocus={e => e.target.select()}              onChange={(e) => handleChange('stock_almacen', parseInt(e.target.value) || 0)}
+              value={form.stock_almacen || ''}
+              onFocus={e => e.target.select()}
+              onChange={(e) => handleChange('stock_almacen', parseInt(e.target.value) || 0)}
             />
           </div>
           <div className="space-y-2">
@@ -759,8 +788,9 @@ value={form.stock_almacen || ''}
             <Input
               id="stock_minimo"
               type="number"
-value={form.stock_minimo || ''}
-              onFocus={e => e.target.select()}              onChange={(e) => handleChange('stock_minimo', parseInt(e.target.value) || 0)}
+              value={form.stock_minimo || ''}
+              onFocus={e => e.target.select()}
+              onChange={(e) => handleChange('stock_minimo', parseInt(e.target.value) || 0)}
             />
           </div>
         </div>
@@ -788,8 +818,9 @@ value={form.stock_minimo || ''}
               <Input
                 type="number"
                 className="w-28"
-value={moverCantidad || ''}
-              onFocus={e => e.target.select()}                onChange={(e) => setMoverCantidad(parseInt(e.target.value) || 0)}
+                value={moverCantidad || ''}
+                onFocus={e => e.target.select()}
+                onChange={(e) => setMoverCantidad(parseInt(e.target.value) || 0)}
                 placeholder="Cantidad"
               />
               <Button type="button" variant="outline" size="sm" onClick={handleMoverStock}>
@@ -861,8 +892,9 @@ value={moverCantidad || ''}
                 id="cantidad_total_unidad"
                 type="number"
                 step="0.01"
-value={form.cantidad_total_unidad || ''}
-              onFocus={e => e.target.select()}                onChange={(e) => handleChange('cantidad_total_unidad', parseFloat(e.target.value) || 0)}
+                value={form.cantidad_total_unidad || ''}
+                onFocus={e => e.target.select()}
+                onChange={(e) => handleChange('cantidad_total_unidad', parseFloat(e.target.value) || 0)}
                 placeholder="Ej: 6 (para un tubo de 6 metros)"
               />
             </div>
@@ -872,8 +904,9 @@ value={form.cantidad_total_unidad || ''}
                 id="cantidad_minima_venta"
                 type="number"
                 step="0.01"
-value={form.cantidad_minima_venta || ''}
-              onFocus={e => e.target.select()}                onChange={(e) => handleChange('cantidad_minima_venta', parseFloat(e.target.value) || 0)}
+                value={form.cantidad_minima_venta || ''}
+                onFocus={e => e.target.select()}
+                onChange={(e) => handleChange('cantidad_minima_venta', parseFloat(e.target.value) || 0)}
                 placeholder="Ej: 0.5"
               />
             </div>
@@ -883,8 +916,9 @@ value={form.cantidad_minima_venta || ''}
                 id="precio_por_unidad_medida"
                 type="number"
                 step="0.01"
-value={form.precio_por_unidad_medida || ''}
-              onFocus={e => e.target.select()}                onChange={(e) => handleChange('precio_por_unidad_medida', parseFloat(e.target.value) || 0)}
+                value={form.precio_por_unidad_medida || ''}
+                onFocus={e => e.target.select()}
+                onChange={(e) => handleChange('precio_por_unidad_medida', parseFloat(e.target.value) || 0)}
                 placeholder="Ej: 4500 (por metro)"
               />
             </div>

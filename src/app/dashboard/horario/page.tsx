@@ -38,6 +38,7 @@ export default async function HorarioPage() {
         turnos={(turnos as any) ?? []}
         empleados={empleados ?? []}
         esAdmin={esAdmin}
+        fechaHoy={new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' })}
       />
     </div>
   )

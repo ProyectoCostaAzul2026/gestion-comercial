@@ -46,8 +46,8 @@ export function InventarioTable({ productos }: { productos: ProductoListItem[] }
 
   return (
     <div>
-      <div className="mb-4 relative max-w-md">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <div className="relative mb-4 max-w-md">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-300" />
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -56,10 +56,10 @@ export function InventarioTable({ productos }: { productos: ProductoListItem[] }
         />
       </div>
 
-      <div className="rounded-lg border bg-white">
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-slate-50">
               <TableHead>Código</TableHead>
               <TableHead>Nombre</TableHead>
               <TableHead>Medida</TableHead>
@@ -77,18 +77,18 @@ export function InventarioTable({ productos }: { productos: ProductoListItem[] }
                 className="cursor-pointer hover:bg-slate-50"
                 onClick={() => router.push(`/dashboard/inventario/${producto.id}`)}
               >
-                <TableCell className="text-slate-500">{producto.codigo ?? '—'}</TableCell>
-                <TableCell className="font-medium">{producto.nombre}</TableCell>
-                <TableCell className="text-slate-500">{producto.unidad_medida ?? '—'}</TableCell>
-                <TableCell className="text-slate-500">{producto.marca ?? '—'}</TableCell>
-                <TableCell className="text-right">{producto.stock_actual}</TableCell>
-                <TableCell className="text-right">${Number(producto.precio_venta).toLocaleString('es-CO')}</TableCell>
-                <TableCell className="text-slate-500">{producto.ubicacion ?? '—'}</TableCell>
+                <TableCell className="text-steel-500">{producto.codigo ?? '—'}</TableCell>
+                <TableCell className="font-medium text-steel-900">{producto.nombre}</TableCell>
+                <TableCell className="text-steel-500">{producto.unidad_medida ?? '—'}</TableCell>
+                <TableCell className="text-steel-500">{producto.marca ?? '—'}</TableCell>
+                <TableCell className="text-right font-semibold text-steel-900">{producto.stock_actual}</TableCell>
+                <TableCell className="text-right text-steel-900">${Number(producto.precio_venta).toLocaleString('es-CO')}</TableCell>
+                <TableCell className="text-steel-500">{producto.ubicacion ?? '—'}</TableCell>
                 <TableCell className="text-right">
                   <Link
                     href={`/dashboard/inventario/${producto.id}/editar`}
                     onClick={(e) => e.stopPropagation()}
-                    className="text-sm text-slate-500 hover:text-slate-900 hover:underline"
+                    className="text-sm text-brand-blue hover:underline"
                   >
                     Editar
                   </Link>
@@ -98,7 +98,7 @@ export function InventarioTable({ productos }: { productos: ProductoListItem[] }
           </TableBody>
         </Table>
         {filtrados.length === 0 && (
-          <p className="p-8 text-center text-sm text-slate-500">
+          <p className="p-8 text-center text-sm text-steel-500">
             {productos.length === 0 ? 'No hay productos registrados todavía.' : 'No se encontraron productos con esa búsqueda.'}
           </p>
         )}

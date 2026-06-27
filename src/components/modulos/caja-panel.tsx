@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DenominacionesPanel } from './denominaciones-panel'
 import { ArqueoPanel } from './arqueo-panel'
-import { AlertTriangle, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
+import { AlertTriangle, Plus, Trash2, ChevronDown, ChevronUp, Check } from 'lucide-react'
 import { calcularPagoDia, horasPagarPorFecha, esDomingoOFestivo } from '@/lib/festivos-colombia'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -115,16 +115,16 @@ function FuentesPagoEditor({ fuentes, setFuentes, montoTotal }: {
         <Label className="text-xs">Fuentes de pago</Label>
         <button type="button"
           onClick={() => setFuentes([...fuentes, { key: Date.now().toString(), fuente: 'caja_menor', monto: 0 }])}
-          className="text-xs text-slate-500 hover:text-slate-900 flex items-center gap-1">
+          className="flex items-center gap-1 text-xs text-steel-500 hover:text-steel-900">
           <Plus className="h-3 w-3" />Agregar fuente
         </button>
       </div>
       {fuentes.map((f, idx) => (
-        <div key={f.key} className="flex gap-2 items-center">
+        <div key={f.key} className="flex items-center gap-2">
           <Select items={FUENTES_DISPONIBLES}
             onValueChange={v => v && setFuentes(fuentes.map((it, i) => i === idx ? { ...it, fuente: v } : it))}
             value={f.fuente}>
-            <SelectTrigger className="w-36 h-8 text-xs"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-8 w-36 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               {FUENTES_DISPONIBLES.map(fd => <SelectItem key={fd.value} value={fd.value}>{fd.label}</SelectItem>)}
             </SelectContent>
@@ -135,14 +135,14 @@ function FuentesPagoEditor({ fuentes, setFuentes, montoTotal }: {
             className="h-8 text-xs" placeholder="Monto" />
           {fuentes.length > 1 && (
             <button type="button" onClick={() => setFuentes(fuentes.filter((_, i) => i !== idx))}
-              className="text-slate-300 hover:text-red-500">
+              className="text-steel-300 hover:text-brand-red">
               <Trash2 className="h-4 w-4" />
             </button>
           )}
         </div>
       ))}
       {montoTotal > 0 && Math.abs(diferencia) > 0 && (
-        <p className={`text-xs ${diferencia > 0 ? 'text-amber-600' : 'text-red-600'}`}>
+        <p className={`text-xs ${diferencia > 0 ? 'text-amber-600' : 'text-brand-red'}`}>
           {diferencia > 0 ? `Falta asignar: $${diferencia.toLocaleString('es-CO')}` : `Excede en: $${Math.abs(diferencia).toLocaleString('es-CO')}`}
         </p>
       )}
@@ -227,10 +227,23 @@ export function CajaPanel({
     if (fuentes.some(f => f.monto === 0)) return 'Todas las fuentes deben tener un monto mayor a 0'
     const suma = fuentes.reduce((s, f) => s + f.monto, 0)
     if (Math.abs(suma - monto) > 1) return 'La suma de fuentes no coincide con el monto total'
+
+    // Validar saldo disponible por fondo
+    for (const f of fuentes) {
+      const medioNorm = (f.fuente === 'caja_menor' || f.fuente === 'efectivo') ? 'efectivo' : f.fuente
+      const saldoDisponible = saldosPorMedio[medioNorm] ?? 0
+      if (f.monto > saldoDisponible) {
+        const nombreFondo = medioNorm === 'efectivo' ? 'Efectivo (Caja Menor)'
+          : medioNorm === 'caja_mayor' ? 'Caja Mayor'
+          : medioNorm.charAt(0).toUpperCase() + medioNorm.slice(1)
+        return `Saldo insuficiente en ${nombreFondo}. Disponible: $${saldoDisponible.toLocaleString('es-CO')} — Solicitado: $${f.monto.toLocaleString('es-CO')}`
+      }
+    }
+
     return null
   }
 
- const TIPOS_EGRESO = ['gasto', 'retiro', 'pago_proveedor', 'nomina', 'egreso']
+  const TIPOS_EGRESO = ['gasto', 'retiro', 'pago_proveedor', 'nomina', 'egreso']
   const TIPOS_INGRESO = ['ingreso']
 
   const movimientosFiltrados = movimientos.filter(m => {
@@ -241,13 +254,13 @@ export function CajaPanel({
     if (filtroOrigen !== 'todos' && origenNorm !== filtroOrigen) return false
     return true
   })
-const handleTransferencia = async () => {
+  const handleTransferencia = async () => {
     if (transferencia.monto <= 0) { toast.error('El monto debe ser mayor a 0'); return }
     if (transferencia.origen === transferencia.destino) { toast.error('Origen y destino no pueden ser iguales'); return }
     setTransfiriendo(true)
     try {
-const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
-          p_origen: transferencia.origen,
+      const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
+        p_origen: transferencia.origen,
         p_destino: transferencia.destino,
         p_monto: transferencia.monto,
         p_observaciones: transferencia.observaciones || null,
@@ -262,7 +275,7 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
     } finally {
       setTransfiriendo(false)
     }
-  } 
+  }
 
   // ── Handlers retiro ──
   const handleRegistrarRetiro = async () => {
@@ -470,11 +483,11 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Caja</h1>
-          <p className="text-xs text-slate-500 mt-0.5">{fechaHoy}{esFestivoHoy ? ' · Domingo/Festivo' : ''}</p>
+          <h1 className="font-display text-2xl font-extrabold tracking-tight text-steel-900">Caja</h1>
+          <p className="mt-0.5 text-xs text-steel-500">{fechaHoy}{esFestivoHoy ? ' · Domingo/Festivo' : ''}</p>
         </div>
         {!arqueoHoy ? (
-          <Button variant="outline" className="border-red-200 text-red-600 hover:bg-red-50"
+          <Button variant="outline" className="border-brand-red/30 text-brand-red hover:bg-brand-red-soft"
             onClick={() => abrirPanel('arqueo')}>
             Arqueo y Cierre de Caja
           </Button>
@@ -485,7 +498,7 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
 
       {/* Advertencia nómina */}
       {!nominaAlDia && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 flex items-center gap-2 text-sm text-amber-800">
+        <div className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
           <AlertTriangle className="h-4 w-4 shrink-0" />
           <span>{nominasPagadasHoy} de {empleadosActivos} empleados tienen nómina pagada hoy. Se recomienda pagar antes de cerrar caja.</span>
         </div>
@@ -504,8 +517,10 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
 
       {/* Entradas del día */}
       <div>
-        <p className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wide">Entradas del día</p>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <p className="mb-2 flex items-center gap-2 font-display text-xs font-bold uppercase tracking-wider text-steel-500">
+          <span className="h-4 w-1 rounded-full bg-brand-yellow" />Entradas del día
+        </p>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
           {[
             { label: 'Efectivo (Caja Menor)', valor: ventasEfectivo },
             { label: 'Nequi', valor: ventasNequi },
@@ -513,9 +528,9 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
             { label: 'Tarjeta', valor: ventasTarjeta },
             { label: 'Crédito', valor: ventasCredito, azul: true },
           ].map(({ label, valor, azul }: { label: string; valor: number; azul?: boolean }) => (
-            <div key={label} className="rounded-lg border bg-white p-3">
-              <p className="text-xs text-slate-500">{label}</p>
-              <p className={`mt-1 text-base font-bold ${azul ? 'text-blue-700' : 'text-slate-900'}`}>
+            <div key={label} className="rounded-xl border border-slate-200 bg-white p-3">
+              <p className="text-xs text-steel-500">{label}</p>
+              <p className={`mt-1 font-display text-base font-bold ${azul ? 'text-brand-blue' : 'text-steel-900'}`}>
                 ${valor.toLocaleString('es-CO')}
               </p>
             </div>
@@ -525,17 +540,17 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
 
       {/* Resumen global */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="rounded-lg border bg-white p-4 text-center">
-          <p className="text-xs text-slate-500">Ingresos totales</p>
-          <p className="mt-1 text-xl font-bold text-green-700">${totalIngresos.toLocaleString('es-CO')}</p>
+        <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
+          <p className="text-xs text-steel-500">Ingresos totales</p>
+          <p className="mt-1 font-display text-xl font-bold text-green-700">${totalIngresos.toLocaleString('es-CO')}</p>
         </div>
-        <div className="rounded-lg border bg-white p-4 text-center">
-          <p className="text-xs text-slate-500">Egresos totales</p>
-          <p className="mt-1 text-xl font-bold text-red-600">${totalEgresos.toLocaleString('es-CO')}</p>
+        <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
+          <p className="text-xs text-steel-500">Egresos totales</p>
+          <p className="mt-1 font-display text-xl font-bold text-brand-red">${totalEgresos.toLocaleString('es-CO')}</p>
         </div>
-        <div className="rounded-lg border bg-white p-4 text-center">
-          <p className="text-xs text-slate-500">Saldo total</p>
-          <p className={`mt-1 text-xl font-bold ${saldoTotal >= 0 ? 'text-slate-900' : 'text-red-600'}`}>
+        <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
+          <p className="text-xs text-steel-500">Saldo total</p>
+          <p className={`mt-1 font-display text-xl font-bold ${saldoTotal >= 0 ? 'text-steel-900' : 'text-brand-red'}`}>
             ${saldoTotal.toLocaleString('es-CO')}
           </p>
         </div>
@@ -545,7 +560,7 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
       <div className="flex flex-wrap gap-2">
         {(['retiro', 'gasto', 'proveedor', 'nomina'] as const).map(p => (
           <Button key={p} variant="outline" onClick={() => abrirPanel(p)}
-            className={panelActivo === p ? 'border-slate-900' : ''}>
+            className={panelActivo === p ? 'border-steel-900' : ''}>
             {p === 'retiro' ? 'Registrar Retiro'
               : p === 'gasto' ? 'Registrar Gasto'
               : p === 'proveedor' ? 'Pago a Proveedor'
@@ -556,8 +571,8 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
 
       {/* Panel retiro */}
       {panelActivo === 'retiro' && (
-        <div className="rounded-lg border bg-white p-4 space-y-3">
-          <h3 className="font-semibold text-slate-900">Registrar Retiro</h3>
+        <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+          <h3 className="font-display font-bold text-steel-900">Registrar Retiro</h3>
           <div className="space-y-1">
             <Label className="text-xs">Monto total</Label>
             <Input type="number" value={retiro.monto || ''} onFocus={e => e.target.select()}
@@ -579,7 +594,7 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
             </div>
           ) : (
             <div className="space-y-2">
-              <p className="text-sm font-medium">¿Confirmas el retiro de ${retiro.monto.toLocaleString('es-CO')}?</p>
+              <p className="text-sm font-medium text-steel-900">¿Confirmas el retiro de ${retiro.monto.toLocaleString('es-CO')}?</p>
               <div className="flex gap-2">
                 <Button onClick={handleRegistrarRetiro} disabled={registrandoRetiro}>
                   {registrandoRetiro ? 'Registrando…' : 'Sí, registrar'}
@@ -593,8 +608,8 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
 
       {/* Panel gasto */}
       {panelActivo === 'gasto' && (
-        <div className="rounded-lg border bg-white p-4 space-y-3">
-          <h3 className="font-semibold text-slate-900">Registrar Gasto</h3>
+        <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+          <h3 className="font-display font-bold text-steel-900">Registrar Gasto</h3>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label className="text-xs">Concepto *</Label>
@@ -610,7 +625,7 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1 col-span-2">
+            <div className="col-span-2 space-y-1">
               <Label className="text-xs">Monto total</Label>
               <Input type="number" value={gasto.monto || ''} onFocus={e => e.target.select()}
                 onChange={e => {
@@ -632,7 +647,7 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
             </div>
           ) : (
             <div className="space-y-2">
-              <p className="text-sm font-medium">¿Confirmas el gasto de ${gasto.monto.toLocaleString('es-CO')} — {gasto.concepto}?</p>
+              <p className="text-sm font-medium text-steel-900">¿Confirmas el gasto de ${gasto.monto.toLocaleString('es-CO')} — {gasto.concepto}?</p>
               <div className="flex gap-2">
                 <Button onClick={handleRegistrarGasto} disabled={registrandoGasto}>
                   {registrandoGasto ? 'Registrando…' : 'Sí, registrar'}
@@ -646,8 +661,8 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
 
       {/* Panel pago proveedor */}
       {panelActivo === 'proveedor' && (
-        <div className="rounded-lg border bg-white p-4 space-y-3">
-          <h3 className="font-semibold text-slate-900">Pago a Proveedor</h3>
+        <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+          <h3 className="font-display font-bold text-steel-900">Pago a Proveedor</h3>
           <div className="space-y-1">
             <Label className="text-xs">Proveedor</Label>
             <Select items={proveedores.map(p => ({ value: p.id, label: p.nombre }))}
@@ -659,10 +674,10 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
             </Select>
           </div>
 
-          {cargandoFacturas && <p className="text-xs text-slate-400">Cargando facturas…</p>}
+          {cargandoFacturas && <p className="text-xs text-steel-300">Cargando facturas…</p>}
 
           {!cargandoFacturas && facturasProveedor.length > 0 && (
-            <div className="space-y-1 max-h-36 overflow-y-auto">
+            <div className="max-h-36 space-y-1 overflow-y-auto">
               {facturasProveedor.map(f => (
                 <button key={f.id} type="button"
                   onClick={() => {
@@ -671,9 +686,9 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
                     setPagoProveedor(p => ({ ...p, monto: saldo }))
                     setFuentesPagoProveedor([{ key: '1', fuente: 'caja_menor', monto: saldo }])
                   }}
-                  className={`w-full text-left rounded-md border px-3 py-2 text-sm ${facturaSeleccionada?.id === f.id ? 'border-slate-900 bg-slate-50' : 'hover:bg-slate-50'}`}>
-                  <span className="font-medium">{f.numero_factura ? `#${f.numero_factura}` : 'Sin número'}</span>
-                  <span className="ml-2 text-slate-500">Saldo: ${Number(f.saldo_pendiente).toLocaleString('es-CO')}</span>
+                  className={`w-full rounded-lg border px-3 py-2 text-left text-sm ${facturaSeleccionada?.id === f.id ? 'border-steel-900 bg-slate-50' : 'border-slate-200 hover:bg-slate-50'}`}>
+                  <span className="font-medium text-steel-900">{f.numero_factura ? `#${f.numero_factura}` : 'Sin número'}</span>
+                  <span className="ml-2 text-steel-500">Saldo: ${Number(f.saldo_pendiente).toLocaleString('es-CO')}</span>
                   <Badge variant="secondary" className="ml-2 text-xs">{f.estado}</Badge>
                 </button>
               ))}
@@ -681,11 +696,11 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
           )}
 
           {!cargandoFacturas && proveedorSeleccionado && facturasProveedor.length === 0 && (
-            <p className="text-xs text-slate-400">Sin facturas pendientes.</p>
+            <p className="text-xs text-steel-300">Sin facturas pendientes.</p>
           )}
 
           {facturaSeleccionada && (
-            <div className="space-y-3 border-t pt-3">
+            <div className="space-y-3 border-t border-slate-100 pt-3">
               <div className="space-y-1">
                 <Label className="text-xs">
                   Monto a pagar (máx ${Number(facturaSeleccionada.saldo_pendiente).toLocaleString('es-CO')})
@@ -710,7 +725,7 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <p className="text-sm font-medium">¿Confirmas el pago de ${pagoProveedor.monto.toLocaleString('es-CO')} a {proveedores.find(p => p.id === proveedorSeleccionado)?.nombre}?</p>
+                  <p className="text-sm font-medium text-steel-900">¿Confirmas el pago de ${pagoProveedor.monto.toLocaleString('es-CO')} a {proveedores.find(p => p.id === proveedorSeleccionado)?.nombre}?</p>
                   <div className="flex gap-2">
                     <Button onClick={handleRegistrarPagoProveedor} disabled={registrandoPago}>
                       {registrandoPago ? 'Registrando…' : 'Sí, registrar'}
@@ -726,17 +741,17 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
 
       {/* Panel nómina */}
       {panelActivo === 'nomina' && (
-        <div className="rounded-lg border bg-white p-4 space-y-4">
+        <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-semibold text-slate-900">Pagar Nómina — {fechaHoy}</h3>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <h3 className="font-display font-bold text-steel-900">Pagar Nómina — {fechaHoy}</h3>
+              <p className="mt-0.5 text-xs text-steel-500">
                 Jornada: {horasHoy}h{esFestivoHoy ? ' (domingo/festivo)' : ''}
               </p>
             </div>
             <div className="flex gap-2">
               <Button size="sm" variant="outline" onClick={agregarEmpleadoExtra}>
-                <Plus className="h-4 w-4 mr-1" />Otro empleado
+                <Plus className="mr-1 h-4 w-4" />Otro empleado
               </Button>
               {!confirmarTodos ? (
                 <Button size="sm"
@@ -763,19 +778,19 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
 
               return (
                 <div key={item.empleado_id}
-                  className={`rounded-md border p-3 space-y-2 ${item.pagado ? 'bg-green-50 border-green-200' : ''}`}>
+                  className={`space-y-2 rounded-lg border p-3 ${item.pagado ? 'border-green-200 bg-green-50' : 'border-slate-200'}`}>
                   <div className="flex items-center justify-between gap-3">
-                    <div className="flex-1 min-w-0">
+                    <div className="min-w-0 flex-1">
                       {esExtra ? (
                         <Input placeholder="Nombre del empleado"
                           value={item.nombre}
                           onChange={e => updateNominaItem(item.empleado_id, { nombre: e.target.value })}
                           className="h-7 text-sm" />
                       ) : (
-                        <p className="text-sm font-medium truncate">{item.nombre}</p>
+                        <p className="truncate text-sm font-medium text-steel-900">{item.nombre}</p>
                       )}
                       {!item.expandido && !item.pagado && (
-                        <p className="text-xs text-slate-500 mt-0.5">
+                        <p className="mt-0.5 text-xs text-steel-500">
                           {item.horas}h · ${pagoDia.toLocaleString('es-CO')}
                           {item.bonificaciones > 0 && ` +$${item.bonificaciones.toLocaleString('es-CO')}`}
                           {item.deducciones > 0 && ` -$${item.deducciones.toLocaleString('es-CO')}`}
@@ -783,14 +798,14 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
                           {' · '}{METODOS_NOMINA.find(m => m.value === item.metodo_pago)?.label}
                         </p>
                       )}
-                      {item.pagado && <p className="text-xs text-green-700 font-medium">✓ Pagado — ${totalPago.toLocaleString('es-CO')}</p>}
+                      {item.pagado && <p className="flex items-center gap-1 text-xs font-medium text-green-700"><Check className="h-3.5 w-3.5" /> Pagado — ${totalPago.toLocaleString('es-CO')}</p>}
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex shrink-0 items-center gap-2">
                       {!item.pagado && (
                         <>
                           <button type="button"
                             onClick={() => updateNominaItem(item.empleado_id, { expandido: !item.expandido })}
-                            className="text-xs text-slate-500 hover:text-slate-900 flex items-center gap-1">
+                            className="flex items-center gap-1 text-xs text-steel-500 hover:text-steel-900">
                             {item.expandido ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                             {item.expandido ? 'Cerrar' : 'Modificar'}
                           </button>
@@ -804,7 +819,7 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
                       {esExtra && !item.pagado && (
                         <button type="button"
                           onClick={() => setNominaItems(prev => prev.filter(it => it.empleado_id !== item.empleado_id))}
-                          className="text-slate-300 hover:text-red-500">
+                          className="text-steel-300 hover:text-brand-red">
                           <Trash2 className="h-4 w-4" />
                         </button>
                       )}
@@ -812,33 +827,33 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
                   </div>
 
                   {item.expandido && !item.pagado && (
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-1 border-t">
+                    <div className="grid grid-cols-2 gap-2 border-t border-slate-100 pt-1 md:grid-cols-4">
                       <div className="space-y-1">
-                        <label className="text-xs text-slate-500">Salario base</label>
+                        <label className="text-xs text-steel-500">Salario base</label>
                         <Input type="number" value={item.salario_base || ''} onFocus={e => e.target.select()}
                           onChange={e => updateNominaItem(item.empleado_id, { salario_base: parseFloat(e.target.value) || 0 })}
                           className="h-7 text-xs" />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs text-slate-500">Horas (máx {horasHoy})</label>
+                        <label className="text-xs text-steel-500">Horas (máx {horasHoy})</label>
                         <Input type="number" min={0} max={horasHoy} step={0.5} value={item.horas || ''} onFocus={e => e.target.select()}
                           onChange={e => updateNominaItem(item.empleado_id, { horas: parseFloat(e.target.value) || 0 })}
                           className="h-7 text-xs" />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs text-slate-500">Bonificación</label>
+                        <label className="text-xs text-steel-500">Bonificación</label>
                         <Input type="number" value={item.bonificaciones || ''} onFocus={e => e.target.select()}
                           onChange={e => updateNominaItem(item.empleado_id, { bonificaciones: parseFloat(e.target.value) || 0 })}
                           className="h-7 text-xs" />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs text-slate-500">Deducción</label>
+                        <label className="text-xs text-steel-500">Deducción</label>
                         <Input type="number" value={item.deducciones || ''} onFocus={e => e.target.select()}
                           onChange={e => updateNominaItem(item.empleado_id, { deducciones: parseFloat(e.target.value) || 0 })}
                           className="h-7 text-xs" />
                       </div>
-                      <div className="space-y-1 col-span-2">
-                        <label className="text-xs text-slate-500">Método de pago</label>
+                      <div className="col-span-2 space-y-1">
+                        <label className="text-xs text-steel-500">Método de pago</label>
                         <Select items={METODOS_NOMINA}
                           onValueChange={v => v && updateNominaItem(item.empleado_id, { metodo_pago: v })}
                           value={item.metodo_pago}>
@@ -849,8 +864,8 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
                         </Select>
                       </div>
                       <div className="col-span-2 flex items-end">
-                        <p className="text-xs text-slate-600">
-                          Total: <strong className={totalPago > 0 ? 'text-slate-900' : 'text-red-600'}>${totalPago.toLocaleString('es-CO')}</strong>
+                        <p className="text-xs text-steel-700">
+                          Total: <strong className={totalPago > 0 ? 'text-steel-900' : 'text-brand-red'}>${totalPago.toLocaleString('es-CO')}</strong>
                         </p>
                       </div>
                     </div>
@@ -867,8 +882,10 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
       )}
 
       {/* Movimientos del día */}
-      <div className="rounded-lg border bg-white p-4 space-y-3">
-        <h2 className="font-semibold text-slate-900">Movimientos del día</h2>
+      <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+        <h2 className="flex items-center gap-2 font-display font-bold text-steel-900">
+          <span className="h-4 w-1 rounded-full bg-brand-yellow" />Movimientos del día
+        </h2>
         <div className="flex flex-wrap gap-3">
           <Select items={[{ value: 'todos', label: 'Todos los tipos' }, ...Object.entries(TIPO_MOV_LABEL).map(([v, l]) => ({ value: v, label: l }))]}
             onValueChange={v => v && setFiltroTipo(v)} value={filtroTipo}>
@@ -897,7 +914,7 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
         <div className="max-h-96 overflow-y-auto">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-slate-50">
               <TableHead>Hora</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Medio</TableHead>
@@ -910,18 +927,18 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
               const esIngreso = m.tipo_movimiento === 'ingreso'
               return (
                 <TableRow key={m.id}>
-                  <TableCell className="text-slate-500 text-xs">{m.hora?.slice(0, 5)}</TableCell>
+                  <TableCell className="text-xs text-steel-500">{m.hora?.slice(0, 5)}</TableCell>
                   <TableCell><Badge variant={esIngreso ? 'default' : 'secondary'}>{TIPO_MOV_LABEL[m.tipo_movimiento] ?? m.tipo_movimiento}</Badge></TableCell>
-                  <TableCell className="text-slate-500 text-xs">{ORIGEN_LABEL[m.origen_destino] ?? m.origen_destino}</TableCell>
-                  <TableCell className={`text-right font-medium ${esIngreso ? 'text-green-700' : 'text-red-600'}`}>
+                  <TableCell className="text-xs text-steel-500">{ORIGEN_LABEL[m.origen_destino] ?? m.origen_destino}</TableCell>
+                  <TableCell className={`text-right font-medium ${esIngreso ? 'text-green-700' : 'text-brand-red'}`}>
                     {esIngreso ? '+' : '-'}${Number(m.monto).toLocaleString('es-CO')}
                   </TableCell>
-                  <TableCell className="text-slate-500 text-xs">{m.observaciones ?? '—'}</TableCell>
+                  <TableCell className="text-xs text-steel-500">{m.observaciones ?? '—'}</TableCell>
                 </TableRow>
               )
             })}
             {movimientosFiltrados.length === 0 && (
-              <TableRow><TableCell colSpan={5} className="text-center text-slate-400 py-6">Sin movimientos</TableCell></TableRow>
+              <TableRow><TableCell colSpan={5} className="py-6 text-center text-steel-300">Sin movimientos</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
@@ -931,19 +948,21 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
       {/* Fondos de denominaciones */}
       <DenominacionesPanel fondos={fondos} config={config} />
 
-{/* Transferencia entre fondos */}
-      <div className="rounded-lg border bg-white p-4 space-y-3">
+      {/* Transferencia entre fondos */}
+      <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-slate-900">Transferencia entre fondos</h2>
+          <h2 className="flex items-center gap-2 font-display font-bold text-steel-900">
+            <span className="h-4 w-1 rounded-full bg-brand-yellow" />Transferencia entre fondos
+          </h2>
           <button type="button" onClick={() => setPanelTransferencia(v => !v)}
-            className="text-sm text-slate-500 hover:text-slate-900 hover:underline">
+            className="text-sm text-brand-blue hover:underline">
             {panelTransferencia ? 'Cancelar' : 'Nueva transferencia'}
           </button>
         </div>
         {panelTransferencia && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             <div className="space-y-1">
-              <label className="text-xs text-slate-500">Origen</label>
+              <label className="text-xs text-steel-500">Origen</label>
               <Select items={[
                 { value: 'efectivo', label: 'Efectivo (Caja Menor)' },
                 { value: 'caja_mayor', label: 'Caja Mayor' },
@@ -963,7 +982,7 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
               </Select>
             </div>
             <div className="space-y-1">
-              <label className="text-xs text-slate-500">Destino</label>
+              <label className="text-xs text-steel-500">Destino</label>
               <Select items={[
                 { value: 'efectivo', label: 'Efectivo (Caja Menor)' },
                 { value: 'caja_mayor', label: 'Caja Mayor' },
@@ -983,13 +1002,13 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
               </Select>
             </div>
             <div className="space-y-1">
-              <label className="text-xs text-slate-500">Monto</label>
+              <label className="text-xs text-steel-500">Monto</label>
               <Input type="number" value={transferencia.monto || ''}
                 onChange={e => setTransferencia(p => ({ ...p, monto: parseFloat(e.target.value) || 0 }))}
                 className="h-8 text-xs" />
             </div>
             <div className="space-y-1">
-              <label className="text-xs text-slate-500">Observaciones</label>
+              <label className="text-xs text-steel-500">Observaciones</label>
               <Input value={transferencia.observaciones}
                 onChange={e => setTransferencia(p => ({ ...p, observaciones: e.target.value }))}
                 className="h-8 text-xs" placeholder="Opcional" />
@@ -1005,23 +1024,25 @@ const { error } = await (supabase.rpc as any)('transferir_entre_fondos', {
 
       {/* Saldos acumulados — estado real de cada fondo */}
       <div>
-        <p className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wide">Saldos acumulados por fondo</p>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <p className="mb-2 flex items-center gap-2 font-display text-xs font-bold uppercase tracking-wider text-steel-500">
+          <span className="h-4 w-1 rounded-full bg-brand-yellow" />Saldos acumulados por fondo
+        </p>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
           {[
             { label: 'Nequi', medio: 'nequi', color: 'text-purple-700' },
-            { label: 'Daviplata', medio: 'daviplata', color: 'text-blue-700' },
+            { label: 'Daviplata', medio: 'daviplata', color: 'text-brand-blue' },
             { label: 'Tarjeta', medio: 'tarjeta', color: 'text-amber-700' },
             { label: 'Crédito', medio: 'credito', color: 'text-sky-700' },
             { label: 'Caja Mayor', medio: 'caja_mayor', color: 'text-green-700' },
           ].map(({ label, medio, color }) => {
             const saldo = saldosPorMedio[medio] ?? 0
             return (
-              <div key={medio} className="rounded-lg border bg-white p-3">
-                <p className="text-xs text-slate-500">{label}</p>
-                <p className={`mt-1 text-base font-bold ${color}`}>
+              <div key={medio} className="rounded-xl border border-slate-200 bg-white p-3">
+                <p className="text-xs text-steel-500">{label}</p>
+                <p className={`mt-1 font-display text-base font-bold ${color}`}>
                   ${Number(saldo).toLocaleString('es-CO')}
                 </p>
-                <p className="text-xs text-slate-400 mt-0.5">Saldo actual</p>
+                <p className="mt-0.5 text-xs text-steel-300">Saldo actual</p>
               </div>
             )
           })}

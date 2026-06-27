@@ -10,6 +10,7 @@ import { toast } from 'sonner'
 
 interface ConfigNegocio {
   id: string
+  margen_default: number | null
   nombre: string
   nit: string | null
   direccion: string | null
@@ -31,6 +32,7 @@ export function ConfiguracionForm({ config }: { config: ConfigNegocio | null }) 
   const [form, setForm] = useState({
     nombre: config?.nombre ?? '',
     nit: config?.nit ?? '',
+    margen_default: config?.margen_default != null ? config.margen_default * 100 : 40,
     direccion: config?.direccion ?? '',
     telefono: config?.telefono ?? '',
     email: config?.email ?? '',
@@ -59,6 +61,7 @@ export function ConfiguracionForm({ config }: { config: ConfigNegocio | null }) 
     try {
       const datos = {
         nombre: form.nombre,
+        margen_default: (Number(form.margen_default) || 40) / 100,
         nit: form.nit || null,
         direccion: form.direccion || null,
         telefono: form.telefono || null,
@@ -172,6 +175,12 @@ export function ConfiguracionForm({ config }: { config: ConfigNegocio | null }) 
             <Input id="monto_inicial_sencillo" type="number"
               value={form.monto_inicial_sencillo ?? 800000}
               onChange={e => handleChange('monto_inicial_sencillo', e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="margen_default">Margen por defecto %</Label>
+            <Input id="margen_default" type="number" min={0} max={100} step={0.1}
+              value={(form as any).margen_default ?? 40}
+              onChange={e => handleChange('margen_default' as any, e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="max_descuento_porcentaje">Descuento máximo %</Label>

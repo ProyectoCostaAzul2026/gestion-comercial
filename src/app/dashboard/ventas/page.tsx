@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Plus } from 'lucide-react'
+import { Plus, TrendingUp, Receipt, Calculator, CreditCard } from 'lucide-react'
 import { VentasFiltros } from '@/components/modulos/ventas-filtros'
 import { VentasTable } from '@/components/modulos/ventas-table'
 
@@ -87,40 +87,60 @@ export default async function VentasPage({
     <div>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Ventas</h1>
-          <p className="mt-1 text-sm text-slate-500">{fecha === hoy ? 'Hoy' : fecha}</p>
+          <h1 className="font-display text-2xl font-extrabold tracking-tight text-steel-900">Ventas</h1>
+          <p className="mt-1 text-sm text-steel-500">{fecha === hoy ? 'Hoy' : fecha}</p>
         </div>
         <Link href="/dashboard/ventas/nueva"
-          className="inline-flex items-center justify-center rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">
+          className="inline-flex items-center justify-center rounded-xl bg-brand-yellow px-4 py-2.5 text-sm font-semibold text-steel-900 shadow-lg shadow-brand-yellow/30 transition hover:brightness-105">
           <Plus className="mr-2 h-4 w-4" />Nueva Venta
         </Link>
       </div>
 
       {/* KPIs */}
       <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-        <div className="rounded-lg border bg-white p-4">
-          <p className="text-xs text-slate-500">Total ventas (hoy)</p>
-          <p className="mt-1 text-xl font-bold text-slate-900">${totalVentasHoy.toLocaleString('es-CO')}</p>
+        <div className="rounded-xl border border-steel-900 bg-steel-900 p-5 text-white">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-medium uppercase tracking-wide text-steel-300">Total ventas (hoy)</p>
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-brand-yellow">
+              <TrendingUp className="h-4 w-4" />
+            </span>
+          </div>
+          <p className="mt-2 font-display text-3xl font-bold">${totalVentasHoy.toLocaleString('es-CO')}</p>
         </div>
-        <div className="rounded-lg border bg-white p-4">
-          <p className="text-xs text-slate-500">N° tickets (hoy)</p>
-          <p className="mt-1 text-xl font-bold text-slate-900">{numTicketsHoy}</p>
+        <div className="rounded-xl border border-slate-200 bg-white p-5">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-medium uppercase tracking-wide text-steel-500">N° tickets (hoy)</p>
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-steel-500">
+              <Receipt className="h-4 w-4" />
+            </span>
+          </div>
+          <p className="mt-2 font-display text-3xl font-bold text-steel-900">{numTicketsHoy}</p>
         </div>
-        <div className="rounded-lg border bg-white p-4">
-          <p className="text-xs text-slate-500">Venta promedio (hoy)</p>
-          <p className="mt-1 text-xl font-bold text-slate-900">${Math.round(ventaPromedioHoy).toLocaleString('es-CO')}</p>
+        <div className="rounded-xl border border-slate-200 bg-white p-5">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-medium uppercase tracking-wide text-steel-500">Venta promedio (hoy)</p>
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-blue-soft text-brand-blue">
+              <Calculator className="h-4 w-4" />
+            </span>
+          </div>
+          <p className="mt-2 font-display text-3xl font-bold text-steel-900">${Math.round(ventaPromedioHoy).toLocaleString('es-CO')}</p>
         </div>
-        <div className="rounded-lg border bg-white p-4">
-          <p className="text-xs text-slate-500">Por medio de pago (hoy)</p>
-          <div className="mt-1 space-y-0.5">
+        <div className="rounded-xl border border-slate-200 bg-white p-5">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-medium uppercase tracking-wide text-steel-500">Por medio de pago (hoy)</p>
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-blue-soft text-brand-blue">
+              <CreditCard className="h-4 w-4" />
+            </span>
+          </div>
+          <div className="mt-2 space-y-0.5">
             {MEDIOS_ORDEN.filter(m => (desgloseMedios[m] ?? 0) > 0).map(medio => (
               <div key={medio} className="flex justify-between text-xs">
-                <span className="text-slate-500">{MEDIO_LABEL[medio]}</span>
-                <span className="font-medium text-slate-900">${(desgloseMedios[medio] ?? 0).toLocaleString('es-CO')}</span>
+                <span className="text-steel-500">{MEDIO_LABEL[medio]}</span>
+                <span className="font-medium text-steel-900">${(desgloseMedios[medio] ?? 0).toLocaleString('es-CO')}</span>
               </div>
             ))}
             {MEDIOS_ORDEN.every(m => !desgloseMedios[m]) && (
-              <p className="text-xs text-slate-400">Sin ventas hoy</p>
+              <p className="text-xs text-steel-300">Sin ventas hoy</p>
             )}
           </div>
         </div>
@@ -131,7 +151,7 @@ export default async function VentasPage({
         empleadoId={sp.empleado_id ?? ''} empleados={empleados ?? []} esAdmin={esAdmin}
       />
 
-      {error && <p className="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-600">Error: {error.message}</p>}
+      {error && <p className="mb-4 rounded-lg bg-brand-red-soft p-4 text-sm text-brand-red">Error: {error.message}</p>}
 
       <VentasTable ventas={(ventas as any) ?? []} />
     </div>

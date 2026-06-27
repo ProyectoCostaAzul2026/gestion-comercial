@@ -26,13 +26,13 @@ export function VentasFiltros({ fecha, tipoPago, estado, empleadoId, empleados, 
   return (
     <div className="mb-4 flex flex-wrap items-end gap-3">
       <div className="space-y-1">
-        <label className="text-xs text-slate-500">Fecha</label>
+        <label className="text-xs text-steel-500">Fecha</label>
         <Input type="date" value={fecha} onChange={e => actualizar('fecha', e.target.value)} className="w-40" />
       </div>
 
       {esAdmin && (
         <div className="space-y-1">
-          <label className="text-xs text-slate-500">Empleado</label>
+          <label className="text-xs text-steel-500">Empleado</label>
           <Select items={[{ value: 'todos', label: 'Todos' }, ...empleados.map(e => ({ value: e.id, label: e.nombre_completo }))]}
             onValueChange={v => v && actualizar('empleado_id', v)} value={empleadoId || 'todos'}>
             <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
@@ -45,7 +45,7 @@ export function VentasFiltros({ fecha, tipoPago, estado, empleadoId, empleados, 
       )}
 
       <div className="space-y-1">
-        <label className="text-xs text-slate-500">Tipo de pago</label>
+        <label className="text-xs text-steel-500">Tipo de pago</label>
         <Select items={[
           { value: 'todos', label: 'Todos' },
           { value: 'efectivo', label: 'Efectivo' },
@@ -69,7 +69,7 @@ export function VentasFiltros({ fecha, tipoPago, estado, empleadoId, empleados, 
       </div>
 
       <div className="space-y-1">
-        <label className="text-xs text-slate-500">Estado</label>
+        <label className="text-xs text-steel-500">Estado</label>
         <Select items={[
           { value: 'todos', label: 'Todos' },
           { value: 'completada', label: 'Completada' },

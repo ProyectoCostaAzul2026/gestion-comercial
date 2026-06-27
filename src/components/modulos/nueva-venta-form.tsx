@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
-import { Search, Plus, Trash2, AlertTriangle, ArrowRightLeft } from 'lucide-react'
+import { Search, Plus, Trash2, AlertTriangle, ArrowRightLeft, MapPin } from 'lucide-react'
 
 type MetodoPago = 'efectivo' | 'nequi' | 'daviplata' | 'tarjeta'
 
@@ -22,6 +22,7 @@ interface ClienteSearch {
   nombre: string
   telefono: string | null
   nit_cc: string | null
+  email: string | null
   es_cliente_generico: boolean
 }
 
@@ -121,7 +122,8 @@ function redondear100(valor: number): number {
   return Math.ceil(valor / 100) * 100
 }
 
-export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.10, whatsappNegocio }: NuevaVentaFormProps) {  const router = useRouter()
+export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.10, whatsappNegocio }: NuevaVentaFormProps) {
+  const router = useRouter()
   const supabase = createClient()
 
   // ── Cliente ──
@@ -129,7 +131,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
   const [queryCliente, setQueryCliente] = useState('')
   const [resultadosCliente, setResultadosCliente] = useState<ClienteSearch[]>([])
   const [mostrarNuevoCliente, setMostrarNuevoCliente] = useState(false)
-  const [nuevoCliente, setNuevoCliente] = useState({ nombre: '', telefono: '', nit_cc: '' })
+  const [nuevoCliente, setNuevoCliente] = useState({ nombre: '', telefono: '', nit_cc: '', email: '' })
   const [guardandoCliente, setGuardandoCliente] = useState(false)
 
   // ── Carrito ──
@@ -169,6 +171,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
 
   // ── Otros ──
   const [facturaElectronica, setFacturaElectronica] = useState(false)
+  const [emailFactura, setEmailFactura] = useState('')
   const [observaciones, setObservaciones] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitAction, setSubmitAction] = useState<'con_recibo' | 'sin_recibo'>('sin_recibo')
@@ -218,7 +221,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
 
   const valorBruto = subtotalProductosBruto + subtotalServicios
   const descuentoAcumuladoPct = valorBruto > 0 ? (valorBruto - totalAntesRedondeo) / valorBruto : 0
-  const minPagoPermitido = redondear100(valorBruto * (1 - maxDescuentoPct))  
+  const minPagoPermitido = redondear100(valorBruto * (1 - maxDescuentoPct))
   const sumaPagos = useMemo(() => pagos.reduce((sum, p) => sum + p.monto, 0), [pagos])
   const diferenciaPago = useMemo(() => totalRedondeado - sumaPagos, [totalRedondeado, sumaPagos])
   const pagoEfectivo = pagos.find(p => p.metodo === 'efectivo')
@@ -226,7 +229,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
 
   // ─── Búsquedas ───────────────────────────────────────────────────────────
 
-const buscarClientes = useCallback(async (q: string) => {
+  const buscarClientes = useCallback(async (q: string) => {
     if (!q.trim()) { setResultadosCliente([]); return }
     const { data } = await supabase.rpc('buscar_clientes', { p_query: q.trim() })
     setResultadosCliente((data as any) ?? [])
@@ -242,17 +245,20 @@ const buscarClientes = useCallback(async (q: string) => {
 
   const guardarNuevoCliente = async () => {
     if (!nuevoCliente.nombre.trim()) { toast.error('El nombre es obligatorio'); return }
+    if (nuevoCliente.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nuevoCliente.email)) {
+      toast.error('El email no es válido'); return
+    }
     setGuardandoCliente(true)
     const { data, error } = await supabase
       .from('clientes')
-      .insert({ nombre: nuevoCliente.nombre, telefono: nuevoCliente.telefono || null, nit_cc: nuevoCliente.nit_cc || null, activo: true, es_cliente_generico: false })
-      .select('id, nombre, telefono, nit_cc, es_cliente_generico')
+      .insert({ nombre: nuevoCliente.nombre, telefono: nuevoCliente.telefono || null, nit_cc: nuevoCliente.nit_cc || null, email: nuevoCliente.email || null, activo: true, es_cliente_generico: false })
       .single()
     setGuardandoCliente(false)
     if (error) { toast.error('Error: ' + error.message); return }
     setCliente(data)
+    if (facturaElectronica && (data as any)?.email) setEmailFactura((data as any).email)
     setMostrarNuevoCliente(false)
-    setNuevoCliente({ nombre: '', telefono: '', nit_cc: '' })
+    setNuevoCliente({ nombre: '', telefono: '', nit_cc: '', email: '' })
     toast.success('Cliente creado')
   }
 
@@ -416,7 +422,7 @@ const buscarClientes = useCallback(async (q: string) => {
         return `La cantidad de "${item.nombre}" debe ser múltiplo de ${item.cantidad_minima_venta} ${item.medida_venta}`
       }
     }
-   if (descuentoAcumuladoPct > maxDescuentoPct + 0.001) {
+    if (descuentoAcumuladoPct > maxDescuentoPct + 0.001) {
       return `Descuento acumulado (${(descuentoAcumuladoPct * 100).toFixed(1)}%) supera el máximo permitido (${(maxDescuentoPct * 100).toFixed(0)}%). Mínimo a pagar: $${minPagoPermitido.toLocaleString('es-CO')}`
     }
     if (esMixto && Math.abs(diferenciaPago) > 1) {
@@ -548,15 +554,17 @@ const buscarClientes = useCallback(async (q: string) => {
   // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6">
-      <div className="flex-1 min-w-0 space-y-5">
+    <div className="flex flex-col gap-6 lg:flex-row">
+      <div className="min-w-0 flex-1 space-y-5">
 
         {/* CLIENTE */}
-        <section className="rounded-lg border bg-white p-4 space-y-3">
-          <h2 className="font-semibold text-slate-900">Cliente</h2>
+        <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5">
+          <h2 className="flex items-center gap-2 font-display font-bold text-steel-900">
+            <span className="h-4 w-1 rounded-full bg-brand-yellow" />Cliente
+          </h2>
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-300" />
               <Input
                 value={queryCliente}
                 onChange={async (e) => { setQueryCliente(e.target.value); await buscarClientes(e.target.value) }}
@@ -564,42 +572,49 @@ const buscarClientes = useCallback(async (q: string) => {
                 className="pl-9"
               />
               {resultadosCliente.length > 0 && (
-                <div className="absolute z-20 mt-1 w-full rounded-md border bg-white shadow-lg">
+                <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg">
                   {resultadosCliente.map(c => (
                     <button key={c.id} type="button"
-                      className="w-full px-3 py-2 text-left text-sm hover:bg-slate-50 flex justify-between"
-                      onClick={() => { setCliente(c); setQueryCliente(''); setResultadosCliente([]) }}
+                      className="flex w-full justify-between px-3 py-2 text-left text-sm hover:bg-brand-blue-soft"
+                      onClick={() => {
+                        setCliente(c)
+                        setQueryCliente('')
+                        setResultadosCliente([])
+                        if (facturaElectronica && (c as any).email) setEmailFactura((c as any).email)
+                      }}
                     >
-                      <span className="font-medium">{c.nombre}</span>
-                      {c.telefono && <span className="text-slate-400 text-xs">{c.telefono}</span>}
+                      <span className="font-medium text-steel-900">{c.nombre}</span>
+                      {c.telefono && <span className="text-xs text-steel-300">{c.telefono}</span>}
                     </button>
                   ))}
                 </div>
               )}
             </div>
             <Button type="button" variant="outline" size="sm" onClick={() => setMostrarNuevoCliente(v => !v)}>
-              <Plus className="h-4 w-4 mr-1" />Nuevo
+              <Plus className="mr-1 h-4 w-4" />Nuevo
             </Button>
           </div>
 
-          <div className="flex items-center gap-2 rounded-md bg-slate-50 px-3 py-2 text-sm">
-            <span className="font-medium">{cliente.nombre}</span>
+          <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm">
+            <span className="font-medium text-steel-900">{cliente.nombre}</span>
             {cliente.es_cliente_generico && <Badge variant="secondary">General</Badge>}
             {!cliente.es_cliente_generico && (
-              <button type="button" onClick={() => setCliente(clienteGeneral)} className="ml-auto text-xs text-slate-400 hover:text-slate-600">
+              <button type="button" onClick={() => setCliente(clienteGeneral)} className="ml-auto text-xs text-steel-300 hover:text-steel-500">
                 Usar Cliente General
               </button>
             )}
           </div>
 
           {mostrarNuevoCliente && (
-            <div className="rounded-md border p-3 space-y-2 bg-slate-50">
-              <p className="text-xs font-medium text-slate-600">Nuevo cliente rápido</p>
+            <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <p className="text-xs font-medium text-steel-500">Nuevo cliente rápido</p>
               <Input placeholder="Nombre *" value={nuevoCliente.nombre} onChange={e => setNuevoCliente(p => ({ ...p, nombre: e.target.value }))} />
               <div className="grid grid-cols-2 gap-2">
                 <Input placeholder="Teléfono" value={nuevoCliente.telefono} onChange={e => setNuevoCliente(p => ({ ...p, telefono: e.target.value }))} />
                 <Input placeholder="NIT/CC" value={nuevoCliente.nit_cc} onChange={e => setNuevoCliente(p => ({ ...p, nit_cc: e.target.value }))} />
               </div>
+              <Input placeholder="Email" type="email" value={nuevoCliente.email} onChange={e => setNuevoCliente(p => ({ ...p, email: e.target.value }))} />
+
               <div className="flex gap-2">
                 <Button type="button" size="sm" onClick={guardarNuevoCliente} disabled={guardandoCliente}>
                   {guardandoCliente ? 'Guardando…' : 'Guardar'}
@@ -611,16 +626,18 @@ const buscarClientes = useCallback(async (q: string) => {
         </section>
 
         {/* PRODUCTOS */}
-        <section className="rounded-lg border bg-white p-4 space-y-3">
+        <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-slate-900">Productos</h2>
+            <h2 className="flex items-center gap-2 font-display font-bold text-steel-900">
+              <span className="h-4 w-1 rounded-full bg-brand-yellow" />Productos
+            </h2>
             <Button type="button" variant="outline" size="sm" onClick={() => setMostrarAltaRapida(v => !v)}>
-              <Plus className="h-4 w-4 mr-1" />Alta rápida
+              <Plus className="mr-1 h-4 w-4" />Alta rápida
             </Button>
           </div>
 
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-300" />
             <Input
               value={queryProducto}
               onChange={async e => { setQueryProducto(e.target.value); await buscarProductos(e.target.value) }}
@@ -628,37 +645,37 @@ const buscarClientes = useCallback(async (q: string) => {
               className="pl-9"
             />
             {resultadosProducto.length > 0 && (
-              <div className="absolute z-20 mt-1 w-full rounded-md border bg-white shadow-lg max-h-72 overflow-y-auto">
+              <div className="absolute z-20 mt-1 max-h-72 w-full overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg">
                 {resultadosProducto.map(p => (
-                  <div key={p.id} className="border-b last:border-0">
+                  <div key={p.id} className="border-b border-slate-100 last:border-0">
                     {p.vender_por_fraccion ? (
                       <div className="px-3 py-2">
-                        <p className="text-sm font-medium text-slate-700 mb-1">{p.nombre}</p>
+                        <p className="mb-1 text-sm font-medium text-steel-700">{p.nombre}</p>
                         <div className="flex gap-2">
-                          <button type="button" className="flex-1 rounded-md border border-slate-200 px-2 py-1.5 text-left text-xs hover:bg-slate-50" onClick={() => agregarProducto(p, 'completo')}>
-                            <span className="font-medium block">Unidad completa</span>
-                            <span className="text-slate-500">${p.precio_venta.toLocaleString('es-CO')} · Almacén: {p.stock_almacen}</span>
+                          <button type="button" className="flex-1 rounded-lg border border-slate-200 px-2 py-1.5 text-left text-xs hover:border-brand-blue/40 hover:bg-brand-blue-soft" onClick={() => agregarProducto(p, 'completo')}>
+                            <span className="block font-medium text-steel-900">Unidad completa</span>
+                            <span className="text-steel-500">${p.precio_venta.toLocaleString('es-CO')} · Almacén: {p.stock_almacen}</span>
                           </button>
-                          <button type="button" className="flex-1 rounded-md border border-slate-200 px-2 py-1.5 text-left text-xs hover:bg-slate-50" onClick={() => agregarProducto(p, 'fraccion')}>
-                            <span className="font-medium block">Por {p.medida_venta}</span>
-                            <span className="text-slate-500">${(p.precio_por_unidad_medida ?? 0).toLocaleString('es-CO')}/{p.medida_venta} · Rem: {p.remanente_fraccion}</span>
+                          <button type="button" className="flex-1 rounded-lg border border-slate-200 px-2 py-1.5 text-left text-xs hover:border-brand-blue/40 hover:bg-brand-blue-soft" onClick={() => agregarProducto(p, 'fraccion')}>
+                            <span className="block font-medium text-steel-900">Por {p.medida_venta}</span>
+                            <span className="text-steel-500">${(p.precio_por_unidad_medida ?? 0).toLocaleString('es-CO')}/{p.medida_venta} · Rem: {p.remanente_fraccion}</span>
                           </button>
                         </div>
                       </div>
                     ) : (
                       <button type="button"
-                        className="w-full px-3 py-2 text-left text-sm hover:bg-slate-50 flex justify-between items-center"
+                        className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-brand-blue-soft disabled:opacity-50"
                         onClick={() => agregarProducto(p, 'completo')}
                         disabled={p.stock_almacen <= 0 && p.stock_bodega <= 0}
                       >
                         <div>
-                          <span className="font-medium">{p.nombre}</span>
-                          {p.codigo && <span className="ml-2 text-xs text-slate-400">{p.codigo}</span>}
-                          {p.ubicacion && <span className="ml-2 text-xs text-slate-400">📍 {p.ubicacion}</span>}
+                          <span className="font-medium text-steel-900">{p.nombre}</span>
+                          {p.codigo && <span className="ml-2 text-xs text-steel-300">{p.codigo}</span>}
+                          {p.ubicacion && <span className="ml-2 inline-flex items-center gap-0.5 text-xs text-steel-300"><MapPin className="h-3 w-3" />{p.ubicacion}</span>}
                         </div>
-                        <div className="text-right shrink-0 ml-3">
-                          <div className="font-medium text-xs">${p.precio_venta.toLocaleString('es-CO')}</div>
-                          <div className={`text-xs ${p.stock_almacen <= 0 ? 'text-red-500' : 'text-slate-400'}`}>
+                        <div className="ml-3 shrink-0 text-right">
+                          <div className="text-xs font-medium text-steel-900">${p.precio_venta.toLocaleString('es-CO')}</div>
+                          <div className={`text-xs ${p.stock_almacen <= 0 ? 'text-brand-red' : 'text-steel-300'}`}>
                             Almacén: {p.stock_almacen}
                             {p.stock_almacen <= 0 && p.stock_bodega > 0 && ` · Bodega: ${p.stock_bodega}`}
                           </div>
@@ -672,21 +689,21 @@ const buscarClientes = useCallback(async (q: string) => {
           </div>
 
           {mostrarAltaRapida && (
-            <div className="rounded-md border p-3 space-y-2 bg-slate-50">
-              <p className="text-xs font-medium text-slate-600">Alta rápida — el producto quedará en Inventario para completar después</p>
+            <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <p className="text-xs font-medium text-steel-500">Alta rápida — el producto quedará en Inventario para completar después</p>
               <Input placeholder="Nombre del producto *" value={altaRapida.nombre} onChange={e => setAltaRapida(p => ({ ...p, nombre: e.target.value }))} />
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-xs text-slate-500">Precio de venta *</label>
+                  <label className="text-xs text-steel-500">Precio de venta *</label>
                   <Input type="number" value={altaRapida.precio || ''} onChange={e => setAltaRapida(p => ({ ...p, precio: parseFloat(e.target.value) || 0 }))} />
                 </div>
                 <div>
-                  <label className="text-xs text-slate-500">Margen %</label>
+                  <label className="text-xs text-steel-500">Margen %</label>
                   <Input type="number" min={0} max={99} value={altaRapida.margen || ''} onChange={e => setAltaRapida(p => ({ ...p, margen: parseFloat(e.target.value) || 0 }))} />
                 </div>
               </div>
               {altaRapida.precio > 0 && (
-                <p className="text-xs text-slate-400">Costo calculado: ${Math.round(altaRapida.precio * (1 - altaRapida.margen / 100) / 1.19).toLocaleString('es-CO')}</p>
+                <p className="text-xs text-steel-300">Costo calculado: ${Math.round(altaRapida.precio * (1 - altaRapida.margen / 100) / 1.19).toLocaleString('es-CO')}</p>
               )}
               <div className="flex gap-2">
                 <Button type="button" size="sm" onClick={guardarAltaRapida} disabled={guardandoAltaRapida}>
@@ -698,21 +715,21 @@ const buscarClientes = useCallback(async (q: string) => {
           )}
 
           {alertaStock && (
-            <div className="rounded-md border border-amber-200 bg-amber-50 p-3 space-y-3">
+            <div className="space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
               <div className="flex gap-2">
-                <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
                 <div className="text-sm">
                   <p className="font-medium text-amber-800">{alertaStock.productoNombre}: stock insuficiente en Almacén</p>
-                  <p className="text-amber-700 text-xs mt-0.5">Disponible en Almacén: <strong>{alertaStock.stockAlmacen}</strong> · En Bodega: <strong>{alertaStock.stockBodega}</strong></p>
+                  <p className="mt-0.5 text-xs text-amber-700">Disponible en Almacén: <strong>{alertaStock.stockAlmacen}</strong> · En Bodega: <strong>{alertaStock.stockBodega}</strong></p>
                 </div>
               </div>
-              <div className="rounded-md bg-white border p-3 space-y-2">
-                <p className="text-xs font-medium text-slate-700">Transferir desde Bodega a Almacén</p>
+              <div className="space-y-2 rounded-lg border border-slate-200 bg-white p-3">
+                <p className="text-xs font-medium text-steel-700">Transferir desde Bodega a Almacén</p>
                 <div className="flex items-center gap-2">
-                  <Input type="number" min={1} max={alertaStock.stockBodega} value={cantidadTransferir || ''} onChange={e => setCantidadTransferir(parseInt(e.target.value) || 0)} className="w-24 h-8 text-sm" />
-                  <span className="text-xs text-slate-500">unidades (máx {alertaStock.stockBodega})</span>
+                  <Input type="number" min={1} max={alertaStock.stockBodega} value={cantidadTransferir || ''} onChange={e => setCantidadTransferir(parseInt(e.target.value) || 0)} className="h-8 w-24 text-sm" />
+                  <span className="text-xs text-steel-500">unidades (máx {alertaStock.stockBodega})</span>
                   <Button type="button" size="sm" onClick={handleTransferirStock} disabled={transfiriendo}>
-                    <ArrowRightLeft className="h-4 w-4 mr-1" />
+                    <ArrowRightLeft className="mr-1 h-4 w-4" />
                     {transfiriendo ? 'Transfiriendo…' : 'Transferir'}
                   </Button>
                 </div>
@@ -724,17 +741,17 @@ const buscarClientes = useCallback(async (q: string) => {
           {carrito.length > 0 && (
             <div className="space-y-2">
               {carrito.map((item, idx) => (
-                <div key={item.key} className="rounded-md border p-3 space-y-2">
+                <div key={item.key} className="space-y-2 rounded-lg border border-slate-200 p-3">
                   <div className="flex justify-between gap-2">
                     <div>
-                      <p className="text-sm font-medium">{item.nombre}</p>
-                      <div className="flex gap-3 mt-0.5">
-                        {item.ubicacion && <span className="text-xs text-slate-400">📍 {item.ubicacion}</span>}
-                        {!item.es_fraccionado && <span className="text-xs text-slate-400">Almacén: {item.stock_almacen} · Bodega: {item.stock_bodega}</span>}
-                        {item.es_fraccionado && <span className="text-xs text-slate-400">Fraccionado · {item.medida_venta}</span>}
+                      <p className="text-sm font-medium text-steel-900">{item.nombre}</p>
+                      <div className="mt-0.5 flex gap-3">
+                        {item.ubicacion && <span className="inline-flex items-center gap-0.5 text-xs text-steel-300"><MapPin className="h-3 w-3" />{item.ubicacion}</span>}
+                        {!item.es_fraccionado && <span className="text-xs text-steel-300">Almacén: {item.stock_almacen} · Bodega: {item.stock_bodega}</span>}
+                        {item.es_fraccionado && <span className="text-xs text-steel-300">Fraccionado · {item.medida_venta}</span>}
                       </div>
                     </div>
-                    <button type="button" onClick={() => setCarrito(prev => prev.filter((_, i) => i !== idx))} className="text-slate-300 hover:text-red-500 shrink-0">
+                    <button type="button" onClick={() => setCarrito(prev => prev.filter((_, i) => i !== idx))} className="shrink-0 text-steel-300 hover:text-brand-red">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
@@ -742,7 +759,7 @@ const buscarClientes = useCallback(async (q: string) => {
                   {item.es_fraccionado ? (
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="text-xs text-slate-500">Cantidad ({item.medida_venta}) — mín {item.cantidad_minima_venta}</label>
+                        <label className="text-xs text-steel-500">Cantidad ({item.medida_venta}) — mín {item.cantidad_minima_venta}</label>
                         <Input
                           type="number"
                           step={item.cantidad_minima_venta ?? 0.5}
@@ -755,18 +772,18 @@ const buscarClientes = useCallback(async (q: string) => {
                           }}
                         />
                         {item.cantidad_minima_venta && item.cantidad_fraccion > 0 && item.cantidad_fraccion % item.cantidad_minima_venta !== 0 && (
-                          <p className="text-xs text-red-500">Debe ser múltiplo de {item.cantidad_minima_venta}</p>
+                          <p className="text-xs text-brand-red">Debe ser múltiplo de {item.cantidad_minima_venta}</p>
                         )}
                       </div>
                       <div>
-                        <label className="text-xs text-slate-500">Subtotal</label>
-                        <p className="mt-2 font-medium text-sm">${(item.precio_unitario * item.cantidad_fraccion).toLocaleString('es-CO')}</p>
+                        <label className="text-xs text-steel-500">Subtotal</label>
+                        <p className="mt-2 text-sm font-medium text-steel-900">${(item.precio_unitario * item.cantidad_fraccion).toLocaleString('es-CO')}</p>
                       </div>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-3 gap-2 items-end">
+                    <div className="grid grid-cols-3 items-end gap-2">
                       <div>
-                        <label className="text-xs text-slate-500">Cantidad (máx {item.stock_almacen})</label>
+                        <label className="text-xs text-steel-500">Cantidad (máx {item.stock_almacen})</label>
                         <Input
                           type="number" min={1} max={item.stock_almacen}
                           value={item.cantidad || ''}
@@ -795,12 +812,12 @@ const buscarClientes = useCallback(async (q: string) => {
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-slate-500">Precio unit.</label>
-                        <p className="mt-2 text-sm">${item.precio_unitario.toLocaleString('es-CO')}</p>
+                        <label className="text-xs text-steel-500">Precio unit.</label>
+                        <p className="mt-2 text-sm text-steel-900">${item.precio_unitario.toLocaleString('es-CO')}</p>
                       </div>
                       <div>
-                        <label className="text-xs text-slate-500">Subtotal</label>
-                        <p className="mt-2 text-sm font-medium">
+                        <label className="text-xs text-steel-500">Subtotal</label>
+                        <p className="mt-2 text-sm font-medium text-steel-900">
                           ${(item.precio_unitario * item.cantidad * (1 - (item.descuento_habilitado ? item.descuento_porcentaje / 100 : 0))).toLocaleString('es-CO')}
                         </p>
                       </div>
@@ -808,14 +825,14 @@ const buscarClientes = useCallback(async (q: string) => {
                   )}
 
                   {descuentoHabilitado && !item.es_fraccionado && (
-                    <div className="flex items-center gap-2 border-t pt-2">
+                    <div className="flex items-center gap-2 border-t border-slate-100 pt-2">
                       <Switch checked={item.descuento_habilitado} onCheckedChange={v => setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, descuento_habilitado: v, descuento_porcentaje: v ? 5 : 0 } : it))} />
-                      <span className="text-xs text-slate-500">Descuento</span>
+                      <span className="text-xs text-steel-500">Descuento</span>
                       {item.descuento_habilitado && (
-                        <div className="flex items-center gap-1 ml-auto">
-                          <Input type="number" min={0} max={10} className="w-16 h-7 text-xs" value={item.descuento_porcentaje || ''}
+                        <div className="ml-auto flex items-center gap-1">
+                          <Input type="number" min={0} max={10} className="h-7 w-16 text-xs" value={item.descuento_porcentaje || ''}
                             onChange={e => setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, descuento_porcentaje: validarDescuento(parseFloat(e.target.value) || 0) } : it))} />
-                          <span className="text-xs text-slate-400">% (máx 10)</span>
+                          <span className="text-xs text-steel-300">% (máx 10)</span>
                         </div>
                       )}
                     </div>
@@ -826,16 +843,18 @@ const buscarClientes = useCallback(async (q: string) => {
           )}
 
           {carrito.length === 0 && !mostrarAltaRapida && (
-            <p className="text-center text-sm text-slate-400 py-3">Busca un producto para agregarlo</p>
+            <p className="py-3 text-center text-sm text-steel-300">Busca un producto para agregarlo</p>
           )}
         </section>
 
         {/* SERVICIOS */}
-        <section className="rounded-lg border bg-white p-4 space-y-3">
+        <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-slate-900">Servicios</h2>
+            <h2 className="flex items-center gap-2 font-display font-bold text-steel-900">
+              <span className="h-4 w-1 rounded-full bg-brand-yellow" />Servicios
+            </h2>
             <Button type="button" variant="outline" size="sm" onClick={() => setMostrarNuevoServicio(v => !v)}>
-              <Plus className="h-4 w-4 mr-1" />Nuevo servicio
+              <Plus className="mr-1 h-4 w-4" />Nuevo servicio
             </Button>
           </div>
 
@@ -853,12 +872,12 @@ const buscarClientes = useCallback(async (q: string) => {
           )}
 
           {mostrarNuevoServicio && (
-            <div className="rounded-md border p-3 space-y-2 bg-slate-50">
-              <p className="text-xs font-medium text-slate-600">Nuevo servicio</p>
+            <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <p className="text-xs font-medium text-steel-500">Nuevo servicio</p>
               <Input placeholder="Nombre *" value={nuevoServicio.nombre} onChange={e => setNuevoServicio(p => ({ ...p, nombre: e.target.value }))} />
               <Input placeholder="Descripción" value={nuevoServicio.descripcion} onChange={e => setNuevoServicio(p => ({ ...p, descripcion: e.target.value }))} />
               <div>
-                <label className="text-xs text-slate-500">Precio *</label>
+                <label className="text-xs text-steel-500">Precio *</label>
                 <Input type="number" value={nuevoServicio.precio || ''} onChange={e => setNuevoServicio(p => ({ ...p, precio: parseFloat(e.target.value) || 0 }))} />
               </div>
               <div className="flex gap-2">
@@ -873,28 +892,28 @@ const buscarClientes = useCallback(async (q: string) => {
           {serviciosCarrito.length > 0 && (
             <div className="space-y-1">
               {serviciosCarrito.map((s, idx) => (
-                <div key={s.key} className="rounded-md border px-3 py-2 space-y-2">
-                  <div className="flex justify-between items-center">
+                <div key={s.key} className="space-y-2 rounded-lg border border-slate-200 px-3 py-2">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-sm font-medium">{s.nombre_servicio}</span>
-                      <span className="ml-2 text-sm text-slate-500">${s.precio_aplicado.toLocaleString('es-CO')}</span>
+                      <span className="text-sm font-medium text-steel-900">{s.nombre_servicio}</span>
+                      <span className="ml-2 text-sm text-steel-500">${s.precio_aplicado.toLocaleString('es-CO')}</span>
                       {s.descuento_habilitado && s.descuento_porcentaje > 0 && (
                         <span className="ml-2 text-xs text-green-600">-{s.descuento_porcentaje}% = ${(s.precio_aplicado * (1 - s.descuento_porcentaje / 100)).toLocaleString('es-CO')}</span>
                       )}
                     </div>
-                    <button type="button" onClick={() => setServiciosCarrito(prev => prev.filter((_, i) => i !== idx))} className="text-slate-300 hover:text-red-500">
+                    <button type="button" onClick={() => setServiciosCarrito(prev => prev.filter((_, i) => i !== idx))} className="text-steel-300 hover:text-brand-red">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                   {descuentoHabilitado && (
-                    <div className="flex items-center gap-2 border-t pt-1">
+                    <div className="flex items-center gap-2 border-t border-slate-100 pt-1">
                       <Switch checked={s.descuento_habilitado} onCheckedChange={v => setServiciosCarrito(prev => prev.map((it, i) => i === idx ? { ...it, descuento_habilitado: v, descuento_porcentaje: v ? 5 : 0 } : it))} />
-                      <span className="text-xs text-slate-500">Descuento</span>
+                      <span className="text-xs text-steel-500">Descuento</span>
                       {s.descuento_habilitado && (
-                        <div className="flex items-center gap-1 ml-auto">
-                          <Input type="number" min={0} max={10} className="w-16 h-7 text-xs" value={s.descuento_porcentaje || ''}
+                        <div className="ml-auto flex items-center gap-1">
+                          <Input type="number" min={0} max={10} className="h-7 w-16 text-xs" value={s.descuento_porcentaje || ''}
                             onChange={e => setServiciosCarrito(prev => prev.map((it, i) => i === idx ? { ...it, descuento_porcentaje: validarDescuento(parseFloat(e.target.value) || 0) } : it))} />
-                          <span className="text-xs text-slate-400">%</span>
+                          <span className="text-xs text-steel-300">%</span>
                         </div>
                       )}
                     </div>
@@ -905,14 +924,16 @@ const buscarClientes = useCallback(async (q: string) => {
           )}
 
           {serviciosCarrito.length === 0 && !mostrarNuevoServicio && (
-            <p className="text-center text-sm text-slate-400 py-2">Sin servicios agregados</p>
+            <p className="py-2 text-center text-sm text-steel-300">Sin servicios agregados</p>
           )}
         </section>
 
         {/* DESCUENTOS */}
-        <section className="rounded-lg border bg-white p-4 space-y-3">
+        <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-slate-900">Descuentos</h2>
+            <h2 className="flex items-center gap-2 font-display font-bold text-steel-900">
+              <span className="h-4 w-1 rounded-full bg-brand-yellow" />Descuentos
+            </h2>
             <div className="flex items-center gap-2">
               <Switch checked={descuentoHabilitado} onCheckedChange={v => {
                 setDescuentoHabilitado(v)
@@ -922,34 +943,34 @@ const buscarClientes = useCallback(async (q: string) => {
                   setServiciosCarrito(prev => prev.map(it => ({ ...it, descuento_habilitado: false, descuento_porcentaje: 0 })))
                 }
               }} />
-              <span className="text-sm text-slate-600">{descuentoHabilitado ? 'Habilitado' : 'Deshabilitado'}</span>
+              <span className="text-sm text-steel-500">{descuentoHabilitado ? 'Habilitado' : 'Deshabilitado'}</span>
             </div>
           </div>
 
           {descuentoHabilitado && (
             <div className="space-y-2">
-              <div className="flex items-center gap-3 rounded-md border p-3">
+              <div className="flex items-center gap-3 rounded-lg border border-slate-200 p-3">
                 <Switch checked={descuentoTotalActivo} onCheckedChange={v => { setDescuentoTotalActivo(v); if (v) setEditandoTotalManual(false) }} />
-                <span className="text-sm">Descuento sobre el total</span>
+                <span className="text-sm text-steel-700">Descuento sobre el total</span>
                 {descuentoTotalActivo && (
-                  <div className="flex items-center gap-1 ml-auto">
-                    <Input type="number" min={0} max={10} className="w-16 h-7 text-xs" value={descuentoTotalPct || ''}
+                  <div className="ml-auto flex items-center gap-1">
+                    <Input type="number" min={0} max={10} className="h-7 w-16 text-xs" value={descuentoTotalPct || ''}
                       onChange={e => setDescuentoTotalPct(validarDescuento(parseFloat(e.target.value) || 0))} />
-                    <span className="text-xs text-slate-400">% (máx 10)</span>
+                    <span className="text-xs text-steel-300">% (máx 10)</span>
                   </div>
                 )}
               </div>
-              <div className="flex items-center gap-3 rounded-md border p-3">
+              <div className="flex items-center gap-3 rounded-lg border border-slate-200 p-3">
                 <Switch checked={editandoTotalManual} onCheckedChange={v => {
                   setEditandoTotalManual(v)
                   if (v) { setDescuentoTotalActivo(false); setTotalManual(String(totalRedondeado)) }
                   else setTotalManual('')
                 }} />
-                <span className="text-sm">Editar total manualmente</span>
+                <span className="text-sm text-steel-700">Editar total manualmente</span>
                 {editandoTotalManual && (
-                  <div className="flex items-center gap-1 ml-auto">
-                    <span className="text-xs text-slate-500">$</span>
-                    <Input type="number" className="w-32 h-7 text-xs" value={totalManual}
+                  <div className="ml-auto flex items-center gap-1">
+                    <span className="text-xs text-steel-500">$</span>
+                    <Input type="number" className="h-7 w-32 text-xs" value={totalManual}
                       onChange={e => setTotalManual(e.target.value)}
                       onBlur={() => {
                         const val = parseFloat(totalManual) || 0
@@ -961,20 +982,23 @@ const buscarClientes = useCallback(async (q: string) => {
                   </div>
                 )}
               </div>
-<div className="flex justify-between text-xs rounded-md bg-slate-50 border px-3 py-2">
-                <span className="text-slate-500">
-                  Descuento acumulado: <strong className={descuentoAcumuladoPct > maxDescuentoPct ? 'text-red-600' : 'text-slate-700'}>{(descuentoAcumuladoPct * 100).toFixed(1)}%</strong> / {(maxDescuentoPct * 100).toFixed(0)}%
+              <div className="flex justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs">
+                <span className="text-steel-500">
+                  Descuento acumulado: <strong className={descuentoAcumuladoPct > maxDescuentoPct ? 'text-brand-red' : 'text-steel-700'}>{(descuentoAcumuladoPct * 100).toFixed(1)}%</strong> / {(maxDescuentoPct * 100).toFixed(0)}%
                 </span>
-                <span className="text-slate-500">Mín: <strong>${minPagoPermitido.toLocaleString('es-CO')}</strong></span>
+                <span className="text-steel-500">Mín: <strong>${minPagoPermitido.toLocaleString('es-CO')}</strong></span>
               </div>
-              <p className="text-xs text-slate-400">Los descuentos por producto/servicio se activan en cada línea del carrito.</p>            </div>
+              <p className="text-xs text-steel-300">Los descuentos por producto/servicio se activan en cada línea del carrito.</p>
+            </div>
           )}
         </section>
 
         {/* PAGO */}
-        <section className="rounded-lg border bg-white p-4 space-y-3">
+        <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-slate-900">Método de pago</h2>
+            <h2 className="flex items-center gap-2 font-display font-bold text-steel-900">
+              <span className="h-4 w-1 rounded-full bg-brand-yellow" />Método de pago
+            </h2>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <Switch
@@ -987,7 +1011,7 @@ const buscarClientes = useCallback(async (q: string) => {
                     setEsCredito(v)
                   }}
                 />
-                <span className="text-sm text-slate-600">Venta a crédito</span>
+                <span className="text-sm text-steel-500">Venta a crédito</span>
               </div>
               {!esCredito && (
                 <div className="flex items-center gap-2">
@@ -996,23 +1020,23 @@ const buscarClientes = useCallback(async (q: string) => {
                     if (!v) setPagos([{ metodo: metodoPagoUnico, monto: totalRedondeado, monto_recibido: 0, vueltas: 0 }])
                     else setPagos([{ metodo: 'efectivo', monto: 0, monto_recibido: 0, vueltas: 0 }])
                   }} />
-                  <span className="text-sm text-slate-600">Pago mixto</span>
+                  <span className="text-sm text-steel-500">Pago mixto</span>
                 </div>
               )}
             </div>
           </div>
 
           {esCredito ? (
-            <div className="rounded-md bg-blue-50 border border-blue-200 p-3 space-y-3">
-              <p className="text-sm font-medium text-blue-800">Venta a crédito — sin cobro inmediato</p>
-              <p className="text-xs text-blue-600">
+            <div className="space-y-3 rounded-lg border border-brand-blue/20 bg-brand-blue-soft p-3">
+              <p className="text-sm font-medium text-brand-blue-dark">Venta a crédito — sin cobro inmediato</p>
+              <p className="text-xs text-brand-blue">
                 El inventario se descuenta normalmente. El saldo quedará pendiente en el perfil del cliente.
               </p>
               {cliente.es_cliente_generico && (
-                <p className="text-xs text-red-600 font-medium">⚠ Debes seleccionar un cliente específico para continuar</p>
+                <p className="flex items-center gap-1 text-xs font-medium text-brand-red"><AlertTriangle className="h-3.5 w-3.5" /> Debes seleccionar un cliente específico para continuar</p>
               )}
               <div className="space-y-1">
-                <label className="text-xs text-slate-600">Fecha de pago programada (opcional)</label>
+                <label className="text-xs text-steel-500">Fecha de pago programada (opcional)</label>
                 <Input type="date" value={fechaPagoCredito} onChange={e => setFechaPagoCredito(e.target.value)} className="w-44" />
               </div>
             </div>
@@ -1036,7 +1060,7 @@ const buscarClientes = useCallback(async (q: string) => {
               {metodoPagoUnico === 'efectivo' && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs text-slate-500">Monto recibido *</label>
+                    <label className="text-xs text-steel-500">Monto recibido *</label>
                     <Input type="number" value={pagos[0]?.monto_recibido || ''}
                       onFocus={e => e.target.select()}
                       onChange={e => {
@@ -1046,7 +1070,7 @@ const buscarClientes = useCallback(async (q: string) => {
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-slate-500">Vueltas</label>
+                    <label className="text-xs text-steel-500">Vueltas</label>
                     <p className="mt-2 text-xl font-bold text-green-700">
                       ${Math.max(0, (pagos[0]?.monto_recibido ?? 0) - totalRedondeado).toLocaleString('es-CO')}
                     </p>
@@ -1059,26 +1083,26 @@ const buscarClientes = useCallback(async (q: string) => {
               {METODOS.map(m => {
                 const pagoActivo = pagos.find(p => p.metodo === m)
                 return (
-                  <div key={m} className="rounded-md border p-3 space-y-2">
+                  <div key={m} className="space-y-2 rounded-lg border border-slate-200 p-3">
                     <div className="flex items-center gap-2">
                       <Switch checked={!!pagoActivo} onCheckedChange={() => toggleMetodoPago(m)} />
-                      <span className="text-sm font-medium">{METODO_LABEL[m]}</span>
+                      <span className="text-sm font-medium text-steel-900">{METODO_LABEL[m]}</span>
                     </div>
                     {pagoActivo && (
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="text-xs text-slate-500">Monto</label>
+                          <label className="text-xs text-steel-500">Monto</label>
                           <Input type="number" value={pagoActivo.monto || ''} onFocus={e => e.target.select()} onChange={e => actualizarPago(m, 'monto', parseFloat(e.target.value) || 0)} />
                         </div>
                         {m === 'efectivo' && (
                           <div>
-                            <label className="text-xs text-slate-500">Monto recibido *</label>
+                            <label className="text-xs text-steel-500">Monto recibido *</label>
                             <Input type="number" value={pagoActivo.monto_recibido || ''} onFocus={e => e.target.select()} onChange={e => actualizarPago(m, 'monto_recibido', parseFloat(e.target.value) || 0)} />
                           </div>
                         )}
                         {m === 'efectivo' && pagoActivo.vueltas > 0 && (
                           <div className="col-span-2">
-                            <span className="text-xs text-slate-500">Vueltas: </span>
+                            <span className="text-xs text-steel-500">Vueltas: </span>
                             <span className="font-bold text-green-700">${pagoActivo.vueltas.toLocaleString('es-CO')}</span>
                           </div>
                         )}
@@ -1088,7 +1112,7 @@ const buscarClientes = useCallback(async (q: string) => {
                 )
               })}
               {Math.abs(diferenciaPago) > 1 && (
-                <p className="text-xs font-medium text-red-500">
+                <p className="text-xs font-medium text-brand-red">
                   {diferenciaPago > 0 ? `Falta asignar: $${diferenciaPago.toLocaleString('es-CO')}` : `Excede en: $${Math.abs(diferenciaPago).toLocaleString('es-CO')}`}
                 </p>
               )}
@@ -1097,20 +1121,28 @@ const buscarClientes = useCallback(async (q: string) => {
         </section>
 
         {/* FACTURA Y OBSERVACIONES */}
-        <section className="rounded-lg border bg-white p-4 space-y-3">
+        <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5">
           <div className="flex items-center gap-2">
-            <Switch checked={facturaElectronica} onCheckedChange={setFacturaElectronica} />
-            <span className="text-sm font-medium">Factura electrónica</span>
+            <Switch checked={facturaElectronica} onCheckedChange={v => {
+              setFacturaElectronica(v)
+              if (v && (cliente as any).email) setEmailFactura((cliente as any).email)
+            }} />
+            <span className="text-sm font-medium text-steel-900">Factura electrónica</span>
           </div>
           {facturaElectronica && (
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-slate-500">NIT cliente</label>
-                <Input defaultValue={cliente.nit_cc ?? ''} readOnly className="bg-slate-50" />
+                <label className="text-xs text-steel-500">NIT cliente</label>
+                <Input value={cliente.nit_cc ?? ''} readOnly className="bg-slate-50" />
               </div>
               <div>
-                <label className="text-xs text-slate-500">Email cliente</label>
-                <Input placeholder="email@ejemplo.com" />
+                <label className="text-xs text-steel-500">Email cliente</label>
+                <Input
+                  type="email"
+                  placeholder="email@ejemplo.com"
+                  value={emailFactura}
+                  onChange={e => setEmailFactura(e.target.value)}
+                />
               </div>
             </div>
           )}
@@ -1122,14 +1154,14 @@ const buscarClientes = useCallback(async (q: string) => {
 
         {/* BOTONES */}
         <div className="flex flex-col gap-2 pb-8">
-          <Button type="button" onClick={() => handleSubmit('con_recibo')} disabled={submitting} className="w-full">
+          <Button type="button" onClick={() => handleSubmit('con_recibo')} disabled={submitting} className="w-full bg-brand-yellow text-steel-900 shadow-lg shadow-brand-yellow/30 hover:bg-brand-yellow hover:brightness-105">
             {submitting && submitAction === 'con_recibo' ? 'Guardando…' : esCredito ? 'Registrar venta a crédito y generar recibo' : 'Guardar y generar recibo'}
           </Button>
           <Button type="button" variant="outline" onClick={() => handleSubmit('sin_recibo')} disabled={submitting} className="w-full">
             {submitting && submitAction === 'sin_recibo' ? 'Guardando…' : esCredito ? 'Registrar venta a crédito' : 'Guardar sin recibo'}
           </Button>
           <button type="button" onClick={() => router.push('/dashboard/ventas')}
-            className={buttonVariants({ variant: 'outline', className: 'w-full text-slate-500' })}>
+            className={buttonVariants({ variant: 'outline', className: 'w-full text-steel-500' })}>
             Cancelar
           </button>
         </div>
@@ -1137,18 +1169,20 @@ const buscarClientes = useCallback(async (q: string) => {
 
       {/* ── Resumen sticky ── */}
       <div className="lg:w-72 lg:shrink-0">
-        <div className="sticky top-4 rounded-lg border bg-white p-4 space-y-3">
-          <h2 className="font-semibold text-slate-900">Resumen</h2>
+        <div className="sticky top-4 space-y-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="flex items-center gap-2 font-display font-bold text-steel-900">
+            <span className="h-4 w-1 rounded-full bg-brand-yellow" />Resumen
+          </h2>
           {esCredito && (
-            <div className="rounded-md bg-blue-50 border border-blue-100 px-3 py-2">
-              <p className="text-xs font-medium text-blue-700">Venta a crédito</p>
-              <p className="text-xs text-blue-600">Cliente: {cliente.nombre}</p>
+            <div className="rounded-lg border border-brand-blue/20 bg-brand-blue-soft px-3 py-2">
+              <p className="text-xs font-medium text-brand-blue-dark">Venta a crédito</p>
+              <p className="text-xs text-brand-blue">Cliente: {cliente.nombre}</p>
             </div>
           )}
           <dl className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <dt className="text-slate-500">Subtotal bruto</dt>
-              <dd>${subtotalProductosBruto.toLocaleString('es-CO')}</dd>
+              <dt className="text-steel-500">Subtotal bruto</dt>
+              <dd className="text-steel-900">${subtotalProductosBruto.toLocaleString('es-CO')}</dd>
             </div>
             {descuentosPorProducto > 0 && (
               <div className="flex justify-between text-green-700">
@@ -1158,8 +1192,8 @@ const buscarClientes = useCallback(async (q: string) => {
             )}
             {subtotalServicios > 0 && (
               <div className="flex justify-between">
-                <dt className="text-slate-500">Servicios</dt>
-                <dd>${subtotalServicios.toLocaleString('es-CO')}</dd>
+                <dt className="text-steel-500">Servicios</dt>
+                <dd className="text-steel-900">${subtotalServicios.toLocaleString('es-CO')}</dd>
               </div>
             )}
             {descuentosPorServicio > 0 && (
@@ -1175,24 +1209,24 @@ const buscarClientes = useCallback(async (q: string) => {
               </div>
             )}
             {ivaInformativo > 0 && (
-              <div className="flex justify-between text-xs text-slate-400 border-t pt-2 mt-2">
+              <div className="mt-2 flex justify-between border-t border-slate-100 pt-2 text-xs text-steel-300">
                 <dt>IVA incluido (informativo)</dt>
                 <dd>${Math.round(ivaInformativo).toLocaleString('es-CO')}</dd>
               </div>
             )}
-            <div className={`flex justify-between font-bold text-base border-t pt-2 mt-2 ${totalAntesRedondeo > 0 ? 'text-slate-900' : 'text-slate-400'}`}>
-              <dt>{esCredito ? 'Total a crédito' : 'Total a cobrar'}</dt>
-              <dd>${totalRedondeado.toLocaleString('es-CO')}</dd>
+            <div className={`mt-2 flex items-center justify-between rounded-lg px-3 py-2.5 ${totalAntesRedondeo > 0 ? 'bg-steel-900 text-white' : 'bg-slate-100 text-steel-300'}`}>
+              <dt className="text-sm font-medium">{esCredito ? 'Total a crédito' : 'Total a cobrar'}</dt>
+              <dd className="font-display text-xl font-bold">${totalRedondeado.toLocaleString('es-CO')}</dd>
             </div>
             {totalRedondeado !== Math.round(totalAntesRedondeo) && totalAntesRedondeo > 0 && (
-              <p className="text-xs text-slate-400 text-right">Redondeado desde ${Math.round(totalAntesRedondeo).toLocaleString('es-CO')}</p>
+              <p className="text-right text-xs text-steel-300">Redondeado desde ${Math.round(totalAntesRedondeo).toLocaleString('es-CO')}</p>
             )}
           </dl>
 
           {hayEfectivo && (
-            <div className="rounded-md bg-green-50 border border-green-200 p-3">
+            <div className="rounded-lg border border-green-200 bg-green-50 p-3">
               <p className="text-xs font-medium text-green-700">Vueltas a entregar</p>
-              <p className="text-2xl font-bold text-green-800 mt-0.5">
+              <p className="mt-0.5 font-display text-2xl font-bold text-green-800">
                 ${Math.max(0, esMixto ? (pagoEfectivo?.vueltas ?? 0) : (pagos[0]?.vueltas ?? 0)).toLocaleString('es-CO')}
               </p>
             </div>

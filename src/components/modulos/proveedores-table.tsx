@@ -43,8 +43,17 @@ const ESTADO_CONFIG = {
   al_dia: { label: 'Al día', variant: 'default' as const, priority: 6 },
 }
 
+const STOPWORDS = new Set(['de', 'del', 'la', 'el', 'los', 'las', 'y', 'o', 'en', 'con'])
+
 function normalizar(t: string) {
   return t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+}
+
+function coincideProveedor(p: ProveedorListItem, query: string): boolean {
+  if (!query.trim()) return true
+  const tokens = normalizar(query).split(/\s+/).filter(t => t.length > 0 && !STOPWORDS.has(t))
+  const texto = normalizar([p.nombre, p.contacto, p.nit_ruc].filter(Boolean).join(' '))
+  return tokens.every(token => texto.includes(token))
 }
 
 export function ProveedoresTable({
@@ -76,11 +85,7 @@ export function ProveedoresTable({
 
   const filtrados = useMemo(() => {
     return proveedores.filter(p => {
-      if (query.trim()) {
-        const q = normalizar(query)
-        const texto = normalizar(`${p.nombre} ${p.contacto ?? ''} ${p.nit_ruc ?? ''}`)
-        if (!texto.includes(q)) return false
-      }
+      if (!coincideProveedor(p, query)) return false
       if (filtroEstado !== 'todos' && p.estado !== filtroEstado) return false
       return true
     })

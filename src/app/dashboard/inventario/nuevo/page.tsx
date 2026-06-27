@@ -10,6 +10,7 @@ export default async function NuevoProductoPage() {
   if (!user) redirect('/login')
 
   const { data: profile } = await supabase.from('profiles').select('rol').eq('id', user.id).single()
+  const { data: config } = await supabase.from('configuracion_negocio').select('margen_default').single()
 
   const [{ data: categorias }, { data: proveedores }] = await Promise.all([
     supabase.from('categorias_producto').select('id, nombre').order('nombre'),
@@ -35,6 +36,7 @@ export default async function NuevoProductoPage() {
           empleadoId={user.id}
           isSheet={false}
           rol={(profile?.rol as 'empleado' | 'administrador') ?? 'empleado'}
+          margenDefault={(config as any)?.margen_default ? (config as any).margen_default * 100 : 40}
         />
       </div>
     </div>

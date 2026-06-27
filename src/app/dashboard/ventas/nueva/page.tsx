@@ -16,7 +16,7 @@ export default async function NuevaVentaPage() {
   ] = await Promise.all([
     supabase
       .from('clientes')
-      .select('id, nombre, telefono, nit_cc, es_cliente_generico')
+      .select('id, nombre, telefono, nit_cc, email, es_cliente_generico')
       .eq('es_cliente_generico', true)
       .single(),
     supabase
