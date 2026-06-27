@@ -26,18 +26,18 @@ export default async function PagarFacturaPage({
   return (
     <div className="max-w-md">
       <div className="mb-6 flex items-center gap-3">
-        <Link href={`/dashboard/proveedores/${id}`} className="rounded-md border p-2 hover:bg-slate-50">
+        <Link href={`/dashboard/proveedores/${id}`} className="rounded-lg border border-slate-200 p-2 hover:bg-slate-50">
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Registrar pago</h1>
-          <p className="text-xs text-slate-500">
+          <h1 className="font-display text-xl font-extrabold tracking-tight text-steel-900">Registrar pago</h1>
+          <p className="text-xs text-steel-500">
             {factura.numero_factura ? `Factura #${factura.numero_factura}` : 'Sin número'} ·
             Total: ${Number(factura.monto_total).toLocaleString('es-CO')}
           </p>
         </div>
       </div>
-      <div className="rounded-lg border bg-white p-6">
+      <div className="rounded-xl border border-slate-200 bg-white p-6">
         <PagoFacturaForm
           facturaId={facturaId}
           saldoPendiente={Number(factura.saldo_pendiente)}

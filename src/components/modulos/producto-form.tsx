@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { Plus, Trash2, ArrowLeftRight } from 'lucide-react'
+import { Plus, Trash2, ArrowLeftRight, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 
@@ -516,7 +516,7 @@ export function ProductoForm({ categorias, proveedores, empleadoId, rol, product
         <div className="space-y-2">
           <Label htmlFor="nombre">Nombre del producto *</Label>
           <Input id="nombre" value={form.nombre} onChange={(e) => handleChange('nombre', e.target.value)} />
-          {errors.nombre && <p className="text-xs text-red-500">{errors.nombre}</p>}
+          {errors.nombre && <p className="text-xs text-brand-red">{errors.nombre}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="codigo">Código / SKU</Label>
@@ -528,9 +528,9 @@ export function ProductoForm({ categorias, proveedores, empleadoId, rol, product
           />
           {skuSugerido && skuSugerido !== form.codigo && (
             <div className="flex items-center gap-2">
-              <p className="text-xs text-slate-400">Sugerido: <span className="font-mono text-slate-600">{skuSugerido}</span></p>
+              <p className="text-xs text-steel-300">Sugerido: <span className="font-mono text-steel-700">{skuSugerido}</span></p>
               <button type="button" onClick={() => handleChange('codigo', skuSugerido)}
-                className="text-xs text-blue-600 hover:underline">Usar</button>
+                className="text-xs text-brand-blue hover:underline">Usar</button>
             </div>
           )}
         </div>
@@ -601,7 +601,7 @@ export function ProductoForm({ categorias, proveedores, empleadoId, rol, product
               onChange={(e) => handleChange('medida', e.target.value)}
               placeholder="Ej: 50 o 1/2"
             />
-            {errors.medida && <p className="text-xs text-red-500">{errors.medida}</p>}
+            {errors.medida && <p className="text-xs text-brand-red">{errors.medida}</p>}
           </div>
           <div>
             {mostrarNuevaUnidad ? (
@@ -644,8 +644,8 @@ export function ProductoForm({ categorias, proveedores, empleadoId, rol, product
         <Textarea id="descripcion" value={form.descripcion} onChange={(e) => handleChange('descripcion', e.target.value)} rows={2} />
       </div>
 
-      <div className="rounded-lg border p-4 space-y-4">
-        <h3 className="font-medium">Configuración de IVA</h3>
+      <div className="space-y-4 rounded-xl border border-slate-200 p-4">
+        <h3 className="font-display font-bold text-steel-900">Configuración de IVA</h3>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Switch id="tiene_iva" checked={form.tiene_iva} onCheckedChange={(v) => handleChange('tiene_iva', v)} />
@@ -673,18 +673,18 @@ export function ProductoForm({ categorias, proveedores, empleadoId, rol, product
         )}
       </div>
 
-      <div className="rounded-lg border p-4 space-y-4">
+      <div className="space-y-4 rounded-xl border border-slate-200 p-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-medium">Proveedores y Precios de Costo *</h3>
+          <h3 className="font-display font-bold text-steel-900">Proveedores y Precios de Costo *</h3>
           <Button type="button" variant="outline" size="sm" onClick={addProveedor}>
             <Plus className="mr-1 h-4 w-4" />
             Agregar proveedor
           </Button>
         </div>
-        {errors.proveedores && <p className="text-xs text-red-500">{errors.proveedores}</p>}
+        {errors.proveedores && <p className="text-xs text-brand-red">{errors.proveedores}</p>}
         {form.proveedores.map((proveedor, index) => (
-          <div key={proveedor.id ?? index} className="grid grid-cols-1 gap-3 md:grid-cols-12 items-end border-b pb-3 last:border-0">
-            <div className="md:col-span-4 space-y-1">
+          <div key={proveedor.id ?? index} className="grid grid-cols-1 items-end gap-3 border-b border-slate-100 pb-3 last:border-0 md:grid-cols-12">
+            <div className="space-y-1 md:col-span-4">
               <Label>Proveedor</Label>
               <Select
                 items={proveedores.map((p) => ({ value: p.id, label: p.nombre }))}
@@ -700,9 +700,9 @@ export function ProductoForm({ categorias, proveedores, empleadoId, rol, product
                   ))}
                 </SelectContent>
               </Select>
-              {errors[`proveedor_${index}`] && <p className="text-xs text-red-500">{errors[`proveedor_${index}`]}</p>}
+              {errors[`proveedor_${index}`] && <p className="text-xs text-brand-red">{errors[`proveedor_${index}`]}</p>}
             </div>
-            <div className="md:col-span-3 space-y-1">
+            <div className="space-y-1 md:col-span-3">
               <Label>Precio de costo</Label>
               <Input
                 type="number"
@@ -711,9 +711,9 @@ export function ProductoForm({ categorias, proveedores, empleadoId, rol, product
                 onFocus={e => e.target.select()}
                 onChange={(e) => handleProveedorChange(index, 'precio_costo', parseFloat(e.target.value) || 0)}
               />
-              {errors[`precio_${index}`] && <p className="text-xs text-red-500">{errors[`precio_${index}`]}</p>}
+              {errors[`precio_${index}`] && <p className="text-xs text-brand-red">{errors[`precio_${index}`]}</p>}
             </div>
-            <div className="md:col-span-4 space-y-1">
+            <div className="space-y-1 md:col-span-4">
               <Label>Referencia del proveedor</Label>
               <Input
                 value={proveedor.referencia_proveedor}
@@ -721,10 +721,10 @@ export function ProductoForm({ categorias, proveedores, empleadoId, rol, product
                 placeholder="Código interno del proveedor"
               />
             </div>
-            <div className="md:col-span-1 flex justify-end">
+            <div className="flex justify-end md:col-span-1">
               {form.proveedores.length > 1 && (
                 <Button type="button" variant="ghost" size="icon-sm" onClick={() => removeProveedor(index)}>
-                  <Trash2 className="h-4 w-4 text-red-500" />
+                  <Trash2 className="h-4 w-4 text-brand-red" />
                 </Button>
               )}
             </div>
@@ -749,19 +749,19 @@ export function ProductoForm({ categorias, proveedores, empleadoId, rol, product
               value={form.precio_venta || ''}
               onChange={(e) => handleChange('precio_venta', parseFloat(e.target.value) || 0)}
             />
-            {errors.precio_venta && <p className="text-xs text-red-500">{errors.precio_venta}</p>}
+            {errors.precio_venta && <p className="text-xs text-brand-red">{errors.precio_venta}</p>}
           </div>
         </div>
         <Button type="button" variant="outline" onClick={handleCalcularPrecio} className="w-full md:w-auto">
           Calcular precio sugerido
         </Button>
         {precioSugerido !== null && (
-          <p className="text-xs text-slate-500">Precio sugerido: ${precioSugerido.toLocaleString('es-CO')}</p>
+          <p className="text-xs text-steel-500">Precio sugerido: ${precioSugerido.toLocaleString('es-CO')}</p>
         )}
       </div>
 
-      <div className="rounded-lg border p-4 space-y-4">
-        <h3 className="font-medium">Stock</h3>
+      <div className="space-y-4 rounded-xl border border-slate-200 p-4">
+        <h3 className="font-display font-bold text-steel-900">Stock</h3>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="space-y-2">
             <Label htmlFor="stock_bodega">Stock Bodega</Label>
@@ -796,8 +796,8 @@ export function ProductoForm({ categorias, proveedores, empleadoId, rol, product
         </div>
 
         {esEdicion && (
-          <div className="rounded-md bg-slate-50 p-3 space-y-2">
-            <Label className="text-xs text-slate-600">Mover stock entre Bodega y Almacén</Label>
+          <div className="space-y-2 rounded-lg bg-slate-50 p-3">
+            <Label className="text-xs text-steel-700">Mover stock entre Bodega y Almacén</Label>
             <div className="flex flex-wrap items-end gap-2">
               <Select
                 items={[
@@ -860,9 +860,9 @@ export function ProductoForm({ categorias, proveedores, empleadoId, rol, product
         </div>
       </div>
 
-      <div className="rounded-lg border p-4 space-y-4">
+      <div className="space-y-4 rounded-xl border border-slate-200 p-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-medium">Venta por fracción</h3>
+          <h3 className="font-display font-bold text-steel-900">Venta por fracción</h3>
           <div className="flex items-center gap-2">
             <Switch
               id="vender_por_fraccion"
@@ -926,7 +926,8 @@ export function ProductoForm({ categorias, proveedores, empleadoId, rol, product
         )}
 
         {form.vender_por_fraccion && (
-          <p className="text-xs text-amber-600 bg-amber-50 rounded p-2">
+          <p className="flex items-start gap-1.5 rounded-lg bg-amber-50 p-2 text-xs text-amber-600">
+            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             Al habilitar venta por fracción, este producto solo se podrá vender en fracciones. El precio de venta principal se ignora en las ventas; se usa el precio por unidad de medida.
           </p>
         )}
@@ -946,7 +947,7 @@ export function ProductoForm({ categorias, proveedores, empleadoId, rol, product
           type="button"
           disabled={isDesactivando}
           onClick={handleDesactivar}
-          className={buttonVariants({ variant: 'outline', className: 'w-full border-red-200 text-red-600 hover:bg-red-50' })}
+          className={buttonVariants({ variant: 'outline', className: 'w-full border-brand-red/30 text-brand-red hover:bg-brand-red-soft' })}
         >
           {isDesactivando ? 'Desactivando...' : 'Desactivar producto'}
         </button>

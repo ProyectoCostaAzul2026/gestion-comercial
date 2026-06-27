@@ -62,9 +62,9 @@ export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId }: Pago
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="rounded-md bg-slate-50 border p-3 text-sm">
-        <span className="text-slate-500">Saldo pendiente: </span>
-        <span className="font-bold text-slate-900">${saldoPendiente.toLocaleString('es-CO')}</span>
+      <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
+        <span className="text-steel-500">Saldo pendiente: </span>
+        <span className="font-bold text-steel-900">${saldoPendiente.toLocaleString('es-CO')}</span>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -146,7 +146,7 @@ export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId }: Pago
         </Button>
       ) : (
         <div className="space-y-2">
-          <p className="text-sm font-medium text-slate-900">
+          <p className="text-sm font-medium text-steel-900">
             ¿Confirmas el pago de ${monto.toLocaleString('es-CO')}?
           </p>
           <div className="flex gap-2">

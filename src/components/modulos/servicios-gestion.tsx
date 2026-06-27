@@ -72,18 +72,18 @@ export function ServiciosGestion({ servicios: inicial }: { servicios: Servicio[]
   }
 
   return (
-    <div className="rounded-lg border bg-white p-6 space-y-4">
+    <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-slate-700">
+        <p className="text-sm font-medium text-steel-700">
           {servicios.filter(s => s.activo).length} servicios activos
         </p>
         <Button size="sm" onClick={() => setMostrarNuevo(v => !v)}>
-          <Plus className="h-4 w-4 mr-1" />Nuevo servicio
+          <Plus className="mr-1 h-4 w-4" />Nuevo servicio
         </Button>
       </div>
 
       {mostrarNuevo && (
-        <div className="rounded-md border bg-slate-50 p-4 space-y-3">
+        <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label className="text-xs">Nombre *</Label>
@@ -94,7 +94,7 @@ export function ServiciosGestion({ servicios: inicial }: { servicios: Servicio[]
               <Input type="number" value={form.precio || ''}
                 onChange={e => setForm(p => ({ ...p, precio: parseFloat(e.target.value) || 0 }))} />
             </div>
-            <div className="space-y-1 col-span-2">
+            <div className="col-span-2 space-y-1">
               <Label className="text-xs">Descripción</Label>
               <Input value={form.descripcion} onChange={e => setForm(p => ({ ...p, descripcion: e.target.value }))} />
             </div>
@@ -110,7 +110,7 @@ export function ServiciosGestion({ servicios: inicial }: { servicios: Servicio[]
 
       <div className="space-y-2">
         {servicios.map(s => (
-          <div key={s.id} className={`rounded-md border p-3 ${!s.activo ? 'opacity-50' : ''}`}>
+          <div key={s.id} className={`rounded-lg border border-slate-200 p-3 ${!s.activo ? 'opacity-50' : ''}`}>
             {editandoId === s.id ? (
               <div className="space-y-2">
                 <div className="grid grid-cols-2 gap-2">
@@ -122,13 +122,13 @@ export function ServiciosGestion({ servicios: inicial }: { servicios: Servicio[]
                     className="h-8 text-sm" placeholder="Precio" />
                   <Input value={editForm.descripcion}
                     onChange={e => setEditForm(p => ({ ...p, descripcion: e.target.value }))}
-                    className="h-8 text-sm col-span-2" placeholder="Descripción" />
+                    className="col-span-2 h-8 text-sm" placeholder="Descripción" />
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => handleActualizar(s.id)} className="text-green-600 hover:text-green-800">
                     <Check className="h-4 w-4" />
                   </button>
-                  <button onClick={() => setEditandoId(null)} className="text-slate-400 hover:text-slate-600">
+                  <button onClick={() => setEditandoId(null)} className="text-steel-300 hover:text-steel-500">
                     <X className="h-4 w-4" />
                   </button>
                 </div>
@@ -137,20 +137,20 @@ export function ServiciosGestion({ servicios: inicial }: { servicios: Servicio[]
               <div className="flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">{s.nombre}</span>
+                    <span className="text-sm font-medium text-steel-900">{s.nombre}</span>
                     {!s.activo && <Badge variant="secondary" className="text-xs">Inactivo</Badge>}
                   </div>
-                  <div className="flex gap-3 mt-0.5">
-                    <span className="text-xs text-slate-500">${Number(s.precio).toLocaleString('es-CO')}</span>
-                    {s.descripcion && <span className="text-xs text-slate-400">{s.descripcion}</span>}
+                  <div className="mt-0.5 flex gap-3">
+                    <span className="text-xs text-steel-500">${Number(s.precio).toLocaleString('es-CO')}</span>
+                    {s.descripcion && <span className="text-xs text-steel-300">{s.descripcion}</span>}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => iniciarEdicion(s)} className="text-slate-400 hover:text-slate-700">
+                  <button onClick={() => iniciarEdicion(s)} className="text-steel-300 hover:text-steel-700">
                     <Pencil className="h-4 w-4" />
                   </button>
                   <button onClick={() => handleToggle(s)}
-                    className={`text-xs ${s.activo ? 'text-red-500 hover:text-red-700' : 'text-green-600 hover:text-green-800'}`}>
+                    className={`text-xs ${s.activo ? 'text-brand-red hover:text-brand-red' : 'text-green-600 hover:text-green-800'}`}>
                     {s.activo ? 'Desactivar' : 'Activar'}
                   </button>
                 </div>
@@ -159,7 +159,7 @@ export function ServiciosGestion({ servicios: inicial }: { servicios: Servicio[]
           </div>
         ))}
         {servicios.length === 0 && (
-          <p className="text-sm text-slate-400 text-center py-4">Sin servicios registrados</p>
+          <p className="py-4 text-center text-sm text-steel-300">Sin servicios registrados</p>
         )}
       </div>
     </div>

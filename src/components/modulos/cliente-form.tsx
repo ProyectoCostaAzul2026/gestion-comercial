@@ -132,7 +132,7 @@ export function ClienteForm({ cliente, onSuccess }: ClienteFormProps) {
       <div className="space-y-2">
         <Label htmlFor="nombre">Nombre *</Label>
         <Input id="nombre" value={form.nombre} onChange={(e) => handleChange('nombre', e.target.value)} />
-        {errors.nombre && <p className="text-xs text-red-500">{errors.nombre}</p>}
+        {errors.nombre && <p className="text-xs text-brand-red">{errors.nombre}</p>}
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -143,7 +143,7 @@ export function ClienteForm({ cliente, onSuccess }: ClienteFormProps) {
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input id="email" type="email" value={form.email} onChange={(e) => handleChange('email', e.target.value)} />
-          {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
+          {errors.email && <p className="text-xs text-brand-red">{errors.email}</p>}
         </div>
       </div>
 
@@ -171,7 +171,7 @@ export function ClienteForm({ cliente, onSuccess }: ClienteFormProps) {
           type="button"
           disabled={isDesactivando}
           onClick={handleDesactivar}
-          className={buttonVariants({ variant: 'outline', className: 'w-full border-red-200 text-red-600 hover:bg-red-50' })}
+          className={buttonVariants({ variant: 'outline', className: 'w-full border-brand-red/30 text-brand-red hover:bg-brand-red-soft' })}
         >
           {isDesactivando ? 'Desactivando...' : 'Desactivar cliente'}
         </button>

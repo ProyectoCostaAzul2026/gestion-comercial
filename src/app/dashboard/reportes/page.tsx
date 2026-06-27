@@ -168,7 +168,7 @@ export default async function ReportesPage({
   }
 
   // ── Flujo de caja por día o mes ──
-  const agruparPorMes = diasPeriodo > 30
+  const agruparPorMes = diasPeriodo > 90
   const flujoPorPeriodo: Record<string, { ingresos: number; egresos: number }> = {}
 
   for (const m of movimientosCaja ?? []) {

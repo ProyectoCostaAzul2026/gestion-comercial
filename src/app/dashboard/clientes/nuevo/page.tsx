@@ -11,12 +11,12 @@ export default async function NuevoClientePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="sticky top-0 z-10 border-b bg-white px-4 py-3">
+      <div className="sticky top-0 z-10 border-b border-slate-200 bg-white px-4 py-3">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/clientes" className="rounded-md border p-2 hover:bg-slate-50">
+          <Link href="/dashboard/clientes" className="rounded-lg border border-slate-200 p-2 hover:bg-slate-50">
             <ArrowLeft className="h-4 w-4" />
           </Link>
-          <h1 className="text-lg font-bold text-slate-900">Nuevo Cliente</h1>
+          <h1 className="font-display text-lg font-extrabold tracking-tight text-steel-900">Nuevo Cliente</h1>
         </div>
       </div>
       <div className="max-w-md p-4">

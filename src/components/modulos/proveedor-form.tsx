@@ -143,7 +143,7 @@ export function ProveedorForm({ proveedor }: ProveedorFormProps) {
       </Button>
       {esEdicion && (
         <button type="button" disabled={desactivando} onClick={handleDesactivar}
-          className={buttonVariants({ variant: 'outline', className: 'w-full border-red-200 text-red-600 hover:bg-red-50' })}>
+          className={buttonVariants({ variant: 'outline', className: 'w-full border-brand-red/30 text-brand-red hover:bg-brand-red-soft' })}>
           {desactivando ? 'Desactivando…' : 'Desactivar proveedor'}
         </button>
       )}

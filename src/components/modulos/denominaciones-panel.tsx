@@ -3,9 +3,10 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { AlertTriangle } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface FondoDenominacion {
   tipo: string
@@ -115,11 +116,11 @@ function FondoEditor({
   }
 
   return (
-    <div className="rounded-lg border bg-white p-4 space-y-3">
+    <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="font-semibold text-slate-900">{titulo}</h3>
-          <p className="text-xs text-slate-500">
+          <h3 className="font-display font-bold text-steel-900">{titulo}</h3>
+          <p className="text-xs text-steel-500">
             Monto inicial: {formatCOP(montoInicial)} · Actual: {formatCOP(totalActual)}
           </p>
         </div>
@@ -133,34 +134,34 @@ function FondoEditor({
       {modo === null && (
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-xs text-slate-500 border-b">
-              <th className="text-left pb-1">Denominación</th>
-              <th className="text-right pb-1">Cantidad</th>
-              <th className="text-right pb-1">Valor</th>
+            <tr className="border-b border-slate-100 text-xs text-steel-500">
+              <th className="pb-1 text-left">Denominación</th>
+              <th className="pb-1 text-right">Cantidad</th>
+              <th className="pb-1 text-right">Valor</th>
             </tr>
           </thead>
           <tbody>
             {denominaciones.map(d => {
               const cant = getCantidad(d)
               return (
-                <tr key={d} className="border-b last:border-0">
-                  <td className="py-1 text-slate-600">{formatCOP(d)}</td>
-                  <td className="py-1 text-right">{cant}</td>
-                  <td className="py-1 text-right font-medium">{formatCOP(cant * d)}</td>
+                <tr key={d} className="border-b border-slate-100 last:border-0">
+                  <td className="py-1 text-steel-700">{formatCOP(d)}</td>
+                  <td className="py-1 text-right text-steel-900">{cant}</td>
+                  <td className="py-1 text-right font-medium text-steel-900">{formatCOP(cant * d)}</td>
                 </tr>
               )
             })}
             {tipo === 'monedas' && (
-              <tr className="border-b">
-                <td className="py-1 text-slate-600">Billetes acumulados</td>
-                <td className="py-1 text-right text-slate-400">—</td>
-                <td className="py-1 text-right font-medium">{formatCOP(getBilletesActuales())}</td>
+              <tr className="border-b border-slate-100">
+                <td className="py-1 text-steel-700">Billetes acumulados</td>
+                <td className="py-1 text-right text-steel-300">—</td>
+                <td className="py-1 text-right font-medium text-steel-900">{formatCOP(getBilletesActuales())}</td>
               </tr>
             )}
             <tr className="font-bold">
-              <td className="pt-2">Total</td>
+              <td className="pt-2 text-steel-900">Total</td>
               <td></td>
-              <td className="pt-2 text-right">{formatCOP(totalActual)}</td>
+              <td className="pt-2 text-right text-steel-900">{formatCOP(totalActual)}</td>
             </tr>
           </tbody>
         </table>
@@ -169,7 +170,7 @@ function FondoEditor({
       {/* Editor */}
       {modo !== null && (
         <div className="space-y-3">
-          <p className="text-xs text-slate-600 bg-slate-50 rounded p-2">
+          <p className="rounded-lg bg-slate-50 p-2 text-xs text-steel-700">
             {modo === 'intercambio' && tipo === 'monedas' && 'Ingresa las nuevas cantidades de monedas. El valor restante se suma automáticamente a Billetes acumulados.'}
             {modo === 'intercambio' && tipo === 'sencillo' && 'Ajusta las cantidades de billetes. El total debe mantenerse en ' + formatCOP(montoInicial) + '.'}
             {modo === 'modificar' && 'Ajuste externo — ingresa los valores reales. El total debe ser exactamente ' + formatCOP(montoInicial) + '.'}
@@ -177,49 +178,49 @@ function FondoEditor({
 
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-xs text-slate-500 border-b">
-                <th className="text-left pb-1">Denominación</th>
-                <th className="text-right pb-1">Actual</th>
-                <th className="text-right pb-1">Nueva cant.</th>
-                <th className="text-right pb-1">Valor</th>
+              <tr className="border-b border-slate-100 text-xs text-steel-500">
+                <th className="pb-1 text-left">Denominación</th>
+                <th className="pb-1 text-right">Actual</th>
+                <th className="pb-1 text-right">Nueva cant.</th>
+                <th className="pb-1 text-right">Valor</th>
               </tr>
             </thead>
             <tbody>
               {denominaciones.map(d => (
-                <tr key={d} className="border-b last:border-0">
-                  <td className="py-1 text-slate-600">{formatCOP(d)}</td>
-                  <td className="py-1 text-right text-slate-400">{getCantidad(d)}</td>
+                <tr key={d} className="border-b border-slate-100 last:border-0">
+                  <td className="py-1 text-steel-700">{formatCOP(d)}</td>
+                  <td className="py-1 text-right text-steel-300">{getCantidad(d)}</td>
                   <td className="py-1 text-right">
                     <Input
                       type="number" min={0}
                       value={cantidades[d] ?? ''}
                       onChange={e => setCantidades(prev => ({ ...prev, [d]: parseInt(e.target.value) || 0 }))}
-                      className="w-20 h-7 text-xs text-right ml-auto"
+                      className="ml-auto h-7 w-20 text-right text-xs"
                     />
                   </td>
-                  <td className="py-1 text-right font-medium">{formatCOP((cantidades[d] ?? 0) * d)}</td>
+                  <td className="py-1 text-right font-medium text-steel-900">{formatCOP((cantidades[d] ?? 0) * d)}</td>
                 </tr>
               ))}
               {tipo === 'monedas' && (
-                <tr className="border-b">
-                  <td className="py-1 text-slate-600">Billetes acumulados</td>
-                  <td className="py-1 text-right text-slate-400">{formatCOP(getBilletesActuales())}</td>
+                <tr className="border-b border-slate-100">
+                  <td className="py-1 text-steel-700">Billetes acumulados</td>
+                  <td className="py-1 text-right text-steel-300">{formatCOP(getBilletesActuales())}</td>
                   <td className="py-1 text-right">
                     {modo === 'intercambio' ? (
-                      <span className="text-xs text-slate-500 block text-right">
+                      <span className="block text-right text-xs text-steel-500">
                         {formatCOP(billetesAcumulados + diferenciaBilletes)}
-                        <br /><span className="text-slate-400">(auto)</span>
+                        <br /><span className="text-steel-300">(auto)</span>
                       </span>
                     ) : (
                       <Input
                         type="number" min={0}
                         value={billetesAcumulados || ''}
                         onChange={e => setBilletesAcumulados(parseFloat(e.target.value) || 0)}
-                        className="w-24 h-7 text-xs text-right ml-auto"
+                        className="ml-auto h-7 w-24 text-right text-xs"
                       />
                     )}
                   </td>
-                  <td className="py-1 text-right font-medium">
+                  <td className="py-1 text-right font-medium text-steel-900">
                     {modo === 'intercambio'
                       ? formatCOP(billetesAcumulados + diferenciaBilletes)
                       : formatCOP(billetesAcumulados)}
@@ -227,7 +228,7 @@ function FondoEditor({
                 </tr>
               )}
               <tr className="font-bold">
-                <td className="pt-2">Total</td>
+                <td className="pt-2 text-steel-900">Total</td>
                 <td></td>
                 <td></td>
                 <td className={`pt-2 text-right ${Math.abs(totalEditor - montoInicial) > 0 ? 'text-amber-600' : 'text-green-700'}`}>
@@ -238,8 +239,8 @@ function FondoEditor({
           </table>
 
           {Math.abs(totalEditor - montoInicial) > 0 && modo === 'modificar' && (
-            <p className="text-xs text-red-600 bg-red-50 rounded p-2">
-              ⚠ El total ({formatCOP(totalEditor)}) debe ser exactamente {formatCOP(montoInicial)}.
+            <p className="flex items-center gap-1.5 rounded-lg bg-brand-red-soft p-2 text-xs text-brand-red">
+              <AlertTriangle className="h-3.5 w-3.5 shrink-0" /> El total ({formatCOP(totalEditor)}) debe ser exactamente {formatCOP(montoInicial)}.
             </p>
           )}
 
@@ -258,8 +259,10 @@ function FondoEditor({
 export function DenominacionesPanel({ fondos, config }: DenominacionesPanelProps) {
   return (
     <div className="space-y-4">
-      <h2 className="font-semibold text-slate-900">Fondos fijos</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <h2 className="flex items-center gap-2 font-display font-bold text-steel-900">
+        <span className="h-4 w-1 rounded-full bg-brand-yellow" />Fondos fijos
+      </h2>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <FondoEditor tipo="monedas" titulo="Monedas" montoInicial={config.monto_inicial_monedas} fondos={fondos} denominaciones={DENOMINACIONES_MONEDAS} />
         <FondoEditor tipo="sencillo" titulo="Sencillo" montoInicial={config.monto_inicial_sencillo} fondos={fondos} denominaciones={DENOMINACIONES_SENCILLO} />
       </div>

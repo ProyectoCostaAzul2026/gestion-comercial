@@ -52,10 +52,10 @@ export default async function ReciboPage({
   return (
     <div>
       <div className="mb-4 flex items-center gap-3 print:hidden">
-        <Link href={`/dashboard/ventas/${id}`} className="rounded-md border p-2 hover:bg-slate-50">
+        <Link href={`/dashboard/ventas/${id}`} className="rounded-lg border border-slate-200 p-2 hover:bg-slate-50">
           <ArrowLeft className="h-4 w-4" />
         </Link>
-        <h1 className="text-lg font-bold text-slate-900">Recibo — Ticket #{venta.numero_ticket}</h1>
+        <h1 className="font-display text-lg font-extrabold tracking-tight text-steel-900">Recibo — Ticket #{venta.numero_ticket}</h1>
       </div>
 
       <ReciboView

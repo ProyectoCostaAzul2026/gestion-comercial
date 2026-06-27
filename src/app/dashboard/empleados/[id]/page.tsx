@@ -82,35 +82,35 @@ export default async function PerfilEmpleadoPage({
   return (
     <div className="max-w-2xl space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/dashboard/empleados" className="rounded-md border p-2 hover:bg-slate-50">
+        <Link href="/dashboard/empleados" className="rounded-lg border border-slate-200 p-2 hover:bg-slate-50">
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-slate-900">{empleado.nombre_completo}</h1>
+            <h1 className="font-display text-xl font-extrabold tracking-tight text-steel-900">{empleado.nombre_completo}</h1>
             <Badge variant={empleado.activo ? 'default' : 'secondary'}>
               {empleado.activo ? 'Activo' : 'Inactivo'}
             </Badge>
           </div>
-          <p className="text-xs text-slate-500 capitalize">{empleado.rol}</p>
+          <p className="text-xs capitalize text-steel-500">{empleado.rol}</p>
         </div>
         <Link href={`/dashboard/empleados/${id}/editar`}
-          className="rounded-md border px-3 py-2 text-sm hover:bg-slate-50">
+          className="rounded-lg border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50">
           Editar
         </Link>
       </div>
 
       {/* Datos */}
-      <div className="rounded-lg border bg-white p-4">
-        <h2 className="mb-3 font-semibold text-slate-900">Información</h2>
+      <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <h2 className="mb-3 font-display font-bold text-steel-900">Información</h2>
         <dl className="grid grid-cols-2 gap-3 text-sm">
           <div>
-            <dt className="text-xs text-slate-500">Teléfono</dt>
-            <dd className="font-medium">{empleado.telefono ?? '—'}</dd>
+            <dt className="text-xs text-steel-500">Teléfono</dt>
+            <dd className="font-medium text-steel-900">{empleado.telefono ?? '—'}</dd>
           </div>
           <div>
-            <dt className="text-xs text-slate-500">Salario base diario</dt>
-            <dd className="font-medium">
+            <dt className="text-xs text-steel-500">Salario base diario</dt>
+            <dd className="font-medium text-steel-900">
               {empleado.salario_base
                 ? `$${Number(empleado.salario_base).toLocaleString('es-CO')}`
                 : '—'}
@@ -121,25 +121,25 @@ export default async function PerfilEmpleadoPage({
 
       {/* KPIs de ventas */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-lg border bg-white p-4">
-          <p className="text-xs text-slate-500">Ventas hoy</p>
-          <p className="mt-1 text-xl font-bold text-slate-900">
+        <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <p className="text-xs text-steel-500">Ventas hoy</p>
+          <p className="mt-1 font-display text-xl font-bold text-steel-900">
             ${totalVentasHoy.toLocaleString('es-CO')}
           </p>
-          <p className="text-xs text-slate-400">{numVentasHoy} transacciones</p>
+          <p className="text-xs text-steel-300">{numVentasHoy} transacciones</p>
         </div>
-        <div className="rounded-lg border bg-white p-4">
-          <p className="text-xs text-slate-500">Ventas este mes</p>
-          <p className="mt-1 text-xl font-bold text-slate-900">
+        <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <p className="text-xs text-steel-500">Ventas este mes</p>
+          <p className="mt-1 font-display text-xl font-bold text-steel-900">
             ${totalVentasMes.toLocaleString('es-CO')}
           </p>
-          <p className="text-xs text-slate-400">{numVentasMes} transacciones</p>
+          <p className="text-xs text-steel-300">{numVentasMes} transacciones</p>
         </div>
       </div>
 
       {/* Historial de ventas con filtros */}
-      <div className="rounded-lg border bg-white p-4">
-        <h2 className="mb-3 font-semibold text-slate-900">
+      <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <h2 className="mb-3 font-display font-bold text-steel-900">
           Ventas ({(ventas ?? []).length})
         </h2>
         <EmpleadoFiltros
@@ -149,11 +149,11 @@ export default async function PerfilEmpleadoPage({
           hastaValue={sp.venta_hasta ?? ''}
         />
         {(ventas ?? []).length === 0 ? (
-          <p className="text-sm text-slate-400 mt-3">Sin ventas en este período.</p>
+          <p className="mt-3 text-sm text-steel-300">Sin ventas en este período.</p>
         ) : (
           <Table className="mt-3">
             <TableHeader>
-              <TableRow>
+              <TableRow className="bg-slate-50">
                 <TableHead>Ticket</TableHead>
                 <TableHead>Fecha</TableHead>
                 <TableHead className="text-right">Total</TableHead>
@@ -166,13 +166,13 @@ export default async function PerfilEmpleadoPage({
                 <TableRow key={v.id}>
                   <TableCell>
                     <Link href={`/dashboard/ventas/${v.id}`}
-                      className="text-slate-600 hover:underline">
+                      className="text-brand-blue hover:underline">
                       #{v.numero_ticket}
                     </Link>
                   </TableCell>
-                  <TableCell className="text-slate-500">{v.fecha}</TableCell>
-                  <TableCell className="text-right">${Number(v.total).toLocaleString('es-CO')}</TableCell>
-                  <TableCell className="text-slate-500 capitalize">{v.tipo_pago}</TableCell>
+                  <TableCell className="text-steel-500">{v.fecha}</TableCell>
+                  <TableCell className="text-right text-steel-900">${Number(v.total).toLocaleString('es-CO')}</TableCell>
+                  <TableCell className="capitalize text-steel-500">{v.tipo_pago}</TableCell>
                   <TableCell>
                     <Badge variant={v.estado === 'anulada' ? 'destructive' : 'default'}>
                       {v.estado}
@@ -186,8 +186,8 @@ export default async function PerfilEmpleadoPage({
       </div>
 
       {/* Historial de nóminas con filtros */}
-      <div className="rounded-lg border bg-white p-4">
-        <h2 className="mb-3 font-semibold text-slate-900">
+      <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <h2 className="mb-3 font-display font-bold text-steel-900">
           Nóminas ({(nominas ?? []).length})
         </h2>
         <EmpleadoFiltros
@@ -197,11 +197,11 @@ export default async function PerfilEmpleadoPage({
           hastaValue={sp.nomina_hasta ?? ''}
         />
         {(nominas ?? []).length === 0 ? (
-          <p className="text-sm text-slate-400 mt-3">Sin nóminas en este período.</p>
+          <p className="mt-3 text-sm text-steel-300">Sin nóminas en este período.</p>
         ) : (
           <Table className="mt-3">
             <TableHeader>
-              <TableRow>
+              <TableRow className="bg-slate-50">
                 <TableHead>Fecha</TableHead>
                 <TableHead className="text-right">Horas</TableHead>
                 <TableHead className="text-right">Total pagado</TableHead>
@@ -211,11 +211,11 @@ export default async function PerfilEmpleadoPage({
             <TableBody>
               {(nominas ?? []).map(n => (
                 <TableRow key={n.id}>
-                  <TableCell className="text-slate-500">{n.periodo_inicio}</TableCell>
-                  <TableCell className="text-right text-slate-500">
+                  <TableCell className="text-steel-500">{n.periodo_inicio}</TableCell>
+                  <TableCell className="text-right text-steel-500">
                     {n.horas_trabajadas != null ? `${n.horas_trabajadas}h` : '—'}
                   </TableCell>
-                  <TableCell className="text-right font-medium">
+                  <TableCell className="text-right font-medium text-steel-900">
                     ${Number(n.total_pago).toLocaleString('es-CO')}
                   </TableCell>
                   <TableCell>

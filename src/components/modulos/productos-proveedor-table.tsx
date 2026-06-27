@@ -70,7 +70,8 @@ export function ProductosProveedorTable({
       if (error) throw error
 
       const rotacionMap: Record<string, number> = {}
-for (const r of (rotaciones as any[]) ?? []) {        rotacionMap[r.producto_id] = Number(r.rotacion_diaria)
+      for (const r of (rotaciones as any[]) ?? []) {
+        rotacionMap[r.producto_id] = Number(r.rotacion_diaria)
       }
 
       const items: ItemPedido[] = productos
@@ -79,7 +80,7 @@ for (const r of (rotaciones as any[]) ?? []) {        rotacionMap[r.producto_id]
           const rotacion = rotacionMap[pp.producto.id] ?? 0
           const stockTotal = pp.producto.stock_actual ?? 0
           const sugerida = Math.max(0, Math.ceil(rotacion * diasPedido) - stockTotal)
-                return {
+          return {
             id: pp.id,
             referencia_proveedor: pp.referencia_proveedor,
             nombre: pp.producto.nombre,
@@ -108,10 +109,10 @@ for (const r of (rotaciones as any[]) ?? []) {        rotacionMap[r.producto_id]
     doc.setFontSize(14)
     doc.text(`Lista de Pedido — ${proveedorNombre}`, 14, 15)
     doc.setFontSize(9)
-doc.text(`Generado: ${new Date().toLocaleDateString('es-CO')}`, 14, 21)
+    doc.text(`Generado: ${new Date().toLocaleDateString('es-CO')}`, 14, 21)
     autoTable(doc, {
       startY: 28,
-     head: [['Cód. proveedor', 'Nombre', 'Marca', 'Medida', 'Cant. a pedir']],
+      head: [['Cód. proveedor', 'Nombre', 'Marca', 'Medida', 'Cant. a pedir']],
       body: pedido
         .filter(p => p.cantidad_pedir > 0)
         .map(p => [
@@ -122,7 +123,7 @@ doc.text(`Generado: ${new Date().toLocaleDateString('es-CO')}`, 14, 21)
           String(p.cantidad_pedir),
         ]),
       styles: { fontSize: 8 },
-      headStyles: { fillColor: [15, 23, 42] },
+      headStyles: { fillColor: [24, 34, 43] },
       columnStyles: {
         0: { cellWidth: 30 },
         1: { cellWidth: 60 },
@@ -137,14 +138,15 @@ doc.text(`Generado: ${new Date().toLocaleDateString('es-CO')}`, 14, 21)
   }
 
   return (
-    <div className="rounded-lg border bg-white p-4 space-y-4">
+    <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold text-slate-900">
+        <h2 className="flex items-center gap-2 font-display font-bold text-steel-900">
+          <span className="h-4 w-1 rounded-full bg-brand-yellow" />
           Productos asociados ({productos.length})
         </h2>
         {!modoPedido && (
           <Button type="button" variant="outline" size="sm" onClick={() => setModoPedido(true)}>
-            <ShoppingCart className="h-4 w-4 mr-1" />
+            <ShoppingCart className="mr-1 h-4 w-4" />
             Hacer pedido
           </Button>
         )}
@@ -154,48 +156,48 @@ doc.text(`Generado: ${new Date().toLocaleDateString('es-CO')}`, 14, 21)
       {!modoPedido && (
         <>
           {productos.length === 0 ? (
-            <p className="text-sm text-slate-400">Sin productos asociados.</p>
+            <p className="text-sm text-steel-300">Sin productos asociados.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b text-xs text-slate-500">
-                    <th className="text-left pb-2 pr-3">Cód. proveedor</th>
-                    <th className="text-left pb-2 pr-3">Nombre</th>
-                    <th className="text-right pb-2 pr-3">Stock</th>
-                    <th className="text-right pb-2">Costo</th>
+                  <tr className="border-b border-slate-100 text-xs text-steel-500">
+                    <th className="pb-2 pr-3 text-left">Cód. proveedor</th>
+                    <th className="pb-2 pr-3 text-left">Nombre</th>
+                    <th className="pb-2 pr-3 text-right">Stock</th>
+                    <th className="pb-2 text-right">Costo</th>
                   </tr>
                 </thead>
                 <tbody>
                   {productos.map(pp => {
                     const stockBajo = pp.producto.stock_actual <= pp.producto.stock_minimo
                     return (
-                      <tr key={pp.id} className="border-b last:border-0">
-                        <td className="py-2 pr-3 text-slate-500 text-xs">
+                      <tr key={pp.id} className="border-b border-slate-100 last:border-0">
+                        <td className="py-2 pr-3 text-xs text-steel-500">
                           {pp.referencia_proveedor ?? '—'}
                         </td>
                         <td className="py-2 pr-3">
                           <div className="flex items-center gap-2">
-                            <span className={!pp.producto.activo ? 'text-slate-400' : ''}>
+                            <span className={!pp.producto.activo ? 'text-steel-300' : 'text-steel-900'}>
                               {pp.producto.nombre}
                             </span>
                             {pp.es_proveedor_principal && (
                               <Badge variant="secondary" className="text-xs">Principal</Badge>
                             )}
                             {!pp.producto.activo && (
-                              <span className="text-xs text-slate-400">(inactivo)</span>
+                              <span className="text-xs text-steel-300">(inactivo)</span>
                             )}
                           </div>
                         </td>
                         <td className="py-2 pr-3 text-right">
-                          <span className={stockBajo ? 'text-red-600 font-medium' : ''}>
+                          <span className={stockBajo ? 'font-medium text-brand-red' : 'text-steel-900'}>
                             {pp.producto.stock_actual}
                           </span>
                           {stockBajo && (
                             <Badge variant="destructive" className="ml-2 text-xs">Stock bajo</Badge>
                           )}
                         </td>
-                        <td className="py-2 text-right text-slate-600">
+                        <td className="py-2 text-right text-steel-700">
                           ${pp.precio_costo.toLocaleString('es-CO')}
                         </td>
                       </tr>
@@ -212,10 +214,10 @@ doc.text(`Generado: ${new Date().toLocaleDateString('es-CO')}`, 14, 21)
       {modoPedido && (
         <div className="space-y-4">
           {/* Configuración días */}
-          <div className="rounded-md bg-slate-50 border p-3 space-y-3">
+          <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
             <div className="flex flex-wrap items-end gap-3">
               <div className="space-y-1">
-                <label className="text-xs text-slate-600 font-medium">
+                <label className="text-xs font-medium text-steel-700">
                   Días hasta el próximo pedido
                 </label>
                 <Input
@@ -227,7 +229,7 @@ doc.text(`Generado: ${new Date().toLocaleDateString('es-CO')}`, 14, 21)
                     setDiasPedido(parseInt(e.target.value) || 0)
                     setCalculado(false)
                   }}
-                  className="w-24 h-8 text-sm"
+                  className="h-8 w-24 text-sm"
                 />
               </div>
               <Button
@@ -239,7 +241,7 @@ doc.text(`Generado: ${new Date().toLocaleDateString('es-CO')}`, 14, 21)
                 {calculando ? 'Calculando…' : calculado ? 'Recalcular' : 'Calcular cantidades'}
               </Button>
             </div>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-steel-300">
               Las cantidades sugeridas se calculan con base en la rotación promedio de los últimos 3 meses.
             </p>
           </div>
@@ -248,12 +250,12 @@ doc.text(`Generado: ${new Date().toLocaleDateString('es-CO')}`, 14, 21)
           {calculado && (
             <div className="space-y-2">
               {pedido.length === 0 ? (
-                <p className="text-sm text-slate-400 text-center py-4">
+                <p className="py-4 text-center text-sm text-steel-300">
                   Sin productos activos para este proveedor.
                 </p>
               ) : (
                 <>
-                  <div className="grid grid-cols-12 gap-2 text-xs text-slate-500 px-2 pb-1 border-b">
+                  <div className="grid grid-cols-12 gap-2 border-b border-slate-100 px-2 pb-1 text-xs text-steel-500">
                     <span className="col-span-1">Pos.</span>
                     <span className="col-span-3">Cód. proveedor</span>
                     <span className="col-span-4">Nombre</span>
@@ -262,38 +264,38 @@ doc.text(`Generado: ${new Date().toLocaleDateString('es-CO')}`, 14, 21)
                     <span className="col-span-1"></span>
                   </div>
                   {pedido.map((item, idx) => (
-                    <div key={item.id} className="grid grid-cols-12 gap-2 items-center rounded-md bg-white border p-2">
-                      <span className="col-span-1 text-xs text-slate-400 text-center">{item.posicion}</span>
-                      <span className="col-span-3 text-xs text-slate-500 truncate">
+                    <div key={item.id} className="grid grid-cols-12 items-center gap-2 rounded-lg border border-slate-200 bg-white p-2">
+                      <span className="col-span-1 text-center text-xs text-steel-300">{item.posicion}</span>
+                      <span className="col-span-3 truncate text-xs text-steel-500">
                         {item.referencia_proveedor ?? '—'}
                       </span>
                       <div className="col-span-4 min-w-0">
-                        <p className="text-sm font-medium truncate">{item.nombre}</p>
-                        <p className="text-xs text-slate-400">
+                        <p className="truncate text-sm font-medium text-steel-900">{item.nombre}</p>
+                        <p className="text-xs text-steel-300">
                           {item.marca ?? ''}{item.unidad_medida ? ` · ${item.unidad_medida}` : ''}
-                          {' · '}Stock: <span className={item.stock_actual <= item.stock_minimo ? 'text-red-600' : ''}>{item.stock_actual}</span>
+                          {' · '}Stock: <span className={item.stock_actual <= item.stock_minimo ? 'text-brand-red' : 'text-steel-500'}>{item.stock_actual}</span>
                         </p>
                       </div>
-                      <span className="col-span-2 text-right text-xs text-slate-500">
+                      <span className="col-span-2 text-right text-xs text-steel-500">
                         {item.rotacion_diaria > 0 ? item.rotacion_diaria.toFixed(2) : '—'}
                       </span>
                       <div className="col-span-1">
                         <Input
                           type="number"
                           min={0}
-value={item.cantidad_pedir === 0 ? 0 : item.cantidad_pedir}
+                          value={item.cantidad_pedir === 0 ? 0 : item.cantidad_pedir}
                           onFocus={e => e.target.select()}
                           onChange={e => setPedido(prev => prev.map((it, i) =>
                             i === idx ? { ...it, cantidad_pedir: parseInt(e.target.value) || 0 } : it
                           ))}
-                          className="w-full h-7 text-xs text-right"
+                          className="h-7 w-full text-right text-xs"
                         />
                       </div>
                       <div className="col-span-1 flex justify-end">
                         <button
                           type="button"
                           onClick={() => setPedido(prev => prev.filter((_, i) => i !== idx))}
-                          className="text-slate-300 hover:text-red-500"
+                          className="text-steel-300 hover:text-brand-red"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -308,7 +310,7 @@ value={item.cantidad_pedir === 0 ? 0 : item.cantidad_pedir}
           <div className="flex gap-2 pt-2">
             {calculado && pedido.some(p => p.cantidad_pedir > 0) && (
               <Button type="button" size="sm" onClick={generarPDF}>
-                <FileDown className="h-4 w-4 mr-1" />
+                <FileDown className="mr-1 h-4 w-4" />
                 Descargar PDF
               </Button>
             )}

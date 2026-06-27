@@ -138,8 +138,8 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy }: Horario
       <div className="flex gap-2">
         {(['semanal', 'empleado'] as const).map(v => (
           <button key={v} onClick={() => setVistaActiva(v)}
-            className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-              vistaActiva === v ? 'bg-slate-900 text-white' : 'border text-slate-600 hover:bg-slate-50'
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+              vistaActiva === v ? 'bg-steel-900 text-white' : 'border border-slate-200 text-steel-700 hover:bg-slate-50'
             }`}>
             {v === 'semanal' ? 'Vista semanal' : 'Por empleado'}
           </button>
@@ -147,18 +147,18 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy }: Horario
       </div>
 
       {vistaActiva === 'semanal' && (
-        <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-7">
           {DIAS.map(dia => {
             const esFestivo = esDomingoOFestivoNombre(dia, fechaHoy)
             return (
-              <div key={dia} className="rounded-lg border bg-white">
+              <div key={dia} className="rounded-xl border border-slate-200 bg-white">
                 <div
-                  className={`rounded-t-lg px-3 py-2 text-center text-sm font-semibold cursor-pointer transition-colors ${
+                  className={`cursor-pointer rounded-t-xl px-3 py-2 text-center text-sm font-semibold transition-colors ${
                     diaActivo === dia
-                      ? 'bg-slate-900 text-white'
+                      ? 'bg-steel-900 text-white'
                       : esFestivo
                       ? 'bg-amber-50 text-amber-700 hover:bg-amber-100'
-                      : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                      : 'bg-slate-50 text-steel-700 hover:bg-slate-100'
                   }`}
                   onClick={() => handleClickDia(dia)}
                 >
@@ -167,20 +167,20 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy }: Horario
                     <span className="block text-xs font-normal">Festivo</span>
                   )}
                 </div>
-                <div className="p-2 space-y-1 min-h-16">
+                <div className="min-h-16 space-y-1 p-2">
                   {turnosPorDia(dia).map(t => (
-                    <div key={t.id} className="rounded-md bg-slate-50 border px-2 py-1 text-xs">
+                    <div key={t.id} className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs">
                       <div className="flex items-start justify-between gap-1">
                         <div>
-                          <p className="font-medium text-slate-800 leading-tight">
+                          <p className="font-medium leading-tight text-steel-800">
                             {t.profiles?.nombre_completo?.split(' ')[0] ?? '?'}
                           </p>
-                          <p className="text-slate-500">{t.hora_inicio.slice(0, 5)} – {t.hora_fin.slice(0, 5)}</p>
+                          <p className="text-steel-500">{t.hora_inicio.slice(0, 5)} – {t.hora_fin.slice(0, 5)}</p>
                         </div>
                         {esAdmin && (
                           <button type="button" onClick={() => handleEliminarTurno(t.id)}
                             disabled={eliminando === t.id}
-                            className="text-slate-300 hover:text-red-500 shrink-0 mt-0.5">
+                            className="mt-0.5 shrink-0 text-steel-300 hover:text-brand-red">
                             <Trash2 className="h-3 w-3" />
                           </button>
                         )}
@@ -188,13 +188,13 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy }: Horario
                     </div>
                   ))}
                   {turnosPorDia(dia).length === 0 && (
-                    <p className="text-xs text-center text-slate-300 pt-2">Libre</p>
+                    <p className="pt-2 text-center text-xs text-steel-300">Libre</p>
                   )}
                 </div>
 
                 {esAdmin && diaActivo === dia && (
-                  <div className="border-t p-2 space-y-2 bg-slate-50 rounded-b-lg">
-                    <p className="text-xs font-medium text-slate-600">
+                  <div className="space-y-2 rounded-b-xl border-t border-slate-200 bg-slate-50 p-2">
+                    <p className="text-xs font-medium text-steel-700">
                       Agregar turno
                       {esFestivo && <span className="ml-1 text-amber-600">(Domingo/Festivo)</span>}
                     </p>
@@ -208,19 +208,19 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy }: Horario
                     </Select>
                     <div className="grid grid-cols-2 gap-1">
                       <div>
-                        <label className="text-xs text-slate-500">Inicio</label>
+                        <label className="text-xs text-steel-500">Inicio</label>
                         <input type="time" value={nuevoTurno.hora_inicio}
                           onChange={e => setNuevoTurno(p => ({ ...p, hora_inicio: e.target.value }))}
-                          className="w-full rounded border px-1 py-0.5 text-xs" />
+                          className="w-full rounded-lg border border-slate-200 px-1 py-0.5 text-xs" />
                       </div>
                       <div>
-                        <label className="text-xs text-slate-500">Fin</label>
+                        <label className="text-xs text-steel-500">Fin</label>
                         <input type="time" value={nuevoTurno.hora_fin}
                           onChange={e => setNuevoTurno(p => ({ ...p, hora_fin: e.target.value }))}
-                          className="w-full rounded border px-1 py-0.5 text-xs" />
+                          className="w-full rounded-lg border border-slate-200 px-1 py-0.5 text-xs" />
                       </div>
                     </div>
-                    <Button type="button" size="sm" className="w-full h-7 text-xs"
+                    <Button type="button" size="sm" className="h-7 w-full text-xs"
                       onClick={handleGuardarTurno} disabled={guardando}>
                       {guardando ? 'Guardando…' : 'Guardar'}
                     </Button>
@@ -238,21 +238,21 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy }: Horario
             const turnosEmp = turnos.filter(t => t.empleado_id === emp.id)
             const horasSemanales = horasPorEmpleado(emp.id)
             return (
-              <div key={emp.id} className="rounded-lg border bg-white p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-medium text-slate-900">{emp.nombre_completo}</h3>
+              <div key={emp.id} className="rounded-xl border border-slate-200 bg-white p-4">
+                <div className="mb-2 flex items-center justify-between">
+                  <h3 className="font-medium text-steel-900">{emp.nombre_completo}</h3>
                   <Badge variant="secondary">{horasSemanales.toFixed(1)}h / semana</Badge>
                 </div>
                 {turnosEmp.length === 0 ? (
-                  <p className="text-sm text-slate-400">Sin turnos asignados</p>
+                  <p className="text-sm text-steel-300">Sin turnos asignados</p>
                 ) : (
                   <div className="flex flex-wrap gap-2">
                     {DIAS.filter(d => turnosEmp.some(t => t.dia_semana === d)).map(dia =>
                       turnosEmp.filter(t => t.dia_semana === dia).map(t => (
-                        <div key={t.id} className="rounded-md bg-slate-50 border px-3 py-1.5 text-xs">
-                          <span className="font-medium text-slate-700">{DIAS_LABEL[dia]}</span>
-                          <span className="ml-2 text-slate-500">{t.hora_inicio.slice(0, 5)} – {t.hora_fin.slice(0, 5)}</span>
-                          <span className="ml-2 text-slate-400">({calcularHoras(t.hora_inicio, t.hora_fin).toFixed(1)}h)</span>
+                        <div key={t.id} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs">
+                          <span className="font-medium text-steel-700">{DIAS_LABEL[dia]}</span>
+                          <span className="ml-2 text-steel-500">{t.hora_inicio.slice(0, 5)} – {t.hora_fin.slice(0, 5)}</span>
+                          <span className="ml-2 text-steel-300">({calcularHoras(t.hora_inicio, t.hora_fin).toFixed(1)}h)</span>
                         </div>
                       ))
                     )}

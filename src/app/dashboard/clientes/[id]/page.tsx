@@ -51,19 +51,19 @@ export default async function PerfilClientePage({
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="sticky top-0 z-10 border-b bg-white px-4 py-3">
+      <div className="sticky top-0 z-10 border-b border-slate-200 bg-white px-4 py-3">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/clientes" className="rounded-md border p-2 hover:bg-slate-50">
+          <Link href="/dashboard/clientes" className="rounded-lg border border-slate-200 p-2 hover:bg-slate-50">
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <div>
-            <h1 className="text-lg font-bold text-slate-900">{cliente.nombre}</h1>
-            <p className="text-xs text-slate-500">Perfil del cliente</p>
+            <h1 className="font-display text-lg font-extrabold tracking-tight text-steel-900">{cliente.nombre}</h1>
+            <p className="text-xs text-steel-500">Perfil del cliente</p>
           </div>
         </div>
       </div>
 
-      <div className="max-w-2xl p-4 space-y-6">
+      <div className="max-w-2xl space-y-6 p-4">
 
         {/* Datos */}
         <dl className="space-y-3 text-sm">
@@ -74,9 +74,9 @@ export default async function PerfilClientePage({
             ['Dirección', cliente.direccion ?? '—'],
             ['Notas', cliente.notas ?? '—'],
           ].map(([label, value]) => (
-            <div key={label} className="flex justify-between gap-4 border-b pb-2">
-              <dt className="text-slate-500">{label}</dt>
-              <dd className="text-right font-medium text-slate-900">{value}</dd>
+            <div key={label} className="flex justify-between gap-4 border-b border-slate-100 pb-2">
+              <dt className="text-steel-500">{label}</dt>
+              <dd className="text-right font-medium text-steel-900">{value}</dd>
             </div>
           ))}
         </dl>
@@ -84,7 +84,7 @@ export default async function PerfilClientePage({
         {!cliente.es_cliente_generico && (
           <Link
             href={`/dashboard/clientes/${cliente.id}/editar`}
-            className="block w-full rounded-md bg-slate-900 px-4 py-2 text-center text-sm font-medium text-white hover:bg-slate-800"
+            className="block w-full rounded-lg bg-steel-900 px-4 py-2 text-center text-sm font-medium text-white hover:bg-steel-800"
           >
             Editar cliente
           </Link>
@@ -92,14 +92,14 @@ export default async function PerfilClientePage({
 
         {/* Deuda total */}
         {totalDeuda > 0 && (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4 flex items-center justify-between">
+          <div className="flex items-center justify-between rounded-xl border border-brand-red/30 bg-brand-red-soft p-4">
             <div>
-              <p className="text-sm font-semibold text-red-800">Saldo pendiente total</p>
-              <p className="text-xs text-red-600 mt-0.5">
+              <p className="text-sm font-semibold text-brand-red">Saldo pendiente total</p>
+              <p className="mt-0.5 text-xs text-brand-red">
                 {(creditos ?? []).filter((c: any) => c.estado !== 'pagado').length} crédito(s) activo(s)
               </p>
             </div>
-            <p className="text-2xl font-bold text-red-700">${totalDeuda.toLocaleString('es-CO')}</p>
+            <p className="font-display text-2xl font-bold text-brand-red">${totalDeuda.toLocaleString('es-CO')}</p>
           </div>
         )}
 
@@ -110,18 +110,19 @@ export default async function PerfilClientePage({
 
         {/* Historial de compras */}
         <div>
-          <h2 className="mb-3 text-sm font-semibold text-slate-900">
+          <h2 className="mb-3 flex items-center gap-2 font-display text-sm font-bold text-steel-900">
+            <span className="h-4 w-1 rounded-full bg-brand-yellow" />
             Historial de compras ({ventas?.length ?? 0})
           </h2>
           {(ventas ?? []).length === 0 ? (
-            <p className="rounded-lg border bg-slate-50 p-6 text-center text-sm text-slate-500">
+            <p className="rounded-xl border border-slate-200 bg-slate-50 p-6 text-center text-sm text-steel-500">
               Sin compras registradas.
             </p>
           ) : (
-            <div className="rounded-lg border bg-white">
+            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
               <Table>
                 <TableHeader>
-                  <TableRow>
+                  <TableRow className="bg-slate-50">
                     <TableHead>Ticket</TableHead>
                     <TableHead>Fecha</TableHead>
                     <TableHead className="text-right">Total</TableHead>
@@ -133,15 +134,15 @@ export default async function PerfilClientePage({
                   {(ventas ?? []).map((v: any) => (
                     <TableRow key={v.id}>
                       <TableCell>
-                        <Link href={`/dashboard/ventas/${v.id}`} className="font-medium hover:underline">
+                        <Link href={`/dashboard/ventas/${v.id}`} className="font-medium text-brand-blue hover:underline">
                           #{v.numero_ticket}
                         </Link>
                       </TableCell>
-                      <TableCell className="text-slate-500 text-sm">{v.fecha}</TableCell>
-                      <TableCell className="text-right font-medium">
+                      <TableCell className="text-sm text-steel-500">{v.fecha}</TableCell>
+                      <TableCell className="text-right font-medium text-steel-900">
                         ${Number(v.total).toLocaleString('es-CO')}
                       </TableCell>
-                      <TableCell className="text-slate-500 text-sm capitalize">{v.tipo_pago}</TableCell>
+                      <TableCell className="text-sm capitalize text-steel-500">{v.tipo_pago}</TableCell>
                       <TableCell>
                         <Badge variant={
                           v.estado === 'anulada' ? 'destructive' :

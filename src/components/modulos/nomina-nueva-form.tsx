@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { calcularPagoDia, horasPagarPorFecha, esDomingoOFestivo } from '@/lib/festivos-colombia'
+import { Sun } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 
@@ -121,8 +122,8 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
             onChange={e => setFecha(e.target.value)}
           />
           {esFestivo && (
-            <p className="text-xs text-amber-600">
-              ☀️ Domingo o festivo — jornada {horasEstandar}h pagadas
+            <p className="flex items-center gap-1 text-xs text-amber-600">
+              <Sun className="h-3.5 w-3.5" /> Domingo o festivo — jornada {horasEstandar}h pagadas
             </p>
           )}
         </div>
@@ -137,7 +138,7 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
             value={horasTrabajadas}
             onChange={e => setHorasTrabajadas(parseFloat(e.target.value) || 0)}
           />
-          <p className="text-xs text-slate-400">Máx: {horasEstandar}h este día</p>
+          <p className="text-xs text-steel-300">Máx: {horasEstandar}h este día</p>
         </div>
       </div>
 
@@ -152,13 +153,13 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
       </div>
 
       {/* Resumen de pago */}
-      <div className="rounded-md bg-slate-50 border p-3 space-y-1 text-sm">
+      <div className="space-y-1 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
         <div className="flex justify-between">
-          <span className="text-slate-500">
+          <span className="text-steel-500">
             Pago por {horasTrabajadas}h
             {horasTrabajadas < horasEstandar ? ` (${horasTrabajadas}/${horasEstandar}h)` : ' (completo)'}
           </span>
-          <span>${pagoDia.toLocaleString('es-CO')}</span>
+          <span className="text-steel-900">${pagoDia.toLocaleString('es-CO')}</span>
         </div>
         {bonificaciones > 0 && (
           <div className="flex justify-between text-green-700">
@@ -167,12 +168,12 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
           </div>
         )}
         {deducciones > 0 && (
-          <div className="flex justify-between text-red-600">
+          <div className="flex justify-between text-brand-red">
             <span>Deducciones</span>
             <span>-${deducciones.toLocaleString('es-CO')}</span>
           </div>
         )}
-        <div className="flex justify-between font-bold border-t pt-1 mt-1">
+        <div className="mt-1 flex justify-between border-t border-slate-100 pt-1 font-bold text-steel-900">
           <span>Total a pagar</span>
           <span>${totalPago.toLocaleString('es-CO')}</span>
         </div>

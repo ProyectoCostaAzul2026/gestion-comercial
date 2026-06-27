@@ -81,12 +81,12 @@ export default async function VentaDetallePage({
   return (
     <div className="max-w-2xl space-y-4">
       <div className="flex items-center gap-3">
-        <Link href="/dashboard/ventas" className="rounded-md border p-2 hover:bg-slate-50">
+        <Link href="/dashboard/ventas" className="rounded-lg border border-slate-200 p-2 hover:bg-slate-50">
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-slate-900">Ticket #{venta.numero_ticket}</h1>
+            <h1 className="font-display text-xl font-extrabold tracking-tight text-steel-900">Ticket #{venta.numero_ticket}</h1>
             <Badge variant={
               venta.estado === 'anulada' ? 'destructive' :
               venta.estado === 'modificada' ? 'secondary' : 'default'
@@ -95,11 +95,11 @@ export default async function VentaDetallePage({
                venta.estado === 'modificada' ? 'Modificada' : 'Completada'}
             </Badge>
           </div>
-          <p className="text-xs text-slate-500">{venta.fecha} · {venta.hora?.slice(0, 5)}</p>
+          <p className="text-xs text-steel-500">{venta.fecha} · {venta.hora?.slice(0, 5)}</p>
         </div>
         <Link
           href={`/dashboard/ventas/${id}/recibo`}
-          className="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-slate-50"
+          className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50"
         >
           <Printer className="h-4 w-4" />
           Recibo
@@ -107,44 +107,44 @@ export default async function VentaDetallePage({
       </div>
 
       {/* Info general */}
-      <div className="rounded-lg border bg-white p-4">
-        <h2 className="mb-3 font-semibold text-slate-900">Información general</h2>
+      <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <h2 className="mb-3 font-display font-bold text-steel-900">Información general</h2>
         <dl className="grid grid-cols-2 gap-3 text-sm">
           <div>
-            <dt className="text-xs text-slate-500">Cliente</dt>
-            <dd className="font-medium">{cliente?.nombre ?? '—'}</dd>
-            {cliente?.telefono && <dd className="text-xs text-slate-400">{cliente.telefono}</dd>}
+            <dt className="text-xs text-steel-500">Cliente</dt>
+            <dd className="font-medium text-steel-900">{cliente?.nombre ?? '—'}</dd>
+            {cliente?.telefono && <dd className="text-xs text-steel-300">{cliente.telefono}</dd>}
           </div>
           <div>
-            <dt className="text-xs text-slate-500">Empleado</dt>
-            <dd>{empleado?.nombre_completo ?? '—'}</dd>
+            <dt className="text-xs text-steel-500">Empleado</dt>
+            <dd className="text-steel-900">{empleado?.nombre_completo ?? '—'}</dd>
           </div>
           <div>
-            <dt className="text-xs text-slate-500">Tipo de pago</dt>
-            <dd>{METODO_LABEL[venta.tipo_pago] ?? venta.tipo_pago}</dd>
+            <dt className="text-xs text-steel-500">Tipo de pago</dt>
+            <dd className="text-steel-900">{METODO_LABEL[venta.tipo_pago] ?? venta.tipo_pago}</dd>
           </div>
           <div>
-            <dt className="text-xs text-slate-500">Factura electrónica</dt>
-            <dd>{venta.factura_electronica ? 'Sí' : 'No'}</dd>
+            <dt className="text-xs text-steel-500">Factura electrónica</dt>
+            <dd className="text-steel-900">{venta.factura_electronica ? 'Sí' : 'No'}</dd>
           </div>
           {venta.observaciones && (
             <div className="col-span-2">
-              <dt className="text-xs text-slate-500">Observaciones</dt>
-              <dd className="text-slate-700">{venta.observaciones}</dd>
+              <dt className="text-xs text-steel-500">Observaciones</dt>
+              <dd className="text-steel-700">{venta.observaciones}</dd>
             </div>
           )}
         </dl>
       </div>
 
       {/* Productos */}
-      <div className="rounded-lg border bg-white p-4">
-        <h2 className="mb-3 font-semibold text-slate-900">Productos</h2>
+      <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <h2 className="mb-3 font-display font-bold text-steel-900">Productos</h2>
         <div className="space-y-2">
           {(items ?? []).map((item) => (
-            <div key={item.id} className="flex items-start justify-between border-b py-2 last:border-0 text-sm">
+            <div key={item.id} className="flex items-start justify-between border-b border-slate-100 py-2 text-sm last:border-0">
               <div>
-                <p className="font-medium">{item.nombre_producto}</p>
-                <p className="text-xs text-slate-500">
+                <p className="font-medium text-steel-900">{item.nombre_producto}</p>
+                <p className="text-xs text-steel-500">
                   {item.es_fraccionado
                     ? `${item.cantidad_fraccion} (fraccionado)`
                     : `${item.cantidad} × $${Number(item.precio_unitario).toLocaleString('es-CO')}`}
@@ -155,31 +155,31 @@ export default async function VentaDetallePage({
                   )}
                 </p>
                 {esAdmin && Number(item.iva_unitario) > 0 && (
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-steel-300">
                     IVA: ${Math.round(Number(item.iva_unitario) * item.cantidad).toLocaleString('es-CO')} (informativo)
                   </p>
                 )}
               </div>
-              <p className="shrink-0 font-medium">
+              <p className="shrink-0 font-medium text-steel-900">
                 ${Number(item.subtotal_linea).toLocaleString('es-CO')}
               </p>
             </div>
           ))}
           {(items ?? []).length === 0 && (
-            <p className="text-sm text-slate-400">Sin productos</p>
+            <p className="text-sm text-steel-300">Sin productos</p>
           )}
         </div>
       </div>
 
       {/* Servicios */}
       {(servicios ?? []).length > 0 && (
-        <div className="rounded-lg border bg-white p-4">
-          <h2 className="mb-3 font-semibold text-slate-900">Servicios</h2>
+        <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <h2 className="mb-3 font-display font-bold text-steel-900">Servicios</h2>
           <div className="space-y-2">
             {servicios!.map((s) => (
-              <div key={s.id} className="flex justify-between border-b py-2 last:border-0 text-sm">
-                <span>{s.nombre_servicio}</span>
-                <span className="font-medium">${Number(s.precio_aplicado).toLocaleString('es-CO')}</span>
+              <div key={s.id} className="flex justify-between border-b border-slate-100 py-2 text-sm last:border-0">
+                <span className="text-steel-900">{s.nombre_servicio}</span>
+                <span className="font-medium text-steel-900">${Number(s.precio_aplicado).toLocaleString('es-CO')}</span>
               </div>
             ))}
           </div>
@@ -187,15 +187,15 @@ export default async function VentaDetallePage({
       )}
 
       {/* Pagos */}
-      <div className="rounded-lg border bg-white p-4">
-        <h2 className="mb-3 font-semibold text-slate-900">Pagos</h2>
+      <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <h2 className="mb-3 font-display font-bold text-steel-900">Pagos</h2>
         <div className="space-y-2">
           {(pagos ?? []).map((p) => (
-            <div key={p.id} className="flex items-start justify-between border-b py-2 last:border-0 text-sm">
+            <div key={p.id} className="flex items-start justify-between border-b border-slate-100 py-2 text-sm last:border-0">
               <div>
-                <p className="font-medium">{METODO_LABEL[p.metodo] ?? p.metodo}</p>
+                <p className="font-medium text-steel-900">{METODO_LABEL[p.metodo] ?? p.metodo}</p>
                 {p.monto_recibido != null && (
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-steel-500">
                     Recibido: ${Number(p.monto_recibido).toLocaleString('es-CO')}
                     {Number(p.vueltas ?? 0) > 0 && (
                       <> · Vueltas: <span className="text-green-700">${Number(p.vueltas).toLocaleString('es-CO')}</span></>
@@ -203,18 +203,18 @@ export default async function VentaDetallePage({
                   </p>
                 )}
               </div>
-              <span className="font-medium">${Number(p.monto).toLocaleString('es-CO')}</span>
+              <span className="font-medium text-steel-900">${Number(p.monto).toLocaleString('es-CO')}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Totales */}
-      <div className="rounded-lg border bg-white p-4">
+      <div className="rounded-xl border border-slate-200 bg-white p-4">
         <dl className="space-y-2 text-sm">
           <div className="flex justify-between">
-            <dt className="text-slate-500">Subtotal</dt>
-            <dd>${Number(venta.subtotal).toLocaleString('es-CO')}</dd>
+            <dt className="text-steel-500">Subtotal</dt>
+            <dd className="text-steel-900">${Number(venta.subtotal).toLocaleString('es-CO')}</dd>
           </div>
           {Number(venta.total_descuentos) > 0 && (
             <div className="flex justify-between text-green-700">
@@ -223,18 +223,18 @@ export default async function VentaDetallePage({
             </div>
           )}
           {Number(venta.total_iva) > 0 && (
-            <div className="flex justify-between text-xs text-slate-400">
+            <div className="flex justify-between text-xs text-steel-300">
               <dt>IVA incluido (informativo)</dt>
               <dd>${Number(venta.total_iva).toLocaleString('es-CO')}</dd>
             </div>
           )}
           {Number(venta.monto_devolucion ?? 0) > 0 && (
-            <div className="flex justify-between text-red-600">
+            <div className="flex justify-between text-brand-red">
               <dt>Monto devuelto</dt>
               <dd>-${Number(venta.monto_devolucion).toLocaleString('es-CO')}</dd>
             </div>
           )}
-          <div className="flex justify-between border-t pt-2 text-base font-bold">
+          <div className="flex justify-between border-t border-slate-100 pt-2 text-base font-bold text-steel-900">
             <dt>Total</dt>
             <dd>${Number(venta.total).toLocaleString('es-CO')}</dd>
           </div>
@@ -243,22 +243,22 @@ export default async function VentaDetallePage({
 
       {/* Historial devoluciones */}
       {(devoluciones ?? []).length > 0 && (
-        <div className="rounded-lg border bg-white p-4">
-          <h2 className="mb-3 font-semibold text-slate-900">Historial de ajustes</h2>
+        <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <h2 className="mb-3 font-display font-bold text-steel-900">Historial de ajustes</h2>
           <div className="space-y-2">
             {devoluciones!.map((d) => (
-              <div key={d.id} className="rounded-md bg-slate-50 p-3 text-sm space-y-1">
+              <div key={d.id} className="space-y-1 rounded-lg bg-slate-50 p-3 text-sm">
                 <div className="flex items-center justify-between">
                   <Badge variant={d.tipo === 'total' ? 'destructive' : 'secondary'} className="text-xs">
                     {d.tipo === 'total' ? 'Devolución total' : d.tipo === 'parcial' ? 'Devolución parcial' : 'Cambio'}
                   </Badge>
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-steel-300">
                     {new Date(d.created_at).toLocaleDateString('es-CO')}
                   </span>
                 </div>
-                <p className="text-slate-600">{d.observacion}</p>
+                <p className="text-steel-700">{d.observacion}</p>
                 {Number(d.monto_devuelto) > 0 && (
-                  <p className="text-xs text-red-600">Devuelto: ${Number(d.monto_devuelto).toLocaleString('es-CO')}</p>
+                  <p className="text-xs text-brand-red">Devuelto: ${Number(d.monto_devuelto).toLocaleString('es-CO')}</p>
                 )}
                 {Number(d.monto_cobrado) > 0 && (
                   <p className="text-xs text-green-700">Cobrado adicional: ${Number(d.monto_cobrado).toLocaleString('es-CO')}</p>

@@ -127,7 +127,7 @@ export function EmpleadoForm({ empleado }: EmpleadoFormProps) {
             onChange={e => handleChange('email', e.target.value)}
             placeholder="correo@ejemplo.com"
           />
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-steel-500">
             Se enviará una invitación a este correo para que el empleado establezca su contraseña.
           </p>
         </div>
@@ -189,7 +189,7 @@ export function EmpleadoForm({ empleado }: EmpleadoFormProps) {
           placeholder="https://ejemplo.com/foto.jpg"
         />
         {form.foto_url && (
-          <img src={form.foto_url} alt="Foto" className="h-16 w-16 rounded-full border object-cover" />
+          <img src={form.foto_url} alt="Foto" className="h-16 w-16 rounded-full border border-slate-200 object-cover" />
         )}
       </div>
 
@@ -214,7 +214,7 @@ export function EmpleadoForm({ empleado }: EmpleadoFormProps) {
             type="button"
             disabled={accionando}
             onClick={handleDesactivar}
-            className={buttonVariants({ variant: 'outline', className: 'w-full border-red-200 text-red-600 hover:bg-red-50' })}
+            className={buttonVariants({ variant: 'outline', className: 'w-full border-brand-red/30 text-brand-red hover:bg-brand-red-soft' })}
           >
             {accionando ? 'Desactivando…' : 'Desactivar empleado'}
           </button>

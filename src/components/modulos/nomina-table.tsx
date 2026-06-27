@@ -166,8 +166,8 @@ export function NominaTable({
       <div className="flex gap-2">
         {(['hoy', 'historial'] as const).map(tab => (
           <button key={tab} onClick={() => setTabActiva(tab)}
-            className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-              tabActiva === tab ? 'bg-slate-900 text-white' : 'border text-slate-600 hover:bg-slate-50'
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+              tabActiva === tab ? 'bg-steel-900 text-white' : 'border border-slate-200 text-steel-700 hover:bg-slate-50'
             }`}>
             {tab === 'hoy' ? 'Pago de hoy' : 'Historial'}
           </button>
@@ -177,20 +177,20 @@ export function NominaTable({
       {tabActiva === 'hoy' && (
         <div className="space-y-3">
           {empleadosEnTurno.length === 0 && (
-            <div className="rounded-lg border bg-white p-6 text-center text-sm text-slate-400">
+            <div className="rounded-xl border border-slate-200 bg-white p-6 text-center text-sm text-steel-300">
               No hay empleados con turno asignado para hoy ({fechaHoy})
             </div>
           )}
 
           {pendientes.length > 0 && (
-            <div className="rounded-lg border bg-white p-4">
+            <div className="rounded-xl border border-slate-200 bg-white p-4">
               {!confirmandoTodos ? (
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-slate-900">
+                    <p className="text-sm font-medium text-steel-900">
                       {pendientes.length} empleado{pendientes.length !== 1 ? 's' : ''} en turno pendiente{pendientes.length !== 1 ? 's' : ''}
                     </p>
-                    <p className="text-xs text-slate-500">Total: ${totalPagarTodos.toLocaleString('es-CO')}</p>
+                    <p className="text-xs text-steel-500">Total: ${totalPagarTodos.toLocaleString('es-CO')}</p>
                   </div>
                   <Button onClick={() => setConfirmandoTodos(true)} disabled={pagandoTodos}>
                     Pagar a todos
@@ -198,15 +198,15 @@ export function NominaTable({
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-sm font-medium">¿Confirmas el pago para {pendientes.length} empleados en turno?</p>
-                  <ul className="text-xs text-slate-600 space-y-0.5">
+                  <p className="text-sm font-medium text-steel-900">¿Confirmas el pago para {pendientes.length} empleados en turno?</p>
+                  <ul className="space-y-0.5 text-xs text-steel-700">
                     {pendientes.map(e => (
                       <li key={e.id} className="flex justify-between">
                         <span>{e.nombre_completo} · {getMetodo(e.id)}</span>
                         <span>${e.pagoSugerido.toLocaleString('es-CO')}</span>
                       </li>
                     ))}
-                    <li className="flex justify-between font-bold border-t pt-1 mt-1">
+                    <li className="mt-1 flex justify-between border-t border-slate-100 pt-1 font-bold">
                       <span>Total</span><span>${totalPagarTodos.toLocaleString('es-CO')}</span>
                     </li>
                   </ul>
@@ -221,10 +221,10 @@ export function NominaTable({
             </div>
           )}
 
-          <div className="rounded-lg border bg-white">
+          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="bg-slate-50">
                   <TableHead>Empleado</TableHead>
                   <TableHead className="text-right">Salario base</TableHead>
                   <TableHead className="text-right">Horas hoy</TableHead>
@@ -237,19 +237,19 @@ export function NominaTable({
               <TableBody>
                 {empleadosEnTurno.map(e => (
                   <TableRow key={e.id}>
-                    <TableCell className="font-medium">{e.nombre_completo}</TableCell>
-                    <TableCell className="text-right">${e.salario_base.toLocaleString('es-CO')}</TableCell>
-                    <TableCell className="text-right text-slate-500">
+                    <TableCell className="font-medium text-steel-900">{e.nombre_completo}</TableCell>
+                    <TableCell className="text-right text-steel-900">${e.salario_base.toLocaleString('es-CO')}</TableCell>
+                    <TableCell className="text-right text-steel-500">
                       {e.horasTurno != null ? `${e.horasTurno.toFixed(1)}h / ${horasEstandarHoy}h` : 'Sin turno'}
                     </TableCell>
-                    <TableCell className="text-right font-medium">${e.pagoSugerido.toLocaleString('es-CO')}</TableCell>
+                    <TableCell className="text-right font-medium text-steel-900">${e.pagoSugerido.toLocaleString('es-CO')}</TableCell>
                     <TableCell>
                       {!e.nominaHoy && (
                         <Select
                           items={METODOS_NOMINA}
                           value={getMetodo(e.id)}
                           onValueChange={v => v && setMetodosPago(prev => ({ ...prev, [e.id]: v }))}>
-                          <SelectTrigger className="w-40 h-8 text-xs"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="h-8 w-40 text-xs"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             {METODOS_NOMINA.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
                           </SelectContent>
@@ -263,16 +263,16 @@ export function NominaTable({
                     </TableCell>
                     <TableCell className="text-right">
                       {e.nominaHoy ? (
-                        <span className="text-xs text-slate-400">${Number(e.nominaHoy.total_pago).toLocaleString('es-CO')}</span>
+                        <span className="text-xs text-steel-300">${Number(e.nominaHoy.total_pago).toLocaleString('es-CO')}</span>
                       ) : confirmandoEmpleado === e.id ? (
                         <div className="flex items-center justify-end gap-2">
-                          <span className="text-xs text-slate-600">¿Confirmar ${e.pagoSugerido.toLocaleString('es-CO')}?</span>
-                          <button onClick={() => handlePagarUno(e.id)} className="text-xs text-green-700 font-medium hover:underline">Sí</button>
-                          <button onClick={() => setConfirmandoEmpleado(null)} className="text-xs text-slate-500 hover:underline">No</button>
+                          <span className="text-xs text-steel-700">¿Confirmar ${e.pagoSugerido.toLocaleString('es-CO')}?</span>
+                          <button onClick={() => handlePagarUno(e.id)} className="text-xs font-medium text-green-700 hover:underline">Sí</button>
+                          <button onClick={() => setConfirmandoEmpleado(null)} className="text-xs text-steel-500 hover:underline">No</button>
                         </div>
                       ) : (
                         <button onClick={() => setConfirmandoEmpleado(e.id)}
-                          className="text-sm text-slate-600 hover:text-slate-900 hover:underline">
+                          className="text-sm text-brand-blue hover:underline">
                           Pagar
                         </button>
                       )}
@@ -281,7 +281,7 @@ export function NominaTable({
                 ))}
                 {empleadosEnTurno.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-slate-400 py-8">Sin empleados en turno hoy</TableCell>
+                    <TableCell colSpan={7} className="py-8 text-center text-steel-300">Sin empleados en turno hoy</TableCell>
                   </TableRow>
                 )}
               </TableBody>
@@ -294,23 +294,23 @@ export function NominaTable({
         <div className="space-y-3">
           <div className="flex flex-wrap gap-3">
             <div className="space-y-1">
-              <label className="text-xs text-slate-500">Desde</label>
+              <label className="text-xs text-steel-500">Desde</label>
               <Input type="date" value={filtroFechaDesde} onChange={e => setFiltroFechaDesde(e.target.value)} className="w-36" />
             </div>
             <div className="space-y-1">
-              <label className="text-xs text-slate-500">Hasta</label>
+              <label className="text-xs text-steel-500">Hasta</label>
               <Input type="date" value={filtroFechaHasta} onChange={e => setFiltroFechaHasta(e.target.value)} className="w-36" />
             </div>
             <div className="space-y-1">
-              <label className="text-xs text-slate-500">Empleado</label>
+              <label className="text-xs text-steel-500">Empleado</label>
               <Input placeholder="Buscar…" value={filtroEmpleado} onChange={e => setFiltroEmpleado(e.target.value)} className="w-48" />
             </div>
           </div>
-          <div className="rounded-lg border bg-white">
+          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
             <div className="max-h-96 overflow-y-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
+                  <TableRow className="bg-slate-50">
                     <TableHead>Empleado</TableHead>
                     <TableHead>Fecha</TableHead>
                     <TableHead className="text-right">Horas</TableHead>
@@ -323,17 +323,17 @@ export function NominaTable({
                 <TableBody>
                   {historialFiltrado.map(n => (
                     <TableRow key={n.id}>
-                      <TableCell className="font-medium">{n.profiles?.nombre_completo ?? '—'}</TableCell>
-                      <TableCell className="text-slate-500">{n.periodo_inicio}</TableCell>
-                      <TableCell className="text-right text-slate-500">{n.horas_trabajadas != null ? `${n.horas_trabajadas}h` : '—'}</TableCell>
-                      <TableCell className="text-right">${Number(n.salario_base).toLocaleString('es-CO')}</TableCell>
+                      <TableCell className="font-medium text-steel-900">{n.profiles?.nombre_completo ?? '—'}</TableCell>
+                      <TableCell className="text-steel-500">{n.periodo_inicio}</TableCell>
+                      <TableCell className="text-right text-steel-500">{n.horas_trabajadas != null ? `${n.horas_trabajadas}h` : '—'}</TableCell>
+                      <TableCell className="text-right text-steel-900">${Number(n.salario_base).toLocaleString('es-CO')}</TableCell>
                       <TableCell className="text-right text-green-700">{Number(n.bonificaciones) > 0 ? `+$${Number(n.bonificaciones).toLocaleString('es-CO')}` : '—'}</TableCell>
-                      <TableCell className="text-right text-red-600">{Number(n.deducciones) > 0 ? `-$${Number(n.deducciones).toLocaleString('es-CO')}` : '—'}</TableCell>
-                      <TableCell className="text-right font-bold">${Number(n.total_pago).toLocaleString('es-CO')}</TableCell>
+                      <TableCell className="text-right text-brand-red">{Number(n.deducciones) > 0 ? `-$${Number(n.deducciones).toLocaleString('es-CO')}` : '—'}</TableCell>
+                      <TableCell className="text-right font-bold text-steel-900">${Number(n.total_pago).toLocaleString('es-CO')}</TableCell>
                     </TableRow>
                   ))}
                   {historialFiltrado.length === 0 && (
-                    <TableRow><TableCell colSpan={7} className="text-center text-slate-400 py-8">Sin registros</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={7} className="py-8 text-center text-steel-300">Sin registros</TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>

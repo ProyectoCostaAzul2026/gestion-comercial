@@ -47,7 +47,6 @@ export function AgotadosTable({ productos, proveedores }: Props) {
   const [calculando, setCalculando] = useState(false)
   const [confirmando, setConfirmando] = useState(false)
 
-  // ✅ Change 1: expanded listaPedido interface
   const [listaPedido, setListaPedido] = useState<{
     id: string
     codigo: string
@@ -91,7 +90,6 @@ export function AgotadosTable({ productos, proveedores }: Props) {
         rotacionMap[r.producto_id] = Number(r.rotacion_diaria)
       }
 
-      // ✅ Change 2: include marca, unidad_medida, stock_bodega, stock_almacen
       const lista = filtrados.map(p => ({
         id: p.id,
         codigo: p.codigo,
@@ -124,7 +122,6 @@ export function AgotadosTable({ productos, proveedores }: Props) {
     doc.setFontSize(9)
     doc.text(`Generado: ${new Date().toLocaleDateString('es-CO')}`, 14, 21)
 
-    // ✅ Change 3: updated autoTable columns
     autoTable(doc, {
       startY: 28,
       head: [['Cód. proveedor', 'Nombre', 'Marca', 'Medida', 'Cant. a pedir']],
@@ -136,7 +133,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
         String(p.cantidad_pedir),
       ]),
       styles: { fontSize: 8 },
-      headStyles: { fillColor: [15, 23, 42] },
+      headStyles: { fillColor: [24, 34, 43] },
       columnStyles: {
         0: { cellWidth: 30 },
         1: { cellWidth: 70 },
@@ -208,18 +205,18 @@ export function AgotadosTable({ productos, proveedores }: Props) {
 
         <div className="flex items-end gap-2">
           <div className="space-y-1">
-            <label className="text-xs text-slate-500">Días próximo pedido</label>
+            <label className="text-xs text-steel-500">Días próximo pedido</label>
             <input
               type="number"
               min={1}
               value={diasPedido || ''}
               onFocus={e => e.target.select()}
               onChange={e => setDiasPedido(parseInt(e.target.value) || 0)}
-              className="w-20 h-9 rounded-md border border-slate-300 px-2 text-sm"
+              className="h-9 w-20 rounded-lg border border-slate-300 px-2 text-sm"
             />
           </div>
           {filtroProveedor === 'todos' ? (
-            <p className="text-xs text-amber-600 self-center">
+            <p className="self-center text-xs text-amber-600">
               Selecciona un proveedor para imprimir lista
             </p>
           ) : (
@@ -227,7 +224,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
               type="button"
               onClick={handleCalcularPedido}
               disabled={calculando || diasPedido <= 0}
-              className="inline-flex items-center justify-center rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-steel-700 hover:bg-slate-50 disabled:opacity-50"
             >
               {calculando ? 'Calculando…' : 'Imprimir Lista'}
             </button>
@@ -235,10 +232,10 @@ export function AgotadosTable({ productos, proveedores }: Props) {
         </div>
       </div>
 
-      <div className="rounded-lg border bg-white">
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-slate-50">
               <TableHead>Código</TableHead>
               <TableHead>Nombre</TableHead>
               <TableHead>Medida</TableHead>
@@ -257,48 +254,47 @@ export function AgotadosTable({ productos, proveedores }: Props) {
                 className="cursor-pointer hover:bg-slate-50"
                 onClick={() => router.push(`/dashboard/inventario/${producto.id}`)}
               >
-                <TableCell className="text-slate-500 text-xs">{producto.codigo}</TableCell>
-                <TableCell className="font-medium">{producto.nombre}</TableCell>
-                <TableCell className="text-slate-500">{producto.unidad_medida ?? '—'}</TableCell>
-                <TableCell className="text-slate-500">{producto.marca ?? '—'}</TableCell>
+                <TableCell className="text-xs text-steel-500">{producto.codigo}</TableCell>
+                <TableCell className="font-medium text-steel-900">{producto.nombre}</TableCell>
+                <TableCell className="text-steel-500">{producto.unidad_medida ?? '—'}</TableCell>
+                <TableCell className="text-steel-500">{producto.marca ?? '—'}</TableCell>
                 <TableCell>
                   <Badge variant={producto.stock_actual <= 0 ? 'destructive' : 'secondary'}>
                     {producto.stock_actual <= 0 ? 'Agotado' : 'Stock bajo'}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-right">{producto.stock_actual}</TableCell>
-                <TableCell className="text-slate-500">{PRIORIDAD_LABEL[producto.prioridad] ?? producto.prioridad}</TableCell>
-                <TableCell className="text-slate-500">{producto.proveedor1 ?? '—'}</TableCell>
-                <TableCell className="text-slate-500">{producto.proveedor2 ?? '—'}</TableCell>
+                <TableCell className="text-right text-steel-900">{producto.stock_actual}</TableCell>
+                <TableCell className="text-steel-500">{PRIORIDAD_LABEL[producto.prioridad] ?? producto.prioridad}</TableCell>
+                <TableCell className="text-steel-500">{producto.proveedor1 ?? '—'}</TableCell>
+                <TableCell className="text-steel-500">{producto.proveedor2 ?? '—'}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
         {filtrados.length === 0 && (
-          <p className="p-8 text-center text-sm text-slate-500">No hay productos en bajo stock con estos filtros.</p>
+          <p className="p-8 text-center text-sm text-steel-500">No hay productos en bajo stock con estos filtros.</p>
         )}
       </div>
 
       {/* Panel confirmación pedido */}
       {confirmando && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg border shadow-lg p-6 max-w-2xl w-full mx-4 space-y-4 max-h-[80vh] overflow-y-auto">
-            <h3 className="font-semibold text-slate-900">
+          <div className="mx-4 max-h-[80vh] w-full max-w-2xl space-y-4 overflow-y-auto rounded-xl border border-slate-200 bg-white p-6 shadow-lg">
+            <h3 className="font-display font-bold text-steel-900">
               Vista previa — Lista de Pedido · {proveedores.find(p => p.id === filtroProveedor)?.nombre ?? ''}
             </h3>
-            <p className="text-xs text-slate-500">Días proyectados: {diasPedido}</p>
+            <p className="text-xs text-steel-500">Días proyectados: {diasPedido}</p>
             <table className="w-full text-xs">
-              {/* ✅ Change 4: updated preview thead and tbody */}
               <thead>
-                <tr className="border-b text-slate-500">
-                  <th className="text-left pb-1">Cód. proveedor</th>
-                  <th className="text-left pb-1">Nombre</th>
-                  <th className="text-left pb-1">Marca</th>
-                  <th className="text-left pb-1">Medida</th>
-                  <th className="text-right pb-1">
+                <tr className="border-b border-slate-100 text-steel-500">
+                  <th className="pb-1 text-left">Cód. proveedor</th>
+                  <th className="pb-1 text-left">Nombre</th>
+                  <th className="pb-1 text-left">Marca</th>
+                  <th className="pb-1 text-left">Medida</th>
+                  <th className="pb-1 text-right">
                     <input
                       type="number"
-                      className="w-16 border rounded px-1 text-right"
+                      className="w-16 rounded border border-slate-200 px-1 text-right"
                       value={diasPedido || ''}
                       onFocus={e => e.target.select()}
                       onChange={e => {
@@ -316,11 +312,11 @@ export function AgotadosTable({ productos, proveedores }: Props) {
               </thead>
               <tbody>
                 {listaPedido.map((p, idx) => (
-                  <tr key={p.id} className="border-b last:border-0">
-                    <td className="py-1 text-slate-500">{p.codigo}</td>
-                    <td className="py-1 font-medium">{p.nombre}</td>
-                    <td className="py-1 text-slate-500">{p.marca ?? '—'}</td>
-                    <td className="py-1 text-slate-500">{p.unidad_medida ?? '—'}</td>
+                  <tr key={p.id} className="border-b border-slate-100 last:border-0">
+                    <td className="py-1 text-steel-500">{p.codigo}</td>
+                    <td className="py-1 font-medium text-steel-900">{p.nombre}</td>
+                    <td className="py-1 text-steel-500">{p.marca ?? '—'}</td>
+                    <td className="py-1 text-steel-500">{p.unidad_medida ?? '—'}</td>
                     <td className="py-1 text-right">
                       <input
                         type="number"
@@ -330,7 +326,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
                         onChange={e => setListaPedido(prev => prev.map((it, i) =>
                           i === idx ? { ...it, cantidad_pedir: parseInt(e.target.value) || 0 } : it
                         ))}
-                        className="w-16 border rounded px-1 text-right"
+                        className="w-16 rounded border border-slate-200 px-1 text-right"
                       />
                     </td>
                   </tr>
@@ -341,14 +337,14 @@ export function AgotadosTable({ productos, proveedores }: Props) {
               <button
                 type="button"
                 onClick={handleImprimir}
-                className="inline-flex items-center rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+                className="inline-flex items-center rounded-lg bg-steel-900 px-4 py-2 text-sm font-medium text-white hover:bg-steel-800"
               >
                 Descargar PDF
               </button>
               <button
                 type="button"
                 onClick={() => setConfirmando(false)}
-                className="inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                className="inline-flex items-center rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-steel-700 hover:bg-slate-50"
               >
                 Volver a editar
               </button>

@@ -66,22 +66,22 @@ export function ReciboView({ venta, items, servicios, pagos, config }: ReciboVie
     .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
     .logo { max-height: 70px; max-width: 160px; object-fit: contain; }
     .business-info { text-align: right; }
-    .business-name { font-size: 18px; font-weight: bold; color: #0f172a; }
-    .hr { border: none; border-top: 2px solid #0f172a; margin: 16px 0; }
+    .business-name { font-size: 18px; font-weight: bold; color: #18222b; }
+    .hr { border: none; border-top: 2px solid #18222b; margin: 16px 0; }
     .hr-light { border: none; border-top: 1px solid #e2e8f0; margin: 10px 0; }
-    .title { font-size: 15px; font-weight: bold; text-align: center; letter-spacing: 2px; margin: 16px 0; color: #0f172a; }
+    .title { font-size: 15px; font-weight: bold; text-align: center; letter-spacing: 2px; margin: 16px 0; color: #18222b; }
     .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
     .info-item { font-size: 11px; }
     .info-label { color: #64748b; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
     table { width: 100%; border-collapse: collapse; margin: 12px 0; }
-    th { background: #0f172a; color: #fff; padding: 6px 8px; text-align: left; font-size: 11px; }
+    th { background: #18222b; color: #fff; padding: 6px 8px; text-align: left; font-size: 11px; }
     th:last-child { text-align: right; }
     td { padding: 5px 8px; border-bottom: 1px solid #f1f5f9; font-size: 11px; }
     td:last-child { text-align: right; }
     tr:nth-child(even) { background: #f8fafc; }
     .totals { margin-left: auto; width: 260px; margin-top: 12px; }
     .totals-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 12px; }
-    .totals-total { font-size: 15px; font-weight: bold; border-top: 2px solid #0f172a; padding-top: 6px; margin-top: 4px; }
+    .totals-total { font-size: 15px; font-weight: bold; border-top: 2px solid #18222b; padding-top: 6px; margin-top: 4px; }
     .pagos-section { margin-top: 12px; }
     .pago-row { display: flex; justify-content: space-between; font-size: 11px; color: #475569; padding: 2px 0; }
     .footer { text-align: center; font-size: 10px; color: #94a3b8; margin-top: 24px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
@@ -277,39 +277,39 @@ export function ReciboView({ venta, items, servicios, pagos, config }: ReciboVie
       </div>
 
       {/* Vista previa recibo POS */}
-      <div className="mx-auto max-w-xs rounded-lg border bg-white p-4 font-mono text-xs">
-        <div className="text-center space-y-0.5 mb-3">
-          <p className="font-bold text-sm">{config?.nombre ?? 'Mi Negocio'}</p>
-          {config?.regimen && <p className="text-slate-500">{config.regimen}</p>}
-          {config?.nit && <p className="text-slate-500">NIT: {config.nit}</p>}
-          {config?.direccion && <p className="text-slate-500">{config.direccion}</p>}
-          {config?.ciudad && <p className="text-slate-500">{config.ciudad}</p>}
-          {config?.telefono && <p className="text-slate-500">Tel: {config.telefono}</p>}
+      <div className="mx-auto max-w-xs rounded-xl border border-slate-200 bg-white p-4 font-mono text-xs">
+        <div className="mb-3 space-y-0.5 text-center">
+          <p className="text-sm font-bold text-steel-900">{config?.nombre ?? 'Mi Negocio'}</p>
+          {config?.regimen && <p className="text-steel-500">{config.regimen}</p>}
+          {config?.nit && <p className="text-steel-500">NIT: {config.nit}</p>}
+          {config?.direccion && <p className="text-steel-500">{config.direccion}</p>}
+          {config?.ciudad && <p className="text-steel-500">{config.ciudad}</p>}
+          {config?.telefono && <p className="text-steel-500">Tel: {config.telefono}</p>}
         </div>
 
-        <div className="border-t border-dashed my-2" />
+        <div className="my-2 border-t border-dashed border-slate-300" />
 
-        <div className="text-center space-y-0.5 mb-2">
-          <p className="font-bold">RECIBO DE VENTA</p>
-          <p className="text-sm font-bold">Ticket #{String(venta.numero_ticket).padStart(4, '0')}</p>
-          <p className="text-slate-500">{fecha} · {hora}</p>
+        <div className="mb-2 space-y-0.5 text-center">
+          <p className="font-bold text-steel-900">RECIBO DE VENTA</p>
+          <p className="text-sm font-bold text-steel-900">Ticket #{String(venta.numero_ticket).padStart(4, '0')}</p>
+          <p className="text-steel-500">{fecha} · {hora}</p>
         </div>
 
-        <div className="border-t border-dashed my-2" />
+        <div className="my-2 border-t border-dashed border-slate-300" />
 
-        <div className="space-y-0.5 mb-2">
-          <p>Cliente: <span className="font-medium">{cliente?.nombre ?? 'Cliente General'}</span></p>
-          {cliente?.nit_cc && <p className="text-slate-400">CC/NIT: {cliente.nit_cc}</p>}
-          <p className="text-slate-400">Atendió: {venta.empleado?.nombre_completo ?? '—'}</p>
+        <div className="mb-2 space-y-0.5">
+          <p className="text-steel-900">Cliente: <span className="font-medium">{cliente?.nombre ?? 'Cliente General'}</span></p>
+          {cliente?.nit_cc && <p className="text-steel-300">CC/NIT: {cliente.nit_cc}</p>}
+          <p className="text-steel-300">Atendió: {venta.empleado?.nombre_completo ?? '—'}</p>
         </div>
 
-        <div className="border-t border-dashed my-2" />
+        <div className="my-2 border-t border-dashed border-slate-300" />
 
-        <div className="space-y-1 mb-2">
+        <div className="mb-2 space-y-1">
           {items.map(i => (
             <div key={i.id}>
-              <p className="font-medium">{i.nombre_producto}</p>
-              <div className="flex justify-between pl-2 text-slate-600">
+              <p className="font-medium text-steel-900">{i.nombre_producto}</p>
+              <div className="flex justify-between pl-2 text-steel-700">
                 <span>{i.es_fraccionado ? `${i.cantidad_fraccion} und.` : `${i.cantidad} × ${fmt(Number(i.precio_unitario))}`}</span>
                 <span>{fmt(Number(i.subtotal_linea))}</span>
               </div>
@@ -322,36 +322,36 @@ export function ReciboView({ venta, items, servicios, pagos, config }: ReciboVie
             </div>
           ))}
           {servicios.map(s => (
-            <div key={s.id} className="flex justify-between">
+            <div key={s.id} className="flex justify-between text-steel-900">
               <span>{s.nombre_servicio}</span>
               <span>{fmt(Number(s.precio_aplicado))}</span>
             </div>
           ))}
         </div>
 
-        <div className="border-t border-dashed my-2" />
+        <div className="my-2 border-t border-dashed border-slate-300" />
 
         {Number(venta.subtotal) !== Number(venta.total) && (
-          <div className="flex justify-between text-slate-500 mb-1">
+          <div className="mb-1 flex justify-between text-steel-500">
             <span>Subtotal</span><span>{fmt(Number(venta.subtotal))}</span>
           </div>
         )}
         {Number(venta.total_descuentos) > 0 && (
-          <div className="flex justify-between text-green-700 mb-1">
+          <div className="mb-1 flex justify-between text-green-700">
             <span>Descuentos</span><span>-{fmt(Number(venta.total_descuentos))}</span>
           </div>
         )}
 
-        <div className="border-t border-dashed my-2" />
+        <div className="my-2 border-t border-dashed border-slate-300" />
 
-        <div className="flex justify-between font-bold text-sm">
+        <div className="flex justify-between text-sm font-bold text-steel-900">
           <span>TOTAL</span><span>{fmt(Number(venta.total))}</span>
         </div>
 
-        <div className="border-t border-dashed my-2" />
+        <div className="my-2 border-t border-dashed border-slate-300" />
 
         {pagos.map(p => (
-          <div key={p.id} className="flex justify-between text-slate-600">
+          <div key={p.id} className="flex justify-between text-steel-700">
             <span>{METODO_LABEL[p.metodo] ?? p.metodo}</span>
             <span>{fmt(Number(p.monto))}</span>
           </div>
@@ -359,15 +359,15 @@ export function ReciboView({ venta, items, servicios, pagos, config }: ReciboVie
 
         {venta.observaciones && (
           <>
-            <div className="border-t border-dashed my-2" />
-            <p className="text-slate-500">Obs: {venta.observaciones}</p>
+            <div className="my-2 border-t border-dashed border-slate-300" />
+            <p className="text-steel-500">Obs: {venta.observaciones}</p>
           </>
         )}
 
         {config?.mensaje_pie && (
           <>
-            <div className="border-t border-dashed my-2" />
-            <p className="text-center text-slate-500">{config.mensaje_pie}</p>
+            <div className="my-2 border-t border-dashed border-slate-300" />
+            <p className="text-center text-steel-500">{config.mensaje_pie}</p>
           </>
         )}
       </div>

@@ -90,7 +90,7 @@ export function ConfiguracionForm({ config }: { config: ConfigNegocio | null }) 
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border bg-white p-6">
+    <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-slate-200 bg-white p-6">
       <div className="space-y-2">
         <Label htmlFor="nombre">Nombre del negocio *</Label>
         <Input id="nombre" value={form.nombre} onChange={e => handleChange('nombre', e.target.value)} />
@@ -136,7 +136,7 @@ export function ConfiguracionForm({ config }: { config: ConfigNegocio | null }) 
           onChange={e => handleChange('whatsapp_negocio', e.target.value)}
           placeholder="573101234567 (con código de país, sin +)"
         />
-        <p className="text-xs text-slate-400">Se usa para enviar recibos de factura electrónica</p>
+        <p className="text-xs text-steel-300">Se usa para enviar recibos de factura electrónica</p>
       </div>
 
       <div className="space-y-2">
@@ -151,13 +151,15 @@ export function ConfiguracionForm({ config }: { config: ConfigNegocio | null }) 
           onChange={e => handleChange('logo_url', e.target.value)}
           placeholder="https://ejemplo.com/logo.png" />
         {form.logo_url && (
-          <img src={form.logo_url} alt="Logo" className="h-16 w-auto rounded border object-contain p-1" />
+          <img src={form.logo_url} alt="Logo" className="h-16 w-auto rounded-lg border border-slate-200 object-contain p-1" />
         )}
       </div>
 
-      <div className="rounded-lg border bg-slate-50 p-4 space-y-3">
-        <p className="text-xs font-medium text-slate-700">Configuración de caja y descuentos</p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <p className="flex items-center gap-2 font-display text-xs font-bold uppercase tracking-wider text-steel-500">
+          <span className="h-4 w-1 rounded-full bg-brand-yellow" />Configuración de caja y descuentos
+        </p>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <div className="space-y-2">
             <Label htmlFor="monto_base_caja_menor">Base caja menor</Label>
             <Input id="monto_base_caja_menor" type="number"

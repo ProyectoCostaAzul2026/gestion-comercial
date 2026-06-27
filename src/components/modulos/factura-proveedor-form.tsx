@@ -165,32 +165,32 @@ export function FacturaProveedorForm({ proveedorId, facturaId, inicial, onSucces
       </div>
 
       {/* Pagos programados */}
-      <div className="rounded-lg border p-4 space-y-3">
+      <div className="space-y-3 rounded-xl border border-slate-200 p-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-medium text-slate-900">Pagos programados</h3>
+          <h3 className="font-display font-bold text-steel-900">Pagos programados</h3>
           <Button type="button" variant="outline" size="sm" onClick={agregarPago}>
-            <Plus className="h-4 w-4 mr-1" />Agregar cuota
+            <Plus className="mr-1 h-4 w-4" />Agregar cuota
           </Button>
         </div>
         {pagosProgramados.length === 0 && (
-          <p className="text-xs text-slate-400">Sin pagos programados. Agrega cuotas como recordatorio.</p>
+          <p className="text-xs text-steel-300">Sin pagos programados. Agrega cuotas como recordatorio.</p>
         )}
         {pagosProgramados.map((p, idx) => (
-          <div key={p.key} className="grid grid-cols-12 gap-2 items-end border-b pb-3 last:border-0">
+          <div key={p.key} className="grid grid-cols-12 items-end gap-2 border-b border-slate-100 pb-3 last:border-0">
             <div className="col-span-4 space-y-1">
-              <label className="text-xs text-slate-500">Fecha</label>
+              <label className="text-xs text-steel-500">Fecha</label>
               <Input type="date" value={p.fecha_programada}
                 onChange={e => setPagosProgramados(prev => prev.map((it, i) =>
                   i === idx ? { ...it, fecha_programada: e.target.value } : it))} />
             </div>
             <div className="col-span-3 space-y-1">
-              <label className="text-xs text-slate-500">Monto</label>
+              <label className="text-xs text-steel-500">Monto</label>
               <Input type="number" value={p.monto || ''}
                 onChange={e => setPagosProgramados(prev => prev.map((it, i) =>
                   i === idx ? { ...it, monto: parseFloat(e.target.value) || 0 } : it))} />
             </div>
             <div className="col-span-4 space-y-1">
-              <label className="text-xs text-slate-500">Nota</label>
+              <label className="text-xs text-steel-500">Nota</label>
               <Input value={p.nota} placeholder="Opcional"
                 onChange={e => setPagosProgramados(prev => prev.map((it, i) =>
                   i === idx ? { ...it, nota: e.target.value } : it))} />
@@ -199,14 +199,14 @@ export function FacturaProveedorForm({ proveedorId, facturaId, inicial, onSucces
               <button type="button" onClick={() => {
                 if (!p.key.startsWith('nuevo-')) setPagosEliminados(prev => [...prev, p.key])
                 setPagosProgramados(prev => prev.filter((_, i) => i !== idx))
-              }} className="text-slate-300 hover:text-red-500">
+              }} className="text-steel-300 hover:text-brand-red">
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
           </div>
         ))}
         {pagosProgramados.length > 0 && (
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-steel-300">
             Total programado: ${pagosProgramados.reduce((s, p) => s + p.monto, 0).toLocaleString('es-CO')}
             {' '}/ ${form.monto_total.toLocaleString('es-CO')} total factura
           </p>

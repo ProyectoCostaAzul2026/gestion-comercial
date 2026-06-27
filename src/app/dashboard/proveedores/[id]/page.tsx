@@ -56,22 +56,22 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
   return (
     <div className="max-w-3xl space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/dashboard/proveedores" className="rounded-md border p-2 hover:bg-slate-50">
+        <Link href="/dashboard/proveedores" className="rounded-lg border border-slate-200 p-2 hover:bg-slate-50">
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div className="flex-1">
-          <h1 className="text-xl font-bold text-slate-900">{proveedor.nombre}</h1>
+          <h1 className="font-display text-xl font-extrabold tracking-tight text-steel-900">{proveedor.nombre}</h1>
           {!proveedor.activo && <Badge variant="secondary">Inactivo</Badge>}
         </div>
         <Link href={`/dashboard/proveedores/${id}/editar`}
-          className="rounded-md border px-3 py-2 text-sm hover:bg-slate-50">
+          className="rounded-lg border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50">
           Editar
         </Link>
       </div>
 
       {/* Datos */}
-      <div className="rounded-lg border bg-white p-4">
-        <h2 className="mb-3 font-semibold text-slate-900">Información</h2>
+      <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <h2 className="mb-3 font-display font-bold text-steel-900">Información</h2>
         <dl className="grid grid-cols-2 gap-3 text-sm">
           {[
             ['Contacto', proveedor.contacto],
@@ -82,8 +82,8 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
             ['Notas', proveedor.notas],
           ].map(([label, value]) => value ? (
             <div key={label as string}>
-              <dt className="text-xs text-slate-500">{label}</dt>
-              <dd className="font-medium">{value}</dd>
+              <dt className="text-xs text-steel-500">{label}</dt>
+              <dd className="font-medium text-steel-900">{value}</dd>
             </div>
           ) : null)}
         </dl>
@@ -91,27 +91,27 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
 
       {/* Alertas de pagos próximos */}
       {pagosPendientes.length > 0 && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 space-y-2">
-          <h2 className="font-semibold text-amber-800">Pagos programados próximos o vencidos</h2>
+        <div className="space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
+          <h2 className="font-display font-bold text-amber-800">Pagos programados próximos o vencidos</h2>
           {pagosPendientes.map((p: any) => (
-            <div key={p.id} className="flex justify-between text-sm rounded-md bg-white border p-2">
+            <div key={p.id} className="flex justify-between rounded-lg border border-slate-200 bg-white p-2 text-sm">
               <div>
-                <span className={p.fecha_programada < hoy ? 'text-red-600 font-medium' : 'text-slate-700'}>
+                <span className={p.fecha_programada < hoy ? 'font-medium text-brand-red' : 'text-steel-700'}>
                   {p.fecha_programada < hoy ? '⚠ Vencido — ' : ''}{p.fecha_programada}
                 </span>
-                {p.nota && <span className="ml-2 text-slate-400">{p.nota}</span>}
-                <span className="ml-2 text-xs text-slate-400">
+                {p.nota && <span className="ml-2 text-steel-300">{p.nota}</span>}
+                <span className="ml-2 text-xs text-steel-300">
                   Factura #{(p.factura as any).numero_factura ?? 'S/N'}
                 </span>
               </div>
-              <span className="font-medium">${Number(p.monto).toLocaleString('es-CO')}</span>
+              <span className="font-medium text-steel-900">${Number(p.monto).toLocaleString('es-CO')}</span>
             </div>
           ))}
         </div>
       )}
 
       {/* Productos asociados */}
-    <ProductosProveedorTable
+      <ProductosProveedorTable
         proveedorNombre={proveedor.nombre}
         productos={(productos ?? []).map((pp: any) => ({
           id: pp.id,
@@ -132,14 +132,16 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
       />
 
       {/* Facturas */}
-      <div className="rounded-lg border bg-white p-4 space-y-4">
+      <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-slate-900">Facturas</h2>
+          <h2 className="flex items-center gap-2 font-display font-bold text-steel-900">
+            <span className="h-4 w-1 rounded-full bg-brand-yellow" />Facturas
+          </h2>
           <PerfilProveedorAcciones proveedorId={id} />
         </div>
 
         {(facturas ?? []).length === 0 ? (
-          <p className="text-sm text-slate-400">Sin facturas registradas.</p>
+          <p className="text-sm text-steel-300">Sin facturas registradas.</p>
         ) : (
           <div className="space-y-4">
             {(facturas ?? []).map((f: any) => {
@@ -147,11 +149,11 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
               const proxima = f.fecha_vencimiento && f.fecha_vencimiento >= hoy && f.fecha_vencimiento <= en7Dias && f.estado !== 'pagada'
 
               return (
-                <div key={f.id} className={`rounded-lg border p-4 space-y-3 ${vencida ? 'border-red-200 bg-red-50' : proxima ? 'border-amber-200 bg-amber-50' : ''}`}>
+                <div key={f.id} className={`space-y-3 rounded-xl border p-4 ${vencida ? 'border-brand-red/30 bg-brand-red-soft' : proxima ? 'border-amber-200 bg-amber-50' : 'border-slate-200'}`}>
                   <div className="flex items-start justify-between">
                     <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-medium text-slate-900">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-medium text-steel-900">
                           {f.numero_factura ? `Factura #${f.numero_factura}` : 'Sin número'}
                         </p>
                         <Badge variant={ESTADO_FACTURA[f.estado]?.variant ?? 'secondary'}>
@@ -160,32 +162,32 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
                         {vencida && <Badge variant="destructive">Vencida</Badge>}
                         {proxima && <Badge className="bg-amber-100 text-amber-800">Vence pronto</Badge>}
                       </div>
-                      <p className="text-xs text-slate-500 mt-0.5">
+                      <p className="mt-0.5 text-xs text-steel-500">
                         Emitida: {f.fecha_emision}
                         {f.fecha_vencimiento && ` · Vence: ${f.fecha_vencimiento}`}
                       </p>
                     </div>
-                    <div className="text-right shrink-0">
-                      <p className="font-bold text-slate-900">${Number(f.monto_total).toLocaleString('es-CO')}</p>
+                    <div className="shrink-0 text-right">
+                      <p className="font-bold text-steel-900">${Number(f.monto_total).toLocaleString('es-CO')}</p>
                       {Number(f.saldo_pendiente) > 0 && (
-                        <p className="text-xs text-red-600">Pendiente: ${Number(f.saldo_pendiente).toLocaleString('es-CO')}</p>
+                        <p className="text-xs text-brand-red">Pendiente: ${Number(f.saldo_pendiente).toLocaleString('es-CO')}</p>
                       )}
                     </div>
                   </div>
 
                   {(f.pagos_programados_proveedor ?? []).length > 0 && (
                     <div className="space-y-1">
-                      <p className="text-xs font-medium text-slate-600">Pagos programados:</p>
+                      <p className="text-xs font-medium text-steel-700">Pagos programados:</p>
                       {(f.pagos_programados_proveedor as any[]).map((pp: any) => (
-                        <div key={pp.id} className="flex justify-between text-xs rounded-md bg-white border px-2 py-1">
+                        <div key={pp.id} className="flex justify-between rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs">
                           <div className="flex items-center gap-2">
-                            <span className={pp.pagado ? 'line-through text-slate-400' : pp.fecha_programada < hoy ? 'text-red-600 font-medium' : 'text-slate-700'}>
+                            <span className={pp.pagado ? 'text-steel-300 line-through' : pp.fecha_programada < hoy ? 'font-medium text-brand-red' : 'text-steel-700'}>
                               {pp.fecha_programada}
                             </span>
-                            {pp.nota && <span className="text-slate-400">{pp.nota}</span>}
-                            {pp.pagado && <Badge className="text-xs bg-green-100 text-green-700">Pagado</Badge>}
+                            {pp.nota && <span className="text-steel-300">{pp.nota}</span>}
+                            {pp.pagado && <Badge className="bg-green-100 text-xs text-green-700">Pagado</Badge>}
                           </div>
-                          <span className="font-medium">${Number(pp.monto).toLocaleString('es-CO')}</span>
+                          <span className="font-medium text-steel-900">${Number(pp.monto).toLocaleString('es-CO')}</span>
                         </div>
                       ))}
                     </div>
@@ -193,11 +195,11 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
 
                   {(f.pagos_factura_proveedor ?? []).length > 0 && (
                     <div className="space-y-1">
-                      <p className="text-xs font-medium text-slate-600">Pagos realizados:</p>
+                      <p className="text-xs font-medium text-steel-700">Pagos realizados:</p>
                       {(f.pagos_factura_proveedor as any[]).map((p: any) => (
-                        <div key={p.id} className="flex justify-between text-xs text-slate-600 border-b pb-1 last:border-0">
+                        <div key={p.id} className="flex justify-between border-b border-slate-100 pb-1 text-xs text-steel-700 last:border-0">
                           <span>{p.fecha_pago} · {p.metodo_pago}</span>
-                          <span className="font-medium">${Number(p.monto).toLocaleString('es-CO')}</span>
+                          <span className="font-medium text-steel-900">${Number(p.monto).toLocaleString('es-CO')}</span>
                         </div>
                       ))}
                     </div>
@@ -207,13 +209,13 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
                     <div className="flex gap-2 pt-1">
                       <Link
                         href={`/dashboard/proveedores/${id}/facturas/${f.id}/pagar`}
-                        className="text-xs text-slate-600 hover:underline border rounded px-2 py-1 hover:bg-white"
+                        className="rounded-lg border border-slate-200 px-2 py-1 text-xs text-steel-700 hover:bg-white hover:underline"
                       >
                         Registrar pago
                       </Link>
                       <Link
                         href={`/dashboard/proveedores/${id}/facturas/${f.id}/editar`}
-                        className="text-xs text-slate-500 hover:underline border rounded px-2 py-1 hover:bg-white"
+                        className="rounded-lg border border-slate-200 px-2 py-1 text-xs text-steel-500 hover:bg-white hover:underline"
                       >
                         Editar factura
                       </Link>

@@ -20,12 +20,16 @@ export function EmpleadosTabs({
   return (
     <div className="space-y-8">
       <section>
-        <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">Lista de empleados</h2>
+        <h2 className="mb-4 flex items-center gap-2 font-display text-xs font-bold uppercase tracking-wider text-steel-500">
+          <span className="h-4 w-1 rounded-full bg-brand-yellow" />Lista de empleados
+        </h2>
         {listaCompleta}
       </section>
 
       <section>
-        <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">Nómina</h2>
+        <h2 className="mb-4 flex items-center gap-2 font-display text-xs font-bold uppercase tracking-wider text-steel-500">
+          <span className="h-4 w-1 rounded-full bg-brand-yellow" />Nómina
+        </h2>
         <NominaTable
           empleados={empleadosParaNomina}
           historial={historial}
@@ -34,7 +38,9 @@ export function EmpleadosTabs({
       </section>
 
       <section>
-        <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">Horario laboral</h2>
+        <h2 className="mb-4 flex items-center gap-2 font-display text-xs font-bold uppercase tracking-wider text-steel-500">
+          <span className="h-4 w-1 rounded-full bg-brand-yellow" />Horario laboral
+        </h2>
         <HorarioSemanal
           turnos={turnos}
           empleados={empleadosParaHorario}

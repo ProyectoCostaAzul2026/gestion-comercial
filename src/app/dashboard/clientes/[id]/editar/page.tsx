@@ -24,20 +24,20 @@ export default async function EditarClientePage({
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="sticky top-0 z-10 border-b bg-white px-4 py-3">
+      <div className="sticky top-0 z-10 border-b border-slate-200 bg-white px-4 py-3">
         <div className="flex items-center gap-3">
-          <Link href={`/dashboard/clientes/${id}`} className="rounded-md border p-2 hover:bg-slate-50">
+          <Link href={`/dashboard/clientes/${id}`} className="rounded-lg border border-slate-200 p-2 hover:bg-slate-50">
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <div>
-            <h1 className="text-lg font-bold text-slate-900">Editar Cliente</h1>
-            <p className="text-xs text-slate-500">{cliente.nombre}</p>
+            <h1 className="font-display text-lg font-extrabold tracking-tight text-steel-900">Editar Cliente</h1>
+            <p className="text-xs text-steel-500">{cliente.nombre}</p>
           </div>
         </div>
       </div>
       <div className="max-w-md p-4">
         {cliente.es_cliente_generico ? (
-          <p className="rounded-md bg-amber-50 p-4 text-sm text-amber-700">
+          <p className="rounded-lg bg-amber-50 p-4 text-sm text-amber-700">
             "Cliente General" es un registro del sistema y no se puede editar.
           </p>
         ) : (

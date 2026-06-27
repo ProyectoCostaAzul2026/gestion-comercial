@@ -207,28 +207,30 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
   if (!esAdmin) return null
 
   return (
-    <div className="rounded-lg border bg-white p-4 space-y-3">
-      <h2 className="font-semibold text-slate-900">Acciones</h2>
+    <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+      <h2 className="flex items-center gap-2 font-display font-bold text-steel-900">
+        <span className="h-4 w-1 rounded-full bg-brand-yellow" />Acciones
+      </h2>
 
       {accionActiva === 'ninguna' && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button type="button" onClick={() => setAccionActiva('devolver')} className="text-sm text-amber-600 hover:underline">Devolver productos</button>
-          <span className="text-slate-300">·</span>
-          <button type="button" onClick={() => setAccionActiva('cambiar')} className="text-sm text-blue-600 hover:underline">Cambiar productos</button>
-          <span className="text-slate-300">·</span>
-          <button type="button" onClick={() => setAccionActiva('anular')} className="text-sm text-red-600 hover:underline">Anular venta</button>
+          <span className="text-steel-300">·</span>
+          <button type="button" onClick={() => setAccionActiva('cambiar')} className="text-sm text-brand-blue hover:underline">Cambiar productos</button>
+          <span className="text-steel-300">·</span>
+          <button type="button" onClick={() => setAccionActiva('anular')} className="text-sm text-brand-red hover:underline">Anular venta</button>
         </div>
       )}
 
       {accionActiva === 'anular' && (
-        <div className="space-y-3 rounded-md border border-red-200 bg-red-50 p-3">
-          <p className="text-sm font-medium text-red-800">Confirmar anulación</p>
+        <div className="space-y-3 rounded-lg border border-brand-red/30 bg-brand-red-soft p-3">
+          <p className="text-sm font-medium text-brand-red">Confirmar anulación</p>
           <div className="space-y-1">
-            <Label className="text-xs text-red-700">Motivo (obligatorio)</Label>
+            <Label className="text-xs text-brand-red">Motivo (obligatorio)</Label>
             <Textarea value={motivo} onChange={e => setMotivo(e.target.value)} rows={2} className="bg-white" />
           </div>
           <div className="flex gap-2">
-            <Button size="sm" onClick={handleAnular} disabled={anulando} className="bg-red-600 hover:bg-red-700 text-white">
+            <Button size="sm" onClick={handleAnular} disabled={anulando} className="bg-brand-red text-white hover:bg-brand-red hover:brightness-95">
               {anulando ? 'Anulando…' : 'Confirmar anulación'}
             </Button>
             <Button size="sm" variant="outline" onClick={cerrar}>Cancelar</Button>
@@ -237,36 +239,36 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
       )}
 
       {accionActiva === 'devolver' && (
-        <div className="space-y-3 rounded-md border border-amber-200 bg-amber-50 p-3">
+        <div className="space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
           <p className="text-sm font-medium text-amber-800">Selecciona los productos a devolver</p>
           <div className="space-y-2">
             {itemsDevolucion.map((item, idx) => (
-              <div key={item.venta_item_id} className="flex items-center gap-3 rounded-md bg-white border p-2">
+              <div key={item.venta_item_id} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-2">
                 <input type="checkbox" checked={item.seleccionado}
                   onChange={e => setItemsDevolucion(prev => prev.map((it, i) => i === idx ? { ...it, seleccionado: e.target.checked } : it))}
-                  className="h-4 w-4" />
-                <span className="flex-1 text-sm">{item.nombre}</span>
+                  className="h-4 w-4 accent-amber-600" />
+                <span className="flex-1 text-sm text-steel-900">{item.nombre}</span>
                 {item.es_fraccionado ? (
                   <div className="flex items-center gap-1">
-                    <span className="text-xs text-slate-500">Cant ({item.medida_venta}):</span>
+                    <span className="text-xs text-steel-500">Cant ({item.medida_venta}):</span>
                     <Input type="number" step={item.cantidad_minima_venta ?? 0.5}
                       min={item.cantidad_minima_venta ?? 0.5} max={item.cantidad_fraccion_max}
                       value={item.cantidad_fraccion ?? ''}
                       disabled={!item.seleccionado}
                       onChange={e => setItemsDevolucion(prev => prev.map((it, i) =>
                         i === idx ? { ...it, cantidad_fraccion: parseFloat(e.target.value) || 0 } : it))}
-                      className="w-20 h-7 text-xs" />
-                    <span className="text-xs text-slate-400">/ {item.cantidad_fraccion_max}</span>
+                      className="h-7 w-20 text-xs" />
+                    <span className="text-xs text-steel-300">/ {item.cantidad_fraccion_max}</span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-1">
-                    <span className="text-xs text-slate-500">Cant:</span>
+                    <span className="text-xs text-steel-500">Cant:</span>
                     <Input type="number" min={1} max={item.cantidad_max} value={item.cantidad}
                       disabled={!item.seleccionado}
                       onChange={e => setItemsDevolucion(prev => prev.map((it, i) =>
                         i === idx ? { ...it, cantidad: Math.min(parseInt(e.target.value) || 1, it.cantidad_max) } : it))}
-                      className="w-16 h-7 text-xs" />
-                    <span className="text-xs text-slate-400">/ {item.cantidad_max}</span>
+                      className="h-7 w-16 text-xs" />
+                    <span className="text-xs text-steel-300">/ {item.cantidad_max}</span>
                   </div>
                 )}
               </div>
@@ -274,12 +276,12 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
           </div>
 
           {seleccionadosDevolucion.length > 0 && (
-            <div className="rounded-md bg-white border p-2 text-sm">
+            <div className="rounded-lg border border-slate-200 bg-white p-2 text-sm">
               <div className="flex justify-between font-medium">
-                <span>Monto a devolver</span>
+                <span className="text-steel-900">Monto a devolver</span>
                 <span className="text-amber-700">${montoDevolucion.toLocaleString('es-CO')}</span>
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="mt-0.5 text-xs text-steel-300">
                 Calculado proporcionalmente según el descuento aplicado en la venta original
               </p>
             </div>
@@ -290,7 +292,7 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
             <Textarea value={observacionDev} onChange={e => setObservacionDev(e.target.value)} rows={2} className="bg-white" />
           </div>
           <div className="flex gap-2">
-            <Button size="sm" onClick={handleDevolver} disabled={devolviendo} className="bg-amber-600 hover:bg-amber-700 text-white">
+            <Button size="sm" onClick={handleDevolver} disabled={devolviendo} className="bg-amber-600 text-white hover:bg-amber-700">
               {devolviendo ? 'Registrando…' : 'Confirmar devolución'}
             </Button>
             <Button size="sm" variant="outline" onClick={cerrar}>Cancelar</Button>
@@ -299,7 +301,7 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
       )}
 
       {accionActiva === 'cambiar' && (
-        <div className="space-y-3 rounded-md border border-blue-200 bg-blue-50 p-3">
+        <div className="space-y-3 rounded-lg border border-blue-200 bg-blue-50 p-3">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-blue-800">
               {paso === 1 ? 'Paso 1 — Selecciona productos a retirar' : 'Paso 2 — Agrega productos nuevos'}
@@ -311,24 +313,24 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
             <>
               <div className="space-y-2">
                 {itemsRetirar.map((item, idx) => (
-                  <div key={item.venta_item_id} className="flex items-center gap-3 rounded-md bg-white border p-2">
+                  <div key={item.venta_item_id} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-2">
                     <input type="checkbox" checked={item.seleccionado}
                       onChange={e => setItemsRetirar(prev => prev.map((it, i) => i === idx ? { ...it, seleccionado: e.target.checked } : it))}
-                      className="h-4 w-4" />
-                    <span className="flex-1 text-sm">{item.nombre}</span>
+                      className="h-4 w-4 accent-brand-blue" />
+                    <span className="flex-1 text-sm text-steel-900">{item.nombre}</span>
                     <div className="flex items-center gap-1">
                       <Input type="number" min={1} max={item.cantidad_max} value={item.cantidad}
                         disabled={!item.seleccionado}
                         onChange={e => setItemsRetirar(prev => prev.map((it, i) =>
                           i === idx ? { ...it, cantidad: Math.min(parseInt(e.target.value) || 1, it.cantidad_max) } : it))}
-                        className="w-16 h-7 text-xs" />
-                      <span className="text-xs text-slate-400">/ {item.cantidad_max}</span>
+                        className="h-7 w-16 text-xs" />
+                      <span className="text-xs text-steel-300">/ {item.cantidad_max}</span>
                     </div>
                   </div>
                 ))}
               </div>
               <div className="flex gap-2">
-                <Button size="sm" onClick={() => { if (seleccionadosCambio.length === 0) { toast.error('Selecciona al menos un producto'); return } setPaso(2) }} className="bg-blue-600 hover:bg-blue-700 text-white">
+                <Button size="sm" onClick={() => { if (seleccionadosCambio.length === 0) { toast.error('Selecciona al menos un producto'); return } setPaso(2) }} className="bg-brand-blue text-white hover:brightness-110">
                   Siguiente →
                 </Button>
                 <Button size="sm" variant="outline" onClick={cerrar}>Cancelar</Button>
@@ -338,8 +340,8 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
 
           {paso === 2 && (
             <>
-              <div className="rounded-md bg-white border p-2 text-xs text-slate-600 space-y-0.5">
-                <p className="font-medium text-slate-700 mb-1">Retirando:</p>
+              <div className="space-y-0.5 rounded-lg border border-slate-200 bg-white p-2 text-xs text-steel-700">
+                <p className="mb-1 font-medium text-steel-900">Retirando:</p>
                 {seleccionadosCambio.map(i => (
                   <div key={i.venta_item_id} className="flex justify-between">
                     <span>{i.nombre} × {i.cantidad}</span>
@@ -349,18 +351,18 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
               </div>
 
               <div className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-300" />
                 <Input value={queryProducto}
                   onChange={async e => { setQueryProducto(e.target.value); await buscarProductos(e.target.value) }}
-                  placeholder="Buscar producto a agregar…" className="pl-9 bg-white" />
+                  placeholder="Buscar producto a agregar…" className="bg-white pl-9" />
                 {resultadosProducto.length > 0 && (
-                  <div className="absolute z-20 mt-1 w-full rounded-md border bg-white shadow-lg">
+                  <div className="absolute z-20 mt-1 w-full rounded-lg border border-slate-200 bg-white shadow-lg">
                     {resultadosProducto.map((p: any) => (
                       <button key={p.id} type="button"
-                        className="w-full px-3 py-2 text-left text-sm hover:bg-slate-50 flex justify-between"
+                        className="flex w-full justify-between px-3 py-2 text-left text-sm hover:bg-slate-50"
                         onClick={() => agregarProductoCambio(p)}>
-                        <span>{p.nombre}</span>
-                        <span className="text-slate-500 text-xs">${p.precio_venta?.toLocaleString('es-CO')} · Stock: {p.stock_almacen}</span>
+                        <span className="text-steel-900">{p.nombre}</span>
+                        <span className="text-xs text-steel-500">${p.precio_venta?.toLocaleString('es-CO')} · Stock: {p.stock_almacen}</span>
                       </button>
                     ))}
                   </div>
@@ -370,13 +372,13 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
               {itemsAgregar.length > 0 && (
                 <div className="space-y-1">
                   {itemsAgregar.map((item, idx) => (
-                    <div key={item.key} className="flex items-center gap-2 rounded-md bg-white border p-2">
-                      <span className="flex-1 text-sm">{item.nombre}</span>
+                    <div key={item.key} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-2">
+                      <span className="flex-1 text-sm text-steel-900">{item.nombre}</span>
                       <Input type="number" min={1} max={item.stock_almacen} value={item.cantidad}
                         onChange={e => setItemsAgregar(prev => prev.map((it, i) => i === idx ? { ...it, cantidad: parseInt(e.target.value) || 1 } : it))}
-                        className="w-16 h-7 text-xs" />
-                      <span className="text-xs text-slate-500">${(item.precio_venta * item.cantidad).toLocaleString('es-CO')}</span>
-                      <button type="button" onClick={() => setItemsAgregar(prev => prev.filter((_, i) => i !== idx))} className="text-slate-300 hover:text-red-500">
+                        className="h-7 w-16 text-xs" />
+                      <span className="text-xs text-steel-500">${(item.precio_venta * item.cantidad).toLocaleString('es-CO')}</span>
+                      <button type="button" onClick={() => setItemsAgregar(prev => prev.filter((_, i) => i !== idx))} className="text-steel-300 hover:text-brand-red">
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
@@ -385,10 +387,10 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
               )}
 
               {itemsAgregar.length > 0 && (
-                <div className="rounded-md bg-white border p-2 text-sm">
-                  <div className="flex justify-between"><span className="text-slate-500">Valor retirado</span><span>-${valorRetirado.toLocaleString('es-CO')}</span></div>
-                  <div className="flex justify-between"><span className="text-slate-500">Valor agregado</span><span>+${valorAgregado.toLocaleString('es-CO')}</span></div>
-                  <div className={`flex justify-between font-bold border-t pt-1 mt-1 ${diferencia > 0 ? 'text-green-700' : diferencia < 0 ? 'text-amber-700' : 'text-slate-700'}`}>
+                <div className="rounded-lg border border-slate-200 bg-white p-2 text-sm">
+                  <div className="flex justify-between"><span className="text-steel-500">Valor retirado</span><span className="text-steel-900">-${valorRetirado.toLocaleString('es-CO')}</span></div>
+                  <div className="flex justify-between"><span className="text-steel-500">Valor agregado</span><span className="text-steel-900">+${valorAgregado.toLocaleString('es-CO')}</span></div>
+                  <div className={`mt-1 flex justify-between border-t border-slate-100 pt-1 font-bold ${diferencia > 0 ? 'text-green-700' : diferencia < 0 ? 'text-amber-700' : 'text-steel-700'}`}>
                     <span>{diferencia > 0 ? 'Cobrar al cliente' : diferencia < 0 ? 'Devolver al cliente' : 'Sin diferencia'}</span>
                     <span>${Math.abs(diferencia).toLocaleString('es-CO')}</span>
                   </div>
@@ -401,7 +403,7 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
               </div>
               <div className="flex gap-2">
                 <Button size="sm" variant="outline" onClick={() => setPaso(1)}>← Atrás</Button>
-                <Button size="sm" onClick={handleCambiar} disabled={cambiando} className="bg-blue-600 hover:bg-blue-700 text-white">
+                <Button size="sm" onClick={handleCambiar} disabled={cambiando} className="bg-brand-blue text-white hover:brightness-110">
                   {cambiando ? 'Registrando…' : 'Confirmar cambio'}
                 </Button>
                 <Button size="sm" variant="outline" onClick={cerrar}>Cancelar</Button>

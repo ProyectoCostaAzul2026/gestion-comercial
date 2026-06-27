@@ -7,7 +7,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, Coins, Banknote, Check } from 'lucide-react'
 
 const DENOMINACIONES_BILLETES = [100000, 50000, 20000, 10000, 5000, 2000, 1000]
 const DENOMINACIONES_MONEDAS = [1000, 500, 200, 100, 50]
@@ -29,41 +29,46 @@ function TablaConteo({ titulo, items, onChange, totalEsperado }: {
     onChange(items.map((it, i) => i === idx ? { ...it, cantidad, subtotal: cantidad * it.denominacion } : it))
   }
   return (
-    <div className="rounded-lg border bg-white p-4 space-y-3">
-      <h3 className="font-semibold text-slate-900">{titulo}</h3>
+    <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+      <h3 className="font-display font-bold text-steel-900">{titulo}</h3>
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-xs text-slate-500 border-b">
-            <th className="text-left pb-1">Denominación</th>
-            <th className="text-right pb-1">Cantidad</th>
-            <th className="text-right pb-1">Subtotal</th>
+          <tr className="border-b border-slate-100 text-xs text-steel-500">
+            <th className="pb-1 text-left">Denominación</th>
+            <th className="pb-1 text-right">Cantidad</th>
+            <th className="pb-1 text-right">Subtotal</th>
           </tr>
         </thead>
         <tbody>
           {items.map((item, idx) => (
-            <tr key={`${item.es_moneda}-${item.denominacion}`} className="border-b last:border-0">
-              <td className="py-1 text-slate-600">{item.es_moneda ? '🪙' : '💵'} ${item.denominacion.toLocaleString('es-CO')}</td>
+            <tr key={`${item.es_moneda}-${item.denominacion}`} className="border-b border-slate-100 last:border-0">
+              <td className="py-1 text-steel-700">
+                <span className="inline-flex items-center gap-1.5">
+                  {item.es_moneda ? <Coins className="h-3.5 w-3.5 text-amber-600" /> : <Banknote className="h-3.5 w-3.5 text-green-700" />}
+                  ${item.denominacion.toLocaleString('es-CO')}
+                </span>
+              </td>
               <td className="py-1 text-right">
                 <Input type="number" min={0} value={item.cantidad || ''}
                   onChange={e => actualizar(idx, parseInt(e.target.value) || 0)}
-                  className="w-20 h-7 text-xs text-right ml-auto" />
+                  className="ml-auto h-7 w-20 text-right text-xs" />
               </td>
-              <td className="py-1 text-right font-medium">${item.subtotal.toLocaleString('es-CO')}</td>
+              <td className="py-1 text-right font-medium text-steel-900">${item.subtotal.toLocaleString('es-CO')}</td>
             </tr>
           ))}
         </tbody>
         <tfoot>
-          <tr className="font-bold border-t">
-            <td className="pt-2">Total</td>
+          <tr className="border-t border-slate-100 font-bold">
+            <td className="pt-2 text-steel-900">Total</td>
             <td></td>
-            <td className={`pt-2 text-right ${diferencia === null ? 'text-slate-900' : Math.abs(diferencia) < 1 ? 'text-green-700' : 'text-red-600'}`}>
+            <td className={`pt-2 text-right ${diferencia === null ? 'text-steel-900' : Math.abs(diferencia) < 1 ? 'text-green-700' : 'text-brand-red'}`}>
               ${total.toLocaleString('es-CO')}
             </td>
           </tr>
           {totalEsperado !== undefined && (
             <tr className="text-xs">
-              <td colSpan={2} className="pt-1 text-slate-500">Esperado: ${totalEsperado.toLocaleString('es-CO')}</td>
-              <td className={`pt-1 text-right font-medium ${Math.abs(diferencia ?? 0) < 1 ? 'text-green-700' : 'text-red-600'}`}>
+              <td colSpan={2} className="pt-1 text-steel-500">Esperado: ${totalEsperado.toLocaleString('es-CO')}</td>
+              <td className={`pt-1 text-right font-medium ${Math.abs(diferencia ?? 0) < 1 ? 'text-green-700' : 'text-brand-red'}`}>
                 {diferencia === null ? '' : diferencia > 0 ? `+$${diferencia.toLocaleString('es-CO')}` : diferencia < 0 ? `-$${Math.abs(diferencia).toLocaleString('es-CO')}` : '✓ Cuadrada'}
               </td>
             </tr>
@@ -133,33 +138,33 @@ export function ArqueoPanel({ ventasEfectivo, egresosEfectivo, montoBase, fechaH
   }
 
   return (
-    <div className="rounded-lg border border-red-200 bg-red-50 p-4 space-y-4">
+    <div className="space-y-4 rounded-xl border border-brand-red/30 bg-brand-red-soft p-4">
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold text-red-800">Arqueo y Cierre de Caja — {fechaHoy}</h2>
-        <button type="button" onClick={onCerrar} className="text-xs text-red-600 hover:underline">Cancelar</button>
+        <h2 className="font-display font-bold text-brand-red">Arqueo y Cierre de Caja — {fechaHoy}</h2>
+        <button type="button" onClick={onCerrar} className="text-xs text-brand-red hover:underline">Cancelar</button>
       </div>
 
-      <div className="rounded-md bg-white border p-3 text-sm space-y-1">
-        <p className="font-medium text-slate-700 mb-1">Saldo calculado por el sistema</p>
+      <div className="space-y-1 rounded-lg border border-slate-200 bg-white p-3 text-sm">
+        <p className="mb-1 font-medium text-steel-700">Saldo calculado por el sistema</p>
         <div className="flex justify-between">
-          <span className="text-slate-500">Ingresos en efectivo</span>
-          <span>${ventasEfectivo.toLocaleString('es-CO')}</span>
+          <span className="text-steel-500">Ingresos en efectivo</span>
+          <span className="text-steel-900">${ventasEfectivo.toLocaleString('es-CO')}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-slate-500">Egresos en efectivo</span>
-          <span>-${egresosEfectivo.toLocaleString('es-CO')}</span>
+          <span className="text-steel-500">Egresos en efectivo</span>
+          <span className="text-steel-900">-${egresosEfectivo.toLocaleString('es-CO')}</span>
         </div>
-        <div className="flex justify-between font-bold border-t pt-1">
-          <span>Saldo neto en efectivo</span>
-          <span>${saldoSistema.toLocaleString('es-CO')}</span>
+        <div className="flex justify-between border-t border-slate-100 pt-1 font-bold">
+          <span className="text-steel-900">Saldo neto en efectivo</span>
+          <span className="text-steel-900">${saldoSistema.toLocaleString('es-CO')}</span>
         </div>
       </div>
 
-      <p className="text-xs text-red-700 bg-red-100 rounded p-2">
+      <p className="rounded-lg bg-brand-red/10 p-2 text-xs text-brand-red">
         <strong>Instrucciones:</strong> Cuenta todo el efectivo disponible. Separa ${montoBase.toLocaleString('es-CO')} para la caja base del próximo día y regístralos en el primer recuadro. El resto es el sobrante — regístralo en el segundo recuadro.
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <TablaConteo titulo={`Recuadro 1 — Caja base próximo día ($${montoBase.toLocaleString('es-CO')})`}
           items={conteoBase} onChange={setConteoBase} totalEsperado={montoBase} />
         <TablaConteo titulo="Recuadro 2 — Sobrante (a transferir a Caja Mayor)"
@@ -167,7 +172,7 @@ export function ArqueoPanel({ ventasEfectivo, egresosEfectivo, montoBase, fechaH
       </div>
 
       {!cadraCaja && totalSobrante > 0 && (
-        <div className="rounded-md border border-amber-200 bg-amber-50 p-3 space-y-2">
+        <div className="space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
           <div className="flex items-center gap-2 text-amber-800">
             <AlertTriangle className="h-4 w-4" />
             <span className="text-sm font-medium">
@@ -178,7 +183,7 @@ export function ArqueoPanel({ ventasEfectivo, egresosEfectivo, montoBase, fechaH
           </div>
           <p className="text-xs text-amber-700">Verifica los movimientos del día. Si la diferencia persiste, ingresa una observación para cerrar.</p>
           <div className="space-y-1">
-            <label className="text-xs text-amber-800 font-medium">Observación obligatoria</label>
+            <label className="text-xs font-medium text-amber-800">Observación obligatoria</label>
             <Textarea value={observacion} onChange={e => setObservacion(e.target.value)}
               rows={2} placeholder="Explica el motivo de la diferencia…" className="bg-white" />
           </div>
@@ -188,19 +193,19 @@ export function ArqueoPanel({ ventasEfectivo, egresosEfectivo, montoBase, fechaH
       {!confirmando ? (
         <Button onClick={() => setConfirmando(true)}
           disabled={!baseValida || (!cadraCaja && !observacion.trim())}
-          className="w-full bg-red-600 hover:bg-red-700 text-white">
+          className="w-full bg-brand-red text-white hover:bg-brand-red hover:brightness-95">
           Proceder al cierre
         </Button>
       ) : (
-        <div className="rounded-md bg-white border p-3 space-y-3">
-          <p className="text-sm font-medium">¿Confirmas el cierre de caja?</p>
-          <ul className="text-xs text-slate-600 space-y-0.5">
+        <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-3">
+          <p className="text-sm font-medium text-steel-900">¿Confirmas el cierre de caja?</p>
+          <ul className="space-y-0.5 text-xs text-steel-700">
             <li>• Base para mañana: ${totalBase.toLocaleString('es-CO')}</li>
             <li>• Sobrante a Caja Mayor: ${totalSobrante.toLocaleString('es-CO')}</li>
             {!cadraCaja && <li className="text-amber-700">• Diferencia: ${diferencia.toLocaleString('es-CO')}</li>}
           </ul>
           <div className="flex gap-2">
-            <Button onClick={handleCerrar} disabled={cerrando} className="bg-red-600 hover:bg-red-700 text-white">
+            <Button onClick={handleCerrar} disabled={cerrando} className="bg-brand-red text-white hover:bg-brand-red hover:brightness-95">
               {cerrando ? 'Cerrando…' : 'Sí, cerrar caja'}
             </Button>
             <Button variant="outline" onClick={() => setConfirmando(false)}>Cancelar</Button>

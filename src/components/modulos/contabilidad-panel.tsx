@@ -89,16 +89,16 @@ function SeccionTabla({ titulo, total, color, children }: {
 }) {
   const [abierta, setAbierta] = useState(true)
   return (
-    <div className="rounded-lg border bg-white overflow-hidden">
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
       <button type="button" onClick={() => setAbierta(v => !v)}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 transition-colors">
-        <span className="font-semibold text-slate-900">{titulo}</span>
+        className="flex w-full items-center justify-between px-4 py-3 transition-colors hover:bg-slate-50">
+        <span className="font-display font-bold text-steel-900">{titulo}</span>
         <div className="flex items-center gap-3">
           <span className={`font-bold ${color}`}>${total.toLocaleString('es-CO')}</span>
-          {abierta ? <ChevronUp className="h-4 w-4 text-slate-400" /> : <ChevronDown className="h-4 w-4 text-slate-400" />}
+          {abierta ? <ChevronUp className="h-4 w-4 text-steel-300" /> : <ChevronDown className="h-4 w-4 text-steel-300" />}
         </div>
       </button>
-      {abierta && <div className="border-t">{children}</div>}
+      {abierta && <div className="border-t border-slate-100">{children}</div>}
     </div>
   )
 }
@@ -260,16 +260,16 @@ export function ContabilidadPanel({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-900">Contabilidad</h1>
+        <h1 className="font-display text-2xl font-extrabold tracking-tight text-steel-900">Contabilidad</h1>
         <Button variant="outline" onClick={() => exportarCSVCompleto({ ventas, ventaServicios, ventaItems, gastos, nominas, desde, hasta })}>
-          <Download className="h-4 w-4 mr-2" />Exportar todo CSV
+          <Download className="mr-2 h-4 w-4" />Exportar todo CSV
         </Button>
       </div>
 
       {/* Selector período */}
       <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1">
-          <label className="text-xs text-slate-500">Período</label>
+          <label className="text-xs text-steel-500">Período</label>
           <Select items={PERIODOS} onValueChange={v => v && handlePeriodo(v)} value={periodo}>
             <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -280,51 +280,51 @@ export function ContabilidadPanel({
         {periodo === 'rango' && (
           <>
             <div className="space-y-1">
-              <label className="text-xs text-slate-500">Desde</label>
+              <label className="text-xs text-steel-500">Desde</label>
               <Input type="date" value={desde} onChange={e => actualizarURL({ desde: e.target.value, periodo: 'rango' })} className="w-36" />
             </div>
             <div className="space-y-1">
-              <label className="text-xs text-slate-500">Hasta</label>
+              <label className="text-xs text-steel-500">Hasta</label>
               <Input type="date" value={hasta} onChange={e => actualizarURL({ hasta: e.target.value, periodo: 'rango' })} className="w-36" />
             </div>
           </>
         )}
-        <p className="text-xs text-slate-400 self-end pb-2">{desde} — {hasta}</p>
+        <p className="self-end pb-2 text-xs text-steel-300">{desde} — {hasta}</p>
       </div>
 
       {/* Balance cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        <div className="rounded-lg border bg-white p-4">
-          <p className="text-xs text-slate-500">Ingresos</p>
-          <p className="mt-1 text-lg font-bold text-green-700">${balance.totalIngresos.toLocaleString('es-CO')}</p>
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+        <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <p className="text-xs text-steel-500">Ingresos</p>
+          <p className="mt-1 font-display text-lg font-bold text-green-700">${balance.totalIngresos.toLocaleString('es-CO')}</p>
         </div>
-        <div className="rounded-lg border bg-white p-4">
-          <p className="text-xs text-slate-500">Costo mercancía</p>
-          <p className="mt-1 text-lg font-bold text-slate-700">${balance.totalCMV.toLocaleString('es-CO')}</p>
+        <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <p className="text-xs text-steel-500">Costo mercancía</p>
+          <p className="mt-1 font-display text-lg font-bold text-steel-700">${balance.totalCMV.toLocaleString('es-CO')}</p>
         </div>
-        <div className="rounded-lg border bg-white p-4">
-          <p className="text-xs text-slate-500">Gastos</p>
-          <p className="mt-1 text-lg font-bold text-red-600">${balance.totalGastos.toLocaleString('es-CO')}</p>
+        <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <p className="text-xs text-steel-500">Gastos</p>
+          <p className="mt-1 font-display text-lg font-bold text-brand-red">${balance.totalGastos.toLocaleString('es-CO')}</p>
         </div>
-        <div className="rounded-lg border bg-white p-4">
-          <p className="text-xs text-slate-500">Nóminas</p>
-          <p className="mt-1 text-lg font-bold text-red-600">${balance.totalNominas.toLocaleString('es-CO')}</p>
+        <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <p className="text-xs text-steel-500">Nóminas</p>
+          <p className="mt-1 font-display text-lg font-bold text-brand-red">${balance.totalNominas.toLocaleString('es-CO')}</p>
         </div>
-        <div className={`rounded-lg border p-4 ${balance.resultado >= 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-          <p className="text-xs text-slate-500">Resultado</p>
-          <p className={`mt-1 text-xl font-bold ${balance.resultado >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+        <div className={`rounded-xl border p-4 ${balance.resultado >= 0 ? 'border-green-200 bg-green-50' : 'border-brand-red/30 bg-brand-red-soft'}`}>
+          <p className="text-xs text-steel-500">Resultado</p>
+          <p className={`mt-1 font-display text-xl font-bold ${balance.resultado >= 0 ? 'text-green-700' : 'text-brand-red'}`}>
             ${balance.resultado.toLocaleString('es-CO')}
           </p>
-          <p className="text-xs mt-0.5 text-slate-400">{balance.resultado >= 0 ? 'Utilidad' : 'Pérdida'}</p>
+          <p className="mt-0.5 text-xs text-steel-300">{balance.resultado >= 0 ? 'Utilidad' : 'Pérdida'}</p>
         </div>
       </div>
 
       {/* Ingresos */}
       <SeccionTabla titulo="Ingresos" total={totalIngresosTabla} color="text-green-700">
-        <div className="p-3 border-b bg-slate-50">
+        <div className="border-b border-slate-100 bg-slate-50 p-3">
           <Select items={[{ value: 'todos', label: 'Todos' }, { value: 'ventas', label: 'Solo ventas' }, { value: 'servicios', label: 'Solo servicios' }]}
             onValueChange={v => v && setFiltroTipoIngreso(v)} value={filtroTipoIngreso}>
-            <SelectTrigger className="w-44 h-8 text-xs"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-8 w-44 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos</SelectItem>
               <SelectItem value="ventas">Solo ventas</SelectItem>
@@ -335,7 +335,7 @@ export function ContabilidadPanel({
         <div className="max-h-96 overflow-y-auto">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-slate-50">
               <TableHead>Fecha</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Descripción</TableHead>
@@ -346,24 +346,24 @@ export function ContabilidadPanel({
           <TableBody>
             {filtroTipoIngreso !== 'servicios' && ventasFiltradas.map(v => (
               <TableRow key={`v-${v.id}`}>
-                <TableCell className="text-slate-500 text-sm">{v.fecha}</TableCell>
+                <TableCell className="text-sm text-steel-500">{v.fecha}</TableCell>
                 <TableCell><Badge variant="default" className="text-xs">Venta</Badge></TableCell>
-                <TableCell className="text-sm">Ticket #{v.numero_ticket}</TableCell>
-                <TableCell className="text-slate-500 text-sm">{v.clientes?.nombre ?? 'General'}</TableCell>
+                <TableCell className="text-sm text-steel-900">Ticket #{v.numero_ticket}</TableCell>
+                <TableCell className="text-sm text-steel-500">{v.clientes?.nombre ?? 'General'}</TableCell>
                 <TableCell className="text-right font-medium text-green-700">${Number(v.total).toLocaleString('es-CO')}</TableCell>
               </TableRow>
             ))}
             {filtroTipoIngreso !== 'ventas' && serviciosFiltrados.map(s => (
               <TableRow key={`s-${s.id}`}>
-                <TableCell className="text-slate-500 text-sm">{s.ventas?.fecha}</TableCell>
+                <TableCell className="text-sm text-steel-500">{s.ventas?.fecha}</TableCell>
                 <TableCell><Badge variant="secondary" className="text-xs">Servicio</Badge></TableCell>
-                <TableCell className="text-sm">{s.nombre_servicio}</TableCell>
-                <TableCell className="text-slate-500 text-sm">Ticket #{s.ventas?.numero_ticket}</TableCell>
+                <TableCell className="text-sm text-steel-900">{s.nombre_servicio}</TableCell>
+                <TableCell className="text-sm text-steel-500">Ticket #{s.ventas?.numero_ticket}</TableCell>
                 <TableCell className="text-right font-medium text-green-700">${Number(s.precio_aplicado).toLocaleString('es-CO')}</TableCell>
               </TableRow>
             ))}
             {ventasFiltradas.length === 0 && serviciosFiltrados.length === 0 && (
-              <TableRow><TableCell colSpan={5} className="text-center text-slate-400 py-6">Sin ingresos en este período</TableCell></TableRow>
+              <TableRow><TableCell colSpan={5} className="py-6 text-center text-steel-300">Sin ingresos en este período</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
@@ -371,11 +371,11 @@ export function ContabilidadPanel({
       </SeccionTabla>
 
       {/* Costos */}
-      <SeccionTabla titulo="Costo de Mercancía Vendida" total={totalCMVTabla} color="text-slate-700">
-        <div className="p-3 border-b bg-slate-50">
+      <SeccionTabla titulo="Costo de Mercancía Vendida" total={totalCMVTabla} color="text-steel-700">
+        <div className="border-b border-slate-100 bg-slate-50 p-3">
           <Select items={[{ value: 'todos', label: 'Todos los proveedores' }, ...proveedores.map(p => ({ value: p.id, label: p.nombre }))]}
             onValueChange={v => v && setFiltroProveedorCosto(v)} value={filtroProveedorCosto}>
-            <SelectTrigger className="w-52 h-8 text-xs"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-8 w-52 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos los proveedores</SelectItem>
               {proveedores.map(p => <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>)}
@@ -385,7 +385,7 @@ export function ContabilidadPanel({
         <div className="max-h-96 overflow-y-auto">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-slate-50">
               <TableHead>Producto</TableHead>
               <TableHead>Proveedor</TableHead>
               <TableHead className="text-right">Cantidad</TableHead>
@@ -400,16 +400,16 @@ export function ContabilidadPanel({
               const proveedor = i.productos?.producto_proveedores?.[0]?.proveedores?.nombre ?? '—'
               return (
                 <TableRow key={i.id}>
-                  <TableCell className="font-medium text-sm">{i.nombre_producto}</TableCell>
-                  <TableCell className="text-slate-500 text-sm">{proveedor}</TableCell>
-                  <TableCell className="text-right text-sm">{cant}</TableCell>
-                  <TableCell className="text-right text-sm">${Number(i.costo_unitario ?? 0).toLocaleString('es-CO')}</TableCell>
-                  <TableCell className="text-right font-medium">${totalCosto.toLocaleString('es-CO')}</TableCell>
+                  <TableCell className="text-sm font-medium text-steel-900">{i.nombre_producto}</TableCell>
+                  <TableCell className="text-sm text-steel-500">{proveedor}</TableCell>
+                  <TableCell className="text-right text-sm text-steel-900">{cant}</TableCell>
+                  <TableCell className="text-right text-sm text-steel-900">${Number(i.costo_unitario ?? 0).toLocaleString('es-CO')}</TableCell>
+                  <TableCell className="text-right font-medium text-steel-900">${totalCosto.toLocaleString('es-CO')}</TableCell>
                 </TableRow>
               )
             })}
             {costosFiltrados.length === 0 && (
-              <TableRow><TableCell colSpan={5} className="text-center text-slate-400 py-6">Sin costos en este período</TableCell></TableRow>
+              <TableRow><TableCell colSpan={5} className="py-6 text-center text-steel-300">Sin costos en este período</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
@@ -417,23 +417,23 @@ export function ContabilidadPanel({
       </SeccionTabla>
 
       {/* Gastos */}
-      <SeccionTabla titulo="Gastos Operativos" total={totalGastosTabla} color="text-red-600">
-        <div className="p-3 border-b bg-slate-50 flex items-center justify-between gap-3">
+      <SeccionTabla titulo="Gastos Operativos" total={totalGastosTabla} color="text-brand-red">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-100 bg-slate-50 p-3">
           <Select items={[{ value: 'todas', label: 'Todas las categorías' }, ...categoriasEnTabla.map(c => ({ value: c, label: c }))]}
             onValueChange={v => v && setFiltroCategoriaGasto(v)} value={filtroCategoriaGasto}>
-            <SelectTrigger className="w-52 h-8 text-xs"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-8 w-52 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todas">Todas las categorías</SelectItem>
               {categoriasEnTabla.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
           <Button size="sm" variant="outline" onClick={() => setMostrarNuevoGasto(v => !v)}>
-            <Plus className="h-4 w-4 mr-1" />Registrar Gasto
+            <Plus className="mr-1 h-4 w-4" />Registrar Gasto
           </Button>
         </div>
 
         {mostrarNuevoGasto && (
-          <div className="p-4 border-b bg-slate-50 space-y-3">
+          <div className="space-y-3 border-b border-slate-100 bg-slate-50 p-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label className="text-xs">Concepto *</Label>
@@ -475,14 +475,14 @@ export function ContabilidadPanel({
               <div className="flex items-center justify-between">
                 <Label className="text-xs">Fuentes de pago</Label>
                 <button type="button" onClick={() => setFuentesGasto(prev => [...prev, { key: Date.now().toString(), fuente: 'caja_menor', monto: 0 }])}
-                  className="text-xs text-slate-500 hover:text-slate-900 flex items-center gap-1">
+                  className="flex items-center gap-1 text-xs text-steel-500 hover:text-steel-900">
                   <Plus className="h-3 w-3" />Agregar fuente
                 </button>
               </div>
               {fuentesGasto.map((f, idx) => (
-                <div key={f.key} className="flex gap-2 items-center">
+                <div key={f.key} className="flex items-center gap-2">
                   <Select items={FUENTES} onValueChange={v => v && setFuentesGasto(prev => prev.map((it, i) => i === idx ? { ...it, fuente: v } : it))} value={f.fuente}>
-                    <SelectTrigger className="w-36 h-8 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-8 w-36 text-xs"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {FUENTES.map(fd => <SelectItem key={fd.value} value={fd.value}>{fd.label}</SelectItem>)}
                     </SelectContent>
@@ -491,7 +491,7 @@ export function ContabilidadPanel({
                     onChange={e => setFuentesGasto(prev => prev.map((it, i) => i === idx ? { ...it, monto: parseFloat(e.target.value) || 0 } : it))}
                     className="h-8 text-xs" placeholder="Monto" />
                   {fuentesGasto.length > 1 && (
-                    <button type="button" onClick={() => setFuentesGasto(prev => prev.filter((_, i) => i !== idx))} className="text-slate-300 hover:text-red-500">
+                    <button type="button" onClick={() => setFuentesGasto(prev => prev.filter((_, i) => i !== idx))} className="text-steel-300 hover:text-brand-red">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   )}
@@ -512,7 +512,7 @@ export function ContabilidadPanel({
               </div>
             ) : (
               <div className="space-y-2">
-                <p className="text-sm font-medium">¿Confirmas el gasto de ${nuevoGasto.monto.toLocaleString('es-CO')} — {nuevoGasto.concepto}?</p>
+                <p className="text-sm font-medium text-steel-900">¿Confirmas el gasto de ${nuevoGasto.monto.toLocaleString('es-CO')} — {nuevoGasto.concepto}?</p>
                 <div className="flex gap-2">
                   <Button onClick={handleGuardarGasto} disabled={guardandoGasto}>{guardandoGasto ? 'Registrando…' : 'Sí, registrar'}</Button>
                   <Button variant="outline" onClick={() => setConfirmarGasto(false)}>Cancelar</Button>
@@ -525,7 +525,7 @@ export function ContabilidadPanel({
         <div className="max-h-96 overflow-y-auto">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-slate-50">
               <TableHead>Fecha</TableHead>
               <TableHead>Concepto</TableHead>
               <TableHead>Categoría</TableHead>
@@ -537,16 +537,16 @@ export function ContabilidadPanel({
           <TableBody>
             {gastosFiltrados.map(g => (
               <TableRow key={g.id}>
-                <TableCell className="text-slate-500 text-sm">{g.fecha}</TableCell>
-                <TableCell className="font-medium text-sm">{g.concepto}</TableCell>
-                <TableCell className="text-slate-500 text-sm">{g.categoria_gasto ?? '—'}</TableCell>
-                <TableCell className="text-slate-500 text-sm">{g.proveedores?.nombre ?? '—'}</TableCell>
-                <TableCell className="text-slate-500 text-sm capitalize">{g.metodo_pago}</TableCell>
-                <TableCell className="text-right font-medium text-red-600">${Number(g.monto).toLocaleString('es-CO')}</TableCell>
+                <TableCell className="text-sm text-steel-500">{g.fecha}</TableCell>
+                <TableCell className="text-sm font-medium text-steel-900">{g.concepto}</TableCell>
+                <TableCell className="text-sm text-steel-500">{g.categoria_gasto ?? '—'}</TableCell>
+                <TableCell className="text-sm text-steel-500">{g.proveedores?.nombre ?? '—'}</TableCell>
+                <TableCell className="text-sm capitalize text-steel-500">{g.metodo_pago}</TableCell>
+                <TableCell className="text-right font-medium text-brand-red">${Number(g.monto).toLocaleString('es-CO')}</TableCell>
               </TableRow>
             ))}
             {gastosFiltrados.length === 0 && (
-              <TableRow><TableCell colSpan={6} className="text-center text-slate-400 py-6">Sin gastos en este período</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} className="py-6 text-center text-steel-300">Sin gastos en este período</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
@@ -554,11 +554,11 @@ export function ContabilidadPanel({
       </SeccionTabla>
 
       {/* Nóminas */}
-      <SeccionTabla titulo="Nóminas" total={totalNominasTabla} color="text-red-600">
-        <div className="p-3 border-b bg-slate-50">
+      <SeccionTabla titulo="Nóminas" total={totalNominasTabla} color="text-brand-red">
+        <div className="border-b border-slate-100 bg-slate-50 p-3">
           <Select items={[{ value: 'todos', label: 'Todos los empleados' }, ...empleados.map(e => ({ value: e.id, label: e.nombre_completo }))]}
             onValueChange={v => v && setFiltroEmpleadoNomina(v)} value={filtroEmpleadoNomina}>
-            <SelectTrigger className="w-52 h-8 text-xs"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-8 w-52 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos los empleados</SelectItem>
               {empleados.map(e => <SelectItem key={e.id} value={e.id}>{e.nombre_completo}</SelectItem>)}
@@ -568,7 +568,7 @@ export function ContabilidadPanel({
         <div className="max-h-96 overflow-y-auto">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-slate-50">
               <TableHead>Fecha</TableHead>
               <TableHead>Empleado</TableHead>
               <TableHead className="text-right">Horas</TableHead>
@@ -581,17 +581,17 @@ export function ContabilidadPanel({
           <TableBody>
             {nominasFiltradas.map(n => (
               <TableRow key={n.id}>
-                <TableCell className="text-slate-500 text-sm">{n.periodo_inicio}</TableCell>
-                <TableCell className="font-medium text-sm">{n.profiles?.nombre_completo ?? '—'}</TableCell>
-                <TableCell className="text-right text-sm text-slate-500">{n.horas_trabajadas != null ? `${n.horas_trabajadas}h` : '—'}</TableCell>
-                <TableCell className="text-right text-sm">${Number(n.salario_base).toLocaleString('es-CO')}</TableCell>
+                <TableCell className="text-sm text-steel-500">{n.periodo_inicio}</TableCell>
+                <TableCell className="text-sm font-medium text-steel-900">{n.profiles?.nombre_completo ?? '—'}</TableCell>
+                <TableCell className="text-right text-sm text-steel-500">{n.horas_trabajadas != null ? `${n.horas_trabajadas}h` : '—'}</TableCell>
+                <TableCell className="text-right text-sm text-steel-900">${Number(n.salario_base).toLocaleString('es-CO')}</TableCell>
                 <TableCell className="text-right text-sm text-green-700">{Number(n.bonificaciones) > 0 ? `+$${Number(n.bonificaciones).toLocaleString('es-CO')}` : '—'}</TableCell>
-                <TableCell className="text-right text-sm text-red-600">{Number(n.deducciones) > 0 ? `-$${Number(n.deducciones).toLocaleString('es-CO')}` : '—'}</TableCell>
-                <TableCell className="text-right font-bold">${Number(n.total_pago).toLocaleString('es-CO')}</TableCell>
+                <TableCell className="text-right text-sm text-brand-red">{Number(n.deducciones) > 0 ? `-$${Number(n.deducciones).toLocaleString('es-CO')}` : '—'}</TableCell>
+                <TableCell className="text-right font-bold text-steel-900">${Number(n.total_pago).toLocaleString('es-CO')}</TableCell>
               </TableRow>
             ))}
             {nominasFiltradas.length === 0 && (
-              <TableRow><TableCell colSpan={7} className="text-center text-slate-400 py-6">Sin nóminas en este período</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="py-6 text-center text-steel-300">Sin nóminas en este período</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
@@ -599,11 +599,11 @@ export function ContabilidadPanel({
       </SeccionTabla>
 
       {/* Cuentas por cobrar */}
-      <SeccionTabla titulo={`Cuentas por cobrar (${cuentasCobrarFiltradas.length})`} total={totalCobrarFiltrado} color="text-blue-700">
-        <div className="p-3 border-b bg-slate-50 flex flex-wrap gap-3">
+      <SeccionTabla titulo={`Cuentas por cobrar (${cuentasCobrarFiltradas.length})`} total={totalCobrarFiltrado} color="text-brand-blue">
+        <div className="flex flex-wrap gap-3 border-b border-slate-100 bg-slate-50 p-3">
           <Select items={[{ value: 'todos', label: 'Todos los estados' }, { value: 'pendiente', label: 'Pendiente' }, { value: 'parcial', label: 'Parcial' }]}
             onValueChange={v => v && setFiltroEstadoCobrar(v)} value={filtroEstadoCobrar}>
-            <SelectTrigger className="w-44 h-8 text-xs"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-8 w-44 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos los estados</SelectItem>
               <SelectItem value="pendiente">Pendiente</SelectItem>
@@ -613,7 +613,7 @@ export function ContabilidadPanel({
           <Select
             items={[{ value: 'todos', label: 'Todos los clientes' }, ...nombresClientesCredito.map(n => ({ value: n, label: n }))]}
             onValueChange={v => v && setFiltroClienteCobrar(v)} value={filtroClienteCobrar}>
-            <SelectTrigger className="w-52 h-8 text-xs"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-8 w-52 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos los clientes</SelectItem>
               {nombresClientesCredito.map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
@@ -623,7 +623,7 @@ export function ContabilidadPanel({
         <div className="max-h-96 overflow-y-auto">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-slate-50">
               <TableHead>Fecha</TableHead>
               <TableHead>Ticket</TableHead>
               <TableHead>Cliente</TableHead>
@@ -641,13 +641,13 @@ export function ContabilidadPanel({
               const vencido = c.fecha_pago_programada && c.fecha_pago_programada < hoy
               return (
                 <TableRow key={c.id}>
-                  <TableCell className="text-slate-500 text-sm">{c.ventas?.fecha ?? '—'}</TableCell>
-                  <TableCell className="text-sm">#{c.ventas?.numero_ticket ?? '—'}</TableCell>
-                  <TableCell className="font-medium text-sm">{c.clientes?.nombre ?? '—'}</TableCell>
-                  <TableCell className="text-right text-sm">${Number(c.monto_original).toLocaleString('es-CO')}</TableCell>
+                  <TableCell className="text-sm text-steel-500">{c.ventas?.fecha ?? '—'}</TableCell>
+                  <TableCell className="text-sm text-steel-900">#{c.ventas?.numero_ticket ?? '—'}</TableCell>
+                  <TableCell className="text-sm font-medium text-steel-900">{c.clientes?.nombre ?? '—'}</TableCell>
+                  <TableCell className="text-right text-sm text-steel-900">${Number(c.monto_original).toLocaleString('es-CO')}</TableCell>
                   <TableCell className="text-right text-sm text-green-700">{abonado > 0 ? `$${abonado.toLocaleString('es-CO')}` : '—'}</TableCell>
-                  <TableCell className="text-right font-bold text-blue-700">${Number(c.saldo_pendiente).toLocaleString('es-CO')}</TableCell>
-                  <TableCell className={`text-sm ${vencido ? 'text-red-600 font-medium' : 'text-slate-500'}`}>
+                  <TableCell className="text-right font-bold text-brand-blue">${Number(c.saldo_pendiente).toLocaleString('es-CO')}</TableCell>
+                  <TableCell className={`text-sm ${vencido ? 'font-medium text-brand-red' : 'text-steel-500'}`}>
                     {c.fecha_pago_programada ?? '—'}{vencido && ' ⚠'}
                   </TableCell>
                   <TableCell>
@@ -657,7 +657,7 @@ export function ContabilidadPanel({
               )
             })}
             {cuentasCobrarFiltradas.length === 0 && (
-              <TableRow><TableCell colSpan={8} className="text-center text-slate-400 py-6">Sin cuentas por cobrar</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="py-6 text-center text-steel-300">Sin cuentas por cobrar</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
@@ -665,11 +665,11 @@ export function ContabilidadPanel({
       </SeccionTabla>
 
       {/* Cuentas por pagar */}
-      <SeccionTabla titulo={`Cuentas por pagar (${cuentasPagarFiltradas.length})`} total={totalPagarFiltrado} color="text-red-600">
-        <div className="p-3 border-b bg-slate-50 flex flex-wrap gap-3">
+      <SeccionTabla titulo={`Cuentas por pagar (${cuentasPagarFiltradas.length})`} total={totalPagarFiltrado} color="text-brand-red">
+        <div className="flex flex-wrap gap-3 border-b border-slate-100 bg-slate-50 p-3">
           <Select items={[{ value: 'todos', label: 'Todos los estados' }, { value: 'pendiente', label: 'Pendiente' }, { value: 'parcial', label: 'Parcial' }]}
             onValueChange={v => v && setFiltroEstadoPagar(v)} value={filtroEstadoPagar}>
-            <SelectTrigger className="w-44 h-8 text-xs"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-8 w-44 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos los estados</SelectItem>
               <SelectItem value="pendiente">Pendiente</SelectItem>
@@ -678,7 +678,7 @@ export function ContabilidadPanel({
           </Select>
           <Select items={[{ value: 'todos', label: 'Todos los proveedores' }, ...proveedores.map(p => ({ value: p.nombre, label: p.nombre }))]}
             onValueChange={v => v && setFiltroProveedorPagar(v)} value={filtroProveedorPagar}>
-            <SelectTrigger className="w-52 h-8 text-xs"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-8 w-52 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos los proveedores</SelectItem>
               {proveedores.map(p => <SelectItem key={p.id} value={p.nombre}>{p.nombre}</SelectItem>)}
@@ -688,7 +688,7 @@ export function ContabilidadPanel({
         <div className="max-h-96 overflow-y-auto">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-slate-50">
               <TableHead>Factura</TableHead>
               <TableHead>Proveedor</TableHead>
               <TableHead>Emitida</TableHead>
@@ -703,15 +703,15 @@ export function ContabilidadPanel({
               const hoy = new Date().toISOString().slice(0, 10)
               const vencida = f.fecha_vencimiento && f.fecha_vencimiento < hoy
               return (
-                <TableRow key={f.id} className={vencida ? 'bg-red-50' : ''}>
-                  <TableCell className="text-sm font-medium">{f.numero_factura ? `#${f.numero_factura}` : 'Sin número'}</TableCell>
-                  <TableCell className="text-sm">{f.proveedores?.nombre ?? '—'}</TableCell>
-                  <TableCell className="text-slate-500 text-sm">{f.fecha_emision}</TableCell>
-                  <TableCell className={`text-sm ${vencida ? 'text-red-600 font-medium' : 'text-slate-500'}`}>
+                <TableRow key={f.id} className={vencida ? 'bg-brand-red-soft' : ''}>
+                  <TableCell className="text-sm font-medium text-steel-900">{f.numero_factura ? `#${f.numero_factura}` : 'Sin número'}</TableCell>
+                  <TableCell className="text-sm text-steel-900">{f.proveedores?.nombre ?? '—'}</TableCell>
+                  <TableCell className="text-sm text-steel-500">{f.fecha_emision}</TableCell>
+                  <TableCell className={`text-sm ${vencida ? 'font-medium text-brand-red' : 'text-steel-500'}`}>
                     {f.fecha_vencimiento ?? '—'}{vencida && ' ⚠'}
                   </TableCell>
-                  <TableCell className="text-right text-sm">${Number(f.monto_total).toLocaleString('es-CO')}</TableCell>
-                  <TableCell className="text-right font-bold text-red-600">${Number(f.saldo_pendiente).toLocaleString('es-CO')}</TableCell>
+                  <TableCell className="text-right text-sm text-steel-900">${Number(f.monto_total).toLocaleString('es-CO')}</TableCell>
+                  <TableCell className="text-right font-bold text-brand-red">${Number(f.saldo_pendiente).toLocaleString('es-CO')}</TableCell>
                   <TableCell>
                     <Badge variant={f.estado === 'parcial' ? 'secondary' : 'destructive'} className="text-xs capitalize">{f.estado}</Badge>
                   </TableCell>
@@ -719,7 +719,7 @@ export function ContabilidadPanel({
               )
             })}
             {cuentasPagarFiltradas.length === 0 && (
-              <TableRow><TableCell colSpan={7} className="text-center text-slate-400 py-6">Sin cuentas por pagar</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="py-6 text-center text-steel-300">Sin cuentas por pagar</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
