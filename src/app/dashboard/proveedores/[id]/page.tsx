@@ -5,6 +5,7 @@ import { ArrowLeft } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { PerfilProveedorAcciones } from '@/components/modulos/perfil-proveedor-acciones'
 import { ProductosProveedorTable } from '@/components/modulos/productos-proveedor-table'
+import { GarantiasPanel } from '@/components/modulos/garantias-panel'
 
 const hoy = new Date().toISOString().slice(0, 10)
 const en7Dias = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
@@ -29,7 +30,7 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
 
   if (error || !proveedor) notFound()
 
-  const [{ data: productos }, { data: facturas }] = await Promise.all([
+  const [{ data: productos }, { data: facturas }, { data: garantiasProveedor }] = await Promise.all([
     supabase
       .from('producto_proveedores')
       .select('id, precio_costo, es_proveedor_principal, referencia_proveedor, productos(id, nombre, codigo, activo, stock_actual, stock_minimo, marca, unidad_medida)')
@@ -45,6 +46,11 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
       `)
       .eq('proveedor_id', id)
       .order('fecha_emision', { ascending: false }),
+    (supabase as any)
+      .from('garantias')
+      .select('id, nombre_producto, cantidad, observaciones, fecha_registro, estado, productos(id)')
+      .eq('proveedor_id', id)
+      .order('fecha_registro', { ascending: false }),
   ])
 
   const pagosPendientes = (facturas ?? []).flatMap(f =>
@@ -227,6 +233,21 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
           </div>
         )}
       </div>
+
+      {/* Garantías */}
+      {(garantiasProveedor ?? []).length > 0 && (
+        <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+          <h2 className="flex items-center gap-2 font-display font-bold text-steel-900">
+            <span className="h-4 w-1 rounded-full bg-brand-yellow" />
+            Garantías ({(garantiasProveedor as any[] ?? []).filter((g: any) => g.estado === 'pendiente').length} pendientes)
+          </h2>
+          <GarantiasPanel
+            garantias={(garantiasProveedor as any) ?? []}
+            proveedores={[{ id, nombre: proveedor.nombre }]}
+            soloProveedor={proveedor.nombre}
+          />
+        </div>
+      )}
     </div>
   )
 }

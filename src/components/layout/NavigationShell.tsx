@@ -79,7 +79,7 @@ export default function NavigationShell({
           </button>
         </nav>
         <div className="border-t border-white/10 px-6 py-4">
-          <p className="text-[11px] italic text-steel-300">No solo vendemos, damos soluciones.</p>
+          <p className="text-[11px] italic text-steel-300">By: Luis Ortiz</p>
         </div>
       </aside>
 

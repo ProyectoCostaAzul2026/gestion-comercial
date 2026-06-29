@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { InventarioTable } from '@/components/modulos/inventario-table'
-import { Plus, AlertTriangle } from 'lucide-react'
+import { Plus, AlertTriangle, ShieldCheck } from 'lucide-react'
 
 export default async function InventarioPage() {
   const supabase = await createClient()
@@ -37,6 +37,13 @@ export default async function InventarioPage() {
           >
             <AlertTriangle className="mr-2 h-4 w-4" />
             Ver agotados
+          </Link>
+          <Link
+            href="/dashboard/inventario/garantias"
+            className="inline-flex items-center justify-center rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            <ShieldCheck className="mr-2 h-4 w-4" />
+            Garantías
           </Link>
         </div>
       </div>

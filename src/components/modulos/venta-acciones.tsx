@@ -15,6 +15,7 @@ interface VentaItem {
   precio_unitario: number; subtotal_linea: number
   es_fraccionado?: boolean; cantidad_fraccion?: number | null
   cantidad_minima_venta?: number | null; medida_venta?: string | null
+  producto_id?: string
 }
 
 interface ProductoSearch {
@@ -29,17 +30,31 @@ interface ItemDevolucion {
   subtotal_linea: number
   cantidad_fraccion_max?: number; cantidad_fraccion?: number
   cantidad_minima_venta?: number | null; medida_venta?: string | null
+  proveedores_producto?: { id: string }[]
 }
 
 interface ItemRetirar {
   venta_item_id: string; nombre: string; cantidad_max: number
   cantidad: number; seleccionado: boolean; precio_unitario: number
+  proveedores_producto?: { id: string }[]
 }
 
 interface ItemAgregar {
   key: string; producto_id: string; nombre: string
   precio_venta: number; cantidad: number; stock_almacen: number
 }
+
+interface GarantiaItem {
+  venta_item_id: string
+  nombre: string
+  producto_id: string
+  esGarantia: boolean
+  proveedorId: string
+  observacion: string
+}
+
+// Moved outside component so it's available at module level
+interface FuenteDev { key: string; fuente: string; monto: number }
 
 interface VentaAccionesProps {
   ventaId: string; esAdmin: boolean
@@ -90,6 +105,20 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
   const [observacionCambio, setObservacionCambio] = useState('')
   const [cambiando, setCambiando] = useState(false)
 
+  // ── Garantías ──
+  const [garantiasDevolucion, setGarantiasDevolucion] = useState<Record<string, GarantiaItem>>({})
+  const [garantiasCambio, setGarantiasCambio] = useState<Record<string, GarantiaItem>>({})
+  const [proveedoresList, setProveedoresList] = useState<{ id: string; nombre: string }[]>([])
+  const [cargandoProveedores, setCargandoProveedores] = useState(false)
+
+  const cargarProveedores = async () => {
+    if (proveedoresList.length > 0) return
+    setCargandoProveedores(true)
+    const { data } = await supabase.from('proveedores').select('id, nombre').eq('activo', true).order('nombre')
+    setProveedoresList(data ?? [])
+    setCargandoProveedores(false)
+  }
+
   const ratioGlobal = ventaSubtotal > 0 ? ventaTotal / ventaSubtotal : 1
 
   const cerrar = () => {
@@ -105,6 +134,7 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
       cantidad: i.cantidad, seleccionado: false, precio_unitario: i.precio_unitario,
     })))
     setItemsAgregar([]); setQueryProducto(''); setResultadosProducto([])
+    setGarantiasDevolucion({}); setGarantiasCambio({})
   }
 
   const handleAnular = async () => {
@@ -133,6 +163,36 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
     return sum + (i.subtotal_linea * ratioGlobal * (i.cantidad / i.cantidad_max))
   }, 0) / 100) * 100
 
+  // ── Fuentes de pago devolución ──
+  const [fuentesDev, setFuentesDev] = useState<FuenteDev[]>([{ key: '1', fuente: 'caja_menor', monto: 0 }])
+  const [esMixtoDev, setEsMixtoDev] = useState(false)
+
+  // Registra en garantías los items marcados como defectuosos (no regresan a inventario)
+  const registrarGarantias = async (
+    garantias: Record<string, GarantiaItem>,
+    ventaItemIds: string[]
+  ) => {
+    const itemsConGarantia = ventaItemIds
+      .map(id => garantias[id])
+      .filter((g): g is GarantiaItem => Boolean(g?.esGarantia && g.proveedorId))
+
+    if (itemsConGarantia.length === 0) return
+
+    const userId = (await supabase.auth.getUser()).data.user?.id
+
+    for (const g of itemsConGarantia) {
+      await (supabase as any).from('garantias').insert({
+        producto_id: g.producto_id || null,
+        proveedor_id: g.proveedorId,
+        nombre_producto: g.nombre,
+        cantidad: 1,
+        observaciones: g.observacion || null,
+        venta_id: ventaId,
+        registrado_por: userId,
+      })
+    }
+  }
+
   const handleDevolver = async () => {
     if (seleccionadosDevolucion.length === 0) { toast.error('Selecciona al menos un producto'); return }
     if (!observacionDev.trim()) { toast.error('La observación es obligatoria'); return }
@@ -147,6 +207,7 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
         p_venta_id: ventaId, p_items_devolucion: payload, p_observacion: observacionDev,
       })
       if (error) throw error
+      await registrarGarantias(garantiasDevolucion, seleccionadosDevolucion.map(i => i.venta_item_id))
       toast.success('Devolución registrada')
       router.refresh()
       cerrar()
@@ -192,6 +253,7 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
         p_observacion: observacionCambio,
       })
       if (error) throw error
+      await registrarGarantias(garantiasCambio, seleccionadosCambio.map(i => i.venta_item_id))
       const r = data as any
       if (r.cobrar_al_cliente > 0) toast.success(`Cambio registrado. Cobrar: $${Number(r.cobrar_al_cliente).toLocaleString('es-CO')}`)
       else if (r.devolver_al_cliente > 0) toast.success(`Cambio registrado. Devolver: $${Number(r.devolver_al_cliente).toLocaleString('es-CO')}`)
@@ -243,32 +305,87 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
           <p className="text-sm font-medium text-amber-800">Selecciona los productos a devolver</p>
           <div className="space-y-2">
             {itemsDevolucion.map((item, idx) => (
-              <div key={item.venta_item_id} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-2">
-                <input type="checkbox" checked={item.seleccionado}
-                  onChange={e => setItemsDevolucion(prev => prev.map((it, i) => i === idx ? { ...it, seleccionado: e.target.checked } : it))}
-                  className="h-4 w-4 accent-amber-600" />
-                <span className="flex-1 text-sm text-steel-900">{item.nombre}</span>
-                {item.es_fraccionado ? (
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs text-steel-500">Cant ({item.medida_venta}):</span>
-                    <Input type="number" step={item.cantidad_minima_venta ?? 0.5}
-                      min={item.cantidad_minima_venta ?? 0.5} max={item.cantidad_fraccion_max}
-                      value={item.cantidad_fraccion ?? ''}
-                      disabled={!item.seleccionado}
-                      onChange={e => setItemsDevolucion(prev => prev.map((it, i) =>
-                        i === idx ? { ...it, cantidad_fraccion: parseFloat(e.target.value) || 0 } : it))}
-                      className="h-7 w-20 text-xs" />
-                    <span className="text-xs text-steel-300">/ {item.cantidad_fraccion_max}</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs text-steel-500">Cant:</span>
-                    <Input type="number" min={1} max={item.cantidad_max} value={item.cantidad}
-                      disabled={!item.seleccionado}
-                      onChange={e => setItemsDevolucion(prev => prev.map((it, i) =>
-                        i === idx ? { ...it, cantidad: Math.min(parseInt(e.target.value) || 1, it.cantidad_max) } : it))}
-                      className="h-7 w-16 text-xs" />
-                    <span className="text-xs text-steel-300">/ {item.cantidad_max}</span>
+              <div key={item.venta_item_id} className="rounded-lg border border-slate-200 bg-white p-2">
+                <div className="flex items-center gap-3">
+                  <input type="checkbox" checked={item.seleccionado}
+                    onChange={e => setItemsDevolucion(prev => prev.map((it, i) => i === idx ? { ...it, seleccionado: e.target.checked } : it))}
+                    className="h-4 w-4 accent-amber-600" />
+                  <span className="flex-1 text-sm text-steel-900">{item.nombre}</span>
+                  {item.es_fraccionado ? (
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-steel-500">Cant ({item.medida_venta}):</span>
+                      <Input type="number" step={item.cantidad_minima_venta ?? 0.5}
+                        min={item.cantidad_minima_venta ?? 0.5} max={item.cantidad_fraccion_max}
+                        value={item.cantidad_fraccion ?? ''}
+                        disabled={!item.seleccionado}
+                        onChange={e => setItemsDevolucion(prev => prev.map((it, i) =>
+                          i === idx ? { ...it, cantidad_fraccion: parseFloat(e.target.value) || 0 } : it))}
+                        className="h-7 w-20 text-xs" />
+                      <span className="text-xs text-steel-300">/ {item.cantidad_fraccion_max}</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-steel-500">Cant:</span>
+                      <Input type="number" min={1} max={item.cantidad_max} value={item.cantidad}
+                        disabled={!item.seleccionado}
+                        onChange={e => setItemsDevolucion(prev => prev.map((it, i) =>
+                          i === idx ? { ...it, cantidad: Math.min(parseInt(e.target.value) || 1, it.cantidad_max) } : it))}
+                        className="h-7 w-16 text-xs" />
+                      <span className="text-xs text-steel-300">/ {item.cantidad_max}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Switch garantía */}
+                {item.seleccionado && (
+                  <div className="mt-2 space-y-2 border-t border-amber-100 pt-2">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id={`garantia-dev-${item.venta_item_id}`}
+                        checked={garantiasDevolucion[item.venta_item_id]?.esGarantia ?? false}
+                        onChange={e => {
+                          const checked = e.target.checked
+                          const proveedores = item.proveedores_producto ?? []
+                          const proveedorAuto = proveedores.length === 1 ? proveedores[0].id : ''
+                          if (proveedores.length > 1) cargarProveedores()
+                          setGarantiasDevolucion(prev => ({
+                            ...prev,
+                            [item.venta_item_id]: {
+                              venta_item_id: item.venta_item_id,
+                              nombre: item.nombre,
+                              producto_id: items.find(i2 => i2.id === item.venta_item_id)?.producto_id ?? '',
+                              esGarantia: checked,
+                              proveedorId: prev[item.venta_item_id]?.proveedorId || proveedorAuto,
+                              observacion: prev[item.venta_item_id]?.observacion ?? '',
+                            }
+                          }))
+                        }}
+                        className="h-4 w-4 accent-amber-600"
+                      />
+                      <label htmlFor={`garantia-dev-${item.venta_item_id}`} className="text-xs font-medium text-amber-800">
+                        Enviar a garantía (no regresa al inventario)
+                      </label>
+                    </div>
+                    {garantiasDevolucion[item.venta_item_id]?.esGarantia && (
+                      <div className="space-y-1.5 pl-6">
+                        <select
+                          value={garantiasDevolucion[item.venta_item_id]?.proveedorId ?? ''}
+                          onChange={e => setGarantiasDevolucion(prev => ({ ...prev, [item.venta_item_id]: { ...prev[item.venta_item_id], proveedorId: e.target.value } }))}
+                          className="w-full rounded border border-slate-200 px-2 py-1 text-xs"
+                        >
+                          <option value="">Selecciona proveedor…</option>
+                          {proveedoresList.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+                        </select>
+                        <input
+                          type="text"
+                          placeholder="Observación (defecto, motivo…)"
+                          value={garantiasDevolucion[item.venta_item_id]?.observacion ?? ''}
+                          onChange={e => setGarantiasDevolucion(prev => ({ ...prev, [item.venta_item_id]: { ...prev[item.venta_item_id], observacion: e.target.value } }))}
+                          className="w-full rounded border border-slate-200 px-2 py-1 text-xs"
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -313,19 +430,74 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
             <>
               <div className="space-y-2">
                 {itemsRetirar.map((item, idx) => (
-                  <div key={item.venta_item_id} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-2">
-                    <input type="checkbox" checked={item.seleccionado}
-                      onChange={e => setItemsRetirar(prev => prev.map((it, i) => i === idx ? { ...it, seleccionado: e.target.checked } : it))}
-                      className="h-4 w-4 accent-brand-blue" />
-                    <span className="flex-1 text-sm text-steel-900">{item.nombre}</span>
-                    <div className="flex items-center gap-1">
-                      <Input type="number" min={1} max={item.cantidad_max} value={item.cantidad}
-                        disabled={!item.seleccionado}
-                        onChange={e => setItemsRetirar(prev => prev.map((it, i) =>
-                          i === idx ? { ...it, cantidad: Math.min(parseInt(e.target.value) || 1, it.cantidad_max) } : it))}
-                        className="h-7 w-16 text-xs" />
-                      <span className="text-xs text-steel-300">/ {item.cantidad_max}</span>
+                  <div key={item.venta_item_id} className="rounded-lg border border-slate-200 bg-white p-2">
+                    <div className="flex items-center gap-3">
+                      <input type="checkbox" checked={item.seleccionado}
+                        onChange={e => setItemsRetirar(prev => prev.map((it, i) => i === idx ? { ...it, seleccionado: e.target.checked } : it))}
+                        className="h-4 w-4 accent-brand-blue" />
+                      <span className="flex-1 text-sm text-steel-900">{item.nombre}</span>
+                      <div className="flex items-center gap-1">
+                        <Input type="number" min={1} max={item.cantidad_max} value={item.cantidad}
+                          disabled={!item.seleccionado}
+                          onChange={e => setItemsRetirar(prev => prev.map((it, i) =>
+                            i === idx ? { ...it, cantidad: Math.min(parseInt(e.target.value) || 1, it.cantidad_max) } : it))}
+                          className="h-7 w-16 text-xs" />
+                        <span className="text-xs text-steel-300">/ {item.cantidad_max}</span>
+                      </div>
                     </div>
+
+                    {/* Switch garantía en cambio */}
+                    {item.seleccionado && (
+                      <div className="mt-2 space-y-2 border-t border-blue-100 pt-2">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            id={`garantia-cambio-${item.venta_item_id}`}
+                            checked={garantiasCambio[item.venta_item_id]?.esGarantia ?? false}
+                            onChange={e => {
+                              const checked = e.target.checked
+                              const proveedores = item.proveedores_producto ?? []
+                              const proveedorAuto = proveedores.length === 1 ? proveedores[0].id : ''
+                              if (proveedores.length > 1) cargarProveedores()
+                              setGarantiasCambio(prev => ({
+                                ...prev,
+                                [item.venta_item_id]: {
+                                  venta_item_id: item.venta_item_id,
+                                  nombre: item.nombre,
+                                  producto_id: items.find(i2 => i2.id === item.venta_item_id)?.producto_id ?? '',
+                                  esGarantia: checked,
+                                  proveedorId: prev[item.venta_item_id]?.proveedorId || proveedorAuto,
+                                  observacion: prev[item.venta_item_id]?.observacion ?? '',
+                                }
+                              }))
+                            }}
+                            className="h-4 w-4 accent-brand-blue"
+                          />
+                          <label htmlFor={`garantia-cambio-${item.venta_item_id}`} className="text-xs font-medium text-blue-800">
+                            Producto defectuoso — enviar a garantía
+                          </label>
+                        </div>
+                        {garantiasCambio[item.venta_item_id]?.esGarantia && (
+                          <div className="space-y-1.5 pl-6">
+                            <select
+                              value={garantiasCambio[item.venta_item_id]?.proveedorId ?? ''}
+                              onChange={e => setGarantiasCambio(prev => ({ ...prev, [item.venta_item_id]: { ...prev[item.venta_item_id], proveedorId: e.target.value } }))}
+                              className="w-full rounded border border-slate-200 px-2 py-1 text-xs"
+                            >
+                              <option value="">Selecciona proveedor…</option>
+                              {proveedoresList.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+                            </select>
+                            <input
+                              type="text"
+                              placeholder="Observación (defecto, motivo…)"
+                              value={garantiasCambio[item.venta_item_id]?.observacion ?? ''}
+                              onChange={e => setGarantiasCambio(prev => ({ ...prev, [item.venta_item_id]: { ...prev[item.venta_item_id], observacion: e.target.value } }))}
+                              className="w-full rounded border border-slate-200 px-2 py-1 text-xs"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

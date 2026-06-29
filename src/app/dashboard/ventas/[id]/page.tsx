@@ -57,7 +57,7 @@ export default async function VentaDetallePage({
   ] = await Promise.all([
     supabase
       .from('venta_items')
-      .select('id, nombre_producto, precio_unitario, iva_unitario, cantidad, descuento_linea, subtotal_linea, es_fraccionado, cantidad_fraccion, descuento_porcentaje, devolucion_items(cantidad)')
+      .select('id, nombre_producto, precio_unitario, iva_unitario, cantidad, descuento_linea, subtotal_linea, es_fraccionado, cantidad_fraccion, descuento_porcentaje, producto_id, devolucion_items(cantidad), productos(producto_proveedores(proveedor_id, es_proveedor_principal, proveedores(id, nombre)))')
       .eq('venta_id', id),
     supabase
       .from('venta_servicios')
@@ -280,6 +280,8 @@ export default async function VentaDetallePage({
           items={(items ?? []).map(i => {
             const yaDevuelto = ((i as any).devolucion_items ?? [])
               .reduce((sum: number, d: any) => sum + d.cantidad, 0)
+            const proveedoresProducto = (i as any).productos?.producto_proveedores ?? []
+            const proveedorPrincipal = proveedoresProducto.find((p: any) => p.es_proveedor_principal) ?? proveedoresProducto[0]
             return {
               id: i.id,
               nombre_producto: i.nombre_producto,
@@ -288,6 +290,12 @@ export default async function VentaDetallePage({
               subtotal_linea: Number(i.subtotal_linea),
               es_fraccionado: i.es_fraccionado,
               cantidad_fraccion: Number(i.cantidad_fraccion),
+              producto_id: (i as any).producto_id,
+              proveedores_producto: proveedoresProducto.map((p: any) => ({
+                id: p.proveedores?.id ?? p.proveedor_id,
+                nombre: p.proveedores?.nombre ?? '—',
+              })),
+              proveedor_preseleccionado: proveedoresProducto.length === 1 ? proveedorPrincipal?.proveedores?.id ?? '' : '',
             }
           }).filter(i => i.es_fraccionado ? true : i.cantidad > 0)}
         />

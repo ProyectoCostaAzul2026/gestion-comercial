@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Plus, TrendingUp, Receipt, Calculator, CreditCard } from 'lucide-react'
+import { Plus, TrendingUp, Receipt, Calculator, CreditCard, FileText } from 'lucide-react'
 import { VentasFiltros } from '@/components/modulos/ventas-filtros'
 import { VentasTable } from '@/components/modulos/ventas-table'
 
@@ -90,10 +90,16 @@ export default async function VentasPage({
           <h1 className="font-display text-2xl font-extrabold tracking-tight text-steel-900">Ventas</h1>
           <p className="mt-1 text-sm text-steel-500">{fecha === hoy ? 'Hoy' : fecha}</p>
         </div>
-        <Link href="/dashboard/ventas/nueva"
-          className="inline-flex items-center justify-center rounded-xl bg-brand-yellow px-4 py-2.5 text-sm font-semibold text-steel-900 shadow-lg shadow-brand-yellow/30 transition hover:brightness-105">
-          <Plus className="mr-2 h-4 w-4" />Nueva Venta
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/dashboard/ventas/cotizacion"
+            className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-steel-700 transition hover:bg-slate-50">
+            <FileText className="mr-2 h-4 w-4" />Cotización
+          </Link>
+          <Link href="/dashboard/ventas/nueva"
+            className="inline-flex items-center justify-center rounded-xl bg-brand-yellow px-4 py-2.5 text-sm font-semibold text-steel-900 shadow-lg shadow-brand-yellow/30 transition hover:brightness-105">
+            <Plus className="mr-2 h-4 w-4" />Nueva Venta
+          </Link>
+        </div>
       </div>
 
       {/* KPIs */}
