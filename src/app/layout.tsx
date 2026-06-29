@@ -25,16 +25,31 @@ export const metadata: Metadata = {
   description: "Sistema de gestión comercial",
 }
 
+// Tema oscuro por defecto; respeta el modo claro solo si el SO lo pide explícitamente.
+const themeScript = `
+(function () {
+  try {
+    var prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+    if (!prefersLight) document.documentElement.classList.add('dark');
+  } catch (e) {
+    document.documentElement.classList.add('dark');
+  }
+})();
+`
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body className={`${barlow.variable} ${barlowSemi.variable} ${geistMono.variable} min-h-full flex flex-col antialiased font-sans`}>
         {children}
-        <Toaster position="top-right" richColors />
+        <Toaster position="top-right" richColors theme="dark" />
       </body>
     </html>
   )

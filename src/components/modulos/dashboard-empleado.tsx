@@ -4,9 +4,8 @@ import Link from 'next/link'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import {
   ShoppingCart, Package, TrendingUp, Receipt, BarChart3,
-  Phone, Mail, Banknote, Calendar,
+  Phone, Mail, Banknote, Calendar, AlertCircle,
 } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
@@ -48,177 +47,179 @@ export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, 
   )
 
   const totalNominas = nominas.reduce((s, n) => s + Number(n.total_pago), 0)
+  const esAdmin = profile.rol === 'administrador'
 
   return (
-    <div className="space-y-6">
-      {/* Header con logo */}
-      <div className="flex items-center gap-4">
-        {config?.logo_url && (
-          <img src={config.logo_url} alt="Logo" className="h-14 w-auto rounded-lg object-contain shadow-sm" />
-        )}
-        <div>
-          <h1 className="font-display text-2xl font-extrabold tracking-tight text-steel-900">
-            Bienvenido, {profile.nombre_completo.split(' ')[0]}
-          </h1>
-          <p className="text-sm text-steel-500">{fechaHoy} · {config?.nombre ?? ''}</p>
-        </div>
-      </div>
+    <div className="space-y-4 md:space-y-6">
 
-      {/* Datos personales */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
-        <div className="flex items-start gap-4">
+      {/* ── Perfil + header diagonal ── */}
+      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] p-4">
+        <div className="relative z-10 flex items-start gap-4">
           {profile.foto_url ? (
-            <img src={profile.foto_url} alt="Foto"
-              className="h-16 w-16 shrink-0 rounded-full border object-cover" />
+            <img src={profile.foto_url} alt="Foto" className="h-20 w-20 shrink-0 rounded-full border-2 border-brand-yellow object-cover" />
           ) : (
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-brand-blue-soft text-2xl font-bold text-brand-blue">
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-brand-yellow font-display text-2xl font-black text-steel-900">
               {profile.nombre_completo.charAt(0)}
             </div>
           )}
-          <div className="space-y-1">
-            <p className="text-lg font-semibold text-steel-900">{profile.nombre_completo}</p>
-            <Badge variant="secondary" className="capitalize">{profile.rol}</Badge>
-            <div className="mt-2 grid grid-cols-1 gap-x-6 gap-y-1 text-sm text-steel-700 sm:grid-cols-2">
+          <div className="min-w-0">
+            <h1 className="font-display text-xl font-bold tracking-tight text-white">{profile.nombre_completo}</h1>
+            <span className={`mt-1 inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide capitalize ${esAdmin ? 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow' : 'border-white/10 bg-steel-700 text-steel-300'}`}>
+              {profile.rol}
+            </span>
+            <p className="mt-1 text-xs text-steel-300">{fechaHoy}{config?.nombre ? ` · ${config.nombre}` : ''}</p>
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-steel-300">
               {profile.telefono && (
-                <span className="flex items-center gap-2"><Phone className="h-4 w-4 text-steel-300" /> {profile.telefono}</span>
+                <span className="flex items-center gap-1.5"><Phone className="size-3.5 text-steel-500" /> {profile.telefono}</span>
               )}
               {profile.email && (
-                <span className="flex items-center gap-2"><Mail className="h-4 w-4 text-steel-300" /> {profile.email}</span>
+                <span className="flex items-center gap-1.5"><Mail className="size-3.5 text-steel-500" /> {profile.email}</span>
               )}
               {profile.salario_base && (
-                <span className="flex items-center gap-2"><Banknote className="h-4 w-4 text-steel-300" /> Salario base: {fmt(profile.salario_base)}/día</span>
+                <span className="flex items-center gap-1.5"><Banknote className="size-3.5 text-steel-500" /> Salario base: {fmt(profile.salario_base)}/día</span>
               )}
             </div>
           </div>
         </div>
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-28 overflow-hidden">
+          <div className="absolute inset-y-0 right-0 w-20 -skew-x-12 translate-x-8 bg-brand-yellow/80" />
+          <div className="absolute inset-y-0 right-0 w-7 -skew-x-12 translate-x-1 bg-brand-blue" />
+        </div>
       </div>
 
-      {/* KPIs */}
+      {/* ── KPIs ── */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="rounded-xl border border-steel-900 bg-steel-900 p-5 text-white">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-medium uppercase tracking-wide text-steel-300">Total ventas</p>
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-brand-yellow">
-              <TrendingUp className="h-4 w-4" />
+        <div className="rounded-2xl border border-white/10 border-l-4 border-l-brand-yellow bg-[#111820] p-4">
+          <div className="flex items-start justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Total ventas</p>
+            <span className="flex items-center justify-center rounded-xl bg-brand-yellow/15 p-2 text-brand-yellow">
+              <TrendingUp className="size-5" />
             </span>
           </div>
-          <p className="mt-2 font-display text-2xl font-bold md:text-3xl">{fmt(kpis.totalVentas)}</p>
+          <p className="mt-3 font-display text-2xl font-black text-emerald-400 md:text-3xl">{fmt(kpis.totalVentas)}</p>
         </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-medium uppercase tracking-wide text-steel-500">N° ventas</p>
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-steel-500">
-              <Receipt className="h-4 w-4" />
+        <div className="rounded-2xl border border-white/10 border-l-4 border-l-brand-blue bg-[#111820] p-4">
+          <div className="flex items-start justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">N° ventas</p>
+            <span className="flex items-center justify-center rounded-xl bg-brand-blue/15 p-2 text-brand-blue">
+              <Receipt className="size-5" />
             </span>
           </div>
-          <p className="mt-2 font-display text-2xl font-bold text-steel-900 md:text-3xl">{kpis.numVentas}</p>
+          <p className="mt-3 font-display text-2xl font-black text-white md:text-3xl">{kpis.numVentas}</p>
         </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-medium uppercase tracking-wide text-steel-500">Venta promedio</p>
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-blue-soft text-brand-blue">
-              <BarChart3 className="h-4 w-4" />
+        <div className="rounded-2xl border border-white/10 border-l-4 border-l-brand-blue bg-[#111820] p-4">
+          <div className="flex items-start justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Venta promedio</p>
+            <span className="flex items-center justify-center rounded-xl bg-brand-blue/15 p-2 text-brand-blue">
+              <BarChart3 className="size-5" />
             </span>
           </div>
-          <p className="mt-2 font-display text-2xl font-bold text-steel-900 md:text-3xl">{fmt(kpis.ventaPromedio)}</p>
+          <p className="mt-3 font-display text-2xl font-black text-white md:text-3xl">{fmt(kpis.ventaPromedio)}</p>
         </div>
       </div>
 
-      {/* Accesos rápidos */}
+      {/* ── Accesos rápidos ── */}
       <div className="grid grid-cols-2 gap-3">
         <Link href="/dashboard/ventas/nueva"
-          className="flex items-center gap-3 rounded-xl bg-brand-yellow p-4 text-sm font-semibold text-steel-900 shadow-lg shadow-brand-yellow/30 transition hover:brightness-105">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-steel-900/10">
-            <ShoppingCart className="h-5 w-5" />
+          className="flex h-16 items-center gap-3 rounded-2xl bg-brand-yellow px-4 text-sm font-bold text-steel-900 transition hover:brightness-105">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-steel-900/10">
+            <ShoppingCart className="size-6" />
           </span>
           Nueva Venta
         </Link>
         <Link href="/dashboard/inventario"
-          className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 text-sm font-semibold text-steel-900 transition hover:border-brand-blue/40 hover:shadow-sm">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-blue-soft text-brand-blue">
-            <Package className="h-5 w-5" />
+          className="flex h-16 items-center gap-3 rounded-2xl border border-white/10 bg-[#111820] px-4 text-sm font-bold text-white transition hover:border-brand-blue/40">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-blue/15 text-brand-blue">
+            <Package className="size-6" />
           </span>
           Inventario
         </Link>
       </div>
 
-      {/* Últimas ventas con filtro */}
+      {/* ── Mis ventas con filtro ── */}
       <div className="space-y-3">
-        <h2 className="flex items-center gap-2 font-display text-xs font-bold uppercase tracking-wider text-steel-500">
-          <span className="h-4 w-1 rounded-full bg-brand-yellow" />
+        <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
           Mis ventas
         </h2>
-        <div className="flex flex-wrap gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
-            <label className="text-xs text-steel-500">Desde</label>
+            <label className="block text-[10px] font-bold uppercase tracking-widest text-steel-300">Desde</label>
             <Input type="date" value={filtros.ventaDesde}
-              onChange={e => actualizar({ venta_desde: e.target.value })} className="h-8 w-36 text-xs" />
+              onChange={e => actualizar({ venta_desde: e.target.value })}
+              className="h-11 rounded-xl border-white/10 bg-[#1a2430] text-sm text-white" />
           </div>
           <div className="space-y-1">
-            <label className="text-xs text-steel-500">Hasta</label>
+            <label className="block text-[10px] font-bold uppercase tracking-widest text-steel-300">Hasta</label>
             <Input type="date" value={filtros.ventaHasta}
-              onChange={e => actualizar({ venta_hasta: e.target.value })} className="h-8 w-36 text-xs" />
+              onChange={e => actualizar({ venta_hasta: e.target.value })}
+              className="h-11 rounded-xl border-white/10 bg-[#1a2430] text-sm text-white" />
           </div>
         </div>
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-slate-50">
-                <TableHead>Ticket</TableHead>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead>Estado</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {ventas.slice(0, 10).map((v: any) => (
-                <TableRow key={v.id}>
-                  <TableCell>
-                    <Link href={`/dashboard/ventas/${v.id}`} className="font-medium text-brand-blue hover:underline">
-                      #{v.numero_ticket}
-                    </Link>
-                  </TableCell>
-                  <TableCell className="text-sm text-steel-500">{v.fecha}</TableCell>
-                  <TableCell className="text-sm text-steel-500">{v.clientes?.nombre ?? 'General'}</TableCell>
-                  <TableCell className="text-right font-semibold text-steel-900">{fmt(v.total)}</TableCell>
-                  <TableCell>
-                    <Badge variant={v.estado === 'anulada' ? 'destructive' : 'default'} className="text-xs">
-                      {v.estado}
-                    </Badge>
-                  </TableCell>
+        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+                  <TableHead>Ticket</TableHead>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
+                  <TableHead>Estado</TableHead>
                 </TableRow>
-              ))}
-              {ventas.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} className="py-6 text-center text-steel-300">
-                    Sin ventas en este período
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {ventas.slice(0, 10).map((v: any) => (
+                  <TableRow key={v.id} className="border-white/8 hover:bg-white/5">
+                    <TableCell>
+                      <Link href={`/dashboard/ventas/${v.id}`} className="font-mono text-xs font-medium text-brand-blue hover:underline">
+                        #{v.numero_ticket}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-xs text-steel-300">{v.fecha}</TableCell>
+                    <TableCell className="text-xs text-steel-300">{v.clientes?.nombre ?? 'General'}</TableCell>
+                    <TableCell className="text-right font-display text-sm font-bold text-white">{fmt(v.total)}</TableCell>
+                    <TableCell>
+                      <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
+                        v.estado === 'anulada'
+                          ? 'border-brand-red/30 bg-brand-red/20 text-brand-red'
+                          : 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400'
+                      }`}>
+                        {v.estado === 'anulada' && <AlertCircle className="size-3" />}
+                        {v.estado}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {ventas.length === 0 && (
+                  <TableRow className="border-white/8">
+                    <TableCell colSpan={5} className="py-6 text-center text-steel-500">
+                      Sin ventas en este período
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </div>
 
-      {/* Horario */}
+      {/* ── Horario ── */}
       <div className="space-y-3">
-        <h2 className="flex items-center gap-2 font-display text-xs font-bold uppercase tracking-wider text-steel-500">
-          <span className="h-4 w-1 rounded-full bg-brand-yellow" />
+        <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
           Mi horario
         </h2>
         {turnosOrdenados.length === 0 ? (
           <p className="text-sm text-steel-300">Sin turnos asignados</p>
         ) : (
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               {turnosOrdenados.map((t: any) => (
-                <div key={t.dia_semana} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
-                  <p className="flex items-center gap-1.5 font-semibold text-steel-700">
-                    <Calendar className="h-3.5 w-3.5 text-brand-blue" />
+                <div key={t.dia_semana} className="rounded-xl border border-white/10 bg-[#1a2430] px-3 py-2 text-sm">
+                  <p className="flex items-center gap-1.5 font-semibold text-white">
+                    <Calendar className="size-3.5 text-brand-blue" />
                     {DIAS_LABEL[t.dia_semana] ?? t.dia_semana}
                   </p>
-                  <p className="mt-0.5 text-xs text-steel-500">
+                  <p className="mt-0.5 text-xs text-steel-300">
                     {t.hora_inicio?.slice(0, 5)} – {t.hora_fin?.slice(0, 5)}
                   </p>
                 </div>
@@ -228,67 +229,72 @@ export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, 
         )}
       </div>
 
-      {/* Nóminas */}
+      {/* ── Nóminas ── */}
       <div className="space-y-3">
-        <h2 className="flex items-center gap-2 font-display text-xs font-bold uppercase tracking-wider text-steel-500">
-          <span className="h-4 w-1 rounded-full bg-brand-yellow" />
+        <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
           Mi nómina
         </h2>
-        <div className="flex flex-wrap gap-3">
-          <div className="space-y-1">
-            <label className="text-xs text-steel-500">Desde</label>
-            <Input type="date" value={filtros.nominaDesde}
-              onChange={e => actualizar({ nomina_desde: e.target.value })} className="h-8 w-36 text-xs" />
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="grid flex-1 grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-steel-300">Desde</label>
+              <Input type="date" value={filtros.nominaDesde}
+                onChange={e => actualizar({ nomina_desde: e.target.value })}
+                className="h-11 rounded-xl border-white/10 bg-[#1a2430] text-sm text-white" />
+            </div>
+            <div className="space-y-1">
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-steel-300">Hasta</label>
+              <Input type="date" value={filtros.nominaHasta}
+                onChange={e => actualizar({ nomina_hasta: e.target.value })}
+                className="h-11 rounded-xl border-white/10 bg-[#1a2430] text-sm text-white" />
+            </div>
           </div>
-          <div className="space-y-1">
-            <label className="text-xs text-steel-500">Hasta</label>
-            <Input type="date" value={filtros.nominaHasta}
-              onChange={e => actualizar({ nomina_hasta: e.target.value })} className="h-8 w-36 text-xs" />
-          </div>
-          <div className="self-end pb-1">
-            <span className="text-sm font-medium text-steel-700">
-              Total: <span className="font-bold text-green-700">{fmt(totalNominas)}</span>
+          <div className="pb-1">
+            <span className="text-sm text-steel-300">
+              Total: <span className="font-display font-bold text-emerald-400">{fmt(totalNominas)}</span>
             </span>
           </div>
         </div>
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-slate-50">
-                <TableHead>Fecha</TableHead>
-                <TableHead className="text-right">Horas</TableHead>
-                <TableHead className="text-right">Salario base</TableHead>
-                <TableHead className="text-right">Bonif.</TableHead>
-                <TableHead className="text-right">Deduc.</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {nominas.map((n: any) => (
-                <TableRow key={n.id}>
-                  <TableCell className="text-sm text-steel-500">{n.periodo_inicio}</TableCell>
-                  <TableCell className="text-right text-sm text-steel-500">
-                    {n.horas_trabajadas != null ? `${n.horas_trabajadas}h` : '—'}
-                  </TableCell>
-                  <TableCell className="text-right text-sm">{fmt(n.salario_base)}</TableCell>
-                  <TableCell className="text-right text-sm text-green-700">
-                    {Number(n.bonificaciones) > 0 ? `+${fmt(n.bonificaciones)}` : '—'}
-                  </TableCell>
-                  <TableCell className="text-right text-sm text-brand-red">
-                    {Number(n.deducciones) > 0 ? `-${fmt(n.deducciones)}` : '—'}
-                  </TableCell>
-                  <TableCell className="text-right font-bold text-steel-900">{fmt(n.total_pago)}</TableCell>
+        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+                  <TableHead>Fecha</TableHead>
+                  <TableHead className="text-right">Horas</TableHead>
+                  <TableHead className="text-right">Salario base</TableHead>
+                  <TableHead className="text-right">Bonif.</TableHead>
+                  <TableHead className="text-right">Deduc.</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
                 </TableRow>
-              ))}
-              {nominas.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} className="py-6 text-center text-steel-300">
-                    Sin nóminas en este período
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {nominas.map((n: any) => (
+                  <TableRow key={n.id} className="border-white/8 hover:bg-white/5">
+                    <TableCell className="text-xs text-steel-300">{n.periodo_inicio}</TableCell>
+                    <TableCell className="text-right text-xs text-steel-300">
+                      {n.horas_trabajadas != null ? `${n.horas_trabajadas}h` : '—'}
+                    </TableCell>
+                    <TableCell className="text-right text-xs text-white">{fmt(n.salario_base)}</TableCell>
+                    <TableCell className="text-right text-xs text-emerald-400">
+                      {Number(n.bonificaciones) > 0 ? `+${fmt(n.bonificaciones)}` : '—'}
+                    </TableCell>
+                    <TableCell className="text-right text-xs text-brand-red">
+                      {Number(n.deducciones) > 0 ? `-${fmt(n.deducciones)}` : '—'}
+                    </TableCell>
+                    <TableCell className="text-right font-display text-sm font-bold text-white">{fmt(n.total_pago)}</TableCell>
+                  </TableRow>
+                ))}
+                {nominas.length === 0 && (
+                  <TableRow className="border-white/8">
+                    <TableCell colSpan={6} className="py-6 text-center text-steel-500">
+                      Sin nóminas en este período
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </div>
     </div>

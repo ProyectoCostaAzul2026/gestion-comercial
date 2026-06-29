@@ -44,35 +44,39 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-[#0a0e14] text-white">
       {/* Panel de marca — solo en pantallas grandes */}
-      <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-[#18222b] p-12 text-white lg:flex">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-yellow text-[#18222b]">
+      <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-[#111820] p-12 lg:flex">
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-yellow text-steel-900">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" /></svg>
           </div>
-          <span className="font-display text-lg font-extrabold tracking-tight">{negocioNombre}</span>
+          <span className="font-display text-2xl font-black tracking-tight">{negocioNombre}</span>
         </div>
-        <div>
-          <h2 className="font-display text-4xl font-extrabold leading-tight tracking-tight">
-            Tu ferretería,<br />bajo control.
+        <div className="relative z-10">
+          <h2 className="font-display text-4xl font-black leading-tight tracking-tight">
+            Tu ferretería,<br /><span className="text-brand-yellow">bajo control.</span>
           </h2>
-          <p className="mt-4 max-w-sm text-sm text-[#9aa7b0]">
+          <p className="mt-4 max-w-sm text-sm text-steel-300">
             Ventas, inventario, caja y reportes en un solo lugar. Rápido en el mostrador, claro para el dueño.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="relative z-10 flex gap-2">
           <span className="h-1.5 w-8 rounded-full bg-brand-yellow" />
-          <span className="h-1.5 w-2 rounded-full bg-white/30" />
-          <span className="h-1.5 w-2 rounded-full bg-white/30" />
+          <span className="h-1.5 w-2 rounded-full bg-white/20" />
+          <span className="h-1.5 w-2 rounded-full bg-white/20" />
         </div>
-        <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-brand-yellow/10" />
-        <div className="pointer-events-none absolute -bottom-20 right-10 h-48 w-48 rounded-full bg-brand-blue/10" />
+
+        {/* Decoración diagonal */}
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-48 overflow-hidden">
+          <div className="absolute inset-y-0 right-0 w-32 -skew-x-12 translate-x-14 bg-brand-yellow/80" />
+          <div className="absolute inset-y-0 right-0 w-10 -skew-x-12 translate-x-2 bg-brand-blue" />
+        </div>
       </div>
 
       {/* Formulario */}
-      <div className="flex w-full items-center justify-center bg-slate-50 px-4 lg:w-1/2">
-        <div className="w-full max-w-sm space-y-6 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+      <div className="flex w-full items-center justify-center bg-[#0a0e14] px-4 lg:w-1/2">
+        <div className="w-full max-w-sm space-y-6 rounded-2xl border border-white/10 bg-[#111820] p-8">
           <div className="space-y-2 text-center">
             {logoUrl ? (
               <img
@@ -81,45 +85,49 @@ export default function LoginPage() {
                 className="mx-auto h-16 w-auto object-contain"
               />
             ) : (
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-brand-yellow text-[#18222b] lg:hidden">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-yellow text-steel-900 lg:hidden">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" /></svg>
               </div>
             )}
-            <h1 className="font-display text-2xl font-extrabold tracking-tight text-steel-900">{negocioNombre}</h1>
-            <p className="text-sm text-steel-500">Inicia sesión para continuar</p>
+            <h1 className="font-display text-2xl font-bold tracking-tight text-brand-yellow">{negocioNombre}</h1>
+            <p className="text-sm text-steel-300">Inicia sesión para continuar</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="mb-1 block text-sm font-medium text-steel-700">Correo</label>
+              <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-steel-300">Correo</label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
+                className="h-12 w-full rounded-xl border border-white/10 bg-[#1a2430] px-4 text-[16px] text-white placeholder:text-steel-500 focus:border-brand-yellow/60 focus:outline-none"
                 placeholder="tucorreo@ejemplo.com"
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-steel-700">Contraseña</label>
+              <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-steel-300">Contraseña</label>
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
+                className="h-12 w-full rounded-xl border border-white/10 bg-[#1a2430] px-4 text-[16px] text-white placeholder:text-steel-500 focus:border-brand-yellow/60 focus:outline-none"
                 placeholder="********"
               />
             </div>
 
-            {error && <p className="text-sm text-brand-red">{error}</p>}
+            {error && (
+              <p className="rounded-xl border border-brand-red/30 bg-brand-red/15 px-3 py-2 text-sm font-medium text-brand-red">
+                {error}
+              </p>
+            )}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-brand-yellow px-4 py-2.5 text-sm font-bold text-[#18222b] transition-colors hover:brightness-95 disabled:opacity-50"
+              className="h-12 w-full rounded-xl bg-brand-yellow text-base font-bold text-steel-900 transition-[filter] hover:brightness-95 disabled:opacity-50"
             >
               {loading ? 'Ingresando...' : 'Ingresar'}
             </button>

@@ -9,11 +9,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { Badge } from '@/components/ui/badge'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
-import { Search, Plus, Trash2, AlertTriangle, ArrowRightLeft, MapPin } from 'lucide-react'
+import { Search, Plus, Trash2, AlertTriangle, ArrowRightLeft, MapPin, Package, Wrench } from 'lucide-react'
 
 type MetodoPago = 'efectivo' | 'nequi' | 'daviplata' | 'tarjeta'
 
@@ -555,27 +554,37 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
 
   return (
     <div className="flex flex-col gap-6 lg:flex-row">
-      <div className="min-w-0 flex-1 space-y-5">
+      <div className="min-w-0 flex-1 space-y-4">
+
+        {/* HEADER DIAGONAL */}
+        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] px-4 pt-5 pb-4">
+          <h1 className="font-display text-3xl font-bold text-white">Nueva <span className="text-brand-yellow">Venta</span></h1>
+          <p className="mt-0.5 text-xs text-steel-300">Registra productos, servicios y cobro</p>
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-28 overflow-hidden">
+            <div className="absolute inset-y-0 right-0 w-20 -skew-x-12 translate-x-8 bg-brand-yellow/80" />
+            <div className="absolute inset-y-0 right-0 w-7 -skew-x-12 translate-x-1 bg-brand-blue" />
+          </div>
+        </div>
 
         {/* CLIENTE */}
-        <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5">
-          <h2 className="flex items-center gap-2 font-display font-bold text-steel-900">
-            <span className="h-4 w-1 rounded-full bg-brand-yellow" />Cliente
+        <section className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
+          <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow">
+            <span className="h-5 w-1 rounded-full bg-brand-yellow" />Cliente
           </h2>
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-300" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-500" />
               <Input
                 value={queryCliente}
                 onChange={async (e) => { setQueryCliente(e.target.value); await buscarClientes(e.target.value) }}
                 placeholder="Buscar por nombre, teléfono o documento…"
-                className="pl-9"
+                className="h-12 border-white/10 bg-[#1a2430] pl-9 text-[16px] text-white placeholder:text-steel-500"
               />
               {resultadosCliente.length > 0 && (
-                <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg">
+                <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-white/10 bg-[#111820] shadow-xl">
                   {resultadosCliente.map(c => (
                     <button key={c.id} type="button"
-                      className="flex w-full justify-between px-3 py-2 text-left text-sm hover:bg-brand-blue-soft"
+                      className="flex w-full justify-between px-3 py-2 text-left text-sm hover:bg-white/5"
                       onClick={() => {
                         setCliente(c)
                         setQueryCliente('')
@@ -583,98 +592,100 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                         if (facturaElectronica && (c as any).email) setEmailFactura((c as any).email)
                       }}
                     >
-                      <span className="font-medium text-steel-900">{c.nombre}</span>
+                      <span className="font-medium text-white">{c.nombre}</span>
                       {c.telefono && <span className="text-xs text-steel-300">{c.telefono}</span>}
                     </button>
                   ))}
                 </div>
               )}
             </div>
-            <Button type="button" variant="outline" size="sm" onClick={() => setMostrarNuevoCliente(v => !v)}>
+            <Button type="button" variant="outline" size="sm" className="h-12 border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={() => setMostrarNuevoCliente(v => !v)}>
               <Plus className="mr-1 h-4 w-4" />Nuevo
             </Button>
           </div>
 
-          <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm">
-            <span className="font-medium text-steel-900">{cliente.nombre}</span>
-            {cliente.es_cliente_generico && <Badge variant="secondary">General</Badge>}
+          <div className="flex items-center gap-2 rounded-xl bg-[#1a2430] px-3 py-2.5 text-sm">
+            <span className="font-medium text-white">{cliente.nombre}</span>
+            {cliente.es_cliente_generico && (
+              <span className="inline-flex items-center rounded-full border border-brand-yellow/30 bg-brand-yellow/20 px-2.5 py-0.5 text-xs font-semibold text-brand-yellow">General</span>
+            )}
             {!cliente.es_cliente_generico && (
-              <button type="button" onClick={() => setCliente(clienteGeneral)} className="ml-auto text-xs text-steel-300 hover:text-steel-500">
+              <button type="button" onClick={() => setCliente(clienteGeneral)} className="ml-auto text-xs text-steel-300 hover:text-white">
                 Usar Cliente General
               </button>
             )}
           </div>
 
           {mostrarNuevoCliente && (
-            <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xs font-medium text-steel-500">Nuevo cliente rápido</p>
-              <Input placeholder="Nombre *" value={nuevoCliente.nombre} onChange={e => setNuevoCliente(p => ({ ...p, nombre: e.target.value }))} />
+            <div className="space-y-2 rounded-xl border border-white/10 bg-[#1a2430] p-3">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Nuevo cliente rápido</p>
+              <Input placeholder="Nombre *" className="border-white/10 bg-[#111820] text-white placeholder:text-steel-500" value={nuevoCliente.nombre} onChange={e => setNuevoCliente(p => ({ ...p, nombre: e.target.value }))} />
               <div className="grid grid-cols-2 gap-2">
-                <Input placeholder="Teléfono" value={nuevoCliente.telefono} onChange={e => setNuevoCliente(p => ({ ...p, telefono: e.target.value }))} />
-                <Input placeholder="NIT/CC" value={nuevoCliente.nit_cc} onChange={e => setNuevoCliente(p => ({ ...p, nit_cc: e.target.value }))} />
+                <Input placeholder="Teléfono" className="border-white/10 bg-[#111820] text-white placeholder:text-steel-500" value={nuevoCliente.telefono} onChange={e => setNuevoCliente(p => ({ ...p, telefono: e.target.value }))} />
+                <Input placeholder="NIT/CC" className="border-white/10 bg-[#111820] text-white placeholder:text-steel-500" value={nuevoCliente.nit_cc} onChange={e => setNuevoCliente(p => ({ ...p, nit_cc: e.target.value }))} />
               </div>
-              <Input placeholder="Email" type="email" value={nuevoCliente.email} onChange={e => setNuevoCliente(p => ({ ...p, email: e.target.value }))} />
+              <Input placeholder="Email" type="email" className="border-white/10 bg-[#111820] text-white placeholder:text-steel-500" value={nuevoCliente.email} onChange={e => setNuevoCliente(p => ({ ...p, email: e.target.value }))} />
 
               <div className="flex gap-2">
-                <Button type="button" size="sm" onClick={guardarNuevoCliente} disabled={guardandoCliente}>
+                <Button type="button" size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={guardarNuevoCliente} disabled={guardandoCliente}>
                   {guardandoCliente ? 'Guardando…' : 'Guardar'}
                 </Button>
-                <Button type="button" size="sm" variant="outline" onClick={() => setMostrarNuevoCliente(false)}>Cancelar</Button>
+                <Button type="button" size="sm" variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => setMostrarNuevoCliente(false)}>Cancelar</Button>
               </div>
             </div>
           )}
         </section>
 
         {/* PRODUCTOS */}
-        <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5">
+        <section className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
           <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 font-display font-bold text-steel-900">
-              <span className="h-4 w-1 rounded-full bg-brand-yellow" />Productos
+            <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow">
+              <span className="h-5 w-1 rounded-full bg-brand-yellow" />Productos
             </h2>
-            <Button type="button" variant="outline" size="sm" onClick={() => setMostrarAltaRapida(v => !v)}>
-              <Plus className="mr-1 h-4 w-4" />Alta rápida
+            <Button type="button" variant="outline" size="sm" className="border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={() => setMostrarAltaRapida(v => !v)}>
+              <Plus className="mr-1 h-4 w-4" />Alta rápida ⚡
             </Button>
           </div>
 
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-300" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-500" />
             <Input
               value={queryProducto}
               onChange={async e => { setQueryProducto(e.target.value); await buscarProductos(e.target.value) }}
               placeholder="Buscar por nombre o código…"
-              className="pl-9"
+              className="h-12 border-white/10 bg-[#1a2430] pl-9 text-[16px] text-white placeholder:text-steel-500"
             />
             {resultadosProducto.length > 0 && (
-              <div className="absolute z-20 mt-1 max-h-72 w-full overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg">
+              <div className="absolute z-20 mt-1 max-h-72 w-full overflow-y-auto rounded-xl border border-white/10 bg-[#111820] shadow-xl">
                 {resultadosProducto.map(p => (
-                  <div key={p.id} className="border-b border-slate-100 last:border-0">
+                  <div key={p.id} className="border-b border-white/8 last:border-0">
                     {p.vender_por_fraccion ? (
                       <div className="px-3 py-2">
-                        <p className="mb-1 text-sm font-medium text-steel-700">{p.nombre}</p>
+                        <p className="mb-1 text-sm font-medium text-white">{p.nombre}</p>
                         <div className="flex gap-2">
-                          <button type="button" className="flex-1 rounded-lg border border-slate-200 px-2 py-1.5 text-left text-xs hover:border-brand-blue/40 hover:bg-brand-blue-soft" onClick={() => agregarProducto(p, 'completo')}>
-                            <span className="block font-medium text-steel-900">Unidad completa</span>
-                            <span className="text-steel-500">${p.precio_venta.toLocaleString('es-CO')} · Almacén: {p.stock_almacen}</span>
+                          <button type="button" className="flex-1 rounded-xl border border-white/10 px-2 py-1.5 text-left text-xs hover:border-brand-blue/40 hover:bg-white/5" onClick={() => agregarProducto(p, 'completo')}>
+                            <span className="block font-medium text-white">Unidad completa</span>
+                            <span className="text-steel-300">${p.precio_venta.toLocaleString('es-CO')} · Almacén: {p.stock_almacen}</span>
                           </button>
-                          <button type="button" className="flex-1 rounded-lg border border-slate-200 px-2 py-1.5 text-left text-xs hover:border-brand-blue/40 hover:bg-brand-blue-soft" onClick={() => agregarProducto(p, 'fraccion')}>
-                            <span className="block font-medium text-steel-900">Por {p.medida_venta}</span>
-                            <span className="text-steel-500">${(p.precio_por_unidad_medida ?? 0).toLocaleString('es-CO')}/{p.medida_venta} · Rem: {p.remanente_fraccion}</span>
+                          <button type="button" className="flex-1 rounded-xl border border-white/10 px-2 py-1.5 text-left text-xs hover:border-brand-blue/40 hover:bg-white/5" onClick={() => agregarProducto(p, 'fraccion')}>
+                            <span className="block font-medium text-white">Por {p.medida_venta}</span>
+                            <span className="text-steel-300">${(p.precio_por_unidad_medida ?? 0).toLocaleString('es-CO')}/{p.medida_venta} · Rem: {p.remanente_fraccion}</span>
                           </button>
                         </div>
                       </div>
                     ) : (
                       <button type="button"
-                        className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-brand-blue-soft disabled:opacity-50"
+                        className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-white/5 disabled:opacity-50"
                         onClick={() => agregarProducto(p, 'completo')}
                         disabled={p.stock_almacen <= 0 && p.stock_bodega <= 0}
                       >
                         <div>
-                          <span className="font-medium text-steel-900">{p.nombre}</span>
-                          {p.codigo && <span className="ml-2 text-xs text-steel-300">{p.codigo}</span>}
+                          <span className="font-medium text-white">{p.nombre}</span>
+                          {p.codigo && <span className="ml-2 font-mono text-xs text-brand-yellow">{p.codigo}</span>}
                           {p.ubicacion && <span className="ml-2 inline-flex items-center gap-0.5 text-xs text-steel-300"><MapPin className="h-3 w-3" />{p.ubicacion}</span>}
                         </div>
                         <div className="ml-3 shrink-0 text-right">
-                          <div className="text-xs font-medium text-steel-900">${p.precio_venta.toLocaleString('es-CO')}</div>
+                          <div className="text-xs font-medium text-white">${p.precio_venta.toLocaleString('es-CO')}</div>
                           <div className={`text-xs ${p.stock_almacen <= 0 ? 'text-brand-red' : 'text-steel-300'}`}>
                             Almacén: {p.stock_almacen}
                             {p.stock_almacen <= 0 && p.stock_bodega > 0 && ` · Bodega: ${p.stock_bodega}`}
@@ -689,62 +700,62 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
           </div>
 
           {mostrarAltaRapida && (
-            <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xs font-medium text-steel-500">Alta rápida — el producto quedará en Inventario para completar después</p>
-              <Input placeholder="Nombre del producto *" value={altaRapida.nombre} onChange={e => setAltaRapida(p => ({ ...p, nombre: e.target.value }))} />
+            <div className="space-y-2 rounded-xl border border-white/10 bg-[#1a2430] p-3">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Alta rápida — el producto quedará en Inventario para completar después</p>
+              <Input placeholder="Nombre del producto *" className="border-white/10 bg-[#111820] text-white placeholder:text-steel-500" value={altaRapida.nombre} onChange={e => setAltaRapida(p => ({ ...p, nombre: e.target.value }))} />
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-xs text-steel-500">Precio de venta *</label>
-                  <Input type="number" value={altaRapida.precio || ''} onChange={e => setAltaRapida(p => ({ ...p, precio: parseFloat(e.target.value) || 0 }))} />
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Precio de venta *</label>
+                  <Input type="number" className="border-white/10 bg-[#111820] text-white" value={altaRapida.precio || ''} onChange={e => setAltaRapida(p => ({ ...p, precio: parseFloat(e.target.value) || 0 }))} />
                 </div>
                 <div>
-                  <label className="text-xs text-steel-500">Margen %</label>
-                  <Input type="number" min={0} max={99} value={altaRapida.margen || ''} onChange={e => setAltaRapida(p => ({ ...p, margen: parseFloat(e.target.value) || 0 }))} />
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Margen %</label>
+                  <Input type="number" min={0} max={99} className="border-white/10 bg-[#111820] text-white" value={altaRapida.margen || ''} onChange={e => setAltaRapida(p => ({ ...p, margen: parseFloat(e.target.value) || 0 }))} />
                 </div>
               </div>
               {altaRapida.precio > 0 && (
                 <p className="text-xs text-steel-300">Costo calculado: ${Math.round(altaRapida.precio * (1 - altaRapida.margen / 100) / 1.19).toLocaleString('es-CO')}</p>
               )}
               <div className="flex gap-2">
-                <Button type="button" size="sm" onClick={guardarAltaRapida} disabled={guardandoAltaRapida}>
+                <Button type="button" size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={guardarAltaRapida} disabled={guardandoAltaRapida}>
                   {guardandoAltaRapida ? 'Creando…' : 'Crear y agregar'}
                 </Button>
-                <Button type="button" size="sm" variant="outline" onClick={() => setMostrarAltaRapida(false)}>Cancelar</Button>
+                <Button type="button" size="sm" variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => setMostrarAltaRapida(false)}>Cancelar</Button>
               </div>
             </div>
           )}
 
           {alertaStock && (
-            <div className="space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
+            <div className="space-y-3 rounded-xl border border-brand-yellow/30 bg-brand-yellow/10 p-3">
               <div className="flex gap-2">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-brand-yellow" />
                 <div className="text-sm">
-                  <p className="font-medium text-amber-800">{alertaStock.productoNombre}: stock insuficiente en Almacén</p>
-                  <p className="mt-0.5 text-xs text-amber-700">Disponible en Almacén: <strong>{alertaStock.stockAlmacen}</strong> · En Bodega: <strong>{alertaStock.stockBodega}</strong></p>
+                  <p className="font-medium text-brand-yellow">{alertaStock.productoNombre}: stock insuficiente en Almacén</p>
+                  <p className="mt-0.5 text-xs text-brand-yellow/80">Disponible en Almacén: <strong>{alertaStock.stockAlmacen}</strong> · En Bodega: <strong>{alertaStock.stockBodega}</strong></p>
                 </div>
               </div>
-              <div className="space-y-2 rounded-lg border border-slate-200 bg-white p-3">
-                <p className="text-xs font-medium text-steel-700">Transferir desde Bodega a Almacén</p>
+              <div className="space-y-2 rounded-xl border border-white/10 bg-[#111820] p-3">
+                <p className="text-xs font-medium text-white">Transferir desde Bodega a Almacén</p>
                 <div className="flex items-center gap-2">
-                  <Input type="number" min={1} max={alertaStock.stockBodega} value={cantidadTransferir || ''} onChange={e => setCantidadTransferir(parseInt(e.target.value) || 0)} className="h-8 w-24 text-sm" />
-                  <span className="text-xs text-steel-500">unidades (máx {alertaStock.stockBodega})</span>
-                  <Button type="button" size="sm" onClick={handleTransferirStock} disabled={transfiriendo}>
+                  <Input type="number" min={1} max={alertaStock.stockBodega} value={cantidadTransferir || ''} onChange={e => setCantidadTransferir(parseInt(e.target.value) || 0)} className="h-9 w-24 border-white/10 bg-[#1a2430] text-sm text-white" />
+                  <span className="text-xs text-steel-300">unidades (máx {alertaStock.stockBodega})</span>
+                  <Button type="button" size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={handleTransferirStock} disabled={transfiriendo}>
                     <ArrowRightLeft className="mr-1 h-4 w-4" />
                     {transfiriendo ? 'Transfiriendo…' : 'Transferir'}
                   </Button>
                 </div>
               </div>
-              <Button type="button" size="sm" variant="outline" onClick={() => setAlertaStock(null)}>Cancelar</Button>
+              <Button type="button" size="sm" variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => setAlertaStock(null)}>Cancelar</Button>
             </div>
           )}
 
           {carrito.length > 0 && (
             <div className="space-y-2">
               {carrito.map((item, idx) => (
-                <div key={item.key} className="space-y-2 rounded-lg border border-slate-200 p-3">
+                <div key={item.key} className="space-y-2 rounded-xl border border-white/10 bg-[#1a2430] p-3">
                   <div className="flex justify-between gap-2">
                     <div>
-                      <p className="text-sm font-medium text-steel-900">{item.nombre}</p>
+                      <p className="text-sm font-semibold text-white">{item.nombre}</p>
                       <div className="mt-0.5 flex gap-3">
                         {item.ubicacion && <span className="inline-flex items-center gap-0.5 text-xs text-steel-300"><MapPin className="h-3 w-3" />{item.ubicacion}</span>}
                         {!item.es_fraccionado && <span className="text-xs text-steel-300">Almacén: {item.stock_almacen} · Bodega: {item.stock_bodega}</span>}
@@ -759,9 +770,10 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                   {item.es_fraccionado ? (
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="text-xs text-steel-500">Cantidad ({item.medida_venta}) — mín {item.cantidad_minima_venta}</label>
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Cantidad ({item.medida_venta}) — mín {item.cantidad_minima_venta}</label>
                         <Input
                           type="number"
+                          className="border-white/10 bg-[#111820] text-white"
                           step={item.cantidad_minima_venta ?? 0.5}
                           min={item.cantidad_minima_venta ?? 0.5}
                           value={item.cantidad_fraccion || ''}
@@ -776,16 +788,17 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                         )}
                       </div>
                       <div>
-                        <label className="text-xs text-steel-500">Subtotal</label>
-                        <p className="mt-2 text-sm font-medium text-steel-900">${(item.precio_unitario * item.cantidad_fraccion).toLocaleString('es-CO')}</p>
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Subtotal</label>
+                        <p className="mt-2 text-sm font-semibold text-white">${(item.precio_unitario * item.cantidad_fraccion).toLocaleString('es-CO')}</p>
                       </div>
                     </div>
                   ) : (
                     <div className="grid grid-cols-3 items-end gap-2">
                       <div>
-                        <label className="text-xs text-steel-500">Cantidad (máx {item.stock_almacen})</label>
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Cantidad (máx {item.stock_almacen})</label>
                         <Input
                           type="number" min={1} max={item.stock_almacen}
+                          className="border-white/10 bg-[#111820] text-white"
                           value={item.cantidad || ''}
                           onFocus={e => e.target.select()}
                           onChange={e => {
@@ -812,12 +825,12 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-steel-500">Precio unit.</label>
-                        <p className="mt-2 text-sm text-steel-900">${item.precio_unitario.toLocaleString('es-CO')}</p>
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Precio unit.</label>
+                        <p className="mt-2 text-sm text-white">${item.precio_unitario.toLocaleString('es-CO')}</p>
                       </div>
                       <div>
-                        <label className="text-xs text-steel-500">Subtotal</label>
-                        <p className="mt-2 text-sm font-medium text-steel-900">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Subtotal</label>
+                        <p className="mt-2 text-sm font-semibold text-white">
                           ${(item.precio_unitario * item.cantidad * (1 - (item.descuento_habilitado ? item.descuento_porcentaje / 100 : 0))).toLocaleString('es-CO')}
                         </p>
                       </div>
@@ -825,12 +838,12 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                   )}
 
                   {descuentoHabilitado && !item.es_fraccionado && (
-                    <div className="flex items-center gap-2 border-t border-slate-100 pt-2">
+                    <div className="flex items-center gap-2 border-t border-white/8 pt-2">
                       <Switch checked={item.descuento_habilitado} onCheckedChange={v => setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, descuento_habilitado: v, descuento_porcentaje: v ? 5 : 0 } : it))} />
-                      <span className="text-xs text-steel-500">Descuento</span>
+                      <span className="text-xs text-steel-300">Descuento</span>
                       {item.descuento_habilitado && (
                         <div className="ml-auto flex items-center gap-1">
-                          <Input type="number" min={0} max={10} className="h-7 w-16 text-xs" value={item.descuento_porcentaje || ''}
+                          <Input type="number" min={0} max={10} className="h-8 w-16 border-white/10 bg-[#111820] text-xs text-white" value={item.descuento_porcentaje || ''}
                             onChange={e => setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, descuento_porcentaje: validarDescuento(parseFloat(e.target.value) || 0) } : it))} />
                           <span className="text-xs text-steel-300">% (máx 10)</span>
                         </div>
@@ -843,17 +856,20 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
           )}
 
           {carrito.length === 0 && !mostrarAltaRapida && (
-            <p className="py-3 text-center text-sm text-steel-300">Busca un producto para agregarlo</p>
+            <div className="flex flex-col items-center gap-2 py-6 text-center">
+              <Package className="size-16 text-brand-yellow/50" />
+              <p className="text-sm text-steel-300">Busca un producto para agregarlo</p>
+            </div>
           )}
         </section>
 
         {/* SERVICIOS */}
-        <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5">
+        <section className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
           <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 font-display font-bold text-steel-900">
-              <span className="h-4 w-1 rounded-full bg-brand-yellow" />Servicios
+            <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow">
+              <span className="h-5 w-1 rounded-full bg-brand-yellow" />Servicios
             </h2>
-            <Button type="button" variant="outline" size="sm" onClick={() => setMostrarNuevoServicio(v => !v)}>
+            <Button type="button" variant="outline" size="sm" className="border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={() => setMostrarNuevoServicio(v => !v)}>
               <Plus className="mr-1 h-4 w-4" />Nuevo servicio
             </Button>
           </div>
@@ -864,7 +880,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
               onValueChange={v => { if (!v) return; const servicio = catalogo.find(s => s.id === v); if (servicio) agregarServicio(servicio) }}
               value=""
             >
-              <SelectTrigger><SelectValue placeholder="Selecciona un servicio del catálogo…" /></SelectTrigger>
+              <SelectTrigger className="h-12 border-white/10 bg-[#1a2430] text-white"><SelectValue placeholder="Selecciona un servicio del catálogo…" /></SelectTrigger>
               <SelectContent>
                 {catalogo.map(s => <SelectItem key={s.id} value={s.id}>{s.nombre} — ${s.precio.toLocaleString('es-CO')}</SelectItem>)}
               </SelectContent>
@@ -872,19 +888,19 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
           )}
 
           {mostrarNuevoServicio && (
-            <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xs font-medium text-steel-500">Nuevo servicio</p>
-              <Input placeholder="Nombre *" value={nuevoServicio.nombre} onChange={e => setNuevoServicio(p => ({ ...p, nombre: e.target.value }))} />
-              <Input placeholder="Descripción" value={nuevoServicio.descripcion} onChange={e => setNuevoServicio(p => ({ ...p, descripcion: e.target.value }))} />
+            <div className="space-y-2 rounded-xl border border-white/10 bg-[#1a2430] p-3">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Nuevo servicio</p>
+              <Input placeholder="Nombre *" className="border-white/10 bg-[#111820] text-white placeholder:text-steel-500" value={nuevoServicio.nombre} onChange={e => setNuevoServicio(p => ({ ...p, nombre: e.target.value }))} />
+              <Input placeholder="Descripción" className="border-white/10 bg-[#111820] text-white placeholder:text-steel-500" value={nuevoServicio.descripcion} onChange={e => setNuevoServicio(p => ({ ...p, descripcion: e.target.value }))} />
               <div>
-                <label className="text-xs text-steel-500">Precio *</label>
-                <Input type="number" value={nuevoServicio.precio || ''} onChange={e => setNuevoServicio(p => ({ ...p, precio: parseFloat(e.target.value) || 0 }))} />
+                <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Precio *</label>
+                <Input type="number" className="border-white/10 bg-[#111820] text-white" value={nuevoServicio.precio || ''} onChange={e => setNuevoServicio(p => ({ ...p, precio: parseFloat(e.target.value) || 0 }))} />
               </div>
               <div className="flex gap-2">
-                <Button type="button" size="sm" onClick={guardarNuevoServicio} disabled={guardandoServicio}>
+                <Button type="button" size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={guardarNuevoServicio} disabled={guardandoServicio}>
                   {guardandoServicio ? 'Guardando…' : 'Guardar y agregar'}
                 </Button>
-                <Button type="button" size="sm" variant="outline" onClick={() => setMostrarNuevoServicio(false)}>Cancelar</Button>
+                <Button type="button" size="sm" variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => setMostrarNuevoServicio(false)}>Cancelar</Button>
               </div>
             </div>
           )}
@@ -892,13 +908,13 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
           {serviciosCarrito.length > 0 && (
             <div className="space-y-1">
               {serviciosCarrito.map((s, idx) => (
-                <div key={s.key} className="space-y-2 rounded-lg border border-slate-200 px-3 py-2">
+                <div key={s.key} className="space-y-2 rounded-xl border border-white/10 bg-[#1a2430] px-3 py-2">
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-sm font-medium text-steel-900">{s.nombre_servicio}</span>
-                      <span className="ml-2 text-sm text-steel-500">${s.precio_aplicado.toLocaleString('es-CO')}</span>
+                      <span className="text-sm font-semibold text-white">{s.nombre_servicio}</span>
+                      <span className="ml-2 text-sm text-steel-300">${s.precio_aplicado.toLocaleString('es-CO')}</span>
                       {s.descuento_habilitado && s.descuento_porcentaje > 0 && (
-                        <span className="ml-2 text-xs text-green-600">-{s.descuento_porcentaje}% = ${(s.precio_aplicado * (1 - s.descuento_porcentaje / 100)).toLocaleString('es-CO')}</span>
+                        <span className="ml-2 text-xs text-emerald-400">-{s.descuento_porcentaje}% = ${(s.precio_aplicado * (1 - s.descuento_porcentaje / 100)).toLocaleString('es-CO')}</span>
                       )}
                     </div>
                     <button type="button" onClick={() => setServiciosCarrito(prev => prev.filter((_, i) => i !== idx))} className="text-steel-300 hover:text-brand-red">
@@ -906,12 +922,12 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                     </button>
                   </div>
                   {descuentoHabilitado && (
-                    <div className="flex items-center gap-2 border-t border-slate-100 pt-1">
+                    <div className="flex items-center gap-2 border-t border-white/8 pt-1">
                       <Switch checked={s.descuento_habilitado} onCheckedChange={v => setServiciosCarrito(prev => prev.map((it, i) => i === idx ? { ...it, descuento_habilitado: v, descuento_porcentaje: v ? 5 : 0 } : it))} />
-                      <span className="text-xs text-steel-500">Descuento</span>
+                      <span className="text-xs text-steel-300">Descuento</span>
                       {s.descuento_habilitado && (
                         <div className="ml-auto flex items-center gap-1">
-                          <Input type="number" min={0} max={10} className="h-7 w-16 text-xs" value={s.descuento_porcentaje || ''}
+                          <Input type="number" min={0} max={10} className="h-8 w-16 border-white/10 bg-[#111820] text-xs text-white" value={s.descuento_porcentaje || ''}
                             onChange={e => setServiciosCarrito(prev => prev.map((it, i) => i === idx ? { ...it, descuento_porcentaje: validarDescuento(parseFloat(e.target.value) || 0) } : it))} />
                           <span className="text-xs text-steel-300">%</span>
                         </div>
@@ -924,15 +940,18 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
           )}
 
           {serviciosCarrito.length === 0 && !mostrarNuevoServicio && (
-            <p className="py-2 text-center text-sm text-steel-300">Sin servicios agregados</p>
+            <div className="flex flex-col items-center gap-2 py-4 text-center">
+              <Wrench className="size-12 text-brand-yellow/50" />
+              <p className="text-sm text-steel-300">Sin servicios agregados</p>
+            </div>
           )}
         </section>
 
         {/* DESCUENTOS */}
-        <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5">
+        <section className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
           <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 font-display font-bold text-steel-900">
-              <span className="h-4 w-1 rounded-full bg-brand-yellow" />Descuentos
+            <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow">
+              <span className="h-5 w-1 rounded-full bg-brand-yellow" />Descuentos
             </h2>
             <div className="flex items-center gap-2">
               <Switch checked={descuentoHabilitado} onCheckedChange={v => {
@@ -943,34 +962,34 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                   setServiciosCarrito(prev => prev.map(it => ({ ...it, descuento_habilitado: false, descuento_porcentaje: 0 })))
                 }
               }} />
-              <span className="text-sm text-steel-500">{descuentoHabilitado ? 'Habilitado' : 'Deshabilitado'}</span>
+              <span className={`text-sm font-semibold ${descuentoHabilitado ? 'text-brand-yellow' : 'text-steel-300'}`}>{descuentoHabilitado ? 'Habilitado' : 'Deshabilitado'}</span>
             </div>
           </div>
 
           {descuentoHabilitado && (
             <div className="space-y-2">
-              <div className="flex items-center gap-3 rounded-lg border border-slate-200 p-3">
+              <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#1a2430] p-3">
                 <Switch checked={descuentoTotalActivo} onCheckedChange={v => { setDescuentoTotalActivo(v); if (v) setEditandoTotalManual(false) }} />
-                <span className="text-sm text-steel-700">Descuento sobre el total</span>
+                <span className="text-sm text-white">Descuento sobre el total</span>
                 {descuentoTotalActivo && (
                   <div className="ml-auto flex items-center gap-1">
-                    <Input type="number" min={0} max={10} className="h-7 w-16 text-xs" value={descuentoTotalPct || ''}
+                    <Input type="number" min={0} max={10} className="h-8 w-16 border-white/10 bg-[#111820] text-xs text-white" value={descuentoTotalPct || ''}
                       onChange={e => setDescuentoTotalPct(validarDescuento(parseFloat(e.target.value) || 0))} />
                     <span className="text-xs text-steel-300">% (máx 10)</span>
                   </div>
                 )}
               </div>
-              <div className="flex items-center gap-3 rounded-lg border border-slate-200 p-3">
+              <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#1a2430] p-3">
                 <Switch checked={editandoTotalManual} onCheckedChange={v => {
                   setEditandoTotalManual(v)
                   if (v) { setDescuentoTotalActivo(false); setTotalManual(String(totalRedondeado)) }
                   else setTotalManual('')
                 }} />
-                <span className="text-sm text-steel-700">Editar total manualmente</span>
+                <span className="text-sm text-white">Editar total manualmente</span>
                 {editandoTotalManual && (
                   <div className="ml-auto flex items-center gap-1">
-                    <span className="text-xs text-steel-500">$</span>
-                    <Input type="number" className="h-7 w-32 text-xs" value={totalManual}
+                    <span className="text-xs text-steel-300">$</span>
+                    <Input type="number" className="h-8 w-32 border-white/10 bg-[#111820] text-xs text-white" value={totalManual}
                       onChange={e => setTotalManual(e.target.value)}
                       onBlur={() => {
                         const val = parseFloat(totalManual) || 0
@@ -982,22 +1001,22 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                   </div>
                 )}
               </div>
-              <div className="flex justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs">
-                <span className="text-steel-500">
-                  Descuento acumulado: <strong className={descuentoAcumuladoPct > maxDescuentoPct ? 'text-brand-red' : 'text-steel-700'}>{(descuentoAcumuladoPct * 100).toFixed(1)}%</strong> / {(maxDescuentoPct * 100).toFixed(0)}%
+              <div className="flex justify-between rounded-xl border border-white/10 bg-[#1a2430] px-3 py-2 text-xs">
+                <span className="text-steel-300">
+                  Descuento acumulado: <strong className={descuentoAcumuladoPct > maxDescuentoPct ? 'text-brand-red' : 'text-white'}>{(descuentoAcumuladoPct * 100).toFixed(1)}%</strong> / {(maxDescuentoPct * 100).toFixed(0)}%
                 </span>
-                <span className="text-steel-500">Mín: <strong>${minPagoPermitido.toLocaleString('es-CO')}</strong></span>
+                <span className="text-steel-300">Mín: <strong className="text-white">${minPagoPermitido.toLocaleString('es-CO')}</strong></span>
               </div>
-              <p className="text-xs text-steel-300">Los descuentos por producto/servicio se activan en cada línea del carrito.</p>
+              <p className="text-xs text-steel-500">Los descuentos por producto/servicio se activan en cada línea del carrito.</p>
             </div>
           )}
         </section>
 
         {/* PAGO */}
-        <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5">
+        <section className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
           <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 font-display font-bold text-steel-900">
-              <span className="h-4 w-1 rounded-full bg-brand-yellow" />Método de pago
+            <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow">
+              <span className="h-5 w-1 rounded-full bg-brand-yellow" />Método de pago
             </h2>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
@@ -1011,7 +1030,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                     setEsCredito(v)
                   }}
                 />
-                <span className="text-sm text-steel-500">Venta a crédito</span>
+                <span className="text-sm text-steel-300">Venta a crédito</span>
               </div>
               {!esCredito && (
                 <div className="flex items-center gap-2">
@@ -1020,24 +1039,24 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                     if (!v) setPagos([{ metodo: metodoPagoUnico, monto: totalRedondeado, monto_recibido: 0, vueltas: 0 }])
                     else setPagos([{ metodo: 'efectivo', monto: 0, monto_recibido: 0, vueltas: 0 }])
                   }} />
-                  <span className="text-sm text-steel-500">Pago mixto</span>
+                  <span className="text-sm text-steel-300">Pago mixto</span>
                 </div>
               )}
             </div>
           </div>
 
           {esCredito ? (
-            <div className="space-y-3 rounded-lg border border-brand-blue/20 bg-brand-blue-soft p-3">
-              <p className="text-sm font-medium text-brand-blue-dark">Venta a crédito — sin cobro inmediato</p>
-              <p className="text-xs text-brand-blue">
+            <div className="space-y-3 rounded-xl border border-brand-blue/30 bg-brand-blue/10 p-3">
+              <p className="text-sm font-medium text-brand-blue">Venta a crédito — sin cobro inmediato</p>
+              <p className="text-xs text-brand-blue/80">
                 El inventario se descuenta normalmente. El saldo quedará pendiente en el perfil del cliente.
               </p>
               {cliente.es_cliente_generico && (
                 <p className="flex items-center gap-1 text-xs font-medium text-brand-red"><AlertTriangle className="h-3.5 w-3.5" /> Debes seleccionar un cliente específico para continuar</p>
               )}
               <div className="space-y-1">
-                <label className="text-xs text-steel-500">Fecha de pago programada (opcional)</label>
-                <Input type="date" value={fechaPagoCredito} onChange={e => setFechaPagoCredito(e.target.value)} className="w-44" />
+                <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Fecha de pago programada (opcional)</label>
+                <Input type="date" value={fechaPagoCredito} onChange={e => setFechaPagoCredito(e.target.value)} className="h-12 w-44 border-white/10 bg-[#111820] text-white" />
               </div>
             </div>
           ) : !esMixto ? (
@@ -1051,7 +1070,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                 }}
                 value={metodoPagoUnico}
               >
-                <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-12 w-48 border-white/10 bg-[#1a2430] text-white"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {METODOS.map(m => <SelectItem key={m} value={m}>{METODO_LABEL[m]}</SelectItem>)}
                 </SelectContent>
@@ -1060,8 +1079,8 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
               {metodoPagoUnico === 'efectivo' && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs text-steel-500">Monto recibido *</label>
-                    <Input type="number" value={pagos[0]?.monto_recibido || ''}
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Monto recibido *</label>
+                    <Input type="number" className="h-12 border-white/10 bg-[#1a2430] text-white" value={pagos[0]?.monto_recibido || ''}
                       onFocus={e => e.target.select()}
                       onChange={e => {
                         const recibido = parseFloat(e.target.value) || 0
@@ -1070,8 +1089,8 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-steel-500">Vueltas</label>
-                    <p className="mt-2 text-xl font-bold text-green-700">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Vueltas</label>
+                    <p className="mt-2 font-display text-xl font-bold text-emerald-400">
                       ${Math.max(0, (pagos[0]?.monto_recibido ?? 0) - totalRedondeado).toLocaleString('es-CO')}
                     </p>
                   </div>
@@ -1083,27 +1102,27 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
               {METODOS.map(m => {
                 const pagoActivo = pagos.find(p => p.metodo === m)
                 return (
-                  <div key={m} className="space-y-2 rounded-lg border border-slate-200 p-3">
+                  <div key={m} className="space-y-2 rounded-xl border border-white/10 bg-[#1a2430] p-3">
                     <div className="flex items-center gap-2">
                       <Switch checked={!!pagoActivo} onCheckedChange={() => toggleMetodoPago(m)} />
-                      <span className="text-sm font-medium text-steel-900">{METODO_LABEL[m]}</span>
+                      <span className="text-sm font-medium text-white">{METODO_LABEL[m]}</span>
                     </div>
                     {pagoActivo && (
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="text-xs text-steel-500">Monto</label>
-                          <Input type="number" value={pagoActivo.monto || ''} onFocus={e => e.target.select()} onChange={e => actualizarPago(m, 'monto', parseFloat(e.target.value) || 0)} />
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Monto</label>
+                          <Input type="number" className="border-white/10 bg-[#111820] text-white" value={pagoActivo.monto || ''} onFocus={e => e.target.select()} onChange={e => actualizarPago(m, 'monto', parseFloat(e.target.value) || 0)} />
                         </div>
                         {m === 'efectivo' && (
                           <div>
-                            <label className="text-xs text-steel-500">Monto recibido *</label>
-                            <Input type="number" value={pagoActivo.monto_recibido || ''} onFocus={e => e.target.select()} onChange={e => actualizarPago(m, 'monto_recibido', parseFloat(e.target.value) || 0)} />
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Monto recibido *</label>
+                            <Input type="number" className="border-white/10 bg-[#111820] text-white" value={pagoActivo.monto_recibido || ''} onFocus={e => e.target.select()} onChange={e => actualizarPago(m, 'monto_recibido', parseFloat(e.target.value) || 0)} />
                           </div>
                         )}
                         {m === 'efectivo' && pagoActivo.vueltas > 0 && (
                           <div className="col-span-2">
-                            <span className="text-xs text-steel-500">Vueltas: </span>
-                            <span className="font-bold text-green-700">${pagoActivo.vueltas.toLocaleString('es-CO')}</span>
+                            <span className="text-xs text-steel-300">Vueltas: </span>
+                            <span className="font-bold text-emerald-400">${pagoActivo.vueltas.toLocaleString('es-CO')}</span>
                           </div>
                         )}
                       </div>
@@ -1121,24 +1140,25 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
         </section>
 
         {/* FACTURA Y OBSERVACIONES */}
-        <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5">
+        <section className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
           <div className="flex items-center gap-2">
             <Switch checked={facturaElectronica} onCheckedChange={v => {
               setFacturaElectronica(v)
               if (v && (cliente as any).email) setEmailFactura((cliente as any).email)
             }} />
-            <span className="text-sm font-medium text-steel-900">Factura electrónica</span>
+            <span className="text-sm font-medium text-white">Factura electrónica</span>
           </div>
           {facturaElectronica && (
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-steel-500">NIT cliente</label>
-                <Input value={cliente.nit_cc ?? ''} readOnly className="bg-slate-50" />
+                <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">NIT cliente</label>
+                <Input value={cliente.nit_cc ?? ''} readOnly className="border-white/10 bg-[#1a2430] text-white" />
               </div>
               <div>
-                <label className="text-xs text-steel-500">Email cliente</label>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Email cliente</label>
                 <Input
                   type="email"
+                  className="border-white/10 bg-[#111820] text-white placeholder:text-steel-500"
                   placeholder="email@ejemplo.com"
                   value={emailFactura}
                   onChange={e => setEmailFactura(e.target.value)}
@@ -1147,21 +1167,21 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
             </div>
           )}
           <div>
-            <Label htmlFor="obs">Observaciones</Label>
-            <Textarea id="obs" value={observaciones} onChange={e => setObservaciones(e.target.value)} rows={2} placeholder="Observaciones opcionales" />
+            <Label htmlFor="obs" className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Observaciones</Label>
+            <Textarea id="obs" className="mt-1 border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500" value={observaciones} onChange={e => setObservaciones(e.target.value)} rows={2} placeholder="Observaciones opcionales" />
           </div>
         </section>
 
         {/* BOTONES */}
         <div className="flex flex-col gap-2 pb-8">
-          <Button type="button" onClick={() => handleSubmit('con_recibo')} disabled={submitting} className="w-full bg-brand-yellow text-steel-900 shadow-lg shadow-brand-yellow/30 hover:bg-brand-yellow hover:brightness-105">
+          <Button type="button" onClick={() => handleSubmit('con_recibo')} disabled={submitting} className="h-12 w-full bg-brand-yellow text-base font-bold text-steel-900 hover:bg-brand-yellow hover:brightness-105">
             {submitting && submitAction === 'con_recibo' ? 'Guardando…' : esCredito ? 'Registrar venta a crédito y generar recibo' : 'Guardar y generar recibo'}
           </Button>
-          <Button type="button" variant="outline" onClick={() => handleSubmit('sin_recibo')} disabled={submitting} className="w-full">
+          <Button type="button" variant="outline" onClick={() => handleSubmit('sin_recibo')} disabled={submitting} className="h-12 w-full border-white/10 bg-[#1a2430] font-semibold text-white hover:bg-white/5 hover:text-white">
             {submitting && submitAction === 'sin_recibo' ? 'Guardando…' : esCredito ? 'Registrar venta a crédito' : 'Guardar sin recibo'}
           </Button>
           <button type="button" onClick={() => router.push('/dashboard/ventas')}
-            className={buttonVariants({ variant: 'outline', className: 'w-full text-steel-500' })}>
+            className={buttonVariants({ variant: 'outline', className: 'h-12 w-full border-white/10 bg-transparent text-steel-300 hover:bg-white/5 hover:text-white' })}>
             Cancelar
           </button>
         </div>
@@ -1169,64 +1189,64 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
 
       {/* ── Resumen sticky ── */}
       <div className="lg:w-72 lg:shrink-0">
-        <div className="sticky top-4 space-y-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="flex items-center gap-2 font-display font-bold text-steel-900">
-            <span className="h-4 w-1 rounded-full bg-brand-yellow" />Resumen
+        <div className="sticky top-4 space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
+          <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow">
+            <span className="h-5 w-1 rounded-full bg-brand-yellow" />Resumen
           </h2>
           {esCredito && (
-            <div className="rounded-lg border border-brand-blue/20 bg-brand-blue-soft px-3 py-2">
-              <p className="text-xs font-medium text-brand-blue-dark">Venta a crédito</p>
-              <p className="text-xs text-brand-blue">Cliente: {cliente.nombre}</p>
+            <div className="rounded-xl border border-brand-blue/30 bg-brand-blue/10 px-3 py-2">
+              <p className="text-xs font-medium text-brand-blue">Venta a crédito</p>
+              <p className="text-xs text-brand-blue/80">Cliente: {cliente.nombre}</p>
             </div>
           )}
           <dl className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <dt className="text-steel-500">Subtotal bruto</dt>
-              <dd className="text-steel-900">${subtotalProductosBruto.toLocaleString('es-CO')}</dd>
+              <dt className="text-steel-300">Subtotal bruto</dt>
+              <dd className="text-white">${subtotalProductosBruto.toLocaleString('es-CO')}</dd>
             </div>
             {descuentosPorProducto > 0 && (
-              <div className="flex justify-between text-green-700">
+              <div className="flex justify-between text-emerald-400">
                 <dt>Desc. por producto</dt>
                 <dd>-${descuentosPorProducto.toLocaleString('es-CO')}</dd>
               </div>
             )}
             {subtotalServicios > 0 && (
               <div className="flex justify-between">
-                <dt className="text-steel-500">Servicios</dt>
-                <dd className="text-steel-900">${subtotalServicios.toLocaleString('es-CO')}</dd>
+                <dt className="text-steel-300">Servicios</dt>
+                <dd className="text-white">${subtotalServicios.toLocaleString('es-CO')}</dd>
               </div>
             )}
             {descuentosPorServicio > 0 && (
-              <div className="flex justify-between text-green-700">
+              <div className="flex justify-between text-emerald-400">
                 <dt>Desc. servicios</dt>
                 <dd>-${descuentosPorServicio.toLocaleString('es-CO')}</dd>
               </div>
             )}
             {descuentoTotalMonto > 0 && (
-              <div className="flex justify-between text-green-700">
+              <div className="flex justify-between text-emerald-400">
                 <dt>Desc. total ({descuentoTotalPct}%)</dt>
                 <dd>-${descuentoTotalMonto.toLocaleString('es-CO')}</dd>
               </div>
             )}
             {ivaInformativo > 0 && (
-              <div className="mt-2 flex justify-between border-t border-slate-100 pt-2 text-xs text-steel-300">
+              <div className="mt-2 flex justify-between border-t border-white/8 pt-2 text-xs text-steel-500">
                 <dt>IVA incluido (informativo)</dt>
                 <dd>${Math.round(ivaInformativo).toLocaleString('es-CO')}</dd>
               </div>
             )}
-            <div className={`mt-2 flex items-center justify-between rounded-lg px-3 py-2.5 ${totalAntesRedondeo > 0 ? 'bg-steel-900 text-white' : 'bg-slate-100 text-steel-300'}`}>
-              <dt className="text-sm font-medium">{esCredito ? 'Total a crédito' : 'Total a cobrar'}</dt>
-              <dd className="font-display text-xl font-bold">${totalRedondeado.toLocaleString('es-CO')}</dd>
+            <div className={`mt-2 flex items-center justify-between rounded-xl border px-3 py-2.5 ${totalAntesRedondeo > 0 ? 'border-white/10 bg-[#1a2430]' : 'border-white/10 bg-[#1a2430] opacity-60'}`}>
+              <dt className="text-sm font-medium text-white">{esCredito ? 'Total a crédito' : 'Total a cobrar'}</dt>
+              <dd className="font-display text-lg font-bold text-brand-yellow">${totalRedondeado.toLocaleString('es-CO')}</dd>
             </div>
             {totalRedondeado !== Math.round(totalAntesRedondeo) && totalAntesRedondeo > 0 && (
-              <p className="text-right text-xs text-steel-300">Redondeado desde ${Math.round(totalAntesRedondeo).toLocaleString('es-CO')}</p>
+              <p className="text-right text-xs text-steel-500">Redondeado desde ${Math.round(totalAntesRedondeo).toLocaleString('es-CO')}</p>
             )}
           </dl>
 
           {hayEfectivo && (
-            <div className="rounded-lg border border-green-200 bg-green-50 p-3">
-              <p className="text-xs font-medium text-green-700">Vueltas a entregar</p>
-              <p className="mt-0.5 font-display text-2xl font-bold text-green-800">
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3">
+              <p className="text-xs font-medium text-emerald-400">Vueltas a entregar</p>
+              <p className="mt-0.5 font-display text-2xl font-bold text-emerald-400">
                 ${Math.max(0, esMixto ? (pagoEfectivo?.vueltas ?? 0) : (pagos[0]?.vueltas ?? 0)).toLocaleString('es-CO')}
               </p>
             </div>
