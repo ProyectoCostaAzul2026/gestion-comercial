@@ -12,7 +12,7 @@ import {
 } from 'recharts'
 import { jsPDF } from 'jspdf'
 import { autoTable } from 'jspdf-autotable'
-import { Download } from 'lucide-react'
+import { Download, Banknote, Smartphone, CreditCard, Coins, Calculator } from 'lucide-react'
 
 const PERIODOS = [
   { value: 'hoy', label: 'Hoy' },
@@ -46,6 +46,15 @@ const METODO_LABEL: Record<string, string> = {
 }
 
 const MEDIOS_ORDEN = ['efectivo', 'nequi', 'daviplata', 'tarjeta', 'credito']
+
+// Ícono y color por medio — mismo lenguaje visual que las tarjetas de alerta del dashboard
+const MEDIO_ESTILO: Record<string, { icono: any; texto: string; borde: string; fondo: string; anillo: string }> = {
+  efectivo:  { icono: Banknote,   texto: 'text-emerald-400', borde: 'border-emerald-500/30', fondo: 'bg-emerald-500/10', anillo: 'bg-emerald-500/20' },
+  nequi:     { icono: Smartphone, texto: 'text-purple-400',  borde: 'border-purple-500/30',  fondo: 'bg-purple-500/10',  anillo: 'bg-purple-500/20' },
+  daviplata: { icono: Smartphone, texto: 'text-red-400',     borde: 'border-red-500/30',     fondo: 'bg-red-500/10',     anillo: 'bg-red-500/20' },
+  tarjeta:   { icono: CreditCard, texto: 'text-brand-blue',  borde: 'border-brand-blue/30',  fondo: 'bg-brand-blue/10',  anillo: 'bg-brand-blue/20' },
+  credito:   { icono: Coins,      texto: 'text-amber-400',   borde: 'border-amber-500/30',   fondo: 'bg-amber-500/10',   anillo: 'bg-amber-500/20' },
+}
 
 // Estilos comunes para los ejes/grids de recharts sobre fondo oscuro
 const AXIS_TICK = { fontSize: 9, fill: '#9aa7b0' }
@@ -99,7 +108,7 @@ interface FlujoCajaItem {
 export function ReportesPanel({
   periodo, desde, hasta, diasPeriodo,
   kpisPeriodo, mediosPeriodoStats,
-  graficaFlujoCaja, graficaMedios, graficaHoras, graficaEmpleados,
+  graficaFlujoCaja, graficaMedios, graficaHoras, graficaDiasSemana, graficaEmpleados,
   topProductosData, inventario, deudaProveedores, nominaPeriodo,
 }: {
   periodo: string; desde: string; hasta: string; diasPeriodo: number
@@ -113,6 +122,7 @@ export function ReportesPanel({
   graficaFlujoCaja: FlujoCajaItem[]
   graficaMedios: { metodo: string; total: number }[]
   graficaHoras: { hora: string; total: number }[]
+  graficaDiasSemana: { dia: string; promedio: number }[]
   graficaEmpleados: { nombre: string; total: number; tickets: number }[]
   topProductosData: ProductoTop[]
   inventario: { valorCosto: number; valorVenta: number }
@@ -147,6 +157,11 @@ export function ReportesPanel({
   const topPorFrecuencia = useMemo(() =>
     [...topProductosData].sort((a, b) => b.unidades_por_dia - a.unidades_por_dia).slice(0, topN),
     [topProductosData, topN])
+
+  const granTotalMediosPeriodo = MEDIOS_ORDEN.reduce(
+    (s, m) => s + (mediosPeriodoStats[m]?.total ?? 0), 0)
+  const totalTxMediosPeriodo = MEDIOS_ORDEN.reduce(
+    (s, m) => s + (mediosPeriodoStats[m]?.count ?? 0), 0)
 
   // Datos para gráfico estado de resultados
   const datosEstadoResultados = [
@@ -220,19 +235,34 @@ export function ReportesPanel({
         {Object.keys(mediosPeriodoStats).length > 0 && (
           <div className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
             <p className="text-xs font-medium text-steel-300">Ingresos por medio de pago — período</p>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
               {MEDIOS_ORDEN.filter(m => mediosPeriodoStats[m]).map(medio => {
                 const stat = mediosPeriodoStats[medio]
+                const est = MEDIO_ESTILO[medio]
+                const Icono = est.icono
                 return (
-                  <div key={medio} className="rounded-xl border border-white/10 bg-[#1a2430] p-3 text-center">
+                  <div key={medio} className={`rounded-xl border ${est.borde} ${est.fondo} p-3 text-center`}>
+                    <span className={`mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full ${est.anillo} ${est.texto}`}>
+                      <Icono className="size-4" />
+                    </span>
                     <p className="text-xs font-medium text-steel-300">{METODO_LABEL[medio]}</p>
-                    <p className="mt-1 font-display font-bold text-white">{fmt(stat.total)}</p>
-                    <p className="mt-0.5 text-xs text-steel-500">
+                    <p className={`mt-1 font-display font-bold ${est.texto}`}>{fmt(stat.total)}</p>
+                    <p className="mt-0.5 text-[11px] text-steel-500">
                       Prom: {stat.count > 0 ? fmt(stat.total / stat.count) : '$0'}/tx
                     </p>
                   </div>
                 )
               })}
+              <div className="rounded-xl border-2 border-brand-yellow/40 bg-brand-yellow/10 p-3 text-center">
+                <span className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-brand-yellow/20 text-brand-yellow">
+                  <Calculator className="size-4" />
+                </span>
+                <p className="text-xs font-medium text-steel-300">Gran Total</p>
+                <p className="mt-1 font-display font-bold text-brand-yellow">{fmt(granTotalMediosPeriodo)}</p>
+                <p className="mt-0.5 text-[11px] text-steel-500">
+                  Prom: {totalTxMediosPeriodo > 0 ? fmt(granTotalMediosPeriodo / totalTxMediosPeriodo) : '$0'}/tx
+                </p>
+              </div>
             </div>
           </div>
         )}
@@ -392,6 +422,26 @@ export function ReportesPanel({
               </BarChart>
             </ResponsiveContainer>
           </div>
+        </div>
+
+        {/* Ventas promedio por día de la semana */}
+        <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
+          <p className="mb-1 text-sm font-semibold text-white">Ventas promedio por día de la semana</p>
+          <p className="mb-4 text-xs text-steel-500">Lunes a domingo · promedio sobre el período seleccionado</p>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={graficaDiasSemana} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+              <XAxis dataKey="dia" tick={AXIS_TICK} />
+              <YAxis
+                tick={AXIS_TICK}
+                tickFormatter={v => `$${(Math.abs(v) / 1000).toFixed(0)}K`}
+                domain={['auto', 'auto']}
+                allowDataOverflow={false}
+              />
+              <Tooltip formatter={(v: any) => [fmt(Number(v)), 'Promedio']} contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+              <Bar dataKey="promedio" fill="#ffce00" radius={[2, 2, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
 
         {/* Ventas por empleado */}

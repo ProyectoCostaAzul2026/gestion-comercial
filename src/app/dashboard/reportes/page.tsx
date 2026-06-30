@@ -206,6 +206,28 @@ export default async function ReportesPage({
     total: ventasPorHora[h] ?? 0,
   }))
 
+  // ── Ventas promedio por día de la semana (lunes a domingo) ──
+  const DIAS_SEMANA = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+  const totalPorDiaSemana = [0, 0, 0, 0, 0, 0, 0]
+  for (const v of ventas ?? []) {
+    const fecha = (v as any).fecha as string
+    const d = new Date(fecha + 'T00:00:00')
+    totalPorDiaSemana[(d.getDay() + 6) % 7] += Number((v as any).total)
+  }
+  const conteoPorDiaSemana = [0, 0, 0, 0, 0, 0, 0]
+  {
+    const cursor = new Date(desde + 'T00:00:00')
+    const fin = new Date(hasta + 'T00:00:00')
+    while (cursor <= fin) {
+      conteoPorDiaSemana[(cursor.getDay() + 6) % 7]++
+      cursor.setDate(cursor.getDate() + 1)
+    }
+  }
+  const graficaDiasSemana = DIAS_SEMANA.map((dia, i) => ({
+    dia,
+    promedio: conteoPorDiaSemana[i] > 0 ? totalPorDiaSemana[i] / conteoPorDiaSemana[i] : 0,
+  }))
+
   // ── Ventas por empleado ──
   const ventasPorEmpleado: Record<string, { nombre: string; total: number; tickets: number }> = {}
   for (const v of ventas ?? []) {
@@ -293,6 +315,7 @@ export default async function ReportesPage({
       graficaFlujoCaja={graficaFlujoCaja}
       graficaMedios={graficaMedios}
       graficaHoras={graficaHoras}
+      graficaDiasSemana={graficaDiasSemana}
       graficaEmpleados={graficaEmpleados}
       topProductosData={topProductosData}
       inventario={{ valorCosto: valorInventarioCosto, valorVenta: valorInventarioVenta }}

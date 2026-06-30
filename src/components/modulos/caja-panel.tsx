@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DenominacionesPanel } from './denominaciones-panel'
 import { ArqueoPanel } from './arqueo-panel'
-import { AlertTriangle, Plus, Trash2, ChevronDown, ChevronUp, Check } from 'lucide-react'
+import { AlertTriangle, Plus, Trash2, ChevronDown, ChevronUp, Check, Banknote, Smartphone, CreditCard, Coins, Wallet, Calculator } from 'lucide-react'
 import { calcularPagoDia, horasPagarPorFecha, esDomingoOFestivo } from '@/lib/festivos-colombia'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -149,6 +149,15 @@ function FuentesPagoEditor({ fuentes, setFuentes, montoTotal }: {
   )
 }
 
+const MEDIO_ESTILO: Record<string, { label: string; icono: any; texto: string; borde: string; fondo: string; anillo: string }> = {
+  efectivo:   { label: 'Efectivo',   icono: Banknote,   texto: 'text-emerald-400', borde: 'border-emerald-500/30', fondo: 'bg-emerald-500/10', anillo: 'bg-emerald-500/20' },
+  nequi:      { label: 'Nequi',      icono: Smartphone, texto: 'text-purple-400',  borde: 'border-purple-500/30',  fondo: 'bg-purple-500/10',  anillo: 'bg-purple-500/20' },
+  daviplata:  { label: 'Daviplata',  icono: Smartphone, texto: 'text-red-400',     borde: 'border-red-500/30',     fondo: 'bg-red-500/10',     anillo: 'bg-red-500/20' },
+  tarjeta:    { label: 'Tarjeta',    icono: CreditCard, texto: 'text-brand-blue',  borde: 'border-brand-blue/30',  fondo: 'bg-brand-blue/10',  anillo: 'bg-brand-blue/20' },
+  credito:    { label: 'Crédito',    icono: Coins,      texto: 'text-amber-400',   borde: 'border-amber-500/30',   fondo: 'bg-amber-500/10',   anillo: 'bg-amber-500/20' },
+  caja_mayor: { label: 'Caja Mayor', icono: Wallet,     texto: 'text-emerald-400', borde: 'border-emerald-500/30', fondo: 'bg-emerald-500/10', anillo: 'bg-emerald-500/20' },
+}
+
 // ─── CajaPanel ───────────────────────────────────────────────────────────────
 
 export function CajaPanel({
@@ -209,6 +218,12 @@ export function CajaPanel({
     for (const s of saldos) map[s.medio] = Number(s.saldo_acumulado)
     return map
   }, [saldos])
+
+  const granTotalEntradasDia = ventasEfectivo + ventasNequi + ventasDaviplata + ventasTarjeta + ventasCredito
+  const granTotalSaldosFondo = useMemo(() =>
+    ['nequi', 'daviplata', 'tarjeta', 'credito', 'caja_mayor']
+      .reduce((s, medio) => s + (saldosPorMedio[medio] ?? 0), 0),
+    [saldosPorMedio])
 
   // ── Helpers ──
   const abrirPanel = (panel: typeof panelActivo) => {
@@ -525,21 +540,35 @@ export function CajaPanel({
         <h2 className="mb-2 flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
           Entradas del día
         </h2>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
           {[
-            { label: 'Efectivo (Caja Menor)', valor: ventasEfectivo },
-            { label: 'Nequi', valor: ventasNequi },
-            { label: 'Daviplata', valor: ventasDaviplata },
-            { label: 'Tarjeta', valor: ventasTarjeta },
-            { label: 'Crédito', valor: ventasCredito, azul: true },
-          ].map(({ label, valor, azul }: { label: string; valor: number; azul?: boolean }) => (
-            <div key={label} className="rounded-xl border border-white/10 bg-[#1a2430] p-3">
-              <p className="text-xs text-steel-300">{label}</p>
-              <p className={`mt-1 font-display text-lg font-bold ${azul ? 'text-brand-blue' : 'text-white'}`}>
-                ${valor.toLocaleString('es-CO')}
-              </p>
-            </div>
-          ))}
+            { medio: 'efectivo', valor: ventasEfectivo, sub: 'Caja menor' },
+            { medio: 'nequi', valor: ventasNequi },
+            { medio: 'daviplata', valor: ventasDaviplata },
+            { medio: 'tarjeta', valor: ventasTarjeta },
+            { medio: 'credito', valor: ventasCredito },
+          ].map(({ medio, valor, sub }) => {
+            const est = MEDIO_ESTILO[medio]
+            const Icono = est.icono
+            return (
+              <div key={medio} className={`rounded-xl border ${est.borde} ${est.fondo} p-3 text-center`}>
+                <span className={`mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full ${est.anillo} ${est.texto}`}>
+                  <Icono className="size-4" />
+                </span>
+                <p className="text-xs font-medium text-steel-300">{est.label}</p>
+                <p className={`mt-1 font-display font-bold ${est.texto}`}>${valor.toLocaleString('es-CO')}</p>
+                {sub && <p className="mt-0.5 text-[11px] text-steel-500">{sub}</p>}
+              </div>
+            )
+          })}
+          <div className="rounded-xl border-2 border-brand-yellow/40 bg-brand-yellow/10 p-3 text-center">
+            <span className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-brand-yellow/20 text-brand-yellow">
+              <Calculator className="size-4" />
+            </span>
+            <p className="text-xs font-medium text-steel-300">Gran Total</p>
+            <p className="mt-1 font-display font-bold text-brand-yellow">${granTotalEntradasDia.toLocaleString('es-CO')}</p>
+            <p className="mt-0.5 text-[11px] text-steel-500">Suma de los 5 medios</p>
+          </div>
         </div>
       </div>
 
@@ -1039,25 +1068,30 @@ export function CajaPanel({
         <h2 className="mb-2 flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
           Saldos acumulados por fondo
         </h2>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-          {[
-            { label: 'Nequi', medio: 'nequi', color: 'text-purple-400' },
-            { label: 'Daviplata', medio: 'daviplata', color: 'text-red-400' },
-            { label: 'Tarjeta', medio: 'tarjeta', color: 'text-brand-blue' },
-            { label: 'Crédito', medio: 'credito', color: 'text-amber-400' },
-            { label: 'Caja Mayor', medio: 'caja_mayor', color: 'text-emerald-400' },
-          ].map(({ label, medio, color }) => {
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
+          {(['nequi', 'daviplata', 'tarjeta', 'credito', 'caja_mayor'] as const).map(medio => {
+            const est = MEDIO_ESTILO[medio]
+            const Icono = est.icono
             const saldo = saldosPorMedio[medio] ?? 0
             return (
-              <div key={medio} className="rounded-xl border border-white/10 bg-[#1a2430] p-3">
-                <p className="text-xs text-steel-300">{label}</p>
-                <p className={`mt-1 font-display text-lg font-bold ${color}`}>
-                  ${Number(saldo).toLocaleString('es-CO')}
-                </p>
-                <p className="mt-0.5 text-xs text-steel-500">Saldo actual</p>
+              <div key={medio} className={`rounded-xl border ${est.borde} ${est.fondo} p-3 text-center`}>
+                <span className={`mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full ${est.anillo} ${est.texto}`}>
+                  <Icono className="size-4" />
+                </span>
+                <p className="text-xs font-medium text-steel-300">{est.label}</p>
+                <p className={`mt-1 font-display font-bold ${est.texto}`}>${Number(saldo).toLocaleString('es-CO')}</p>
+                <p className="mt-0.5 text-[11px] text-steel-500">Saldo actual</p>
               </div>
             )
           })}
+          <div className="rounded-xl border-2 border-brand-yellow/40 bg-brand-yellow/10 p-3 text-center">
+            <span className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-brand-yellow/20 text-brand-yellow">
+              <Calculator className="size-4" />
+            </span>
+            <p className="text-xs font-medium text-steel-300">Gran Total</p>
+            <p className="mt-1 font-display font-bold text-brand-yellow">${granTotalSaldosFondo.toLocaleString('es-CO')}</p>
+            <p className="mt-0.5 text-[11px] text-steel-500">Suma de los 5 fondos</p>
+          </div>
         </div>
       </div>
     </div>
