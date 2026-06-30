@@ -2,7 +2,6 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { PerfilClienteCreditos } from '@/components/modulos/perfil-cliente-creditos'
 
@@ -50,15 +49,15 @@ export default async function PerfilClientePage({
     .reduce((s: number, c: any) => s + Number(c.saldo_pendiente), 0)
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="sticky top-0 z-10 border-b border-slate-200 bg-white px-4 py-3">
+    <div className="min-h-screen bg-[#0a0e14]">
+      <div className="sticky top-0 z-10 border-b border-white/10 bg-[#0a0e14] px-4 py-3">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/clientes" className="rounded-lg border border-slate-200 p-2 hover:bg-slate-50">
-            <ArrowLeft className="h-4 w-4" />
+          <Link href="/dashboard/clientes" className="rounded-xl border border-white/20 p-2 hover:bg-white/5">
+            <ArrowLeft className="h-4 w-4 text-white" />
           </Link>
           <div>
-            <h1 className="font-display text-lg font-extrabold tracking-tight text-steel-900">{cliente.nombre}</h1>
-            <p className="text-xs text-steel-500">Perfil del cliente</p>
+            <h1 className="font-display text-lg font-bold text-white">{cliente.nombre}</h1>
+            <p className="text-xs text-steel-300">Perfil del cliente</p>
           </div>
         </div>
       </div>
@@ -74,9 +73,9 @@ export default async function PerfilClientePage({
             ['Dirección', cliente.direccion ?? '—'],
             ['Notas', cliente.notas ?? '—'],
           ].map(([label, value]) => (
-            <div key={label} className="flex justify-between gap-4 border-b border-slate-100 pb-2">
-              <dt className="text-steel-500">{label}</dt>
-              <dd className="text-right font-medium text-steel-900">{value}</dd>
+            <div key={label} className="flex justify-between gap-4 border-b border-white/8 pb-2">
+              <dt className="text-steel-300">{label}</dt>
+              <dd className="text-right font-medium text-white">{value}</dd>
             </div>
           ))}
         </dl>
@@ -84,7 +83,7 @@ export default async function PerfilClientePage({
         {!cliente.es_cliente_generico && (
           <Link
             href={`/dashboard/clientes/${cliente.id}/editar`}
-            className="block w-full rounded-lg bg-steel-900 px-4 py-2 text-center text-sm font-medium text-white hover:bg-steel-800"
+            className="block w-full rounded-xl bg-brand-yellow px-4 py-3 text-center text-sm font-bold text-steel-900 hover:brightness-105"
           >
             Editar cliente
           </Link>
@@ -92,14 +91,14 @@ export default async function PerfilClientePage({
 
         {/* Deuda total */}
         {totalDeuda > 0 && (
-          <div className="flex items-center justify-between rounded-xl border border-brand-red/30 bg-brand-red-soft p-4">
+          <div className="flex items-center justify-between rounded-2xl border border-brand-red/30 bg-brand-red/10 p-4">
             <div>
               <p className="text-sm font-semibold text-brand-red">Saldo pendiente total</p>
               <p className="mt-0.5 text-xs text-brand-red">
                 {(creditos ?? []).filter((c: any) => c.estado !== 'pagado').length} crédito(s) activo(s)
               </p>
             </div>
-            <p className="font-display text-2xl font-bold text-brand-red">${totalDeuda.toLocaleString('es-CO')}</p>
+            <p className="font-display text-2xl font-black text-brand-red">${totalDeuda.toLocaleString('es-CO')}</p>
           </div>
         )}
 
@@ -110,51 +109,52 @@ export default async function PerfilClientePage({
 
         {/* Historial de compras */}
         <div>
-          <h2 className="mb-3 flex items-center gap-2 font-display text-sm font-bold text-steel-900">
-            <span className="h-4 w-1 rounded-full bg-brand-yellow" />
+          <h2 className="mb-3 flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
             Historial de compras ({ventas?.length ?? 0})
           </h2>
           {(ventas ?? []).length === 0 ? (
-            <p className="rounded-xl border border-slate-200 bg-slate-50 p-6 text-center text-sm text-steel-500">
+            <p className="rounded-2xl border border-white/10 bg-[#111820] p-6 text-center text-sm text-steel-500">
               Sin compras registradas.
             </p>
           ) : (
-            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-slate-50">
-                    <TableHead>Ticket</TableHead>
-                    <TableHead>Fecha</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
-                    <TableHead>Pago</TableHead>
-                    <TableHead>Estado</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(ventas ?? []).map((v: any) => (
-                    <TableRow key={v.id}>
-                      <TableCell>
-                        <Link href={`/dashboard/ventas/${v.id}`} className="font-medium text-brand-blue hover:underline">
-                          #{v.numero_ticket}
-                        </Link>
-                      </TableCell>
-                      <TableCell className="text-sm text-steel-500">{v.fecha}</TableCell>
-                      <TableCell className="text-right font-medium text-steel-900">
-                        ${Number(v.total).toLocaleString('es-CO')}
-                      </TableCell>
-                      <TableCell className="text-sm capitalize text-steel-500">{v.tipo_pago}</TableCell>
-                      <TableCell>
-                        <Badge variant={
-                          v.estado === 'anulada' ? 'destructive' :
-                          v.estado === 'credito' ? 'secondary' : 'default'
-                        }>
-                          {v.estado}
-                        </Badge>
-                      </TableCell>
+            <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+                      <TableHead>Ticket</TableHead>
+                      <TableHead>Fecha</TableHead>
+                      <TableHead className="text-right">Total</TableHead>
+                      <TableHead>Pago</TableHead>
+                      <TableHead>Estado</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {(ventas ?? []).map((v: any) => (
+                      <TableRow key={v.id} className="border-white/8 hover:bg-white/5">
+                        <TableCell>
+                          <Link href={`/dashboard/ventas/${v.id}`} className="text-xs font-medium text-brand-blue hover:underline">
+                            #{v.numero_ticket}
+                          </Link>
+                        </TableCell>
+                        <TableCell className="text-xs text-steel-300">{v.fecha}</TableCell>
+                        <TableCell className="text-right font-display text-sm font-bold text-white">
+                          ${Number(v.total).toLocaleString('es-CO')}
+                        </TableCell>
+                        <TableCell className="text-xs capitalize text-steel-300">{v.tipo_pago}</TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize ${
+                            v.estado === 'anulada' ? 'border-brand-red/30 bg-brand-red/20 text-brand-red' :
+                            v.estado === 'credito' ? 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow' :
+                            'border-emerald-500/30 bg-emerald-500/20 text-emerald-400'}`}>
+                            {v.estado}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           )}
         </div>

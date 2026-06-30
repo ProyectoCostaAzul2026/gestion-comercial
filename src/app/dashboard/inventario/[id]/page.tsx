@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Package } from 'lucide-react'
 
 export default async function DetalleProductoPage({
   params,
@@ -49,15 +49,15 @@ export default async function DetalleProductoPage({
   ]
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="sticky top-0 z-10 border-b border-slate-200 bg-white px-4 py-3">
+    <div className="min-h-screen bg-[#0a0e14]">
+      <div className="sticky top-0 z-10 border-b border-white/10 bg-[#0a0e14] px-4 py-3">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/inventario" className="rounded-lg border border-slate-200 p-2 hover:bg-slate-50">
-            <ArrowLeft className="h-4 w-4" />
+          <Link href="/dashboard/inventario" className="rounded-xl border border-white/20 p-2 hover:bg-white/5">
+            <ArrowLeft className="h-4 w-4 text-white" />
           </Link>
           <div>
-            <h1 className="font-display text-lg font-extrabold tracking-tight text-steel-900">{producto.nombre}</h1>
-            <p className="text-xs text-steel-500">Detalle del producto</p>
+            <h1 className="font-display text-lg font-bold text-white">{producto.nombre}</h1>
+            <p className="text-xs text-steel-300">Detalle del producto</p>
           </div>
         </div>
       </div>
@@ -67,26 +67,26 @@ export default async function DetalleProductoPage({
           <img
             src={producto.imagen_url}
             alt={producto.nombre}
-            className="mx-auto h-48 w-48 rounded-xl object-cover"
+            className="mx-auto h-48 w-48 rounded-2xl border border-white/10 object-cover"
           />
         ) : (
-          <div className="mx-auto flex h-48 w-48 items-center justify-center rounded-xl bg-slate-100 text-sm text-steel-300">
-            Sin imagen
+          <div className="mx-auto flex h-48 w-48 items-center justify-center rounded-2xl border border-white/10 bg-[#1a2430]">
+            <Package className="size-16 text-brand-yellow/50" />
           </div>
         )}
 
         <dl className="space-y-3 text-sm">
           {filas.map(([label, value]) => (
-            <div key={label} className="flex justify-between gap-4 border-b border-slate-100 pb-2">
-              <dt className="text-steel-500">{label}</dt>
-              <dd className="text-right font-medium text-steel-900">{value}</dd>
+            <div key={label} className="flex justify-between gap-4 border-b border-white/8 pb-2">
+              <dt className="text-steel-300">{label}</dt>
+              <dd className="text-right font-medium text-white">{value}</dd>
             </div>
           ))}
         </dl>
 
         <Link
           href={`/dashboard/inventario/${producto.id}/editar`}
-          className="block w-full rounded-lg bg-steel-900 px-4 py-2 text-center text-sm font-medium text-white hover:bg-steel-800"
+          className="block w-full rounded-xl bg-brand-yellow px-4 py-3 text-center text-sm font-bold text-steel-900 hover:brightness-105"
         >
           Editar producto
         </Link>

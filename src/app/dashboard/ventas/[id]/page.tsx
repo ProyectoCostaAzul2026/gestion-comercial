@@ -2,7 +2,6 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Printer } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { VentaAcciones } from '@/components/modulos/venta-acciones'
 
 const METODO_LABEL: Record<string, string> = {
@@ -78,28 +77,30 @@ export default async function VentaDetallePage({
   const empleado = venta.empleado as any
   const anuladoPor = venta.anulado_por as any
 
+  const estadoBadge =
+    venta.estado === 'anulada' ? 'border-brand-red/30 bg-brand-red/20 text-brand-red'
+    : venta.estado === 'modificada' ? 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow'
+    : 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400'
+
   return (
     <div className="max-w-2xl space-y-4">
       <div className="flex items-center gap-3">
-        <Link href="/dashboard/ventas" className="rounded-lg border border-slate-200 p-2 hover:bg-slate-50">
-          <ArrowLeft className="h-4 w-4" />
+        <Link href="/dashboard/ventas" className="rounded-xl border border-white/20 p-2 hover:bg-white/5">
+          <ArrowLeft className="h-4 w-4 text-white" />
         </Link>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="font-display text-xl font-extrabold tracking-tight text-steel-900">Ticket #{venta.numero_ticket}</h1>
-            <Badge variant={
-              venta.estado === 'anulada' ? 'destructive' :
-              venta.estado === 'modificada' ? 'secondary' : 'default'
-            }>
+            <h1 className="font-display text-2xl font-bold text-white">Ticket #{venta.numero_ticket}</h1>
+            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${estadoBadge}`}>
               {venta.estado === 'anulada' ? 'Anulada' :
                venta.estado === 'modificada' ? 'Modificada' : 'Completada'}
-            </Badge>
+            </span>
           </div>
-          <p className="text-xs text-steel-500">{venta.fecha} · {venta.hora?.slice(0, 5)}</p>
+          <p className="text-xs text-steel-300">{venta.fecha} · {venta.hora?.slice(0, 5)}</p>
         </div>
         <Link
           href={`/dashboard/ventas/${id}/recibo`}
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50"
+          className="inline-flex items-center gap-2 rounded-xl border border-brand-yellow/60 px-3 py-2 text-sm font-semibold text-brand-yellow hover:bg-brand-yellow/10"
         >
           <Printer className="h-4 w-4" />
           Recibo
@@ -107,49 +108,49 @@ export default async function VentaDetallePage({
       </div>
 
       {/* Info general */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
-        <h2 className="mb-3 font-display font-bold text-steel-900">Información general</h2>
+      <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
+        <h2 className="mb-3 flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">Información general</h2>
         <dl className="grid grid-cols-2 gap-3 text-sm">
           <div>
-            <dt className="text-xs text-steel-500">Cliente</dt>
-            <dd className="font-medium text-steel-900">{cliente?.nombre ?? '—'}</dd>
-            {cliente?.telefono && <dd className="text-xs text-steel-300">{cliente.telefono}</dd>}
+            <dt className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Cliente</dt>
+            <dd className="font-medium text-white">{cliente?.nombre ?? '—'}</dd>
+            {cliente?.telefono && <dd className="text-xs text-steel-500">{cliente.telefono}</dd>}
           </div>
           <div>
-            <dt className="text-xs text-steel-500">Empleado</dt>
-            <dd className="text-steel-900">{empleado?.nombre_completo ?? '—'}</dd>
+            <dt className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Empleado</dt>
+            <dd className="text-white">{empleado?.nombre_completo ?? '—'}</dd>
           </div>
           <div>
-            <dt className="text-xs text-steel-500">Tipo de pago</dt>
-            <dd className="text-steel-900">{METODO_LABEL[venta.tipo_pago] ?? venta.tipo_pago}</dd>
+            <dt className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Tipo de pago</dt>
+            <dd className="text-white">{METODO_LABEL[venta.tipo_pago] ?? venta.tipo_pago}</dd>
           </div>
           <div>
-            <dt className="text-xs text-steel-500">Factura electrónica</dt>
-            <dd className="text-steel-900">{venta.factura_electronica ? 'Sí' : 'No'}</dd>
+            <dt className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Factura electrónica</dt>
+            <dd className="text-white">{venta.factura_electronica ? 'Sí' : 'No'}</dd>
           </div>
           {venta.observaciones && (
             <div className="col-span-2">
-              <dt className="text-xs text-steel-500">Observaciones</dt>
-              <dd className="text-steel-700">{venta.observaciones}</dd>
+              <dt className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Observaciones</dt>
+              <dd className="text-steel-300">{venta.observaciones}</dd>
             </div>
           )}
         </dl>
       </div>
 
       {/* Productos */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
-        <h2 className="mb-3 font-display font-bold text-steel-900">Productos</h2>
+      <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
+        <h2 className="mb-3 flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">Productos</h2>
         <div className="space-y-2">
           {(items ?? []).map((item) => (
-            <div key={item.id} className="flex items-start justify-between border-b border-slate-100 py-2 text-sm last:border-0">
+            <div key={item.id} className="flex items-start justify-between border-b border-white/8 py-2 text-sm last:border-0">
               <div>
-                <p className="font-medium text-steel-900">{item.nombre_producto}</p>
-                <p className="text-xs text-steel-500">
+                <p className="font-semibold text-white">{item.nombre_producto}</p>
+                <p className="text-xs text-brand-yellow">
                   {item.es_fraccionado
                     ? `${item.cantidad_fraccion} (fraccionado)`
                     : `${item.cantidad} × $${Number(item.precio_unitario).toLocaleString('es-CO')}`}
                   {Number(item.descuento_linea) > 0 && (
-                    <span className="ml-2 text-green-700">
+                    <span className="ml-2 text-emerald-400">
                       Desc: -${Number(item.descuento_linea).toLocaleString('es-CO')}
                     </span>
                   )}
@@ -160,26 +161,26 @@ export default async function VentaDetallePage({
                   </p>
                 )}
               </div>
-              <p className="shrink-0 font-medium text-steel-900">
+              <p className="shrink-0 font-display font-bold text-white">
                 ${Number(item.subtotal_linea).toLocaleString('es-CO')}
               </p>
             </div>
           ))}
           {(items ?? []).length === 0 && (
-            <p className="text-sm text-steel-300">Sin productos</p>
+            <p className="text-sm text-steel-500">Sin productos</p>
           )}
         </div>
       </div>
 
       {/* Servicios */}
       {(servicios ?? []).length > 0 && (
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <h2 className="mb-3 font-display font-bold text-steel-900">Servicios</h2>
+        <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
+          <h2 className="mb-3 flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">Servicios</h2>
           <div className="space-y-2">
             {servicios!.map((s) => (
-              <div key={s.id} className="flex justify-between border-b border-slate-100 py-2 text-sm last:border-0">
-                <span className="text-steel-900">{s.nombre_servicio}</span>
-                <span className="font-medium text-steel-900">${Number(s.precio_aplicado).toLocaleString('es-CO')}</span>
+              <div key={s.id} className="flex justify-between border-b border-white/8 py-2 text-sm last:border-0">
+                <span className="text-white">{s.nombre_servicio}</span>
+                <span className="font-display font-bold text-white">${Number(s.precio_aplicado).toLocaleString('es-CO')}</span>
               </div>
             ))}
           </div>
@@ -187,37 +188,37 @@ export default async function VentaDetallePage({
       )}
 
       {/* Pagos */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
-        <h2 className="mb-3 font-display font-bold text-steel-900">Pagos</h2>
+      <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
+        <h2 className="mb-3 flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">Pagos</h2>
         <div className="space-y-2">
           {(pagos ?? []).map((p) => (
-            <div key={p.id} className="flex items-start justify-between border-b border-slate-100 py-2 text-sm last:border-0">
+            <div key={p.id} className="flex items-start justify-between border-b border-white/8 py-2 text-sm last:border-0">
               <div>
-                <p className="font-medium text-steel-900">{METODO_LABEL[p.metodo] ?? p.metodo}</p>
+                <p className="font-medium text-white">{METODO_LABEL[p.metodo] ?? p.metodo}</p>
                 {p.monto_recibido != null && (
-                  <p className="text-xs text-steel-500">
+                  <p className="text-xs text-steel-300">
                     Recibido: ${Number(p.monto_recibido).toLocaleString('es-CO')}
                     {Number(p.vueltas ?? 0) > 0 && (
-                      <> · Vueltas: <span className="text-green-700">${Number(p.vueltas).toLocaleString('es-CO')}</span></>
+                      <> · Vueltas: <span className="text-emerald-400">${Number(p.vueltas).toLocaleString('es-CO')}</span></>
                     )}
                   </p>
                 )}
               </div>
-              <span className="font-medium text-steel-900">${Number(p.monto).toLocaleString('es-CO')}</span>
+              <span className="font-display font-bold text-white">${Number(p.monto).toLocaleString('es-CO')}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Totales */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
         <dl className="space-y-2 text-sm">
           <div className="flex justify-between">
-            <dt className="text-steel-500">Subtotal</dt>
-            <dd className="text-steel-900">${Number(venta.subtotal).toLocaleString('es-CO')}</dd>
+            <dt className="text-steel-300">Subtotal</dt>
+            <dd className="text-white">${Number(venta.subtotal).toLocaleString('es-CO')}</dd>
           </div>
           {Number(venta.total_descuentos) > 0 && (
-            <div className="flex justify-between text-green-700">
+            <div className="flex justify-between text-emerald-400">
               <dt>Descuentos</dt>
               <dd>-${Number(venta.total_descuentos).toLocaleString('es-CO')}</dd>
             </div>
@@ -234,34 +235,34 @@ export default async function VentaDetallePage({
               <dd>-${Number(venta.monto_devolucion).toLocaleString('es-CO')}</dd>
             </div>
           )}
-          <div className="flex justify-between border-t border-slate-100 pt-2 text-base font-bold text-steel-900">
+          <div className="flex justify-between border-t border-white/8 pt-2 text-lg font-bold text-brand-yellow">
             <dt>Total</dt>
-            <dd>${Number(venta.total).toLocaleString('es-CO')}</dd>
+            <dd className="font-display">${Number(venta.total).toLocaleString('es-CO')}</dd>
           </div>
         </dl>
       </div>
 
       {/* Historial devoluciones */}
       {(devoluciones ?? []).length > 0 && (
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <h2 className="mb-3 font-display font-bold text-steel-900">Historial de ajustes</h2>
+        <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
+          <h2 className="mb-3 flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">Historial de ajustes</h2>
           <div className="space-y-2">
             {devoluciones!.map((d) => (
-              <div key={d.id} className="space-y-1 rounded-lg bg-slate-50 p-3 text-sm">
+              <div key={d.id} className="space-y-1 rounded-xl border border-white/10 bg-[#1a2430] p-3 text-sm">
                 <div className="flex items-center justify-between">
-                  <Badge variant={d.tipo === 'total' ? 'destructive' : 'secondary'} className="text-xs">
+                  <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${d.tipo === 'total' ? 'border-brand-red/30 bg-brand-red/20 text-brand-red' : 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow'}`}>
                     {d.tipo === 'total' ? 'Devolución total' : d.tipo === 'parcial' ? 'Devolución parcial' : 'Cambio'}
-                  </Badge>
-                  <span className="text-xs text-steel-300">
+                  </span>
+                  <span className="text-xs text-steel-500">
                     {new Date(d.created_at).toLocaleDateString('es-CO')}
                   </span>
                 </div>
-                <p className="text-steel-700">{d.observacion}</p>
+                <p className="text-steel-300">{d.observacion}</p>
                 {Number(d.monto_devuelto) > 0 && (
                   <p className="text-xs text-brand-red">Devuelto: ${Number(d.monto_devuelto).toLocaleString('es-CO')}</p>
                 )}
                 {Number(d.monto_cobrado) > 0 && (
-                  <p className="text-xs text-green-700">Cobrado adicional: ${Number(d.monto_cobrado).toLocaleString('es-CO')}</p>
+                  <p className="text-xs text-emerald-400">Cobrado adicional: ${Number(d.monto_cobrado).toLocaleString('es-CO')}</p>
                 )}
               </div>
             ))}

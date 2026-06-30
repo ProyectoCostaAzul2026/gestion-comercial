@@ -84,69 +84,75 @@ export default async function VentasPage({
     : { data: [] }
 
   return (
-    <div>
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="font-display text-2xl font-extrabold tracking-tight text-steel-900">Ventas</h1>
-          <p className="mt-1 text-sm text-steel-500">{fecha === hoy ? 'Hoy' : fecha}</p>
+    <div className="space-y-4">
+      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] px-4 pt-5 pb-4">
+        <div className="relative z-10 flex items-center justify-between gap-3">
+          <div>
+            <h1 className="font-display text-3xl font-bold text-brand-yellow">Ventas</h1>
+            <p className="mt-0.5 text-xs text-steel-300">{fecha === hoy ? 'Hoy' : fecha}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link href="/dashboard/ventas/cotizacion"
+              className="inline-flex h-12 items-center justify-center rounded-xl border border-brand-yellow/60 px-4 text-sm font-semibold text-brand-yellow transition hover:bg-brand-yellow/10">
+              <FileText className="mr-2 h-4 w-4" />Cotización
+            </Link>
+            <Link href="/dashboard/ventas/nueva"
+              className="inline-flex h-12 items-center justify-center rounded-xl bg-brand-yellow px-4 text-sm font-bold text-steel-900 transition hover:brightness-105">
+              <Plus className="mr-2 h-4 w-4" />Nueva Venta
+            </Link>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Link href="/dashboard/ventas/cotizacion"
-            className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-steel-700 transition hover:bg-slate-50">
-            <FileText className="mr-2 h-4 w-4" />Cotización
-          </Link>
-          <Link href="/dashboard/ventas/nueva"
-            className="inline-flex items-center justify-center rounded-xl bg-brand-yellow px-4 py-2.5 text-sm font-semibold text-steel-900 shadow-lg shadow-brand-yellow/30 transition hover:brightness-105">
-            <Plus className="mr-2 h-4 w-4" />Nueva Venta
-          </Link>
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-28 overflow-hidden">
+          <div className="absolute inset-y-0 right-0 w-20 -skew-x-12 translate-x-8 bg-brand-yellow/80" />
+          <div className="absolute inset-y-0 right-0 w-7 -skew-x-12 translate-x-1 bg-brand-blue" />
         </div>
       </div>
 
       {/* KPIs */}
-      <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-        <div className="rounded-xl border border-steel-900 bg-steel-900 p-5 text-white">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-medium uppercase tracking-wide text-steel-300">Total ventas (hoy)</p>
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-brand-yellow">
-              <TrendingUp className="h-4 w-4" />
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="rounded-2xl border border-white/10 border-l-4 border-l-brand-yellow bg-[#111820] p-4">
+          <div className="flex items-start justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Total ventas (hoy)</p>
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-yellow/15 text-brand-yellow">
+              <TrendingUp className="size-5" />
             </span>
           </div>
-          <p className="mt-2 font-display text-3xl font-bold">${totalVentasHoy.toLocaleString('es-CO')}</p>
+          <p className="mt-2 font-display text-2xl font-black text-white">${totalVentasHoy.toLocaleString('es-CO')}</p>
         </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-medium uppercase tracking-wide text-steel-500">N° tickets (hoy)</p>
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-steel-500">
-              <Receipt className="h-4 w-4" />
+        <div className="rounded-2xl border border-white/10 border-l-4 border-l-brand-blue bg-[#111820] p-4">
+          <div className="flex items-start justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">N° tickets (hoy)</p>
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-blue/15 text-brand-blue">
+              <Receipt className="size-5" />
             </span>
           </div>
-          <p className="mt-2 font-display text-3xl font-bold text-steel-900">{numTicketsHoy}</p>
+          <p className="mt-2 font-display text-2xl font-black text-white">{numTicketsHoy}</p>
         </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-medium uppercase tracking-wide text-steel-500">Venta promedio (hoy)</p>
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-blue-soft text-brand-blue">
-              <Calculator className="h-4 w-4" />
+        <div className="rounded-2xl border border-white/10 border-l-4 border-l-brand-blue bg-[#111820] p-4">
+          <div className="flex items-start justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Venta promedio (hoy)</p>
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-blue/15 text-brand-blue">
+              <Calculator className="size-5" />
             </span>
           </div>
-          <p className="mt-2 font-display text-3xl font-bold text-steel-900">${Math.round(ventaPromedioHoy).toLocaleString('es-CO')}</p>
+          <p className="mt-2 font-display text-2xl font-black text-white">${Math.round(ventaPromedioHoy).toLocaleString('es-CO')}</p>
         </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-medium uppercase tracking-wide text-steel-500">Por medio de pago (hoy)</p>
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-blue-soft text-brand-blue">
-              <CreditCard className="h-4 w-4" />
+        <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
+          <div className="flex items-start justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Por medio de pago (hoy)</p>
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-blue/15 text-brand-blue">
+              <CreditCard className="size-5" />
             </span>
           </div>
           <div className="mt-2 space-y-0.5">
             {MEDIOS_ORDEN.filter(m => (desgloseMedios[m] ?? 0) > 0).map(medio => (
               <div key={medio} className="flex justify-between text-xs">
-                <span className="text-steel-500">{MEDIO_LABEL[medio]}</span>
-                <span className="font-medium text-steel-900">${(desgloseMedios[medio] ?? 0).toLocaleString('es-CO')}</span>
+                <span className="text-steel-300">{MEDIO_LABEL[medio]}</span>
+                <span className="font-medium text-white">${(desgloseMedios[medio] ?? 0).toLocaleString('es-CO')}</span>
               </div>
             ))}
             {MEDIOS_ORDEN.every(m => !desgloseMedios[m]) && (
-              <p className="text-xs text-steel-300">Sin ventas hoy</p>
+              <p className="text-xs text-steel-500">Sin ventas hoy</p>
             )}
           </div>
         </div>
@@ -157,7 +163,7 @@ export default async function VentasPage({
         empleadoId={sp.empleado_id ?? ''} empleados={empleados ?? []} esAdmin={esAdmin}
       />
 
-      {error && <p className="mb-4 rounded-lg bg-brand-red-soft p-4 text-sm text-brand-red">Error: {error.message}</p>}
+      {error && <p className="rounded-2xl border border-brand-red/30 bg-brand-red/10 p-4 text-sm text-brand-red">Error: {error.message}</p>}
 
       <VentasTable ventas={(ventas as any) ?? []} />
     </div>

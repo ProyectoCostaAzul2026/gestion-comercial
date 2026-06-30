@@ -36,17 +36,17 @@ export default async function ServiciosPage({
   return (
     <div>
       <div className="mb-6 flex items-center gap-3">
-        <Link href="/dashboard/ventas" className="rounded-lg border border-slate-200 p-2 hover:bg-slate-50">
-          <ArrowLeft className="h-4 w-4" />
+        <Link href="/dashboard/ventas" className="rounded-xl border border-white/20 p-2 hover:bg-white/5">
+          <ArrowLeft className="h-4 w-4 text-white" />
         </Link>
         <div>
-          <h1 className="font-display text-2xl font-extrabold tracking-tight text-steel-900">Servicios realizados</h1>
-          <p className="mt-1 text-sm text-steel-500">{servicios?.length ?? 0} servicios en el período</p>
+          <h1 className="font-display text-2xl font-bold text-brand-yellow">Servicios realizados</h1>
+          <p className="mt-0.5 text-xs text-steel-300">{servicios?.length ?? 0} servicios en el período</p>
         </div>
       </div>
 
       {error && (
-        <p className="mb-4 rounded-lg bg-brand-red-soft p-4 text-sm text-brand-red">
+        <p className="mb-4 rounded-2xl border border-brand-red/30 bg-brand-red/10 p-4 text-sm text-brand-red">
           Error al cargar servicios: {error.message}
         </p>
       )}

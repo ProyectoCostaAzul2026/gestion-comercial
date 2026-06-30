@@ -21,15 +21,15 @@ export default async function EditarProveedorPage({ params }: { params: Promise<
   return (
     <div className="max-w-lg">
       <div className="mb-6 flex items-center gap-3">
-        <Link href={`/dashboard/proveedores/${id}`} className="rounded-lg border border-slate-200 p-2 hover:bg-slate-50">
-          <ArrowLeft className="h-4 w-4" />
+        <Link href={`/dashboard/proveedores/${id}`} className="rounded-xl border border-white/20 p-2 hover:bg-white/5">
+          <ArrowLeft className="h-4 w-4 text-white" />
         </Link>
         <div>
-          <h1 className="font-display text-xl font-extrabold tracking-tight text-steel-900">Editar Proveedor</h1>
-          <p className="text-xs text-steel-500">{proveedor.nombre}</p>
+          <h1 className="font-display text-2xl font-bold text-white">Editar Proveedor</h1>
+          <p className="text-xs text-steel-300">{proveedor.nombre}</p>
         </div>
       </div>
-      <div className="rounded-xl border border-slate-200 bg-white p-6">
+      <div className="rounded-2xl border border-white/10 bg-[#111820] p-6">
         <ProveedorForm proveedor={proveedor} />
       </div>
     </div>

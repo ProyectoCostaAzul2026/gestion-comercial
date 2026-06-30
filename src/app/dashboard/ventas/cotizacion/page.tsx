@@ -17,10 +17,10 @@ export default async function CotizacionPage() {
   return (
     <div>
       <div className="mb-6 flex items-center gap-3">
-        <Link href="/dashboard/ventas" className="rounded-lg border border-slate-200 p-2 hover:bg-slate-50">
-          <ArrowLeft className="h-4 w-4" />
+        <Link href="/dashboard/ventas" className="rounded-xl border border-white/20 p-2 hover:bg-white/5">
+          <ArrowLeft className="h-4 w-4 text-white" />
         </Link>
-        <h1 className="font-display text-2xl font-extrabold tracking-tight text-steel-900">Nueva Cotización</h1>
+        <h1 className="font-display text-2xl font-bold text-white">Nueva <span className="text-brand-yellow">Cotización</span></h1>
       </div>
       <CotizacionForm
         catalogo={catalogo ?? []}

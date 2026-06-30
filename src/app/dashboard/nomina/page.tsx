@@ -39,19 +39,25 @@ export default async function NominaPage() {
     .eq('activo', true)
 
   return (
-    <div>
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Nómina</h1>
-          <p className="mt-1 text-sm text-slate-500">Pago diario de empleados</p>
+    <div className="space-y-4">
+      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] px-4 pt-5 pb-4">
+        <div className="relative z-10 flex items-center justify-between gap-3">
+          <div>
+            <h1 className="font-display text-3xl font-bold text-brand-yellow">Nómina</h1>
+            <p className="mt-0.5 text-xs text-steel-300">Pago diario de empleados</p>
+          </div>
+          <Link
+            href="/dashboard/nomina/nueva"
+            className="inline-flex h-12 items-center gap-2 rounded-xl bg-brand-yellow px-4 text-sm font-bold text-steel-900 hover:brightness-105"
+          >
+            <Plus className="h-4 w-4" />
+            Registrar pago
+          </Link>
         </div>
-        <Link
-          href="/dashboard/nomina/nueva"
-          className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
-        >
-          <Plus className="h-4 w-4" />
-          Registrar pago
-        </Link>
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-28 overflow-hidden">
+          <div className="absolute inset-y-0 right-0 w-20 -skew-x-12 translate-x-8 bg-brand-yellow/80" />
+          <div className="absolute inset-y-0 right-0 w-7 -skew-x-12 translate-x-1 bg-brand-blue" />
+        </div>
       </div>
 
       <NominaTable

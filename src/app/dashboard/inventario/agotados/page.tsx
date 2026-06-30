@@ -44,22 +44,22 @@ export default async function AgotadosPage() {
     })
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="sticky top-0 z-10 border-b bg-white px-4 py-3">
+    <div className="min-h-screen bg-[#0a0e14]">
+      <div className="sticky top-0 z-10 border-b border-white/10 bg-[#0a0e14] px-4 py-3">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/inventario" className="rounded-md border p-2 hover:bg-slate-50">
-            <ArrowLeft className="h-4 w-4" />
+          <Link href="/dashboard/inventario" className="rounded-xl border border-white/20 p-2 hover:bg-white/5">
+            <ArrowLeft className="h-4 w-4 text-white" />
           </Link>
           <div>
-            <h1 className="text-lg font-bold text-slate-900">Productos en bajo stock o agotados</h1>
-            <p className="text-xs text-slate-500">{productos.length} productos</p>
+            <h1 className="font-display text-lg font-bold text-white">Productos en bajo stock o agotados</h1>
+            <p className="text-xs text-steel-300">{productos.length} productos</p>
           </div>
         </div>
       </div>
 
       <div className="p-4">
         {error && (
-          <p className="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-600">
+          <p className="mb-4 rounded-2xl border border-brand-red/30 bg-brand-red/10 p-4 text-sm text-brand-red">
             Error al cargar productos: {error.message}
           </p>
         )}

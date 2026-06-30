@@ -2,7 +2,6 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { PerfilProveedorAcciones } from '@/components/modulos/perfil-proveedor-acciones'
 import { ProductosProveedorTable } from '@/components/modulos/productos-proveedor-table'
 import { GarantiasPanel } from '@/components/modulos/garantias-panel'
@@ -10,10 +9,10 @@ import { GarantiasPanel } from '@/components/modulos/garantias-panel'
 const hoy = new Date().toISOString().slice(0, 10)
 const en7Dias = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
 
-const ESTADO_FACTURA: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' }> = {
-  pendiente: { label: 'Pendiente', variant: 'secondary' },
-  parcial: { label: 'Parcial', variant: 'default' },
-  pagada: { label: 'Pagada', variant: 'default' },
+const ESTADO_FACTURA: Record<string, { label: string; className: string }> = {
+  pendiente: { label: 'Pendiente', className: 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow' },
+  parcial: { label: 'Parcial', className: 'border-brand-blue/30 bg-brand-blue/20 text-brand-blue' },
+  pagada: { label: 'Pagada', className: 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400' },
 }
 
 export default async function PerfilProveedorPage({ params }: { params: Promise<{ id: string }> }) {
@@ -62,22 +61,22 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
   return (
     <div className="max-w-3xl space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/dashboard/proveedores" className="rounded-lg border border-slate-200 p-2 hover:bg-slate-50">
-          <ArrowLeft className="h-4 w-4" />
+        <Link href="/dashboard/proveedores" className="rounded-xl border border-white/20 p-2 hover:bg-white/5">
+          <ArrowLeft className="h-4 w-4 text-white" />
         </Link>
         <div className="flex-1">
-          <h1 className="font-display text-xl font-extrabold tracking-tight text-steel-900">{proveedor.nombre}</h1>
-          {!proveedor.activo && <Badge variant="secondary">Inactivo</Badge>}
+          <h1 className="font-display text-2xl font-bold text-white">{proveedor.nombre}</h1>
+          {!proveedor.activo && <span className="inline-flex items-center rounded-full border border-white/10 bg-steel-700 px-2.5 py-0.5 text-xs font-semibold text-steel-300">Inactivo</span>}
         </div>
         <Link href={`/dashboard/proveedores/${id}/editar`}
-          className="rounded-lg border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50">
+          className="rounded-xl border border-white/10 bg-[#1a2430] px-3 py-2 text-sm text-white hover:bg-white/5">
           Editar
         </Link>
       </div>
 
       {/* Datos */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
-        <h2 className="mb-3 font-display font-bold text-steel-900">Información</h2>
+      <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
+        <h2 className="mb-3 flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">Información</h2>
         <dl className="grid grid-cols-2 gap-3 text-sm">
           {[
             ['Contacto', proveedor.contacto],
@@ -88,8 +87,8 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
             ['Notas', proveedor.notas],
           ].map(([label, value]) => value ? (
             <div key={label as string}>
-              <dt className="text-xs text-steel-500">{label}</dt>
-              <dd className="font-medium text-steel-900">{value}</dd>
+              <dt className="text-[10px] font-bold uppercase tracking-widest text-steel-300">{label}</dt>
+              <dd className="font-medium text-white">{value}</dd>
             </div>
           ) : null)}
         </dl>
@@ -97,20 +96,20 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
 
       {/* Alertas de pagos próximos */}
       {pagosPendientes.length > 0 && (
-        <div className="space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <h2 className="font-display font-bold text-amber-800">Pagos programados próximos o vencidos</h2>
+        <div className="space-y-2 rounded-2xl border border-brand-yellow/30 bg-brand-yellow/10 p-4">
+          <h2 className="font-display font-bold text-brand-yellow">Pagos programados próximos o vencidos</h2>
           {pagosPendientes.map((p: any) => (
-            <div key={p.id} className="flex justify-between rounded-lg border border-slate-200 bg-white p-2 text-sm">
+            <div key={p.id} className="flex justify-between rounded-xl border border-white/10 bg-[#1a2430] p-2 text-sm">
               <div>
-                <span className={p.fecha_programada < hoy ? 'font-medium text-brand-red' : 'text-steel-700'}>
+                <span className={p.fecha_programada < hoy ? 'font-medium text-brand-red' : 'text-steel-300'}>
                   {p.fecha_programada < hoy ? '⚠ Vencido — ' : ''}{p.fecha_programada}
                 </span>
-                {p.nota && <span className="ml-2 text-steel-300">{p.nota}</span>}
-                <span className="ml-2 text-xs text-steel-300">
+                {p.nota && <span className="ml-2 text-steel-500">{p.nota}</span>}
+                <span className="ml-2 text-xs text-steel-500">
                   Factura #{(p.factura as any).numero_factura ?? 'S/N'}
                 </span>
               </div>
-              <span className="font-medium text-steel-900">${Number(p.monto).toLocaleString('es-CO')}</span>
+              <span className="font-display font-bold text-white">${Number(p.monto).toLocaleString('es-CO')}</span>
             </div>
           ))}
         </div>
@@ -138,16 +137,16 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
       />
 
       {/* Facturas */}
-      <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
+      <div className="space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-4">
         <div className="flex items-center justify-between">
-          <h2 className="flex items-center gap-2 font-display font-bold text-steel-900">
-            <span className="h-4 w-1 rounded-full bg-brand-yellow" />Facturas
+          <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+            Facturas
           </h2>
           <PerfilProveedorAcciones proveedorId={id} />
         </div>
 
         {(facturas ?? []).length === 0 ? (
-          <p className="text-sm text-steel-300">Sin facturas registradas.</p>
+          <p className="text-sm text-steel-500">Sin facturas registradas.</p>
         ) : (
           <div className="space-y-4">
             {(facturas ?? []).map((f: any) => {
@@ -155,26 +154,26 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
               const proxima = f.fecha_vencimiento && f.fecha_vencimiento >= hoy && f.fecha_vencimiento <= en7Dias && f.estado !== 'pagada'
 
               return (
-                <div key={f.id} className={`space-y-3 rounded-xl border p-4 ${vencida ? 'border-brand-red/30 bg-brand-red-soft' : proxima ? 'border-amber-200 bg-amber-50' : 'border-slate-200'}`}>
+                <div key={f.id} className={`space-y-3 rounded-xl border p-4 ${vencida ? 'border-brand-red/30 bg-brand-red/10' : proxima ? 'border-brand-yellow/30 bg-brand-yellow/10' : 'border-white/10 bg-[#1a2430]'}`}>
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-medium text-steel-900">
+                        <p className="font-medium text-white">
                           {f.numero_factura ? `Factura #${f.numero_factura}` : 'Sin número'}
                         </p>
-                        <Badge variant={ESTADO_FACTURA[f.estado]?.variant ?? 'secondary'}>
+                        <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${ESTADO_FACTURA[f.estado]?.className ?? 'border-white/10 bg-steel-700 text-steel-300'}`}>
                           {ESTADO_FACTURA[f.estado]?.label ?? f.estado}
-                        </Badge>
-                        {vencida && <Badge variant="destructive">Vencida</Badge>}
-                        {proxima && <Badge className="bg-amber-100 text-amber-800">Vence pronto</Badge>}
+                        </span>
+                        {vencida && <span className="inline-flex items-center rounded-full border border-brand-red/30 bg-brand-red/20 px-2.5 py-0.5 text-xs font-semibold text-brand-red">Vencida</span>}
+                        {proxima && <span className="inline-flex items-center rounded-full border border-brand-yellow/30 bg-brand-yellow/20 px-2.5 py-0.5 text-xs font-semibold text-brand-yellow">Vence pronto</span>}
                       </div>
-                      <p className="mt-0.5 text-xs text-steel-500">
+                      <p className="mt-0.5 text-xs text-steel-300">
                         Emitida: {f.fecha_emision}
                         {f.fecha_vencimiento && ` · Vence: ${f.fecha_vencimiento}`}
                       </p>
                     </div>
                     <div className="shrink-0 text-right">
-                      <p className="font-bold text-steel-900">${Number(f.monto_total).toLocaleString('es-CO')}</p>
+                      <p className="font-display font-bold text-white">${Number(f.monto_total).toLocaleString('es-CO')}</p>
                       {Number(f.saldo_pendiente) > 0 && (
                         <p className="text-xs text-brand-red">Pendiente: ${Number(f.saldo_pendiente).toLocaleString('es-CO')}</p>
                       )}
@@ -183,17 +182,17 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
 
                   {(f.pagos_programados_proveedor ?? []).length > 0 && (
                     <div className="space-y-1">
-                      <p className="text-xs font-medium text-steel-700">Pagos programados:</p>
+                      <p className="text-xs font-medium text-steel-300">Pagos programados:</p>
                       {(f.pagos_programados_proveedor as any[]).map((pp: any) => (
-                        <div key={pp.id} className="flex justify-between rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs">
+                        <div key={pp.id} className="flex justify-between rounded-lg border border-white/10 bg-[#111820] px-2 py-1 text-xs">
                           <div className="flex items-center gap-2">
-                            <span className={pp.pagado ? 'text-steel-300 line-through' : pp.fecha_programada < hoy ? 'font-medium text-brand-red' : 'text-steel-700'}>
+                            <span className={pp.pagado ? 'text-steel-500 line-through' : pp.fecha_programada < hoy ? 'font-medium text-brand-red' : 'text-steel-300'}>
                               {pp.fecha_programada}
                             </span>
-                            {pp.nota && <span className="text-steel-300">{pp.nota}</span>}
-                            {pp.pagado && <Badge className="bg-green-100 text-xs text-green-700">Pagado</Badge>}
+                            {pp.nota && <span className="text-steel-500">{pp.nota}</span>}
+                            {pp.pagado && <span className="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-xs font-semibold text-emerald-400">Pagado</span>}
                           </div>
-                          <span className="font-medium text-steel-900">${Number(pp.monto).toLocaleString('es-CO')}</span>
+                          <span className="font-medium text-white">${Number(pp.monto).toLocaleString('es-CO')}</span>
                         </div>
                       ))}
                     </div>
@@ -201,11 +200,11 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
 
                   {(f.pagos_factura_proveedor ?? []).length > 0 && (
                     <div className="space-y-1">
-                      <p className="text-xs font-medium text-steel-700">Pagos realizados:</p>
+                      <p className="text-xs font-medium text-steel-300">Pagos realizados:</p>
                       {(f.pagos_factura_proveedor as any[]).map((p: any) => (
-                        <div key={p.id} className="flex justify-between border-b border-slate-100 pb-1 text-xs text-steel-700 last:border-0">
+                        <div key={p.id} className="flex justify-between border-b border-white/8 pb-1 text-xs text-steel-300 last:border-0">
                           <span>{p.fecha_pago} · {p.metodo_pago}</span>
-                          <span className="font-medium text-steel-900">${Number(p.monto).toLocaleString('es-CO')}</span>
+                          <span className="font-medium text-white">${Number(p.monto).toLocaleString('es-CO')}</span>
                         </div>
                       ))}
                     </div>
@@ -215,13 +214,13 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
                     <div className="flex gap-2 pt-1">
                       <Link
                         href={`/dashboard/proveedores/${id}/facturas/${f.id}/pagar`}
-                        className="rounded-lg border border-slate-200 px-2 py-1 text-xs text-steel-700 hover:bg-white hover:underline"
+                        className="rounded-lg border border-brand-yellow/60 px-2 py-1 text-xs font-semibold text-brand-yellow hover:bg-brand-yellow/10"
                       >
                         Registrar pago
                       </Link>
                       <Link
                         href={`/dashboard/proveedores/${id}/facturas/${f.id}/editar`}
-                        className="rounded-lg border border-slate-200 px-2 py-1 text-xs text-steel-500 hover:bg-white hover:underline"
+                        className="rounded-lg border border-white/10 px-2 py-1 text-xs text-steel-300 hover:bg-white/5 hover:text-white"
                       >
                         Editar factura
                       </Link>
@@ -236,9 +235,8 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
 
       {/* Garantías */}
       {(garantiasProveedor ?? []).length > 0 && (
-        <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-          <h2 className="flex items-center gap-2 font-display font-bold text-steel-900">
-            <span className="h-4 w-1 rounded-full bg-brand-yellow" />
+        <div className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
+          <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
             Garantías ({(garantiasProveedor as any[] ?? []).filter((g: any) => g.estado === 'pendiente').length} pendientes)
           </h2>
           <GarantiasPanel

@@ -23,21 +23,21 @@ export default async function EditarClientePage({
   if (error || !cliente) notFound()
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="sticky top-0 z-10 border-b border-slate-200 bg-white px-4 py-3">
+    <div className="min-h-screen bg-[#0a0e14]">
+      <div className="sticky top-0 z-10 border-b border-white/10 bg-[#0a0e14] px-4 py-3">
         <div className="flex items-center gap-3">
-          <Link href={`/dashboard/clientes/${id}`} className="rounded-lg border border-slate-200 p-2 hover:bg-slate-50">
-            <ArrowLeft className="h-4 w-4" />
+          <Link href={`/dashboard/clientes/${id}`} className="rounded-xl border border-white/20 p-2 hover:bg-white/5">
+            <ArrowLeft className="h-4 w-4 text-white" />
           </Link>
           <div>
-            <h1 className="font-display text-lg font-extrabold tracking-tight text-steel-900">Editar Cliente</h1>
-            <p className="text-xs text-steel-500">{cliente.nombre}</p>
+            <h1 className="font-display text-lg font-bold text-white">Editar Cliente</h1>
+            <p className="text-xs text-steel-300">{cliente.nombre}</p>
           </div>
         </div>
       </div>
       <div className="max-w-md p-4">
         {cliente.es_cliente_generico ? (
-          <p className="rounded-lg bg-amber-50 p-4 text-sm text-amber-700">
+          <p className="rounded-2xl border border-brand-yellow/30 bg-brand-yellow/10 p-4 text-sm text-brand-yellow">
             "Cliente General" es un registro del sistema y no se puede editar.
           </p>
         ) : (
