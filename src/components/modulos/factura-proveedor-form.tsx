@@ -132,66 +132,69 @@ export function FacturaProveedorForm({ proveedorId, facturaId, inicial, onSucces
     }
   }
 
+  const inputCls = 'h-12 border-white/10 bg-[#1a2430] text-[16px] text-white placeholder:text-steel-500 focus:border-brand-yellow/60'
+  const labelCls = 'text-[10px] font-bold uppercase tracking-widest text-steel-300'
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="numero_factura">N° Factura</Label>
-          <Input id="numero_factura" value={form.numero_factura}
+          <Label htmlFor="numero_factura" className={labelCls}>N° Factura</Label>
+          <Input id="numero_factura" className={inputCls} value={form.numero_factura}
             onChange={e => setForm(p => ({ ...p, numero_factura: e.target.value }))} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="monto_total">Monto total *</Label>
-          <Input id="monto_total" type="number" value={form.monto_total || ''}
+          <Label htmlFor="monto_total" className={labelCls}>Monto total *</Label>
+          <Input id="monto_total" type="number" className={inputCls} value={form.monto_total || ''}
             onChange={e => setForm(p => ({ ...p, monto_total: parseFloat(e.target.value) || 0 }))} />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="fecha_emision">Fecha emisión</Label>
-          <Input id="fecha_emision" type="date" value={form.fecha_emision}
+          <Label htmlFor="fecha_emision" className={labelCls}>Fecha emisión</Label>
+          <Input id="fecha_emision" type="date" className={inputCls} value={form.fecha_emision}
             onChange={e => setForm(p => ({ ...p, fecha_emision: e.target.value }))} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="fecha_vencimiento">Fecha vencimiento</Label>
-          <Input id="fecha_vencimiento" type="date" value={form.fecha_vencimiento}
+          <Label htmlFor="fecha_vencimiento" className={labelCls}>Fecha vencimiento</Label>
+          <Input id="fecha_vencimiento" type="date" className={inputCls} value={form.fecha_vencimiento}
             onChange={e => setForm(p => ({ ...p, fecha_vencimiento: e.target.value }))} />
         </div>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="notas">Notas</Label>
-        <Textarea id="notas" value={form.notas} rows={2}
+        <Label htmlFor="notas" className={labelCls}>Notas</Label>
+        <Textarea id="notas" className="border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500 focus:border-brand-yellow/60" value={form.notas} rows={2}
           onChange={e => setForm(p => ({ ...p, notas: e.target.value }))} />
       </div>
 
       {/* Pagos programados */}
-      <div className="space-y-3 rounded-xl border border-slate-200 p-4">
+      <div className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-display font-bold text-steel-900">Pagos programados</h3>
-          <Button type="button" variant="outline" size="sm" onClick={agregarPago}>
+          <h3 className="font-display font-bold text-white">Pagos programados</h3>
+          <Button type="button" variant="outline" size="sm" className="border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={agregarPago}>
             <Plus className="mr-1 h-4 w-4" />Agregar cuota
           </Button>
         </div>
         {pagosProgramados.length === 0 && (
-          <p className="text-xs text-steel-300">Sin pagos programados. Agrega cuotas como recordatorio.</p>
+          <p className="text-xs text-steel-500">Sin pagos programados. Agrega cuotas como recordatorio.</p>
         )}
         {pagosProgramados.map((p, idx) => (
-          <div key={p.key} className="grid grid-cols-12 items-end gap-2 border-b border-slate-100 pb-3 last:border-0">
+          <div key={p.key} className="grid grid-cols-12 items-end gap-2 border-b border-white/8 pb-3 last:border-0">
             <div className="col-span-4 space-y-1">
-              <label className="text-xs text-steel-500">Fecha</label>
-              <Input type="date" value={p.fecha_programada}
+              <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Fecha</label>
+              <Input type="date" className="border-white/10 bg-[#1a2430] text-white" value={p.fecha_programada}
                 onChange={e => setPagosProgramados(prev => prev.map((it, i) =>
                   i === idx ? { ...it, fecha_programada: e.target.value } : it))} />
             </div>
             <div className="col-span-3 space-y-1">
-              <label className="text-xs text-steel-500">Monto</label>
-              <Input type="number" value={p.monto || ''}
+              <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Monto</label>
+              <Input type="number" className="border-white/10 bg-[#1a2430] text-white" value={p.monto || ''}
                 onChange={e => setPagosProgramados(prev => prev.map((it, i) =>
                   i === idx ? { ...it, monto: parseFloat(e.target.value) || 0 } : it))} />
             </div>
             <div className="col-span-4 space-y-1">
-              <label className="text-xs text-steel-500">Nota</label>
-              <Input value={p.nota} placeholder="Opcional"
+              <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Nota</label>
+              <Input value={p.nota} placeholder="Opcional" className="border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500"
                 onChange={e => setPagosProgramados(prev => prev.map((it, i) =>
                   i === idx ? { ...it, nota: e.target.value } : it))} />
             </div>
@@ -213,7 +216,7 @@ export function FacturaProveedorForm({ proveedorId, facturaId, inicial, onSucces
         )}
       </div>
 
-      <Button type="submit" disabled={saving} className="w-full">
+      <Button type="submit" disabled={saving} className="h-12 w-full bg-brand-yellow text-base font-bold text-steel-900 hover:bg-brand-yellow hover:brightness-105">
         {saving ? 'Guardando…' : esEdicion ? 'Guardar cambios' : 'Registrar factura'}
       </Button>
     </form>

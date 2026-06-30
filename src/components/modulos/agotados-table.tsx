@@ -160,7 +160,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
             onValueChange={(v) => v && setFiltroEstado(v)}
             value={filtroEstado}
           >
-            <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-44 border-white/10 bg-[#1a2430] text-white"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos los estados</SelectItem>
               <SelectItem value="agotado">Agotado</SelectItem>
@@ -176,7 +176,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
             onValueChange={(v) => v && setFiltroPrioridad(v)}
             value={filtroPrioridad}
           >
-            <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-48 border-white/10 bg-[#1a2430] text-white"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todas">Todas las prioridades</SelectItem>
               {[1, 2, 3, 4, 5].map((n) => (
@@ -193,7 +193,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
             onValueChange={(v) => v && setFiltroProveedor(v)}
             value={filtroProveedor}
           >
-            <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-52 border-white/10 bg-[#1a2430] text-white"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos los proveedores</SelectItem>
               {proveedores.map((p) => (
@@ -205,18 +205,18 @@ export function AgotadosTable({ productos, proveedores }: Props) {
 
         <div className="flex items-end gap-2">
           <div className="space-y-1">
-            <label className="text-xs text-steel-500">Días próximo pedido</label>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Días próximo pedido</label>
             <input
               type="number"
               min={1}
               value={diasPedido || ''}
               onFocus={e => e.target.select()}
               onChange={e => setDiasPedido(parseInt(e.target.value) || 0)}
-              className="h-9 w-20 rounded-lg border border-slate-300 px-2 text-sm"
+              className="h-9 w-20 rounded-xl border border-white/10 bg-[#1a2430] px-2 text-sm text-white"
             />
           </div>
           {filtroProveedor === 'todos' ? (
-            <p className="self-center text-xs text-amber-600">
+            <p className="self-center text-xs text-brand-yellow">
               Selecciona un proveedor para imprimir lista
             </p>
           ) : (
@@ -224,7 +224,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
               type="button"
               onClick={handleCalcularPedido}
               disabled={calculando || diasPedido <= 0}
-              className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-steel-700 hover:bg-slate-50 disabled:opacity-50"
+              className="inline-flex items-center justify-center rounded-xl border border-brand-yellow/60 px-4 py-2 text-sm font-semibold text-brand-yellow hover:bg-brand-yellow/10 disabled:opacity-50"
             >
               {calculando ? 'Calculando…' : 'Imprimir Lista'}
             </button>
@@ -232,45 +232,47 @@ export function AgotadosTable({ productos, proveedores }: Props) {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-slate-50">
-              <TableHead>Código</TableHead>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Medida</TableHead>
-              <TableHead>Marca</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead className="text-right">Stock</TableHead>
-              <TableHead>Prioridad</TableHead>
-              <TableHead>Proveedor 1</TableHead>
-              <TableHead>Proveedor 2</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtrados.map((producto) => (
-              <TableRow
-                key={producto.id}
-                className="cursor-pointer hover:bg-slate-50"
-                onClick={() => router.push(`/dashboard/inventario/${producto.id}`)}
-              >
-                <TableCell className="text-xs text-steel-500">{producto.codigo}</TableCell>
-                <TableCell className="font-medium text-steel-900">{producto.nombre}</TableCell>
-                <TableCell className="text-steel-500">{producto.unidad_medida ?? '—'}</TableCell>
-                <TableCell className="text-steel-500">{producto.marca ?? '—'}</TableCell>
-                <TableCell>
-                  <Badge variant={producto.stock_actual <= 0 ? 'destructive' : 'secondary'}>
-                    {producto.stock_actual <= 0 ? 'Agotado' : 'Stock bajo'}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right text-steel-900">{producto.stock_actual}</TableCell>
-                <TableCell className="text-steel-500">{PRIORIDAD_LABEL[producto.prioridad] ?? producto.prioridad}</TableCell>
-                <TableCell className="text-steel-500">{producto.proveedor1 ?? '—'}</TableCell>
-                <TableCell className="text-steel-500">{producto.proveedor2 ?? '—'}</TableCell>
+      <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+                <TableHead>Código</TableHead>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Medida</TableHead>
+                <TableHead>Marca</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead className="text-right">Stock</TableHead>
+                <TableHead>Prioridad</TableHead>
+                <TableHead>Proveedor 1</TableHead>
+                <TableHead>Proveedor 2</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filtrados.map((producto) => (
+                <TableRow
+                  key={producto.id}
+                  className="cursor-pointer border-white/8 hover:bg-white/5"
+                  onClick={() => router.push(`/dashboard/inventario/${producto.id}`)}
+                >
+                  <TableCell className="font-mono text-xs text-brand-yellow">{producto.codigo}</TableCell>
+                  <TableCell className="text-xs font-medium text-white">{producto.nombre}</TableCell>
+                  <TableCell className="text-xs text-steel-300">{producto.unidad_medida ?? '—'}</TableCell>
+                  <TableCell className="text-xs text-steel-300">{producto.marca ?? '—'}</TableCell>
+                  <TableCell>
+                    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${producto.stock_actual <= 0 ? 'border-brand-red/30 bg-brand-red/20 text-brand-red' : 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow'}`}>
+                      {producto.stock_actual <= 0 ? 'Agotado' : 'Stock bajo'}
+                    </span>
+                  </TableCell>
+                  <TableCell className={`text-right font-display text-sm font-bold ${producto.stock_actual <= 0 ? 'text-brand-red' : 'text-brand-yellow'}`}>{producto.stock_actual}</TableCell>
+                  <TableCell className="text-xs text-steel-300">{PRIORIDAD_LABEL[producto.prioridad] ?? producto.prioridad}</TableCell>
+                  <TableCell className="text-xs text-steel-300">{producto.proveedor1 ?? '—'}</TableCell>
+                  <TableCell className="text-xs text-steel-300">{producto.proveedor2 ?? '—'}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
         {filtrados.length === 0 && (
           <p className="p-8 text-center text-sm text-steel-500">No hay productos en bajo stock con estos filtros.</p>
         )}
@@ -278,15 +280,15 @@ export function AgotadosTable({ productos, proveedores }: Props) {
 
       {/* Panel confirmación pedido */}
       {confirmando && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="mx-4 max-h-[80vh] w-full max-w-2xl space-y-4 overflow-y-auto rounded-xl border border-slate-200 bg-white p-6 shadow-lg">
-            <h3 className="font-display font-bold text-steel-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="mx-4 max-h-[80vh] w-full max-w-2xl space-y-4 overflow-y-auto rounded-2xl border border-white/10 bg-[#111820] p-6 shadow-2xl">
+            <h3 className="font-display font-bold text-white">
               Vista previa — Lista de Pedido · {proveedores.find(p => p.id === filtroProveedor)?.nombre ?? ''}
             </h3>
-            <p className="text-xs text-steel-500">Días proyectados: {diasPedido}</p>
+            <p className="text-xs text-steel-300">Días proyectados: {diasPedido}</p>
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-slate-100 text-steel-500">
+                <tr className="border-b border-white/8 text-steel-300">
                   <th className="pb-1 text-left">Cód. proveedor</th>
                   <th className="pb-1 text-left">Nombre</th>
                   <th className="pb-1 text-left">Marca</th>
@@ -294,7 +296,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
                   <th className="pb-1 text-right">
                     <input
                       type="number"
-                      className="w-16 rounded border border-slate-200 px-1 text-right"
+                      className="w-16 rounded border border-white/10 bg-[#1a2430] px-1 text-right text-white"
                       value={diasPedido || ''}
                       onFocus={e => e.target.select()}
                       onChange={e => {
@@ -312,11 +314,11 @@ export function AgotadosTable({ productos, proveedores }: Props) {
               </thead>
               <tbody>
                 {listaPedido.map((p, idx) => (
-                  <tr key={p.id} className="border-b border-slate-100 last:border-0">
-                    <td className="py-1 text-steel-500">{p.codigo}</td>
-                    <td className="py-1 font-medium text-steel-900">{p.nombre}</td>
-                    <td className="py-1 text-steel-500">{p.marca ?? '—'}</td>
-                    <td className="py-1 text-steel-500">{p.unidad_medida ?? '—'}</td>
+                  <tr key={p.id} className="border-b border-white/8 last:border-0">
+                    <td className="py-1 font-mono text-brand-yellow">{p.codigo}</td>
+                    <td className="py-1 font-medium text-white">{p.nombre}</td>
+                    <td className="py-1 text-steel-300">{p.marca ?? '—'}</td>
+                    <td className="py-1 text-steel-300">{p.unidad_medida ?? '—'}</td>
                     <td className="py-1 text-right">
                       <input
                         type="number"
@@ -326,7 +328,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
                         onChange={e => setListaPedido(prev => prev.map((it, i) =>
                           i === idx ? { ...it, cantidad_pedir: parseInt(e.target.value) || 0 } : it
                         ))}
-                        className="w-16 rounded border border-slate-200 px-1 text-right"
+                        className="w-16 rounded border border-white/10 bg-[#1a2430] px-1 text-right text-white"
                       />
                     </td>
                   </tr>
@@ -337,14 +339,14 @@ export function AgotadosTable({ productos, proveedores }: Props) {
               <button
                 type="button"
                 onClick={handleImprimir}
-                className="inline-flex items-center rounded-lg bg-steel-900 px-4 py-2 text-sm font-medium text-white hover:bg-steel-800"
+                className="inline-flex items-center rounded-xl bg-brand-yellow px-4 py-2 text-sm font-bold text-steel-900 hover:brightness-105"
               >
                 Descargar PDF
               </button>
               <button
                 type="button"
                 onClick={() => setConfirmando(false)}
-                className="inline-flex items-center rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-steel-700 hover:bg-slate-50"
+                className="inline-flex items-center rounded-xl border border-white/10 bg-[#1a2430] px-4 py-2 text-sm font-medium text-white hover:bg-white/5"
               >
                 Volver a editar
               </button>

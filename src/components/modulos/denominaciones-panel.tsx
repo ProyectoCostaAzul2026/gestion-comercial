@@ -116,17 +116,17 @@ function FondoEditor({
   }
 
   return (
-    <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+    <div className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="font-display font-bold text-steel-900">{titulo}</h3>
-          <p className="text-xs text-steel-500">
+          <h3 className="font-display font-bold text-white">{titulo}</h3>
+          <p className="text-xs text-steel-300">
             Monto inicial: {formatCOP(montoInicial)} · Actual: {formatCOP(totalActual)}
           </p>
         </div>
         <div className="flex gap-2">
-          <Button type="button" variant="outline" size="sm" onClick={() => abrir('intercambio')}>Intercambiar</Button>
-          <Button type="button" variant="outline" size="sm" onClick={() => abrir('modificar')}>Modificar</Button>
+          <Button type="button" variant="outline" size="sm" className="border-white/10 bg-[#1a2430] text-white hover:bg-white/5 hover:text-white" onClick={() => abrir('intercambio')}>Intercambiar</Button>
+          <Button type="button" variant="outline" size="sm" className="border-white/10 bg-[#1a2430] text-white hover:bg-white/5 hover:text-white" onClick={() => abrir('modificar')}>Modificar</Button>
         </div>
       </div>
 
@@ -134,7 +134,7 @@ function FondoEditor({
       {modo === null && (
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-slate-100 text-xs text-steel-500">
+            <tr className="border-b border-white/8 text-xs text-steel-300">
               <th className="pb-1 text-left">Denominación</th>
               <th className="pb-1 text-right">Cantidad</th>
               <th className="pb-1 text-right">Valor</th>
@@ -144,24 +144,24 @@ function FondoEditor({
             {denominaciones.map(d => {
               const cant = getCantidad(d)
               return (
-                <tr key={d} className="border-b border-slate-100 last:border-0">
-                  <td className="py-1 text-steel-700">{formatCOP(d)}</td>
-                  <td className="py-1 text-right text-steel-900">{cant}</td>
-                  <td className="py-1 text-right font-medium text-steel-900">{formatCOP(cant * d)}</td>
+                <tr key={d} className="border-b border-white/8 last:border-0">
+                  <td className="py-1 text-steel-300">{formatCOP(d)}</td>
+                  <td className="py-1 text-right text-white">{cant}</td>
+                  <td className="py-1 text-right font-medium text-white">{formatCOP(cant * d)}</td>
                 </tr>
               )
             })}
             {tipo === 'monedas' && (
-              <tr className="border-b border-slate-100">
-                <td className="py-1 text-steel-700">Billetes acumulados</td>
-                <td className="py-1 text-right text-steel-300">—</td>
-                <td className="py-1 text-right font-medium text-steel-900">{formatCOP(getBilletesActuales())}</td>
+              <tr className="border-b border-white/8">
+                <td className="py-1 text-steel-300">Billetes acumulados</td>
+                <td className="py-1 text-right text-steel-500">—</td>
+                <td className="py-1 text-right font-medium text-white">{formatCOP(getBilletesActuales())}</td>
               </tr>
             )}
             <tr className="font-bold">
-              <td className="pt-2 text-steel-900">Total</td>
+              <td className="pt-2 text-white">Total</td>
               <td></td>
-              <td className="pt-2 text-right text-steel-900">{formatCOP(totalActual)}</td>
+              <td className="pt-2 text-right font-display text-white">{formatCOP(totalActual)}</td>
             </tr>
           </tbody>
         </table>
@@ -170,7 +170,7 @@ function FondoEditor({
       {/* Editor */}
       {modo !== null && (
         <div className="space-y-3">
-          <p className="rounded-lg bg-slate-50 p-2 text-xs text-steel-700">
+          <p className="rounded-xl bg-[#1a2430] p-2 text-xs text-steel-300">
             {modo === 'intercambio' && tipo === 'monedas' && 'Ingresa las nuevas cantidades de monedas. El valor restante se suma automáticamente a Billetes acumulados.'}
             {modo === 'intercambio' && tipo === 'sencillo' && 'Ajusta las cantidades de billetes. El total debe mantenerse en ' + formatCOP(montoInicial) + '.'}
             {modo === 'modificar' && 'Ajuste externo — ingresa los valores reales. El total debe ser exactamente ' + formatCOP(montoInicial) + '.'}
@@ -178,7 +178,7 @@ function FondoEditor({
 
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-100 text-xs text-steel-500">
+              <tr className="border-b border-white/8 text-xs text-steel-300">
                 <th className="pb-1 text-left">Denominación</th>
                 <th className="pb-1 text-right">Actual</th>
                 <th className="pb-1 text-right">Nueva cant.</th>
@@ -187,40 +187,40 @@ function FondoEditor({
             </thead>
             <tbody>
               {denominaciones.map(d => (
-                <tr key={d} className="border-b border-slate-100 last:border-0">
-                  <td className="py-1 text-steel-700">{formatCOP(d)}</td>
-                  <td className="py-1 text-right text-steel-300">{getCantidad(d)}</td>
+                <tr key={d} className="border-b border-white/8 last:border-0">
+                  <td className="py-1 text-steel-300">{formatCOP(d)}</td>
+                  <td className="py-1 text-right text-steel-500">{getCantidad(d)}</td>
                   <td className="py-1 text-right">
                     <Input
                       type="number" min={0}
                       value={cantidades[d] ?? ''}
                       onChange={e => setCantidades(prev => ({ ...prev, [d]: parseInt(e.target.value) || 0 }))}
-                      className="ml-auto h-7 w-20 text-right text-xs"
+                      className="ml-auto h-7 w-20 border-white/10 bg-[#1a2430] text-right text-xs text-white"
                     />
                   </td>
-                  <td className="py-1 text-right font-medium text-steel-900">{formatCOP((cantidades[d] ?? 0) * d)}</td>
+                  <td className="py-1 text-right font-medium text-white">{formatCOP((cantidades[d] ?? 0) * d)}</td>
                 </tr>
               ))}
               {tipo === 'monedas' && (
-                <tr className="border-b border-slate-100">
-                  <td className="py-1 text-steel-700">Billetes acumulados</td>
-                  <td className="py-1 text-right text-steel-300">{formatCOP(getBilletesActuales())}</td>
+                <tr className="border-b border-white/8">
+                  <td className="py-1 text-steel-300">Billetes acumulados</td>
+                  <td className="py-1 text-right text-steel-500">{formatCOP(getBilletesActuales())}</td>
                   <td className="py-1 text-right">
                     {modo === 'intercambio' ? (
-                      <span className="block text-right text-xs text-steel-500">
+                      <span className="block text-right text-xs text-steel-300">
                         {formatCOP(billetesAcumulados + diferenciaBilletes)}
-                        <br /><span className="text-steel-300">(auto)</span>
+                        <br /><span className="text-steel-500">(auto)</span>
                       </span>
                     ) : (
                       <Input
                         type="number" min={0}
                         value={billetesAcumulados || ''}
                         onChange={e => setBilletesAcumulados(parseFloat(e.target.value) || 0)}
-                        className="ml-auto h-7 w-24 text-right text-xs"
+                        className="ml-auto h-7 w-24 border-white/10 bg-[#1a2430] text-right text-xs text-white"
                       />
                     )}
                   </td>
-                  <td className="py-1 text-right font-medium text-steel-900">
+                  <td className="py-1 text-right font-medium text-white">
                     {modo === 'intercambio'
                       ? formatCOP(billetesAcumulados + diferenciaBilletes)
                       : formatCOP(billetesAcumulados)}
@@ -228,10 +228,10 @@ function FondoEditor({
                 </tr>
               )}
               <tr className="font-bold">
-                <td className="pt-2 text-steel-900">Total</td>
+                <td className="pt-2 text-white">Total</td>
                 <td></td>
                 <td></td>
-                <td className={`pt-2 text-right ${Math.abs(totalEditor - montoInicial) > 0 ? 'text-amber-600' : 'text-green-700'}`}>
+                <td className={`pt-2 text-right font-display ${Math.abs(totalEditor - montoInicial) > 0 ? 'text-brand-yellow' : 'text-emerald-400'}`}>
                   {formatCOP(totalEditor)}
                 </td>
               </tr>
@@ -239,16 +239,16 @@ function FondoEditor({
           </table>
 
           {Math.abs(totalEditor - montoInicial) > 0 && modo === 'modificar' && (
-            <p className="flex items-center gap-1.5 rounded-lg bg-brand-red-soft p-2 text-xs text-brand-red">
+            <p className="flex items-center gap-1.5 rounded-xl bg-brand-red/10 p-2 text-xs text-brand-red">
               <AlertTriangle className="h-3.5 w-3.5 shrink-0" /> El total ({formatCOP(totalEditor)}) debe ser exactamente {formatCOP(montoInicial)}.
             </p>
           )}
 
           <div className="flex gap-2">
-            <Button type="button" size="sm" onClick={handleGuardar} disabled={guardando}>
+            <Button type="button" size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={handleGuardar} disabled={guardando}>
               {guardando ? 'Guardando…' : 'Guardar'}
             </Button>
-            <Button type="button" variant="outline" size="sm" onClick={() => setModo(null)}>Cancelar</Button>
+            <Button type="button" variant="outline" size="sm" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => setModo(null)}>Cancelar</Button>
           </div>
         </div>
       )}
@@ -259,8 +259,8 @@ function FondoEditor({
 export function DenominacionesPanel({ fondos, config }: DenominacionesPanelProps) {
   return (
     <div className="space-y-4">
-      <h2 className="flex items-center gap-2 font-display font-bold text-steel-900">
-        <span className="h-4 w-1 rounded-full bg-brand-yellow" />Fondos fijos
+      <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+        Fondos fijos
       </h2>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <FondoEditor tipo="monedas" titulo="Monedas" montoInicial={config.monto_inicial_monedas} fondos={fondos} denominaciones={DENOMINACIONES_MONEDAS} />

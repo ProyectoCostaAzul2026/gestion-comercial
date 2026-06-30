@@ -269,76 +269,76 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
   if (!esAdmin) return null
 
   return (
-    <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-      <h2 className="flex items-center gap-2 font-display font-bold text-steel-900">
-        <span className="h-4 w-1 rounded-full bg-brand-yellow" />Acciones
+    <div className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
+      <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+        Acciones
       </h2>
 
       {accionActiva === 'ninguna' && (
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={() => setAccionActiva('devolver')} className="text-sm text-amber-600 hover:underline">Devolver productos</button>
-          <span className="text-steel-300">·</span>
+          <button type="button" onClick={() => setAccionActiva('devolver')} className="text-sm text-brand-yellow hover:underline">Devolver productos</button>
+          <span className="text-steel-500">·</span>
           <button type="button" onClick={() => setAccionActiva('cambiar')} className="text-sm text-brand-blue hover:underline">Cambiar productos</button>
-          <span className="text-steel-300">·</span>
+          <span className="text-steel-500">·</span>
           <button type="button" onClick={() => setAccionActiva('anular')} className="text-sm text-brand-red hover:underline">Anular venta</button>
         </div>
       )}
 
       {accionActiva === 'anular' && (
-        <div className="space-y-3 rounded-lg border border-brand-red/30 bg-brand-red-soft p-3">
+        <div className="space-y-3 rounded-xl border border-brand-red/30 bg-brand-red/10 p-3">
           <p className="text-sm font-medium text-brand-red">Confirmar anulación</p>
           <div className="space-y-1">
             <Label className="text-xs text-brand-red">Motivo (obligatorio)</Label>
-            <Textarea value={motivo} onChange={e => setMotivo(e.target.value)} rows={2} className="bg-white" />
+            <Textarea value={motivo} onChange={e => setMotivo(e.target.value)} rows={2} className="border-white/10 bg-[#111820] text-white placeholder:text-steel-500" />
           </div>
           <div className="flex gap-2">
-            <Button size="sm" onClick={handleAnular} disabled={anulando} className="bg-brand-red text-white hover:bg-brand-red hover:brightness-95">
+            <Button size="sm" onClick={handleAnular} disabled={anulando} className="bg-brand-red font-bold text-white hover:bg-brand-red hover:brightness-95">
               {anulando ? 'Anulando…' : 'Confirmar anulación'}
             </Button>
-            <Button size="sm" variant="outline" onClick={cerrar}>Cancelar</Button>
+            <Button size="sm" variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={cerrar}>Cancelar</Button>
           </div>
         </div>
       )}
 
       {accionActiva === 'devolver' && (
-        <div className="space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
-          <p className="text-sm font-medium text-amber-800">Selecciona los productos a devolver</p>
+        <div className="space-y-3 rounded-xl border border-brand-yellow/30 bg-brand-yellow/10 p-3">
+          <p className="text-sm font-medium text-brand-yellow">Selecciona los productos a devolver</p>
           <div className="space-y-2">
             {itemsDevolucion.map((item, idx) => (
-              <div key={item.venta_item_id} className="rounded-lg border border-slate-200 bg-white p-2">
+              <div key={item.venta_item_id} className="rounded-xl border border-white/10 bg-[#1a2430] p-2">
                 <div className="flex items-center gap-3">
                   <input type="checkbox" checked={item.seleccionado}
                     onChange={e => setItemsDevolucion(prev => prev.map((it, i) => i === idx ? { ...it, seleccionado: e.target.checked } : it))}
-                    className="h-4 w-4 accent-amber-600" />
-                  <span className="flex-1 text-sm text-steel-900">{item.nombre}</span>
+                    className="h-4 w-4 accent-brand-yellow" />
+                  <span className="flex-1 text-sm text-white">{item.nombre}</span>
                   {item.es_fraccionado ? (
                     <div className="flex items-center gap-1">
-                      <span className="text-xs text-steel-500">Cant ({item.medida_venta}):</span>
+                      <span className="text-xs text-steel-300">Cant ({item.medida_venta}):</span>
                       <Input type="number" step={item.cantidad_minima_venta ?? 0.5}
                         min={item.cantidad_minima_venta ?? 0.5} max={item.cantidad_fraccion_max}
                         value={item.cantidad_fraccion ?? ''}
                         disabled={!item.seleccionado}
                         onChange={e => setItemsDevolucion(prev => prev.map((it, i) =>
                           i === idx ? { ...it, cantidad_fraccion: parseFloat(e.target.value) || 0 } : it))}
-                        className="h-7 w-20 text-xs" />
-                      <span className="text-xs text-steel-300">/ {item.cantidad_fraccion_max}</span>
+                        className="h-7 w-20 border-white/10 bg-[#111820] text-xs text-white" />
+                      <span className="text-xs text-steel-500">/ {item.cantidad_fraccion_max}</span>
                     </div>
                   ) : (
                     <div className="flex items-center gap-1">
-                      <span className="text-xs text-steel-500">Cant:</span>
+                      <span className="text-xs text-steel-300">Cant:</span>
                       <Input type="number" min={1} max={item.cantidad_max} value={item.cantidad}
                         disabled={!item.seleccionado}
                         onChange={e => setItemsDevolucion(prev => prev.map((it, i) =>
                           i === idx ? { ...it, cantidad: Math.min(parseInt(e.target.value) || 1, it.cantidad_max) } : it))}
-                        className="h-7 w-16 text-xs" />
-                      <span className="text-xs text-steel-300">/ {item.cantidad_max}</span>
+                        className="h-7 w-16 border-white/10 bg-[#111820] text-xs text-white" />
+                      <span className="text-xs text-steel-500">/ {item.cantidad_max}</span>
                     </div>
                   )}
                 </div>
 
                 {/* Switch garantía */}
                 {item.seleccionado && (
-                  <div className="mt-2 space-y-2 border-t border-amber-100 pt-2">
+                  <div className="mt-2 space-y-2 border-t border-white/8 pt-2">
                     <div className="flex items-center gap-2">
                       <input
                         type="checkbox"
@@ -361,9 +361,9 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
                             }
                           }))
                         }}
-                        className="h-4 w-4 accent-amber-600"
+                        className="h-4 w-4 accent-brand-yellow"
                       />
-                      <label htmlFor={`garantia-dev-${item.venta_item_id}`} className="text-xs font-medium text-amber-800">
+                      <label htmlFor={`garantia-dev-${item.venta_item_id}`} className="text-xs font-medium text-brand-yellow">
                         Enviar a garantía (no regresa al inventario)
                       </label>
                     </div>
@@ -372,7 +372,7 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
                         <select
                           value={garantiasDevolucion[item.venta_item_id]?.proveedorId ?? ''}
                           onChange={e => setGarantiasDevolucion(prev => ({ ...prev, [item.venta_item_id]: { ...prev[item.venta_item_id], proveedorId: e.target.value } }))}
-                          className="w-full rounded border border-slate-200 px-2 py-1 text-xs"
+                          className="w-full rounded-lg border border-white/10 bg-[#111820] px-2 py-1 text-xs text-white"
                         >
                           <option value="">Selecciona proveedor…</option>
                           {proveedoresList.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
@@ -382,7 +382,7 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
                           placeholder="Observación (defecto, motivo…)"
                           value={garantiasDevolucion[item.venta_item_id]?.observacion ?? ''}
                           onChange={e => setGarantiasDevolucion(prev => ({ ...prev, [item.venta_item_id]: { ...prev[item.venta_item_id], observacion: e.target.value } }))}
-                          className="w-full rounded border border-slate-200 px-2 py-1 text-xs"
+                          className="w-full rounded-lg border border-white/10 bg-[#111820] px-2 py-1 text-xs text-white placeholder:text-steel-500"
                         />
                       </div>
                     )}
@@ -393,62 +393,62 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
           </div>
 
           {seleccionadosDevolucion.length > 0 && (
-            <div className="rounded-lg border border-slate-200 bg-white p-2 text-sm">
+            <div className="rounded-xl border border-white/10 bg-[#1a2430] p-2 text-sm">
               <div className="flex justify-between font-medium">
-                <span className="text-steel-900">Monto a devolver</span>
-                <span className="text-amber-700">${montoDevolucion.toLocaleString('es-CO')}</span>
+                <span className="text-white">Monto a devolver</span>
+                <span className="font-display text-brand-yellow">${montoDevolucion.toLocaleString('es-CO')}</span>
               </div>
-              <p className="mt-0.5 text-xs text-steel-300">
+              <p className="mt-0.5 text-xs text-steel-500">
                 Calculado proporcionalmente según el descuento aplicado en la venta original
               </p>
             </div>
           )}
 
           <div className="space-y-1">
-            <Label className="text-xs text-amber-800">Observación (obligatoria)</Label>
-            <Textarea value={observacionDev} onChange={e => setObservacionDev(e.target.value)} rows={2} className="bg-white" />
+            <Label className="text-xs text-brand-yellow">Observación (obligatoria)</Label>
+            <Textarea value={observacionDev} onChange={e => setObservacionDev(e.target.value)} rows={2} className="border-white/10 bg-[#111820] text-white placeholder:text-steel-500" />
           </div>
           <div className="flex gap-2">
-            <Button size="sm" onClick={handleDevolver} disabled={devolviendo} className="bg-amber-600 text-white hover:bg-amber-700">
+            <Button size="sm" onClick={handleDevolver} disabled={devolviendo} className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105">
               {devolviendo ? 'Registrando…' : 'Confirmar devolución'}
             </Button>
-            <Button size="sm" variant="outline" onClick={cerrar}>Cancelar</Button>
+            <Button size="sm" variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={cerrar}>Cancelar</Button>
           </div>
         </div>
       )}
 
       {accionActiva === 'cambiar' && (
-        <div className="space-y-3 rounded-lg border border-blue-200 bg-blue-50 p-3">
+        <div className="space-y-3 rounded-xl border border-brand-blue/30 bg-brand-blue/10 p-3">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-blue-800">
+            <p className="text-sm font-medium text-brand-blue">
               {paso === 1 ? 'Paso 1 — Selecciona productos a retirar' : 'Paso 2 — Agrega productos nuevos'}
             </p>
-            <span className="text-xs text-blue-500">{paso}/2</span>
+            <span className="text-xs text-brand-blue">{paso}/2</span>
           </div>
 
           {paso === 1 && (
             <>
               <div className="space-y-2">
                 {itemsRetirar.map((item, idx) => (
-                  <div key={item.venta_item_id} className="rounded-lg border border-slate-200 bg-white p-2">
+                  <div key={item.venta_item_id} className="rounded-xl border border-white/10 bg-[#1a2430] p-2">
                     <div className="flex items-center gap-3">
                       <input type="checkbox" checked={item.seleccionado}
                         onChange={e => setItemsRetirar(prev => prev.map((it, i) => i === idx ? { ...it, seleccionado: e.target.checked } : it))}
                         className="h-4 w-4 accent-brand-blue" />
-                      <span className="flex-1 text-sm text-steel-900">{item.nombre}</span>
+                      <span className="flex-1 text-sm text-white">{item.nombre}</span>
                       <div className="flex items-center gap-1">
                         <Input type="number" min={1} max={item.cantidad_max} value={item.cantidad}
                           disabled={!item.seleccionado}
                           onChange={e => setItemsRetirar(prev => prev.map((it, i) =>
                             i === idx ? { ...it, cantidad: Math.min(parseInt(e.target.value) || 1, it.cantidad_max) } : it))}
-                          className="h-7 w-16 text-xs" />
-                        <span className="text-xs text-steel-300">/ {item.cantidad_max}</span>
+                          className="h-7 w-16 border-white/10 bg-[#111820] text-xs text-white" />
+                        <span className="text-xs text-steel-500">/ {item.cantidad_max}</span>
                       </div>
                     </div>
 
                     {/* Switch garantía en cambio */}
                     {item.seleccionado && (
-                      <div className="mt-2 space-y-2 border-t border-blue-100 pt-2">
+                      <div className="mt-2 space-y-2 border-t border-white/8 pt-2">
                         <div className="flex items-center gap-2">
                           <input
                             type="checkbox"
@@ -473,7 +473,7 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
                             }}
                             className="h-4 w-4 accent-brand-blue"
                           />
-                          <label htmlFor={`garantia-cambio-${item.venta_item_id}`} className="text-xs font-medium text-blue-800">
+                          <label htmlFor={`garantia-cambio-${item.venta_item_id}`} className="text-xs font-medium text-brand-blue">
                             Producto defectuoso — enviar a garantía
                           </label>
                         </div>
@@ -482,7 +482,7 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
                             <select
                               value={garantiasCambio[item.venta_item_id]?.proveedorId ?? ''}
                               onChange={e => setGarantiasCambio(prev => ({ ...prev, [item.venta_item_id]: { ...prev[item.venta_item_id], proveedorId: e.target.value } }))}
-                              className="w-full rounded border border-slate-200 px-2 py-1 text-xs"
+                              className="w-full rounded-lg border border-white/10 bg-[#111820] px-2 py-1 text-xs text-white"
                             >
                               <option value="">Selecciona proveedor…</option>
                               {proveedoresList.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
@@ -492,7 +492,7 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
                               placeholder="Observación (defecto, motivo…)"
                               value={garantiasCambio[item.venta_item_id]?.observacion ?? ''}
                               onChange={e => setGarantiasCambio(prev => ({ ...prev, [item.venta_item_id]: { ...prev[item.venta_item_id], observacion: e.target.value } }))}
-                              className="w-full rounded border border-slate-200 px-2 py-1 text-xs"
+                              className="w-full rounded-lg border border-white/10 bg-[#111820] px-2 py-1 text-xs text-white placeholder:text-steel-500"
                             />
                           </div>
                         )}
@@ -502,18 +502,18 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
                 ))}
               </div>
               <div className="flex gap-2">
-                <Button size="sm" onClick={() => { if (seleccionadosCambio.length === 0) { toast.error('Selecciona al menos un producto'); return } setPaso(2) }} className="bg-brand-blue text-white hover:brightness-110">
+                <Button size="sm" onClick={() => { if (seleccionadosCambio.length === 0) { toast.error('Selecciona al menos un producto'); return } setPaso(2) }} className="bg-brand-blue font-bold text-white hover:brightness-110">
                   Siguiente →
                 </Button>
-                <Button size="sm" variant="outline" onClick={cerrar}>Cancelar</Button>
+                <Button size="sm" variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={cerrar}>Cancelar</Button>
               </div>
             </>
           )}
 
           {paso === 2 && (
             <>
-              <div className="space-y-0.5 rounded-lg border border-slate-200 bg-white p-2 text-xs text-steel-700">
-                <p className="mb-1 font-medium text-steel-900">Retirando:</p>
+              <div className="space-y-0.5 rounded-xl border border-white/10 bg-[#1a2430] p-2 text-xs text-steel-300">
+                <p className="mb-1 font-medium text-white">Retirando:</p>
                 {seleccionadosCambio.map(i => (
                   <div key={i.venta_item_id} className="flex justify-between">
                     <span>{i.nombre} × {i.cantidad}</span>
@@ -523,18 +523,18 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
               </div>
 
               <div className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-300" />
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-500" />
                 <Input value={queryProducto}
                   onChange={async e => { setQueryProducto(e.target.value); await buscarProductos(e.target.value) }}
-                  placeholder="Buscar producto a agregar…" className="bg-white pl-9" />
+                  placeholder="Buscar producto a agregar…" className="border-white/10 bg-[#1a2430] pl-9 text-white placeholder:text-steel-500" />
                 {resultadosProducto.length > 0 && (
-                  <div className="absolute z-20 mt-1 w-full rounded-lg border border-slate-200 bg-white shadow-lg">
+                  <div className="absolute z-20 mt-1 w-full rounded-xl border border-white/10 bg-[#111820] shadow-xl">
                     {resultadosProducto.map((p: any) => (
                       <button key={p.id} type="button"
-                        className="flex w-full justify-between px-3 py-2 text-left text-sm hover:bg-slate-50"
+                        className="flex w-full justify-between px-3 py-2 text-left text-sm hover:bg-white/5"
                         onClick={() => agregarProductoCambio(p)}>
-                        <span className="text-steel-900">{p.nombre}</span>
-                        <span className="text-xs text-steel-500">${p.precio_venta?.toLocaleString('es-CO')} · Stock: {p.stock_almacen}</span>
+                        <span className="text-white">{p.nombre}</span>
+                        <span className="text-xs text-steel-300">${p.precio_venta?.toLocaleString('es-CO')} · Stock: {p.stock_almacen}</span>
                       </button>
                     ))}
                   </div>
@@ -544,12 +544,12 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
               {itemsAgregar.length > 0 && (
                 <div className="space-y-1">
                   {itemsAgregar.map((item, idx) => (
-                    <div key={item.key} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-2">
-                      <span className="flex-1 text-sm text-steel-900">{item.nombre}</span>
+                    <div key={item.key} className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#1a2430] p-2">
+                      <span className="flex-1 text-sm text-white">{item.nombre}</span>
                       <Input type="number" min={1} max={item.stock_almacen} value={item.cantidad}
                         onChange={e => setItemsAgregar(prev => prev.map((it, i) => i === idx ? { ...it, cantidad: parseInt(e.target.value) || 1 } : it))}
-                        className="h-7 w-16 text-xs" />
-                      <span className="text-xs text-steel-500">${(item.precio_venta * item.cantidad).toLocaleString('es-CO')}</span>
+                        className="h-7 w-16 border-white/10 bg-[#111820] text-xs text-white" />
+                      <span className="text-xs text-steel-300">${(item.precio_venta * item.cantidad).toLocaleString('es-CO')}</span>
                       <button type="button" onClick={() => setItemsAgregar(prev => prev.filter((_, i) => i !== idx))} className="text-steel-300 hover:text-brand-red">
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -559,10 +559,10 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
               )}
 
               {itemsAgregar.length > 0 && (
-                <div className="rounded-lg border border-slate-200 bg-white p-2 text-sm">
-                  <div className="flex justify-between"><span className="text-steel-500">Valor retirado</span><span className="text-steel-900">-${valorRetirado.toLocaleString('es-CO')}</span></div>
-                  <div className="flex justify-between"><span className="text-steel-500">Valor agregado</span><span className="text-steel-900">+${valorAgregado.toLocaleString('es-CO')}</span></div>
-                  <div className={`mt-1 flex justify-between border-t border-slate-100 pt-1 font-bold ${diferencia > 0 ? 'text-green-700' : diferencia < 0 ? 'text-amber-700' : 'text-steel-700'}`}>
+                <div className="rounded-xl border border-white/10 bg-[#1a2430] p-2 text-sm">
+                  <div className="flex justify-between"><span className="text-steel-300">Valor retirado</span><span className="text-white">-${valorRetirado.toLocaleString('es-CO')}</span></div>
+                  <div className="flex justify-between"><span className="text-steel-300">Valor agregado</span><span className="text-white">+${valorAgregado.toLocaleString('es-CO')}</span></div>
+                  <div className={`mt-1 flex justify-between border-t border-white/8 pt-1 font-bold ${diferencia > 0 ? 'text-emerald-400' : diferencia < 0 ? 'text-brand-yellow' : 'text-steel-300'}`}>
                     <span>{diferencia > 0 ? 'Cobrar al cliente' : diferencia < 0 ? 'Devolver al cliente' : 'Sin diferencia'}</span>
                     <span>${Math.abs(diferencia).toLocaleString('es-CO')}</span>
                   </div>
@@ -570,15 +570,15 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
               )}
 
               <div className="space-y-1">
-                <Label className="text-xs text-blue-800">Observación (obligatoria)</Label>
-                <Textarea value={observacionCambio} onChange={e => setObservacionCambio(e.target.value)} rows={2} className="bg-white" />
+                <Label className="text-xs text-brand-blue">Observación (obligatoria)</Label>
+                <Textarea value={observacionCambio} onChange={e => setObservacionCambio(e.target.value)} rows={2} className="border-white/10 bg-[#111820] text-white placeholder:text-steel-500" />
               </div>
               <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => setPaso(1)}>← Atrás</Button>
-                <Button size="sm" onClick={handleCambiar} disabled={cambiando} className="bg-brand-blue text-white hover:brightness-110">
+                <Button size="sm" variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => setPaso(1)}>← Atrás</Button>
+                <Button size="sm" onClick={handleCambiar} disabled={cambiando} className="bg-brand-blue font-bold text-white hover:brightness-110">
                   {cambiando ? 'Registrando…' : 'Confirmar cambio'}
                 </Button>
-                <Button size="sm" variant="outline" onClick={cerrar}>Cancelar</Button>
+                <Button size="sm" variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={cerrar}>Cancelar</Button>
               </div>
             </>
           )}

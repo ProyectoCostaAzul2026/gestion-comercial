@@ -60,28 +60,34 @@ export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId }: Pago
     }
   }
 
+  const inputCls = 'h-12 border-white/10 bg-[#1a2430] text-[16px] text-white placeholder:text-steel-500 focus:border-brand-yellow/60'
+  const labelCls = 'text-[10px] font-bold uppercase tracking-widest text-steel-300'
+  const triggerCls = 'border-white/10 bg-[#1a2430] text-white'
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
-        <span className="text-steel-500">Saldo pendiente: </span>
-        <span className="font-bold text-steel-900">${saldoPendiente.toLocaleString('es-CO')}</span>
+      <div className="rounded-2xl border border-white/10 bg-[#1a2430] p-3 text-sm">
+        <span className="text-steel-300">Saldo pendiente: </span>
+        <span className="font-display font-bold text-white">${saldoPendiente.toLocaleString('es-CO')}</span>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="monto">Monto a pagar *</Label>
+          <Label htmlFor="monto" className={labelCls}>Monto a pagar *</Label>
           <Input
             id="monto"
             type="number"
+            className={inputCls}
             value={monto || ''}
             onChange={e => setMonto(parseFloat(e.target.value) || 0)}
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="fecha_pago">Fecha de pago</Label>
+          <Label htmlFor="fecha_pago" className={labelCls}>Fecha de pago</Label>
           <Input
             id="fecha_pago"
             type="date"
+            className={inputCls}
             value={fechaPago}
             onChange={e => setFechaPago(e.target.value)}
           />
@@ -89,7 +95,7 @@ export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId }: Pago
       </div>
 
       <div className="space-y-2">
-        <Label>Método de pago</Label>
+        <Label className={labelCls}>Método de pago</Label>
         <Select
           items={[
             { value: 'efectivo', label: 'Efectivo' },
@@ -100,7 +106,7 @@ export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId }: Pago
           onValueChange={v => v && setMetodoPago(v)}
           value={metodoPago}
         >
-          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectTrigger className={triggerCls}><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="efectivo">Efectivo</SelectItem>
             <SelectItem value="nequi">Nequi</SelectItem>
@@ -112,7 +118,7 @@ export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId }: Pago
 
       {metodoPago === 'efectivo' && (
         <div className="space-y-2">
-          <Label>Origen del efectivo</Label>
+          <Label className={labelCls}>Origen del efectivo</Label>
           <Select
             items={[
               { value: 'caja_menor', label: 'Caja menor' },
@@ -121,7 +127,7 @@ export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId }: Pago
             onValueChange={v => v && setOrigenCaja(v)}
             value={origenCaja}
           >
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger className={triggerCls}><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="caja_menor">Caja menor</SelectItem>
               <SelectItem value="caja_mayor">Caja mayor</SelectItem>
@@ -131,9 +137,10 @@ export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId }: Pago
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="observaciones">Observaciones</Label>
+        <Label htmlFor="observaciones" className={labelCls}>Observaciones</Label>
         <Textarea
           id="observaciones"
+          className="border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500 focus:border-brand-yellow/60"
           value={observaciones}
           rows={2}
           onChange={e => setObservaciones(e.target.value)}
@@ -141,19 +148,19 @@ export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId }: Pago
       </div>
 
       {!confirmar ? (
-        <Button type="button" onClick={() => setConfirmar(true)} className="w-full">
+        <Button type="button" onClick={() => setConfirmar(true)} className="h-12 w-full bg-brand-yellow text-base font-bold text-steel-900 hover:bg-brand-yellow hover:brightness-105">
           Registrar pago
         </Button>
       ) : (
         <div className="space-y-2">
-          <p className="text-sm font-medium text-steel-900">
+          <p className="text-sm font-medium text-white">
             ¿Confirmas el pago de ${monto.toLocaleString('es-CO')}?
           </p>
           <div className="flex gap-2">
-            <Button type="submit" disabled={saving} className="flex-1">
+            <Button type="submit" disabled={saving} className="h-12 flex-1 bg-brand-yellow font-bold text-steel-900 hover:brightness-105">
               {saving ? 'Registrando…' : 'Sí, registrar'}
             </Button>
-            <Button type="button" variant="outline" onClick={() => setConfirmar(false)} className="flex-1">
+            <Button type="button" variant="outline" onClick={() => setConfirmar(false)} className="h-12 flex-1 border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white">
               Cancelar
             </Button>
           </div>

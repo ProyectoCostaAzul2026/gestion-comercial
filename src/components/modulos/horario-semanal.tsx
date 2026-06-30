@@ -138,8 +138,8 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy }: Horario
       <div className="flex gap-2">
         {(['semanal', 'empleado'] as const).map(v => (
           <button key={v} onClick={() => setVistaActiva(v)}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-              vistaActiva === v ? 'bg-steel-900 text-white' : 'border border-slate-200 text-steel-700 hover:bg-slate-50'
+            className={`rounded-xl px-4 py-2 text-sm font-semibold transition-colors ${
+              vistaActiva === v ? 'bg-brand-yellow text-steel-900' : 'border border-white/10 bg-[#1a2430] text-steel-300 hover:bg-white/5 hover:text-white'
             }`}>
             {v === 'semanal' ? 'Vista semanal' : 'Por empleado'}
           </button>
@@ -151,14 +151,14 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy }: Horario
           {DIAS.map(dia => {
             const esFestivo = esDomingoOFestivoNombre(dia, fechaHoy)
             return (
-              <div key={dia} className="rounded-xl border border-slate-200 bg-white">
+              <div key={dia} className="rounded-2xl border border-white/10 bg-[#111820]">
                 <div
-                  className={`cursor-pointer rounded-t-xl px-3 py-2 text-center text-sm font-semibold transition-colors ${
+                  className={`cursor-pointer rounded-t-2xl px-3 py-2 text-center text-sm font-semibold transition-colors ${
                     diaActivo === dia
-                      ? 'bg-steel-900 text-white'
+                      ? 'bg-brand-yellow text-steel-900'
                       : esFestivo
-                      ? 'bg-amber-50 text-amber-700 hover:bg-amber-100'
-                      : 'bg-slate-50 text-steel-700 hover:bg-slate-100'
+                      ? 'bg-brand-yellow/10 text-brand-yellow hover:bg-brand-yellow/20'
+                      : 'bg-steel-700 text-steel-300 hover:bg-white/5'
                   }`}
                   onClick={() => handleClickDia(dia)}
                 >
@@ -169,13 +169,13 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy }: Horario
                 </div>
                 <div className="min-h-16 space-y-1 p-2">
                   {turnosPorDia(dia).map(t => (
-                    <div key={t.id} className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs">
+                    <div key={t.id} className="rounded-xl border border-white/10 bg-[#1a2430] px-2 py-1 text-xs">
                       <div className="flex items-start justify-between gap-1">
                         <div>
-                          <p className="font-medium leading-tight text-steel-800">
+                          <p className="font-medium leading-tight text-white">
                             {t.profiles?.nombre_completo?.split(' ')[0] ?? '?'}
                           </p>
-                          <p className="text-steel-500">{t.hora_inicio.slice(0, 5)} – {t.hora_fin.slice(0, 5)}</p>
+                          <p className="text-steel-300">{t.hora_inicio.slice(0, 5)} – {t.hora_fin.slice(0, 5)}</p>
                         </div>
                         {esAdmin && (
                           <button type="button" onClick={() => handleEliminarTurno(t.id)}
@@ -188,39 +188,39 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy }: Horario
                     </div>
                   ))}
                   {turnosPorDia(dia).length === 0 && (
-                    <p className="pt-2 text-center text-xs text-steel-300">Libre</p>
+                    <p className="pt-2 text-center text-xs text-steel-500">Libre</p>
                   )}
                 </div>
 
                 {esAdmin && diaActivo === dia && (
-                  <div className="space-y-2 rounded-b-xl border-t border-slate-200 bg-slate-50 p-2">
-                    <p className="text-xs font-medium text-steel-700">
+                  <div className="space-y-2 rounded-b-2xl border-t border-white/10 bg-[#1a2430] p-2">
+                    <p className="text-xs font-medium text-steel-300">
                       Agregar turno
-                      {esFestivo && <span className="ml-1 text-amber-600">(Domingo/Festivo)</span>}
+                      {esFestivo && <span className="ml-1 text-brand-yellow">(Domingo/Festivo)</span>}
                     </p>
                     <Select items={empleados.map(e => ({ value: e.id, label: e.nombre_completo }))}
                       onValueChange={v => v && setNuevoTurno(p => ({ ...p, empleado_id: v }))}
                       value={nuevoTurno.empleado_id}>
-                      <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="Empleado" /></SelectTrigger>
+                      <SelectTrigger className="h-7 border-white/10 bg-[#111820] text-xs text-white"><SelectValue placeholder="Empleado" /></SelectTrigger>
                       <SelectContent>
                         {empleados.map(e => <SelectItem key={e.id} value={e.id}>{e.nombre_completo}</SelectItem>)}
                       </SelectContent>
                     </Select>
                     <div className="grid grid-cols-2 gap-1">
                       <div>
-                        <label className="text-xs text-steel-500">Inicio</label>
+                        <label className="text-xs text-steel-300">Inicio</label>
                         <input type="time" value={nuevoTurno.hora_inicio}
                           onChange={e => setNuevoTurno(p => ({ ...p, hora_inicio: e.target.value }))}
-                          className="w-full rounded-lg border border-slate-200 px-1 py-0.5 text-xs" />
+                          className="w-full rounded-lg border border-white/10 bg-[#111820] px-1 py-0.5 text-xs text-white" />
                       </div>
                       <div>
-                        <label className="text-xs text-steel-500">Fin</label>
+                        <label className="text-xs text-steel-300">Fin</label>
                         <input type="time" value={nuevoTurno.hora_fin}
                           onChange={e => setNuevoTurno(p => ({ ...p, hora_fin: e.target.value }))}
-                          className="w-full rounded-lg border border-slate-200 px-1 py-0.5 text-xs" />
+                          className="w-full rounded-lg border border-white/10 bg-[#111820] px-1 py-0.5 text-xs text-white" />
                       </div>
                     </div>
-                    <Button type="button" size="sm" className="h-7 w-full text-xs"
+                    <Button type="button" size="sm" className="h-7 w-full bg-brand-yellow text-xs font-bold text-steel-900 hover:brightness-105"
                       onClick={handleGuardarTurno} disabled={guardando}>
                       {guardando ? 'Guardando…' : 'Guardar'}
                     </Button>
@@ -238,21 +238,21 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy }: Horario
             const turnosEmp = turnos.filter(t => t.empleado_id === emp.id)
             const horasSemanales = horasPorEmpleado(emp.id)
             return (
-              <div key={emp.id} className="rounded-xl border border-slate-200 bg-white p-4">
+              <div key={emp.id} className="rounded-2xl border border-white/10 bg-[#111820] p-4">
                 <div className="mb-2 flex items-center justify-between">
-                  <h3 className="font-medium text-steel-900">{emp.nombre_completo}</h3>
-                  <Badge variant="secondary">{horasSemanales.toFixed(1)}h / semana</Badge>
+                  <h3 className="font-medium text-white">{emp.nombre_completo}</h3>
+                  <span className="inline-flex items-center rounded-full border border-brand-yellow/30 bg-brand-yellow/20 px-2.5 py-0.5 text-xs font-semibold text-brand-yellow">{horasSemanales.toFixed(1)}h / semana</span>
                 </div>
                 {turnosEmp.length === 0 ? (
-                  <p className="text-sm text-steel-300">Sin turnos asignados</p>
+                  <p className="text-sm text-steel-500">Sin turnos asignados</p>
                 ) : (
                   <div className="flex flex-wrap gap-2">
                     {DIAS.filter(d => turnosEmp.some(t => t.dia_semana === d)).map(dia =>
                       turnosEmp.filter(t => t.dia_semana === dia).map(t => (
-                        <div key={t.id} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs">
-                          <span className="font-medium text-steel-700">{DIAS_LABEL[dia]}</span>
-                          <span className="ml-2 text-steel-500">{t.hora_inicio.slice(0, 5)} – {t.hora_fin.slice(0, 5)}</span>
-                          <span className="ml-2 text-steel-300">({calcularHoras(t.hora_inicio, t.hora_fin).toFixed(1)}h)</span>
+                        <div key={t.id} className="rounded-xl border border-white/10 bg-[#1a2430] px-3 py-1.5 text-xs">
+                          <span className="font-medium text-white">{DIAS_LABEL[dia]}</span>
+                          <span className="ml-2 text-steel-300">{t.hora_inicio.slice(0, 5)} – {t.hora_fin.slice(0, 5)}</span>
+                          <span className="ml-2 text-steel-500">({calcularHoras(t.hora_inicio, t.hora_fin).toFixed(1)}h)</span>
                         </div>
                       ))
                     )}

@@ -58,29 +58,29 @@ export function CategoriasGastoForm({ categorias }: { categorias: Categoria[] })
   }
 
   return (
-    <div className="rounded-lg border bg-white p-6 space-y-4">
-      <p className="text-sm text-slate-500">
+    <div className="space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-6">
+      <p className="text-sm text-steel-300">
         Las categorías activas aparecen al registrar gastos en Caja y Contabilidad.
       </p>
 
       {/* Lista de categorías */}
       <div className="space-y-2">
         {categorias.map(cat => (
-          <div key={cat.id} className="flex items-center justify-between rounded-md border px-3 py-2">
+          <div key={cat.id} className="flex items-center justify-between rounded-xl border border-white/10 bg-[#1a2430] px-3 py-2">
             <div className="flex items-center gap-2">
-              <span className={`text-sm font-medium ${!cat.activo ? 'text-slate-400 line-through' : 'text-slate-900'}`}>
+              <span className={`text-sm font-medium ${!cat.activo ? 'text-steel-500 line-through' : 'text-white'}`}>
                 {cat.nombre}
               </span>
-              {!cat.activo && <Badge variant="secondary" className="text-xs">Inactiva</Badge>}
+              {!cat.activo && <span className="inline-flex items-center rounded-full border border-white/10 bg-steel-700 px-2 py-0.5 text-xs font-semibold text-steel-300">Inactiva</span>}
             </div>
             <button
               type="button"
               onClick={() => handleToggle(cat)}
               disabled={toggling === cat.id}
-              className={`rounded-md p-1.5 transition-colors ${
+              className={`rounded-lg p-1.5 transition-colors ${
                 cat.activo
-                  ? 'text-slate-400 hover:text-red-500 hover:bg-red-50'
-                  : 'text-slate-400 hover:text-green-600 hover:bg-green-50'
+                  ? 'text-steel-300 hover:bg-brand-red/15 hover:text-brand-red'
+                  : 'text-steel-300 hover:bg-emerald-500/15 hover:text-emerald-400'
               }`}
               title={cat.activo ? 'Desactivar' : 'Reactivar'}
             >
@@ -91,16 +91,16 @@ export function CategoriasGastoForm({ categorias }: { categorias: Categoria[] })
       </div>
 
       {/* Agregar nueva */}
-      <div className="flex gap-2 border-t pt-4">
+      <div className="flex gap-2 border-t border-white/10 pt-4">
         <Input
           value={nueva}
           onChange={e => setNueva(e.target.value)}
           placeholder="Nueva categoría…"
           onKeyDown={e => e.key === 'Enter' && handleAgregar()}
-          className="flex-1"
+          className="h-12 flex-1 border-white/10 bg-[#1a2430] text-[16px] text-white placeholder:text-steel-500"
         />
-        <Button type="button" onClick={handleAgregar} disabled={guardando}>
-          <Plus className="h-4 w-4 mr-1" />
+        <Button type="button" onClick={handleAgregar} disabled={guardando} className="h-12 bg-brand-yellow font-bold text-steel-900 hover:brightness-105">
+          <Plus className="mr-1 h-4 w-4" />
           {guardando ? 'Agregando…' : 'Agregar'}
         </Button>
       </div>

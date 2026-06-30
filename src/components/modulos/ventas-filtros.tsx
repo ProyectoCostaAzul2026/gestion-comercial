@@ -23,19 +23,22 @@ export function VentasFiltros({ fecha, tipoPago, estado, empleadoId, empleados, 
     router.push(`${pathname}?${params.toString()}`)
   }
 
+  const labelCls = 'text-[10px] font-bold uppercase tracking-widest text-steel-300'
+  const triggerCls = 'border-white/10 bg-[#1a2430] text-white'
+
   return (
     <div className="mb-4 flex flex-wrap items-end gap-3">
       <div className="space-y-1">
-        <label className="text-xs text-steel-500">Fecha</label>
-        <Input type="date" value={fecha} onChange={e => actualizar('fecha', e.target.value)} className="w-40" />
+        <label className={labelCls}>Fecha</label>
+        <Input type="date" value={fecha} onChange={e => actualizar('fecha', e.target.value)} className="w-40 border-white/10 bg-[#1a2430] text-white" />
       </div>
 
       {esAdmin && (
         <div className="space-y-1">
-          <label className="text-xs text-steel-500">Empleado</label>
+          <label className={labelCls}>Empleado</label>
           <Select items={[{ value: 'todos', label: 'Todos' }, ...empleados.map(e => ({ value: e.id, label: e.nombre_completo }))]}
             onValueChange={v => v && actualizar('empleado_id', v)} value={empleadoId || 'todos'}>
-            <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+            <SelectTrigger className={`w-48 ${triggerCls}`}><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos</SelectItem>
               {empleados.map(e => <SelectItem key={e.id} value={e.id}>{e.nombre_completo}</SelectItem>)}
@@ -45,7 +48,7 @@ export function VentasFiltros({ fecha, tipoPago, estado, empleadoId, empleados, 
       )}
 
       <div className="space-y-1">
-        <label className="text-xs text-steel-500">Tipo de pago</label>
+        <label className={labelCls}>Tipo de pago</label>
         <Select items={[
           { value: 'todos', label: 'Todos' },
           { value: 'efectivo', label: 'Efectivo' },
@@ -55,7 +58,7 @@ export function VentasFiltros({ fecha, tipoPago, estado, empleadoId, empleados, 
           { value: 'mixto', label: 'Mixto' },
           { value: 'credito', label: 'Crédito' },
         ]} onValueChange={v => v && actualizar('tipo_pago', v)} value={tipoPago || 'todos'}>
-          <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+          <SelectTrigger className={`w-40 ${triggerCls}`}><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos</SelectItem>
             <SelectItem value="efectivo">Efectivo</SelectItem>
@@ -69,7 +72,7 @@ export function VentasFiltros({ fecha, tipoPago, estado, empleadoId, empleados, 
       </div>
 
       <div className="space-y-1">
-        <label className="text-xs text-steel-500">Estado</label>
+        <label className={labelCls}>Estado</label>
         <Select items={[
           { value: 'todos', label: 'Todos' },
           { value: 'completada', label: 'Completada' },
@@ -77,7 +80,7 @@ export function VentasFiltros({ fecha, tipoPago, estado, empleadoId, empleados, 
           { value: 'anulada', label: 'Anulada' },
           { value: 'credito', label: 'Crédito' },
         ]} onValueChange={v => v && actualizar('estado', v)} value={estado || 'todos'}>
-          <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+          <SelectTrigger className={`w-40 ${triggerCls}`}><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos</SelectItem>
             <SelectItem value="completada">Completada</SelectItem>

@@ -94,16 +94,19 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
     }
   }
 
+  const inputCls = 'h-12 border-white/10 bg-[#1a2430] text-[16px] text-white placeholder:text-steel-500 focus:border-brand-yellow/60'
+  const labelCls = 'text-[10px] font-bold uppercase tracking-widest text-steel-300'
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label>Empleado *</Label>
+        <Label className={labelCls}>Empleado *</Label>
         <Select
           items={empleados.map(e => ({ value: e.id, label: e.nombre_completo }))}
           onValueChange={v => v && setEmpleadoId(v)}
           value={empleadoId}
         >
-          <SelectTrigger><SelectValue placeholder="Selecciona empleado" /></SelectTrigger>
+          <SelectTrigger className="border-white/10 bg-[#1a2430] text-white"><SelectValue placeholder="Selecciona empleado" /></SelectTrigger>
           <SelectContent>
             {empleados.map(e => (
               <SelectItem key={e.id} value={e.id}>{e.nombre_completo}</SelectItem>
@@ -114,55 +117,58 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="fecha">Fecha *</Label>
+          <Label htmlFor="fecha" className={labelCls}>Fecha *</Label>
           <Input
             id="fecha"
             type="date"
+            className={inputCls}
             value={fecha}
             onChange={e => setFecha(e.target.value)}
           />
           {esFestivo && (
-            <p className="flex items-center gap-1 text-xs text-amber-600">
+            <p className="flex items-center gap-1 text-xs text-brand-yellow">
               <Sun className="h-3.5 w-3.5" /> Domingo o festivo — jornada {horasEstandar}h pagadas
             </p>
           )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="horas">Horas trabajadas</Label>
+          <Label htmlFor="horas" className={labelCls}>Horas trabajadas</Label>
           <Input
             id="horas"
             type="number"
             step="0.5"
             min="0"
             max={horasEstandar}
+            className={inputCls}
             value={horasTrabajadas}
             onChange={e => setHorasTrabajadas(parseFloat(e.target.value) || 0)}
           />
-          <p className="text-xs text-steel-300">Máx: {horasEstandar}h este día</p>
+          <p className="text-xs text-steel-500">Máx: {horasEstandar}h este día</p>
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="salario_base">Salario base diario</Label>
+        <Label htmlFor="salario_base" className={labelCls}>Salario base diario</Label>
         <Input
           id="salario_base"
           type="number"
+          className={inputCls}
           value={salarioBase || ''}
           onChange={e => setSalarioBase(parseFloat(e.target.value) || 0)}
         />
       </div>
 
       {/* Resumen de pago */}
-      <div className="space-y-1 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
+      <div className="space-y-1 rounded-2xl border border-white/10 bg-[#1a2430] p-3 text-sm">
         <div className="flex justify-between">
-          <span className="text-steel-500">
+          <span className="text-steel-300">
             Pago por {horasTrabajadas}h
             {horasTrabajadas < horasEstandar ? ` (${horasTrabajadas}/${horasEstandar}h)` : ' (completo)'}
           </span>
-          <span className="text-steel-900">${pagoDia.toLocaleString('es-CO')}</span>
+          <span className="text-white">${pagoDia.toLocaleString('es-CO')}</span>
         </div>
         {bonificaciones > 0 && (
-          <div className="flex justify-between text-green-700">
+          <div className="flex justify-between text-emerald-400">
             <span>Bonificación</span>
             <span>+${bonificaciones.toLocaleString('es-CO')}</span>
           </div>
@@ -173,27 +179,29 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
             <span>-${deducciones.toLocaleString('es-CO')}</span>
           </div>
         )}
-        <div className="mt-1 flex justify-between border-t border-slate-100 pt-1 font-bold text-steel-900">
+        <div className="mt-1 flex justify-between border-t border-white/8 pt-1 font-bold text-white">
           <span>Total a pagar</span>
-          <span>${totalPago.toLocaleString('es-CO')}</span>
+          <span className="font-display text-brand-yellow">${totalPago.toLocaleString('es-CO')}</span>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="bonif">Bonificación</Label>
+          <Label htmlFor="bonif" className={labelCls}>Bonificación</Label>
           <Input
             id="bonif"
             type="number"
+            className={inputCls}
             value={bonificaciones || ''}
             onChange={e => setBonificaciones(parseFloat(e.target.value) || 0)}
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="deduc">Deducción</Label>
+          <Label htmlFor="deduc" className={labelCls}>Deducción</Label>
           <Input
             id="deduc"
             type="number"
+            className={inputCls}
             value={deducciones || ''}
             onChange={e => setDeducciones(parseFloat(e.target.value) || 0)}
           />
@@ -202,9 +210,10 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
 
       {bonificaciones > 0 && (
         <div className="space-y-2">
-          <Label htmlFor="concepto_bonif">Concepto de bonificación</Label>
+          <Label htmlFor="concepto_bonif" className={labelCls}>Concepto de bonificación</Label>
           <Input
             id="concepto_bonif"
+            className={inputCls}
             value={conceptoBonificacion}
             onChange={e => setConceptoBonificacion(e.target.value)}
             placeholder="Ej: Horas extras, comisión…"
@@ -214,9 +223,10 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
 
       {deducciones > 0 && (
         <div className="space-y-2">
-          <Label htmlFor="concepto_deduc">Concepto de deducción</Label>
+          <Label htmlFor="concepto_deduc" className={labelCls}>Concepto de deducción</Label>
           <Input
             id="concepto_deduc"
+            className={inputCls}
             value={conceptoDeduccion}
             onChange={e => setConceptoDeduccion(e.target.value)}
             placeholder="Ej: Préstamo, adelanto…"
@@ -225,7 +235,7 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
       )}
 
       <div className="space-y-2">
-        <Label>Método de pago</Label>
+        <Label className={labelCls}>Método de pago</Label>
         <Select
           items={[
             { value: 'efectivo', label: 'Efectivo (caja menor)' },
@@ -235,7 +245,7 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
           onValueChange={v => v && setMetodoPago(v)}
           value={metodoPago}
         >
-          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectTrigger className="border-white/10 bg-[#1a2430] text-white"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="efectivo">Efectivo (caja menor)</SelectItem>
             <SelectItem value="nequi">Nequi</SelectItem>
@@ -245,9 +255,10 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="notas">Notas</Label>
+        <Label htmlFor="notas" className={labelCls}>Notas</Label>
         <Textarea
           id="notas"
+          className="border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500 focus:border-brand-yellow/60"
           value={notas}
           onChange={e => setNotas(e.target.value)}
           rows={2}
@@ -255,7 +266,7 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
         />
       </div>
 
-      <Button type="submit" disabled={saving} className="w-full">
+      <Button type="submit" disabled={saving} className="h-12 w-full bg-brand-yellow text-base font-bold text-steel-900 hover:bg-brand-yellow hover:brightness-105">
         {saving ? 'Registrando…' : `Pagar $${totalPago.toLocaleString('es-CO')}`}
       </Button>
     </form>
