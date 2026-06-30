@@ -68,6 +68,9 @@ export default function LoginPage() {
     setRecuperarMsg('Si el correo existe, te enviamos un enlace para restablecer tu contraseña.')
   }
 
+  const inputCls = 'w-full rounded-xl border border-white/10 bg-[#1a2430] px-4 py-3 text-[16px] text-white placeholder:text-steel-500 focus:border-brand-yellow/60 focus:outline-none focus:ring-0'
+  const labelCls = 'mb-1 block text-[10px] font-bold uppercase tracking-widest text-steel-300'
+
   return (
     <div className="flex min-h-screen bg-[#0a0e14] text-white">
       {/* Panel de marca — solo en pantallas grandes */}
@@ -121,25 +124,25 @@ export default function LoginPage() {
           {modoRecuperar ? (
             <form onSubmit={handleRecuperar} className="space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-steel-700">Correo</label>
+                <label className={labelCls}>Correo</label>
                 <input
                   type="email"
                   required
                   value={recuperarEmail}
                   onChange={(e) => setRecuperarEmail(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
+                  className={inputCls}
                   placeholder="tucorreo@ejemplo.com"
                 />
               </div>
 
               {recuperarMsg && (
-                <p className="text-sm text-steel-700">{recuperarMsg}</p>
+                <p className="text-sm text-steel-300">{recuperarMsg}</p>
               )}
 
               <button
                 type="submit"
                 disabled={recuperarLoading}
-                className="w-full rounded-lg bg-brand-yellow px-4 py-2.5 text-sm font-bold text-[#18222b] transition-colors hover:brightness-95 disabled:opacity-50"
+                className="w-full rounded-xl bg-brand-yellow px-4 py-3 text-sm font-bold text-steel-900 transition-colors hover:brightness-95 disabled:opacity-50"
               >
                 {recuperarLoading ? 'Enviando...' : 'Enviar enlace de recuperación'}
               </button>
@@ -155,20 +158,20 @@ export default function LoginPage() {
           ) : (
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-steel-700">Correo</label>
+                <label className={labelCls}>Correo</label>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
+                  className={inputCls}
                   placeholder="tucorreo@ejemplo.com"
                 />
               </div>
 
               <div>
                 <div className="mb-1 flex items-center justify-between">
-                  <label className="block text-sm font-medium text-steel-700">Contraseña</label>
+                  <label className={labelCls}>Contraseña</label>
                   <button
                     type="button"
                     onClick={() => { setModoRecuperar(true); setRecuperarEmail(email) }}
@@ -182,7 +185,7 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
+                  className={inputCls}
                   placeholder="********"
                 />
               </div>
@@ -192,7 +195,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-lg bg-brand-yellow px-4 py-2.5 text-sm font-bold text-[#18222b] transition-colors hover:brightness-95 disabled:opacity-50"
+                className="w-full rounded-xl bg-brand-yellow px-4 py-3 text-sm font-bold text-steel-900 transition-colors hover:brightness-95 disabled:opacity-50"
               >
                 {loading ? 'Ingresando...' : 'Ingresar'}
               </button>
