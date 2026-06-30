@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import Link from 'next/link'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -11,6 +12,10 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [negocioNombre, setNegocioNombre] = useState('Gestión Comercial')
+  const [modoRecuperar, setModoRecuperar] = useState(false)
+  const [recuperarEmail, setRecuperarEmail] = useState('')
+  const [recuperarMsg, setRecuperarMsg] = useState('')
+  const [recuperarLoading, setRecuperarLoading] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -41,6 +46,26 @@ export default function LoginPage() {
 
     router.push('/dashboard')
     router.refresh()
+  }
+
+  const handleRecuperar = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setRecuperarMsg('')
+    setRecuperarLoading(true)
+
+    const supabase = createClient()
+    const { error } = await supabase.auth.resetPasswordForEmail(recuperarEmail, {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`,
+    })
+
+    setRecuperarLoading(false)
+
+    if (error) {
+      setRecuperarMsg('Error al enviar el correo: ' + error.message)
+      return
+    }
+
+    setRecuperarMsg('Si el correo existe, te enviamos un enlace para restablecer tu contraseña.')
   }
 
   return (
@@ -93,45 +118,86 @@ export default function LoginPage() {
             <p className="text-sm text-steel-300">Inicia sesión para continuar</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-steel-300">Correo</label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-12 w-full rounded-xl border border-white/10 bg-[#1a2430] px-4 text-[16px] text-white placeholder:text-steel-500 focus:border-brand-yellow/60 focus:outline-none"
-                placeholder="tucorreo@ejemplo.com"
-              />
-            </div>
+          {modoRecuperar ? (
+            <form onSubmit={handleRecuperar} className="space-y-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-steel-700">Correo</label>
+                <input
+                  type="email"
+                  required
+                  value={recuperarEmail}
+                  onChange={(e) => setRecuperarEmail(e.target.value)}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
+                  placeholder="tucorreo@ejemplo.com"
+                />
+              </div>
 
-            <div>
-              <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-steel-300">Contraseña</label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="h-12 w-full rounded-xl border border-white/10 bg-[#1a2430] px-4 text-[16px] text-white placeholder:text-steel-500 focus:border-brand-yellow/60 focus:outline-none"
-                placeholder="********"
-              />
-            </div>
+              {recuperarMsg && (
+                <p className="text-sm text-steel-700">{recuperarMsg}</p>
+              )}
 
-            {error && (
-              <p className="rounded-xl border border-brand-red/30 bg-brand-red/15 px-3 py-2 text-sm font-medium text-brand-red">
-                {error}
-              </p>
-            )}
+              <button
+                type="submit"
+                disabled={recuperarLoading}
+                className="w-full rounded-lg bg-brand-yellow px-4 py-2.5 text-sm font-bold text-[#18222b] transition-colors hover:brightness-95 disabled:opacity-50"
+              >
+                {recuperarLoading ? 'Enviando...' : 'Enviar enlace de recuperación'}
+              </button>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="h-12 w-full rounded-xl bg-brand-yellow text-base font-bold text-steel-900 transition-[filter] hover:brightness-95 disabled:opacity-50"
-            >
-              {loading ? 'Ingresando...' : 'Ingresar'}
-            </button>
-          </form>
+              <button
+                type="button"
+                onClick={() => { setModoRecuperar(false); setRecuperarMsg('') }}
+                className="w-full text-center text-sm font-medium text-brand-blue hover:underline"
+              >
+                Volver a iniciar sesión
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-steel-700">Correo</label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
+                  placeholder="tucorreo@ejemplo.com"
+                />
+              </div>
+
+              <div>
+                <div className="mb-1 flex items-center justify-between">
+                  <label className="block text-sm font-medium text-steel-700">Contraseña</label>
+                  <button
+                    type="button"
+                    onClick={() => { setModoRecuperar(true); setRecuperarEmail(email) }}
+                    className="text-xs font-medium text-brand-blue hover:underline"
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </button>
+                </div>
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
+                  placeholder="********"
+                />
+              </div>
+
+              {error && <p className="text-sm text-brand-red">{error}</p>}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-lg bg-brand-yellow px-4 py-2.5 text-sm font-bold text-[#18222b] transition-colors hover:brightness-95 disabled:opacity-50"
+              >
+                {loading ? 'Ingresando...' : 'Ingresar'}
+              </button>
+            </form>
+          )}
         </div>
       </div>
     </div>

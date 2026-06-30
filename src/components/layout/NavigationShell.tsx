@@ -110,10 +110,14 @@ export default function NavigationShell({
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-yellow text-steel-900">
             <Zap className="h-6 w-6" />
           </span>
-          <div className="min-w-0 flex-1">
+          <Link
+            href="/dashboard/mi-perfil"
+            onClick={() => setDrawerOpen(false)}
+            className="min-w-0 flex-1"
+          >
             <h2 className="font-display text-xl font-black leading-tight text-white">Costa Azul</h2>
-            <p className="truncate text-xs text-steel-300">{nombre}</p>
-          </div>
+            <p className="truncate text-xs text-steel-300 underline-offset-2 hover:underline">{nombre}</p>
+          </Link>
           <button
             onClick={() => setDrawerOpen(false)}
             aria-label="Cerrar menú"
