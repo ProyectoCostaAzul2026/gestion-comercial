@@ -18,33 +18,33 @@ export default async function InventarioPage() {
   return (
     <div className="space-y-4">
       <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] px-4 pt-5 pb-4">
-        <div className="relative z-10 flex items-start justify-between gap-3">
+        <div className="relative z-10">
           <div>
             <h1 className="font-display text-3xl font-bold text-brand-yellow">Inventario</h1>
             <p className="mt-0.5 text-xs text-steel-300">{productos?.length ?? 0} productos registrados</p>
           </div>
 
-          <div className="flex flex-col items-end gap-2">
+          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <Link
+              href="/dashboard/inventario/garantias"
+              className="inline-flex h-10 items-center justify-center rounded-xl bg-brand-blue px-4 text-sm font-bold text-steel-900 hover:brightness-105"
+            >
+              <ShieldCheck className="mr-2 h-4 w-4" />
+              Garantías
+            </Link>
+            <Link
+              href="/dashboard/inventario/agotados"
+              className="inline-flex h-10 items-center justify-center rounded-xl bg-brand-red px-4 text-sm font-bold text-steel-900 hover:brightness-105"
+            >
+              <AlertTriangle className="mr-2 h-4 w-4" />
+              Ver agotados
+            </Link>
             <Link
               href="/dashboard/inventario/nuevo"
               className="inline-flex h-10 items-center justify-center rounded-xl bg-brand-yellow px-4 text-sm font-bold text-steel-900 hover:brightness-105"
             >
               <Plus className="mr-2 h-4 w-4" />
               Agregar producto
-            </Link>
-            <Link
-              href="/dashboard/inventario/agotados"
-              className="inline-flex h-10 items-center justify-center rounded-xl border border-brand-red/40 px-4 text-sm font-semibold text-brand-red hover:bg-brand-red/10"
-            >
-              <AlertTriangle className="mr-2 h-4 w-4" />
-              Ver agotados
-            </Link>
-            <Link
-              href="/dashboard/inventario/garantias"
-              className="inline-flex h-10 items-center justify-center rounded-xl border border-emerald-500/40 px-4 text-sm font-semibold text-emerald-400 hover:bg-emerald-500/10"
-            >
-              <ShieldCheck className="mr-2 h-4 w-4" />
-              Garantías
             </Link>
           </div>
         </div>

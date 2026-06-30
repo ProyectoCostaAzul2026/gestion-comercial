@@ -42,6 +42,7 @@ interface ProductoSearch {
   tiene_iva: boolean
   iva_incluido: boolean
   porcentaje_iva: number
+  imagen_url: string | null
 }
 
 interface ServicioSearch {
@@ -69,6 +70,7 @@ interface ItemCarrito {
   cantidad_minima_venta: number | null
   remanente_fraccion: number
   cantidad_total_unidad: number | null
+  imagen_url: string | null
 }
 
 interface ServicioCarrito {
@@ -303,6 +305,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
         es_fraccionado: false, cantidad_fraccion: 0,
         medida_venta: null, cantidad_minima_venta: null,
         remanente_fraccion: p.remanente_fraccion, cantidad_total_unidad: p.cantidad_total_unidad,
+        imagen_url: p.imagen_url,
       }])
       return
     }
@@ -321,6 +324,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
       es_fraccionado: true, cantidad_fraccion: p.cantidad_minima_venta ?? 1,
       medida_venta: p.medida_venta, cantidad_minima_venta: p.cantidad_minima_venta,
       remanente_fraccion: p.remanente_fraccion, cantidad_total_unidad: p.cantidad_total_unidad,
+      imagen_url: p.imagen_url,
     }])
   }
 
@@ -364,6 +368,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
       descuento_habilitado: false, descuento_porcentaje: 0,
       es_fraccionado: false, cantidad_fraccion: 0,
       medida_venta: null, cantidad_minima_venta: null, remanente_fraccion: 0, cantidad_total_unidad: null,
+      imagen_url: null,
     }])
     setMostrarAltaRapida(false)
     setAltaRapida({ nombre: '', precio: 0, margen: 30 })
@@ -752,11 +757,20 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
           {carrito.length > 0 && (
             <div className="space-y-2">
               {carrito.map((item, idx) => (
-                <div key={item.key} className="space-y-2 rounded-xl border border-white/10 bg-[#1a2430] p-3">
+                <div key={item.key} className="rounded-xl border border-white/10 bg-[#1a2430] p-3">
+                <div className="flex gap-3">
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-[#111820]">
+                    {item.imagen_url ? (
+                      <img src={item.imagen_url} alt={item.nombre} className="h-full w-full object-cover" />
+                    ) : (
+                      <Package className="size-6 text-brand-yellow/50" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1 space-y-2">
                   <div className="flex justify-between gap-2">
-                    <div>
-                      <p className="text-sm font-semibold text-white">{item.nombre}</p>
-                      <div className="mt-0.5 flex gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-white">{item.nombre}</p>
+                      <div className="mt-0.5 flex flex-wrap gap-3">
                         {item.ubicacion && <span className="inline-flex items-center gap-0.5 text-xs text-steel-300"><MapPin className="h-3 w-3" />{item.ubicacion}</span>}
                         {!item.es_fraccionado && <span className="text-xs text-steel-300">Almacén: {item.stock_almacen} · Bodega: {item.stock_bodega}</span>}
                         {item.es_fraccionado && <span className="text-xs text-steel-300">Fraccionado · {item.medida_venta}</span>}
@@ -850,6 +864,8 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                       )}
                     </div>
                   )}
+                  </div>
+                </div>
                 </div>
               ))}
             </div>

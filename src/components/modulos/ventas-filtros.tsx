@@ -7,11 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 interface Empleado { id: string; nombre_completo: string }
 
 interface VentasFiltrosProps {
-  fecha: string; tipoPago: string; estado: string
+  fechaInicio: string; fechaFin: string; tipoPago: string; estado: string
   empleadoId: string; empleados: Empleado[]; esAdmin: boolean
 }
 
-export function VentasFiltros({ fecha, tipoPago, estado, empleadoId, empleados, esAdmin }: VentasFiltrosProps) {
+export function VentasFiltros({ fechaInicio, fechaFin, tipoPago, estado, empleadoId, empleados, esAdmin }: VentasFiltrosProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -29,8 +29,12 @@ export function VentasFiltros({ fecha, tipoPago, estado, empleadoId, empleados, 
   return (
     <div className="mb-4 flex flex-wrap items-end gap-3">
       <div className="space-y-1">
-        <label className={labelCls}>Fecha</label>
-        <Input type="date" value={fecha} onChange={e => actualizar('fecha', e.target.value)} className="w-40 border-white/10 bg-[#1a2430] text-white" />
+        <label className={labelCls}>Desde</label>
+        <Input type="date" value={fechaInicio} max={fechaFin} onChange={e => actualizar('fecha_inicio', e.target.value)} className="w-40 border-white/10 bg-[#1a2430] text-white" />
+      </div>
+      <div className="space-y-1">
+        <label className={labelCls}>Hasta</label>
+        <Input type="date" value={fechaFin} min={fechaInicio} onChange={e => actualizar('fecha_fin', e.target.value)} className="w-40 border-white/10 bg-[#1a2430] text-white" />
       </div>
 
       {esAdmin && (

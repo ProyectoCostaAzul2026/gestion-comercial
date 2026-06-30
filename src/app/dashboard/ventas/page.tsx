@@ -18,7 +18,7 @@ const MEDIOS_ORDEN = ['efectivo', 'nequi', 'daviplata', 'tarjeta', 'credito']
 export default async function VentasPage({
   searchParams,
 }: {
-  searchParams: Promise<{ fecha?: string; empleado_id?: string; tipo_pago?: string; estado?: string }>
+  searchParams: Promise<{ fecha_inicio?: string; fecha_fin?: string; empleado_id?: string; tipo_pago?: string; estado?: string }>
 }) {
   const sp = await searchParams
   const supabase = await createClient()
@@ -31,7 +31,8 @@ export default async function VentasPage({
 
   // Fecha Colombia
   const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' })
-  const fecha = sp.fecha || hoy
+  const fechaInicio = sp.fecha_inicio || hoy
+  const fechaFin = sp.fecha_fin || hoy
 
   // KPIs — pagos reales del día por fuente
   let pagosQuery = supabase
@@ -69,7 +70,9 @@ export default async function VentasPage({
       clientes(nombre),
       empleado:profiles!empleado_id(nombre_completo)
     `)
-    .eq('fecha', fecha)
+    .gte('fecha', fechaInicio)
+    .lte('fecha', fechaFin)
+    .order('fecha', { ascending: false })
     .order('hora', { ascending: false })
 
   if (!esAdmin) query = query.eq('empleado_id', user.id)
@@ -89,11 +92,13 @@ export default async function VentasPage({
         <div className="relative z-10 flex items-center justify-between gap-3">
           <div>
             <h1 className="font-display text-3xl font-bold text-brand-yellow">Ventas</h1>
-            <p className="mt-0.5 text-xs text-steel-300">{fecha === hoy ? 'Hoy' : fecha}</p>
+            <p className="mt-0.5 text-xs text-steel-300">
+              {fechaInicio === hoy && fechaFin === hoy ? 'Hoy' : `${fechaInicio} a ${fechaFin}`}
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <Link href="/dashboard/ventas/cotizacion"
-              className="inline-flex h-12 items-center justify-center rounded-xl border border-brand-yellow/60 px-4 text-sm font-semibold text-brand-yellow transition hover:bg-brand-yellow/10">
+              className="inline-flex h-12 items-center justify-center rounded-xl bg-brand-blue px-4 text-sm font-bold text-white transition hover:brightness-110">
               <FileText className="mr-2 h-4 w-4" />Cotización
             </Link>
             <Link href="/dashboard/ventas/nueva"
@@ -159,7 +164,7 @@ export default async function VentasPage({
       </div>
 
       <VentasFiltros
-        fecha={fecha} tipoPago={sp.tipo_pago ?? ''} estado={sp.estado ?? ''}
+        fechaInicio={fechaInicio} fechaFin={fechaFin} tipoPago={sp.tipo_pago ?? ''} estado={sp.estado ?? ''}
         empleadoId={sp.empleado_id ?? ''} empleados={empleados ?? []} esAdmin={esAdmin}
       />
 
