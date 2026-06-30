@@ -45,6 +45,7 @@ export async function invitarEmpleado(data: {
         nombre_completo: data.nombre_completo,
         foto_url: data.foto_url || null,
       },
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`,
     }
   )
 
