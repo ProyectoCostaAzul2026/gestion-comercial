@@ -47,56 +47,58 @@ export function InventarioTable({ productos }: { productos: ProductoListItem[] }
   return (
     <div>
       <div className="relative mb-4 max-w-md">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-300" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-500" />
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Buscar por nombre, código, marca, medida o ubicación…"
-          className="pl-9"
+          className="h-12 border-white/10 bg-[#1a2430] pl-9 text-[16px] text-white placeholder:text-steel-500"
         />
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-slate-50">
-              <TableHead>Código</TableHead>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Medida</TableHead>
-              <TableHead>Marca</TableHead>
-              <TableHead className="text-right">Stock</TableHead>
-              <TableHead className="text-right">Precio</TableHead>
-              <TableHead>Ubicación</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtrados.map((producto) => (
-              <TableRow
-                key={producto.id}
-                className="cursor-pointer hover:bg-slate-50"
-                onClick={() => router.push(`/dashboard/inventario/${producto.id}`)}
-              >
-                <TableCell className="text-steel-500">{producto.codigo ?? '—'}</TableCell>
-                <TableCell className="font-medium text-steel-900">{producto.nombre}</TableCell>
-                <TableCell className="text-steel-500">{producto.unidad_medida ?? '—'}</TableCell>
-                <TableCell className="text-steel-500">{producto.marca ?? '—'}</TableCell>
-                <TableCell className="text-right font-semibold text-steel-900">{producto.stock_actual}</TableCell>
-                <TableCell className="text-right text-steel-900">${Number(producto.precio_venta).toLocaleString('es-CO')}</TableCell>
-                <TableCell className="text-steel-500">{producto.ubicacion ?? '—'}</TableCell>
-                <TableCell className="text-right">
-                  <Link
-                    href={`/dashboard/inventario/${producto.id}/editar`}
-                    onClick={(e) => e.stopPropagation()}
-                    className="text-sm text-brand-blue hover:underline"
-                  >
-                    Editar
-                  </Link>
-                </TableCell>
+      <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+                <TableHead>Código</TableHead>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Medida</TableHead>
+                <TableHead>Marca</TableHead>
+                <TableHead className="text-right">Stock</TableHead>
+                <TableHead className="text-right">Precio</TableHead>
+                <TableHead>Ubicación</TableHead>
+                <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filtrados.map((producto) => (
+                <TableRow
+                  key={producto.id}
+                  className="cursor-pointer border-white/8 hover:bg-white/5"
+                  onClick={() => router.push(`/dashboard/inventario/${producto.id}`)}
+                >
+                  <TableCell className="font-mono text-xs text-brand-yellow">{producto.codigo ?? '—'}</TableCell>
+                  <TableCell className="text-xs font-medium text-white">{producto.nombre}</TableCell>
+                  <TableCell className="text-xs text-steel-300">{producto.unidad_medida ?? '—'}</TableCell>
+                  <TableCell className="text-xs text-steel-300">{producto.marca ?? '—'}</TableCell>
+                  <TableCell className={`text-right font-display text-sm font-bold ${producto.stock_actual === 0 ? 'text-brand-red' : 'text-brand-yellow'}`}>{producto.stock_actual}</TableCell>
+                  <TableCell className="text-right text-xs text-white">${Number(producto.precio_venta).toLocaleString('es-CO')}</TableCell>
+                  <TableCell className="text-xs text-steel-300">{producto.ubicacion ?? '—'}</TableCell>
+                  <TableCell className="text-right">
+                    <Link
+                      href={`/dashboard/inventario/${producto.id}/editar`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-sm text-brand-blue hover:underline"
+                    >
+                      Editar
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
         {filtrados.length === 0 && (
           <p className="p-8 text-center text-sm text-steel-500">
             {productos.length === 0 ? 'No hay productos registrados todavía.' : 'No se encontraron productos con esa búsqueda.'}

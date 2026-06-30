@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DenominacionesPanel } from './denominaciones-panel'
@@ -112,10 +111,10 @@ function FuentesPagoEditor({ fuentes, setFuentes, montoTotal }: {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <Label className="text-xs">Fuentes de pago</Label>
+        <Label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Fuentes de pago</Label>
         <button type="button"
           onClick={() => setFuentes([...fuentes, { key: Date.now().toString(), fuente: 'caja_menor', monto: 0 }])}
-          className="flex items-center gap-1 text-xs text-steel-500 hover:text-steel-900">
+          className="flex items-center gap-1 text-xs text-steel-300 hover:text-white">
           <Plus className="h-3 w-3" />Agregar fuente
         </button>
       </div>
@@ -124,7 +123,7 @@ function FuentesPagoEditor({ fuentes, setFuentes, montoTotal }: {
           <Select items={FUENTES_DISPONIBLES}
             onValueChange={v => v && setFuentes(fuentes.map((it, i) => i === idx ? { ...it, fuente: v } : it))}
             value={f.fuente}>
-            <SelectTrigger className="h-8 w-36 text-xs"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-8 w-36 border-white/10 bg-[#111820] text-xs text-white"><SelectValue /></SelectTrigger>
             <SelectContent>
               {FUENTES_DISPONIBLES.map(fd => <SelectItem key={fd.value} value={fd.value}>{fd.label}</SelectItem>)}
             </SelectContent>
@@ -132,7 +131,7 @@ function FuentesPagoEditor({ fuentes, setFuentes, montoTotal }: {
           <Input type="number" value={f.monto || ''}
             onFocus={e => e.target.select()}
             onChange={e => setFuentes(fuentes.map((it, i) => i === idx ? { ...it, monto: parseFloat(e.target.value) || 0 } : it))}
-            className="h-8 text-xs" placeholder="Monto" />
+            className="h-8 border-white/10 bg-[#111820] text-xs text-white" placeholder="Monto" />
           {fuentes.length > 1 && (
             <button type="button" onClick={() => setFuentes(fuentes.filter((_, i) => i !== idx))}
               className="text-steel-300 hover:text-brand-red">
@@ -142,7 +141,7 @@ function FuentesPagoEditor({ fuentes, setFuentes, montoTotal }: {
         </div>
       ))}
       {montoTotal > 0 && Math.abs(diferencia) > 0 && (
-        <p className={`text-xs ${diferencia > 0 ? 'text-amber-600' : 'text-brand-red'}`}>
+        <p className={`text-xs ${diferencia > 0 ? 'text-brand-yellow' : 'text-brand-red'}`}>
           {diferencia > 0 ? `Falta asignar: $${diferencia.toLocaleString('es-CO')}` : `Excede en: $${Math.abs(diferencia).toLocaleString('es-CO')}`}
         </p>
       )}
@@ -478,27 +477,33 @@ export function CajaPanel({
   // ── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-display text-2xl font-extrabold tracking-tight text-steel-900">Caja</h1>
-          <p className="mt-0.5 text-xs text-steel-500">{fechaHoy}{esFestivoHoy ? ' · Domingo/Festivo' : ''}</p>
+      {/* Header diagonal */}
+      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] px-4 pt-5 pb-4">
+        <div className="relative z-10 flex items-center justify-between gap-3">
+          <div>
+            <h1 className="font-display text-3xl font-bold text-brand-yellow">Caja</h1>
+            <p className="mt-0.5 text-xs text-steel-300">{fechaHoy}{esFestivoHoy ? ' · Domingo/Festivo' : ''}</p>
+          </div>
+          {!arqueoHoy ? (
+            <Button variant="outline" className="border-brand-red/30 bg-transparent text-brand-red hover:bg-brand-red/15 hover:text-brand-red"
+              onClick={() => abrirPanel('arqueo')}>
+              Arqueo y Cierre de Caja
+            </Button>
+          ) : (
+            <span className="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-400">Caja cerrada hoy</span>
+          )}
         </div>
-        {!arqueoHoy ? (
-          <Button variant="outline" className="border-brand-red/30 text-brand-red hover:bg-brand-red-soft"
-            onClick={() => abrirPanel('arqueo')}>
-            Arqueo y Cierre de Caja
-          </Button>
-        ) : (
-          <Badge variant="secondary" className="bg-green-100 text-green-800">Caja cerrada hoy</Badge>
-        )}
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-28 overflow-hidden">
+          <div className="absolute inset-y-0 right-0 w-20 -skew-x-12 translate-x-8 bg-brand-yellow/80" />
+          <div className="absolute inset-y-0 right-0 w-7 -skew-x-12 translate-x-1 bg-brand-blue" />
+        </div>
       </div>
 
       {/* Advertencia nómina */}
       {!nominaAlDia && (
-        <div className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+        <div className="flex items-center gap-2 rounded-2xl border border-brand-yellow/30 bg-brand-yellow/10 p-3 text-sm text-brand-yellow">
           <AlertTriangle className="h-4 w-4 shrink-0" />
           <span>{nominasPagadasHoy} de {empleadosActivos} empleados tienen nómina pagada hoy. Se recomienda pagar antes de cerrar caja.</span>
         </div>
@@ -517,9 +522,9 @@ export function CajaPanel({
 
       {/* Entradas del día */}
       <div>
-        <p className="mb-2 flex items-center gap-2 font-display text-xs font-bold uppercase tracking-wider text-steel-500">
-          <span className="h-4 w-1 rounded-full bg-brand-yellow" />Entradas del día
-        </p>
+        <h2 className="mb-2 flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+          Entradas del día
+        </h2>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
           {[
             { label: 'Efectivo (Caja Menor)', valor: ventasEfectivo },
@@ -528,9 +533,9 @@ export function CajaPanel({
             { label: 'Tarjeta', valor: ventasTarjeta },
             { label: 'Crédito', valor: ventasCredito, azul: true },
           ].map(({ label, valor, azul }: { label: string; valor: number; azul?: boolean }) => (
-            <div key={label} className="rounded-xl border border-slate-200 bg-white p-3">
-              <p className="text-xs text-steel-500">{label}</p>
-              <p className={`mt-1 font-display text-base font-bold ${azul ? 'text-brand-blue' : 'text-steel-900'}`}>
+            <div key={label} className="rounded-xl border border-white/10 bg-[#1a2430] p-3">
+              <p className="text-xs text-steel-300">{label}</p>
+              <p className={`mt-1 font-display text-lg font-bold ${azul ? 'text-brand-blue' : 'text-white'}`}>
                 ${valor.toLocaleString('es-CO')}
               </p>
             </div>
@@ -539,18 +544,18 @@ export function CajaPanel({
       </div>
 
       {/* Resumen global */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
-          <p className="text-xs text-steel-500">Ingresos totales</p>
-          <p className="mt-1 font-display text-xl font-bold text-green-700">${totalIngresos.toLocaleString('es-CO')}</p>
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-2xl border border-white/10 border-l-4 border-l-emerald-500 bg-[#111820] p-4 text-center">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Ingresos totales</p>
+          <p className="mt-1 font-display text-lg font-bold text-emerald-400 md:text-2xl">${totalIngresos.toLocaleString('es-CO')}</p>
         </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
-          <p className="text-xs text-steel-500">Egresos totales</p>
-          <p className="mt-1 font-display text-xl font-bold text-brand-red">${totalEgresos.toLocaleString('es-CO')}</p>
+        <div className="rounded-2xl border border-white/10 border-l-4 border-l-brand-red bg-[#111820] p-4 text-center">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Egresos totales</p>
+          <p className="mt-1 font-display text-lg font-bold text-brand-red md:text-2xl">${totalEgresos.toLocaleString('es-CO')}</p>
         </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
-          <p className="text-xs text-steel-500">Saldo total</p>
-          <p className={`mt-1 font-display text-xl font-bold ${saldoTotal >= 0 ? 'text-steel-900' : 'text-brand-red'}`}>
+        <div className="rounded-2xl border border-white/10 border-l-4 border-l-brand-blue bg-[#111820] p-4 text-center">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Saldo total</p>
+          <p className={`mt-1 font-display text-lg font-bold md:text-2xl ${saldoTotal >= 0 ? 'text-white' : 'text-brand-red'}`}>
             ${saldoTotal.toLocaleString('es-CO')}
           </p>
         </div>
@@ -560,7 +565,7 @@ export function CajaPanel({
       <div className="flex flex-wrap gap-2">
         {(['retiro', 'gasto', 'proveedor', 'nomina'] as const).map(p => (
           <Button key={p} variant="outline" onClick={() => abrirPanel(p)}
-            className={panelActivo === p ? 'border-steel-900' : ''}>
+            className={`border-white/10 bg-[#1a2430] text-white hover:bg-white/5 hover:text-white ${panelActivo === p ? 'border-brand-yellow text-brand-yellow' : ''}`}>
             {p === 'retiro' ? 'Registrar Retiro'
               : p === 'gasto' ? 'Registrar Gasto'
               : p === 'proveedor' ? 'Pago a Proveedor'
@@ -571,11 +576,12 @@ export function CajaPanel({
 
       {/* Panel retiro */}
       {panelActivo === 'retiro' && (
-        <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-          <h3 className="font-display font-bold text-steel-900">Registrar Retiro</h3>
+        <div className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
+          <h3 className="font-display font-bold text-white">Registrar Retiro</h3>
           <div className="space-y-1">
-            <Label className="text-xs">Monto total</Label>
+            <Label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Monto total</Label>
             <Input type="number" value={retiro.monto || ''} onFocus={e => e.target.select()}
+              className="border-white/10 bg-[#1a2430] text-white"
               onChange={e => {
                 const m = parseFloat(e.target.value) || 0
                 setRetiro(p => ({ ...p, monto: m }))
@@ -584,22 +590,22 @@ export function CajaPanel({
           </div>
           <FuentesPagoEditor fuentes={fuentesRetiro} setFuentes={setFuentesRetiro} montoTotal={retiro.monto} />
           <div className="space-y-1">
-            <Label className="text-xs">Observaciones *</Label>
-            <Textarea value={retiro.observaciones} onChange={e => setRetiro(p => ({ ...p, observaciones: e.target.value }))} rows={2} />
+            <Label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Observaciones *</Label>
+            <Textarea value={retiro.observaciones} onChange={e => setRetiro(p => ({ ...p, observaciones: e.target.value }))} rows={2} className="border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500" />
           </div>
           {!confirmarRetiro ? (
             <div className="flex gap-2">
-              <Button onClick={() => setConfirmarRetiro(true)}>Registrar retiro</Button>
-              <Button variant="outline" onClick={() => setPanelActivo('ninguno')}>Cancelar</Button>
+              <Button className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={() => setConfirmarRetiro(true)}>Registrar retiro</Button>
+              <Button variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => setPanelActivo('ninguno')}>Cancelar</Button>
             </div>
           ) : (
             <div className="space-y-2">
-              <p className="text-sm font-medium text-steel-900">¿Confirmas el retiro de ${retiro.monto.toLocaleString('es-CO')}?</p>
+              <p className="text-sm font-medium text-white">¿Confirmas el retiro de ${retiro.monto.toLocaleString('es-CO')}?</p>
               <div className="flex gap-2">
-                <Button onClick={handleRegistrarRetiro} disabled={registrandoRetiro}>
+                <Button className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={handleRegistrarRetiro} disabled={registrandoRetiro}>
                   {registrandoRetiro ? 'Registrando…' : 'Sí, registrar'}
                 </Button>
-                <Button variant="outline" onClick={() => setConfirmarRetiro(false)}>Cancelar</Button>
+                <Button variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => setConfirmarRetiro(false)}>Cancelar</Button>
               </div>
             </div>
           )}
@@ -608,26 +614,27 @@ export function CajaPanel({
 
       {/* Panel gasto */}
       {panelActivo === 'gasto' && (
-        <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-          <h3 className="font-display font-bold text-steel-900">Registrar Gasto</h3>
+        <div className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
+          <h3 className="font-display font-bold text-white">Registrar Gasto</h3>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <Label className="text-xs">Concepto *</Label>
-              <Input value={gasto.concepto} onChange={e => setGasto(p => ({ ...p, concepto: e.target.value }))} />
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Concepto *</Label>
+              <Input value={gasto.concepto} onChange={e => setGasto(p => ({ ...p, concepto: e.target.value }))} className="border-white/10 bg-[#1a2430] text-white" />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">Categoría</Label>
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Categoría</Label>
               <Select items={categoriasGasto.map(c => ({ value: c.nombre, label: c.nombre }))}
                 onValueChange={v => v && setGasto(p => ({ ...p, categoria: v }))} value={gasto.categoria || ''}>
-                <SelectTrigger><SelectValue placeholder="Selecciona categoría…" /></SelectTrigger>
+                <SelectTrigger className="border-white/10 bg-[#1a2430] text-white"><SelectValue placeholder="Selecciona categoría…" /></SelectTrigger>
                 <SelectContent>
                   {categoriasGasto.map(c => <SelectItem key={c.id} value={c.nombre}>{c.nombre}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div className="col-span-2 space-y-1">
-              <Label className="text-xs">Monto total</Label>
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Monto total</Label>
               <Input type="number" value={gasto.monto || ''} onFocus={e => e.target.select()}
+                className="border-white/10 bg-[#1a2430] text-white"
                 onChange={e => {
                   const m = parseFloat(e.target.value) || 0
                   setGasto(p => ({ ...p, monto: m }))
@@ -637,22 +644,22 @@ export function CajaPanel({
           </div>
           <FuentesPagoEditor fuentes={fuentesGasto} setFuentes={setFuentesGasto} montoTotal={gasto.monto} />
           <div className="space-y-1">
-            <Label className="text-xs">Notas</Label>
-            <Textarea value={gasto.notas} onChange={e => setGasto(p => ({ ...p, notas: e.target.value }))} rows={2} />
+            <Label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Notas</Label>
+            <Textarea value={gasto.notas} onChange={e => setGasto(p => ({ ...p, notas: e.target.value }))} rows={2} className="border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500" />
           </div>
           {!confirmarGasto ? (
             <div className="flex gap-2">
-              <Button onClick={() => setConfirmarGasto(true)}>Registrar gasto</Button>
-              <Button variant="outline" onClick={() => setPanelActivo('ninguno')}>Cancelar</Button>
+              <Button className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={() => setConfirmarGasto(true)}>Registrar gasto</Button>
+              <Button variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => setPanelActivo('ninguno')}>Cancelar</Button>
             </div>
           ) : (
             <div className="space-y-2">
-              <p className="text-sm font-medium text-steel-900">¿Confirmas el gasto de ${gasto.monto.toLocaleString('es-CO')} — {gasto.concepto}?</p>
+              <p className="text-sm font-medium text-white">¿Confirmas el gasto de ${gasto.monto.toLocaleString('es-CO')} — {gasto.concepto}?</p>
               <div className="flex gap-2">
-                <Button onClick={handleRegistrarGasto} disabled={registrandoGasto}>
+                <Button className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={handleRegistrarGasto} disabled={registrandoGasto}>
                   {registrandoGasto ? 'Registrando…' : 'Sí, registrar'}
                 </Button>
-                <Button variant="outline" onClick={() => setConfirmarGasto(false)}>Cancelar</Button>
+                <Button variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => setConfirmarGasto(false)}>Cancelar</Button>
               </div>
             </div>
           )}
@@ -661,20 +668,20 @@ export function CajaPanel({
 
       {/* Panel pago proveedor */}
       {panelActivo === 'proveedor' && (
-        <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-          <h3 className="font-display font-bold text-steel-900">Pago a Proveedor</h3>
+        <div className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
+          <h3 className="font-display font-bold text-white">Pago a Proveedor</h3>
           <div className="space-y-1">
-            <Label className="text-xs">Proveedor</Label>
+            <Label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Proveedor</Label>
             <Select items={proveedores.map(p => ({ value: p.id, label: p.nombre }))}
               onValueChange={v => v && handleCargarFacturas(v)} value={proveedorSeleccionado}>
-              <SelectTrigger><SelectValue placeholder="Selecciona proveedor" /></SelectTrigger>
+              <SelectTrigger className="border-white/10 bg-[#1a2430] text-white"><SelectValue placeholder="Selecciona proveedor" /></SelectTrigger>
               <SelectContent>
                 {proveedores.map(p => <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
 
-          {cargandoFacturas && <p className="text-xs text-steel-300">Cargando facturas…</p>}
+          {cargandoFacturas && <p className="text-xs text-steel-500">Cargando facturas…</p>}
 
           {!cargandoFacturas && facturasProveedor.length > 0 && (
             <div className="max-h-36 space-y-1 overflow-y-auto">
@@ -686,27 +693,28 @@ export function CajaPanel({
                     setPagoProveedor(p => ({ ...p, monto: saldo }))
                     setFuentesPagoProveedor([{ key: '1', fuente: 'caja_menor', monto: saldo }])
                   }}
-                  className={`w-full rounded-lg border px-3 py-2 text-left text-sm ${facturaSeleccionada?.id === f.id ? 'border-steel-900 bg-slate-50' : 'border-slate-200 hover:bg-slate-50'}`}>
-                  <span className="font-medium text-steel-900">{f.numero_factura ? `#${f.numero_factura}` : 'Sin número'}</span>
-                  <span className="ml-2 text-steel-500">Saldo: ${Number(f.saldo_pendiente).toLocaleString('es-CO')}</span>
-                  <Badge variant="secondary" className="ml-2 text-xs">{f.estado}</Badge>
+                  className={`w-full rounded-xl border px-3 py-2 text-left text-sm ${facturaSeleccionada?.id === f.id ? 'border-brand-yellow bg-white/5' : 'border-white/10 hover:bg-white/5'}`}>
+                  <span className="font-medium text-white">{f.numero_factura ? `#${f.numero_factura}` : 'Sin número'}</span>
+                  <span className="ml-2 text-steel-300">Saldo: ${Number(f.saldo_pendiente).toLocaleString('es-CO')}</span>
+                  <span className="ml-2 inline-flex items-center rounded-full border border-brand-yellow/30 bg-brand-yellow/20 px-2 py-0.5 text-xs font-semibold text-brand-yellow">{f.estado}</span>
                 </button>
               ))}
             </div>
           )}
 
           {!cargandoFacturas && proveedorSeleccionado && facturasProveedor.length === 0 && (
-            <p className="text-xs text-steel-300">Sin facturas pendientes.</p>
+            <p className="text-xs text-steel-500">Sin facturas pendientes.</p>
           )}
 
           {facturaSeleccionada && (
-            <div className="space-y-3 border-t border-slate-100 pt-3">
+            <div className="space-y-3 border-t border-white/8 pt-3">
               <div className="space-y-1">
-                <Label className="text-xs">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">
                   Monto a pagar (máx ${Number(facturaSeleccionada.saldo_pendiente).toLocaleString('es-CO')})
                 </Label>
                 <Input type="number" min={1} max={Number(facturaSeleccionada.saldo_pendiente)}
                   value={pagoProveedor.monto || ''} onFocus={e => e.target.select()}
+                  className="border-white/10 bg-[#1a2430] text-white"
                   onChange={e => {
                     const m = Math.min(parseFloat(e.target.value) || 0, Number(facturaSeleccionada.saldo_pendiente))
                     setPagoProveedor(p => ({ ...p, monto: m }))
@@ -715,22 +723,22 @@ export function CajaPanel({
               </div>
               <FuentesPagoEditor fuentes={fuentesPagoProveedor} setFuentes={setFuentesPagoProveedor} montoTotal={pagoProveedor.monto} />
               <div className="space-y-1">
-                <Label className="text-xs">Observaciones</Label>
-                <Textarea value={pagoProveedor.observaciones} onChange={e => setPagoProveedor(p => ({ ...p, observaciones: e.target.value }))} rows={2} />
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Observaciones</Label>
+                <Textarea value={pagoProveedor.observaciones} onChange={e => setPagoProveedor(p => ({ ...p, observaciones: e.target.value }))} rows={2} className="border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500" />
               </div>
               {!confirmarPago ? (
                 <div className="flex gap-2">
-                  <Button onClick={() => setConfirmarPago(true)}>Registrar pago</Button>
-                  <Button variant="outline" onClick={() => setPanelActivo('ninguno')}>Cancelar</Button>
+                  <Button className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={() => setConfirmarPago(true)}>Registrar pago</Button>
+                  <Button variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => setPanelActivo('ninguno')}>Cancelar</Button>
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-steel-900">¿Confirmas el pago de ${pagoProveedor.monto.toLocaleString('es-CO')} a {proveedores.find(p => p.id === proveedorSeleccionado)?.nombre}?</p>
+                  <p className="text-sm font-medium text-white">¿Confirmas el pago de ${pagoProveedor.monto.toLocaleString('es-CO')} a {proveedores.find(p => p.id === proveedorSeleccionado)?.nombre}?</p>
                   <div className="flex gap-2">
-                    <Button onClick={handleRegistrarPagoProveedor} disabled={registrandoPago}>
+                    <Button className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={handleRegistrarPagoProveedor} disabled={registrandoPago}>
                       {registrandoPago ? 'Registrando…' : 'Sí, registrar'}
                     </Button>
-                    <Button variant="outline" onClick={() => setConfirmarPago(false)}>Cancelar</Button>
+                    <Button variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => setConfirmarPago(false)}>Cancelar</Button>
                   </div>
                 </div>
               )}
@@ -741,30 +749,30 @@ export function CajaPanel({
 
       {/* Panel nómina */}
       {panelActivo === 'nomina' && (
-        <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
+        <div className="space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-display font-bold text-steel-900">Pagar Nómina — {fechaHoy}</h3>
-              <p className="mt-0.5 text-xs text-steel-500">
+              <h3 className="font-display font-bold text-white">Pagar Nómina — {fechaHoy}</h3>
+              <p className="mt-0.5 text-xs text-steel-300">
                 Jornada: {horasHoy}h{esFestivoHoy ? ' (domingo/festivo)' : ''}
               </p>
             </div>
             <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={agregarEmpleadoExtra}>
+              <Button size="sm" variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={agregarEmpleadoExtra}>
                 <Plus className="mr-1 h-4 w-4" />Otro empleado
               </Button>
               {!confirmarTodos ? (
-                <Button size="sm"
+                <Button size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105"
                   onClick={() => setConfirmarTodos(true)}
                   disabled={nominaItems.filter(i => !i.pagado).length === 0}>
                   Pagar a todos
                 </Button>
               ) : (
                 <div className="flex gap-1">
-                  <Button size="sm" onClick={handlePagarTodos} disabled={pagandoTodos}>
+                  <Button size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={handlePagarTodos} disabled={pagandoTodos}>
                     {pagandoTodos ? 'Pagando…' : 'Confirmar todos'}
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => setConfirmarTodos(false)}>Cancelar</Button>
+                  <Button size="sm" variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => setConfirmarTodos(false)}>Cancelar</Button>
                 </div>
               )}
             </div>
@@ -778,38 +786,38 @@ export function CajaPanel({
 
               return (
                 <div key={item.empleado_id}
-                  className={`space-y-2 rounded-lg border p-3 ${item.pagado ? 'border-green-200 bg-green-50' : 'border-slate-200'}`}>
+                  className={`space-y-2 rounded-xl border p-3 ${item.pagado ? 'border-emerald-500/30 bg-emerald-500/10' : 'border-white/10 bg-[#1a2430]'}`}>
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       {esExtra ? (
                         <Input placeholder="Nombre del empleado"
                           value={item.nombre}
                           onChange={e => updateNominaItem(item.empleado_id, { nombre: e.target.value })}
-                          className="h-7 text-sm" />
+                          className="h-7 border-white/10 bg-[#111820] text-sm text-white" />
                       ) : (
-                        <p className="truncate text-sm font-medium text-steel-900">{item.nombre}</p>
+                        <p className="truncate text-sm font-medium text-white">{item.nombre}</p>
                       )}
                       {!item.expandido && !item.pagado && (
-                        <p className="mt-0.5 text-xs text-steel-500">
+                        <p className="mt-0.5 text-xs text-steel-300">
                           {item.horas}h · ${pagoDia.toLocaleString('es-CO')}
                           {item.bonificaciones > 0 && ` +$${item.bonificaciones.toLocaleString('es-CO')}`}
                           {item.deducciones > 0 && ` -$${item.deducciones.toLocaleString('es-CO')}`}
-                          {' → '}<strong>${totalPago.toLocaleString('es-CO')}</strong>
+                          {' → '}<strong className="text-white">${totalPago.toLocaleString('es-CO')}</strong>
                           {' · '}{METODOS_NOMINA.find(m => m.value === item.metodo_pago)?.label}
                         </p>
                       )}
-                      {item.pagado && <p className="flex items-center gap-1 text-xs font-medium text-green-700"><Check className="h-3.5 w-3.5" /> Pagado — ${totalPago.toLocaleString('es-CO')}</p>}
+                      {item.pagado && <p className="flex items-center gap-1 text-xs font-medium text-emerald-400"><Check className="h-3.5 w-3.5" /> Pagado — ${totalPago.toLocaleString('es-CO')}</p>}
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       {!item.pagado && (
                         <>
                           <button type="button"
                             onClick={() => updateNominaItem(item.empleado_id, { expandido: !item.expandido })}
-                            className="flex items-center gap-1 text-xs text-steel-500 hover:text-steel-900">
+                            className="flex items-center gap-1 text-xs text-steel-300 hover:text-white">
                             {item.expandido ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                             {item.expandido ? 'Cerrar' : 'Modificar'}
                           </button>
-                          <Button size="sm"
+                          <Button size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105"
                             disabled={pagandoNomina === item.empleado_id || totalPago <= 0}
                             onClick={() => handlePagarNomina(item)}>
                             {pagandoNomina === item.empleado_id ? 'Pagando…' : `Pagar $${totalPago.toLocaleString('es-CO')}`}
@@ -827,45 +835,45 @@ export function CajaPanel({
                   </div>
 
                   {item.expandido && !item.pagado && (
-                    <div className="grid grid-cols-2 gap-2 border-t border-slate-100 pt-1 md:grid-cols-4">
+                    <div className="grid grid-cols-2 gap-2 border-t border-white/8 pt-1 md:grid-cols-4">
                       <div className="space-y-1">
-                        <label className="text-xs text-steel-500">Salario base</label>
+                        <label className="text-xs text-steel-300">Salario base</label>
                         <Input type="number" value={item.salario_base || ''} onFocus={e => e.target.select()}
                           onChange={e => updateNominaItem(item.empleado_id, { salario_base: parseFloat(e.target.value) || 0 })}
-                          className="h-7 text-xs" />
+                          className="h-7 border-white/10 bg-[#111820] text-xs text-white" />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs text-steel-500">Horas (máx {horasHoy})</label>
+                        <label className="text-xs text-steel-300">Horas (máx {horasHoy})</label>
                         <Input type="number" min={0} max={horasHoy} step={0.5} value={item.horas || ''} onFocus={e => e.target.select()}
                           onChange={e => updateNominaItem(item.empleado_id, { horas: parseFloat(e.target.value) || 0 })}
-                          className="h-7 text-xs" />
+                          className="h-7 border-white/10 bg-[#111820] text-xs text-white" />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs text-steel-500">Bonificación</label>
+                        <label className="text-xs text-steel-300">Bonificación</label>
                         <Input type="number" value={item.bonificaciones || ''} onFocus={e => e.target.select()}
                           onChange={e => updateNominaItem(item.empleado_id, { bonificaciones: parseFloat(e.target.value) || 0 })}
-                          className="h-7 text-xs" />
+                          className="h-7 border-white/10 bg-[#111820] text-xs text-white" />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs text-steel-500">Deducción</label>
+                        <label className="text-xs text-steel-300">Deducción</label>
                         <Input type="number" value={item.deducciones || ''} onFocus={e => e.target.select()}
                           onChange={e => updateNominaItem(item.empleado_id, { deducciones: parseFloat(e.target.value) || 0 })}
-                          className="h-7 text-xs" />
+                          className="h-7 border-white/10 bg-[#111820] text-xs text-white" />
                       </div>
                       <div className="col-span-2 space-y-1">
-                        <label className="text-xs text-steel-500">Método de pago</label>
+                        <label className="text-xs text-steel-300">Método de pago</label>
                         <Select items={METODOS_NOMINA}
                           onValueChange={v => v && updateNominaItem(item.empleado_id, { metodo_pago: v })}
                           value={item.metodo_pago}>
-                          <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="h-7 border-white/10 bg-[#111820] text-xs text-white"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             {METODOS_NOMINA.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
                           </SelectContent>
                         </Select>
                       </div>
                       <div className="col-span-2 flex items-end">
-                        <p className="text-xs text-steel-700">
-                          Total: <strong className={totalPago > 0 ? 'text-steel-900' : 'text-brand-red'}>${totalPago.toLocaleString('es-CO')}</strong>
+                        <p className="text-xs text-steel-300">
+                          Total: <strong className={totalPago > 0 ? 'text-white' : 'text-brand-red'}>${totalPago.toLocaleString('es-CO')}</strong>
                         </p>
                       </div>
                     </div>
@@ -875,21 +883,21 @@ export function CajaPanel({
             })}
           </div>
 
-          <Button variant="outline" onClick={() => setPanelActivo('ninguno')} className="w-full">
+          <Button variant="outline" onClick={() => setPanelActivo('ninguno')} className="w-full border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white">
             Cerrar panel de nómina
           </Button>
         </div>
       )}
 
       {/* Movimientos del día */}
-      <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-        <h2 className="flex items-center gap-2 font-display font-bold text-steel-900">
-          <span className="h-4 w-1 rounded-full bg-brand-yellow" />Movimientos del día
+      <div className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
+        <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+          Movimientos del día
         </h2>
         <div className="flex flex-wrap gap-3">
           <Select items={[{ value: 'todos', label: 'Todos los tipos' }, ...Object.entries(TIPO_MOV_LABEL).map(([v, l]) => ({ value: v, label: l }))]}
             onValueChange={v => v && setFiltroTipo(v)} value={filtroTipo}>
-            <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-48 border-white/10 bg-[#1a2430] text-white"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos los tipos</SelectItem>
               <SelectItem value="ingreso">Ingresos</SelectItem>
@@ -899,7 +907,7 @@ export function CajaPanel({
           </Select>
           <Select items={[{ value: 'todos', label: 'Todos los medios' }, ...Object.entries(ORIGEN_LABEL).map(([v, l]) => ({ value: v, label: l }))]}
             onValueChange={v => v && setFiltroOrigen(v)} value={filtroOrigen}>
-            <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-44 border-white/10 bg-[#1a2430] text-white"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos los medios</SelectItem>
               <SelectItem value="efectivo">Efectivo (Caja Menor)</SelectItem>
@@ -911,10 +919,10 @@ export function CajaPanel({
             </SelectContent>
           </Select>
         </div>
-        <div className="max-h-96 overflow-y-auto">
+        <div className="max-h-96 overflow-y-auto overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="bg-slate-50">
+            <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
               <TableHead>Hora</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Medio</TableHead>
@@ -926,19 +934,23 @@ export function CajaPanel({
             {movimientosFiltrados.map(m => {
               const esIngreso = m.tipo_movimiento === 'ingreso'
               return (
-                <TableRow key={m.id}>
-                  <TableCell className="text-xs text-steel-500">{m.hora?.slice(0, 5)}</TableCell>
-                  <TableCell><Badge variant={esIngreso ? 'default' : 'secondary'}>{TIPO_MOV_LABEL[m.tipo_movimiento] ?? m.tipo_movimiento}</Badge></TableCell>
-                  <TableCell className="text-xs text-steel-500">{ORIGEN_LABEL[m.origen_destino] ?? m.origen_destino}</TableCell>
-                  <TableCell className={`text-right font-medium ${esIngreso ? 'text-green-700' : 'text-brand-red'}`}>
+                <TableRow key={m.id} className="border-white/8 hover:bg-white/5">
+                  <TableCell className="text-xs text-steel-300">{m.hora?.slice(0, 5)}</TableCell>
+                  <TableCell>
+                    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${esIngreso ? 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400' : 'border-white/10 bg-steel-700 text-steel-300'}`}>
+                      {TIPO_MOV_LABEL[m.tipo_movimiento] ?? m.tipo_movimiento}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-xs text-steel-300">{ORIGEN_LABEL[m.origen_destino] ?? m.origen_destino}</TableCell>
+                  <TableCell className={`text-right font-display font-bold ${esIngreso ? 'text-emerald-400' : 'text-brand-red'}`}>
                     {esIngreso ? '+' : '-'}${Number(m.monto).toLocaleString('es-CO')}
                   </TableCell>
-                  <TableCell className="text-xs text-steel-500">{m.observaciones ?? '—'}</TableCell>
+                  <TableCell className="text-xs text-steel-300">{m.observaciones ?? '—'}</TableCell>
                 </TableRow>
               )
             })}
             {movimientosFiltrados.length === 0 && (
-              <TableRow><TableCell colSpan={5} className="py-6 text-center text-steel-300">Sin movimientos</TableCell></TableRow>
+              <TableRow className="border-white/8"><TableCell colSpan={5} className="py-6 text-center text-steel-500">Sin movimientos</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
@@ -949,10 +961,10 @@ export function CajaPanel({
       <DenominacionesPanel fondos={fondos} config={config} />
 
       {/* Transferencia entre fondos */}
-      <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+      <div className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
         <div className="flex items-center justify-between">
-          <h2 className="flex items-center gap-2 font-display font-bold text-steel-900">
-            <span className="h-4 w-1 rounded-full bg-brand-yellow" />Transferencia entre fondos
+          <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+            Transferencia entre fondos
           </h2>
           <button type="button" onClick={() => setPanelTransferencia(v => !v)}
             className="text-sm text-brand-blue hover:underline">
@@ -962,7 +974,7 @@ export function CajaPanel({
         {panelTransferencia && (
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             <div className="space-y-1">
-              <label className="text-xs text-steel-500">Origen</label>
+              <label className="text-xs text-steel-300">Origen</label>
               <Select items={[
                 { value: 'efectivo', label: 'Efectivo (Caja Menor)' },
                 { value: 'caja_mayor', label: 'Caja Mayor' },
@@ -971,7 +983,7 @@ export function CajaPanel({
                 { value: 'tarjeta', label: 'Tarjeta' },
               ]} value={transferencia.origen}
                 onValueChange={v => v && setTransferencia(p => ({ ...p, origen: v }))}>
-                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-8 border-white/10 bg-[#1a2430] text-xs text-white"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="efectivo">Efectivo (Caja Menor)</SelectItem>
                   <SelectItem value="caja_mayor">Caja Mayor</SelectItem>
@@ -982,7 +994,7 @@ export function CajaPanel({
               </Select>
             </div>
             <div className="space-y-1">
-              <label className="text-xs text-steel-500">Destino</label>
+              <label className="text-xs text-steel-300">Destino</label>
               <Select items={[
                 { value: 'efectivo', label: 'Efectivo (Caja Menor)' },
                 { value: 'caja_mayor', label: 'Caja Mayor' },
@@ -991,7 +1003,7 @@ export function CajaPanel({
                 { value: 'tarjeta', label: 'Tarjeta' },
               ]} value={transferencia.destino}
                 onValueChange={v => v && setTransferencia(p => ({ ...p, destino: v }))}>
-                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-8 border-white/10 bg-[#1a2430] text-xs text-white"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="efectivo">Efectivo (Caja Menor)</SelectItem>
                   <SelectItem value="caja_mayor">Caja Mayor</SelectItem>
@@ -1002,19 +1014,19 @@ export function CajaPanel({
               </Select>
             </div>
             <div className="space-y-1">
-              <label className="text-xs text-steel-500">Monto</label>
+              <label className="text-xs text-steel-300">Monto</label>
               <Input type="number" value={transferencia.monto || ''}
                 onChange={e => setTransferencia(p => ({ ...p, monto: parseFloat(e.target.value) || 0 }))}
-                className="h-8 text-xs" />
+                className="h-8 border-white/10 bg-[#1a2430] text-xs text-white" />
             </div>
             <div className="space-y-1">
-              <label className="text-xs text-steel-500">Observaciones</label>
+              <label className="text-xs text-steel-300">Observaciones</label>
               <Input value={transferencia.observaciones}
                 onChange={e => setTransferencia(p => ({ ...p, observaciones: e.target.value }))}
-                className="h-8 text-xs" placeholder="Opcional" />
+                className="h-8 border-white/10 bg-[#1a2430] text-xs text-white" placeholder="Opcional" />
             </div>
             <div className="col-span-2 md:col-span-4">
-              <Button size="sm" onClick={handleTransferencia} disabled={transfiriendo}>
+              <Button size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={handleTransferencia} disabled={transfiriendo}>
                 {transfiriendo ? 'Transfiriendo…' : `Transferir $${transferencia.monto.toLocaleString('es-CO')}`}
               </Button>
             </div>
@@ -1024,25 +1036,25 @@ export function CajaPanel({
 
       {/* Saldos acumulados — estado real de cada fondo */}
       <div>
-        <p className="mb-2 flex items-center gap-2 font-display text-xs font-bold uppercase tracking-wider text-steel-500">
-          <span className="h-4 w-1 rounded-full bg-brand-yellow" />Saldos acumulados por fondo
-        </p>
+        <h2 className="mb-2 flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+          Saldos acumulados por fondo
+        </h2>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
           {[
-            { label: 'Nequi', medio: 'nequi', color: 'text-purple-700' },
-            { label: 'Daviplata', medio: 'daviplata', color: 'text-brand-blue' },
-            { label: 'Tarjeta', medio: 'tarjeta', color: 'text-amber-700' },
-            { label: 'Crédito', medio: 'credito', color: 'text-sky-700' },
-            { label: 'Caja Mayor', medio: 'caja_mayor', color: 'text-green-700' },
+            { label: 'Nequi', medio: 'nequi', color: 'text-purple-400' },
+            { label: 'Daviplata', medio: 'daviplata', color: 'text-red-400' },
+            { label: 'Tarjeta', medio: 'tarjeta', color: 'text-brand-blue' },
+            { label: 'Crédito', medio: 'credito', color: 'text-amber-400' },
+            { label: 'Caja Mayor', medio: 'caja_mayor', color: 'text-emerald-400' },
           ].map(({ label, medio, color }) => {
             const saldo = saldosPorMedio[medio] ?? 0
             return (
-              <div key={medio} className="rounded-xl border border-slate-200 bg-white p-3">
-                <p className="text-xs text-steel-500">{label}</p>
-                <p className={`mt-1 font-display text-base font-bold ${color}`}>
+              <div key={medio} className="rounded-xl border border-white/10 bg-[#1a2430] p-3">
+                <p className="text-xs text-steel-300">{label}</p>
+                <p className={`mt-1 font-display text-lg font-bold ${color}`}>
                   ${Number(saldo).toLocaleString('es-CO')}
                 </p>
-                <p className="mt-0.5 text-xs text-steel-300">Saldo actual</p>
+                <p className="mt-0.5 text-xs text-steel-500">Saldo actual</p>
               </div>
             )
           })}

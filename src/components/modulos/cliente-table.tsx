@@ -40,56 +40,60 @@ export function ClienteTable({ clientes }: { clientes: ClienteListItem[] }) {
   return (
     <div>
       <div className="relative mb-4 max-w-md">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-300" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-500" />
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Buscar por nombre, teléfono o documento…"
-          className="pl-9"
+          className="h-12 border-white/10 bg-[#1a2430] pl-9 text-[16px] text-white placeholder:text-steel-500"
         />
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-slate-50">
-              <TableHead>Nombre</TableHead>
-              <TableHead>Teléfono</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>NIT/CC</TableHead>
-              <TableHead className="text-right">Total compras</TableHead>
-              <TableHead className="text-right">N° compras</TableHead>
-              <TableHead>Última compra</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtrados.map((cliente) => (
-              <TableRow
-                key={cliente.id}
-                className="cursor-pointer hover:bg-slate-50"
-                onClick={() => router.push(`/dashboard/clientes/${cliente.id}`)}
-              >
-                <TableCell className="font-medium text-steel-900">
-                  {cliente.nombre}
-                  {cliente.es_cliente_generico && <Badge variant="secondary" className="ml-2">General</Badge>}
-                </TableCell>
-                <TableCell className="text-steel-500">{cliente.telefono ?? '—'}</TableCell>
-                <TableCell className="text-steel-500">{cliente.email ?? '—'}</TableCell>
-                <TableCell className="text-steel-500">{cliente.nit_cc ?? '—'}</TableCell>
-                {/* Estas 3 columnas se calculan desde `ventas`, que todavía no existe */}
-                <TableCell className="text-right font-semibold text-steel-900">
-                  {cliente.totalCompras ? `$${cliente.totalCompras.toLocaleString('es-CO')}` : '—'}
-                </TableCell>
-                <TableCell className="text-right text-steel-500">
-                  {cliente.numCompras ?? '—'}
-                </TableCell>
-                <TableCell className="text-steel-500">
-                  {cliente.ultimaCompra ?? '—'}
-                </TableCell>
+      <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+                <TableHead>Nombre</TableHead>
+                <TableHead>Teléfono</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>NIT/CC</TableHead>
+                <TableHead className="text-right">Total compras</TableHead>
+                <TableHead className="text-right">N° compras</TableHead>
+                <TableHead>Última compra</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filtrados.map((cliente) => (
+                <TableRow
+                  key={cliente.id}
+                  className="cursor-pointer border-white/8 hover:bg-white/5"
+                  onClick={() => router.push(`/dashboard/clientes/${cliente.id}`)}
+                >
+                  <TableCell className="text-xs font-medium text-white">
+                    {cliente.nombre}
+                    {cliente.es_cliente_generico && (
+                      <Badge variant="outline" className="ml-2 rounded-full border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow">General</Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-xs text-steel-300">{cliente.telefono ?? '—'}</TableCell>
+                  <TableCell className="text-xs text-steel-300">{cliente.email ?? '—'}</TableCell>
+                  <TableCell className="text-xs text-steel-300">{cliente.nit_cc ?? '—'}</TableCell>
+                  {/* Estas 3 columnas se calculan desde `ventas`, que todavía no existe */}
+                  <TableCell className="text-right font-display text-sm font-bold text-white">
+                    {cliente.totalCompras ? `$${cliente.totalCompras.toLocaleString('es-CO')}` : '—'}
+                  </TableCell>
+                  <TableCell className="text-right text-xs text-steel-300">
+                    {cliente.numCompras ?? '—'}
+                  </TableCell>
+                  <TableCell className="text-xs text-steel-300">
+                    {cliente.ultimaCompra ?? '—'}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
         {filtrados.length === 0 && (
           <p className="p-8 text-center text-sm text-steel-500">
             {clientes.length === 0 ? 'No hay clientes registrados todavía.' : 'No se encontraron clientes con esa búsqueda.'}

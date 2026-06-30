@@ -260,47 +260,47 @@ export function ReciboView({ venta, items, servicios, pagos, config }: ReciboVie
   return (
     <div>
       <div className="mb-6 flex flex-wrap gap-3 print:hidden">
-        <Button type="button" variant="outline" onClick={() => handleImprimir('pos')}>
+        <Button type="button" variant="outline" className="border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={() => handleImprimir('pos')}>
           <Printer className="mr-2 h-4 w-4" />POS 80mm
         </Button>
-        <Button type="button" variant="outline" onClick={() => handleImprimir('carta')}>
+        <Button type="button" variant="outline" className="border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={() => handleImprimir('carta')}>
           <Printer className="mr-2 h-4 w-4" />Carta A4
         </Button>
-        <Button type="button" variant="outline" onClick={handleWhatsAppCliente}>
+        <Button type="button" variant="outline" className="border-emerald-500/40 bg-transparent font-semibold text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-400" onClick={handleWhatsAppCliente}>
           <MessageCircle className="mr-2 h-4 w-4" />WhatsApp cliente
         </Button>
         {config?.whatsapp_negocio && (
-          <Button type="button" variant="outline" onClick={handleWhatsAppNegocio}>
+          <Button type="button" variant="outline" className="border-brand-blue/40 bg-transparent font-semibold text-brand-blue hover:bg-brand-blue/10 hover:text-brand-blue" onClick={handleWhatsAppNegocio}>
             <MessageCircle className="mr-2 h-4 w-4" />Factura electrónica
           </Button>
         )}
       </div>
 
-      {/* Vista previa recibo POS */}
-      <div className="mx-auto max-w-xs rounded-xl border border-slate-200 bg-white p-4 font-mono text-xs">
+      {/* Vista previa recibo POS — papel claro centrado sobre el fondo oscuro */}
+      <div className="mx-auto max-w-xs rounded-2xl border border-white/10 bg-white p-4 font-mono text-xs text-slate-900 shadow-xl">
         <div className="mb-3 space-y-0.5 text-center">
-          <p className="text-sm font-bold text-steel-900">{config?.nombre ?? 'Mi Negocio'}</p>
-          {config?.regimen && <p className="text-steel-500">{config.regimen}</p>}
-          {config?.nit && <p className="text-steel-500">NIT: {config.nit}</p>}
-          {config?.direccion && <p className="text-steel-500">{config.direccion}</p>}
-          {config?.ciudad && <p className="text-steel-500">{config.ciudad}</p>}
-          {config?.telefono && <p className="text-steel-500">Tel: {config.telefono}</p>}
+          <p className="text-sm font-bold text-slate-900">{config?.nombre ?? 'Mi Negocio'}</p>
+          {config?.regimen && <p className="text-slate-500">{config.regimen}</p>}
+          {config?.nit && <p className="text-slate-500">NIT: {config.nit}</p>}
+          {config?.direccion && <p className="text-slate-500">{config.direccion}</p>}
+          {config?.ciudad && <p className="text-slate-500">{config.ciudad}</p>}
+          {config?.telefono && <p className="text-slate-500">Tel: {config.telefono}</p>}
         </div>
 
         <div className="my-2 border-t border-dashed border-slate-300" />
 
         <div className="mb-2 space-y-0.5 text-center">
-          <p className="font-bold text-steel-900">RECIBO DE VENTA</p>
-          <p className="text-sm font-bold text-steel-900">Ticket #{String(venta.numero_ticket).padStart(4, '0')}</p>
-          <p className="text-steel-500">{fecha} · {hora}</p>
+          <p className="font-bold text-slate-900">RECIBO DE VENTA</p>
+          <p className="text-sm font-bold text-slate-900">Ticket #{String(venta.numero_ticket).padStart(4, '0')}</p>
+          <p className="text-slate-500">{fecha} · {hora}</p>
         </div>
 
         <div className="my-2 border-t border-dashed border-slate-300" />
 
         <div className="mb-2 space-y-0.5">
-          <p className="text-steel-900">Cliente: <span className="font-medium">{cliente?.nombre ?? 'Cliente General'}</span></p>
-          {cliente?.nit_cc && <p className="text-steel-300">CC/NIT: {cliente.nit_cc}</p>}
-          <p className="text-steel-300">Atendió: {venta.empleado?.nombre_completo ?? '—'}</p>
+          <p className="text-slate-900">Cliente: <span className="font-medium">{cliente?.nombre ?? 'Cliente General'}</span></p>
+          {cliente?.nit_cc && <p className="text-slate-400">CC/NIT: {cliente.nit_cc}</p>}
+          <p className="text-slate-400">Atendió: {venta.empleado?.nombre_completo ?? '—'}</p>
         </div>
 
         <div className="my-2 border-t border-dashed border-slate-300" />
@@ -308,8 +308,8 @@ export function ReciboView({ venta, items, servicios, pagos, config }: ReciboVie
         <div className="mb-2 space-y-1">
           {items.map(i => (
             <div key={i.id}>
-              <p className="font-medium text-steel-900">{i.nombre_producto}</p>
-              <div className="flex justify-between pl-2 text-steel-700">
+              <p className="font-medium text-slate-900">{i.nombre_producto}</p>
+              <div className="flex justify-between pl-2 text-slate-700">
                 <span>{i.es_fraccionado ? `${i.cantidad_fraccion} und.` : `${i.cantidad} × ${fmt(Number(i.precio_unitario))}`}</span>
                 <span>{fmt(Number(i.subtotal_linea))}</span>
               </div>
@@ -322,7 +322,7 @@ export function ReciboView({ venta, items, servicios, pagos, config }: ReciboVie
             </div>
           ))}
           {servicios.map(s => (
-            <div key={s.id} className="flex justify-between text-steel-900">
+            <div key={s.id} className="flex justify-between text-slate-900">
               <span>{s.nombre_servicio}</span>
               <span>{fmt(Number(s.precio_aplicado))}</span>
             </div>
@@ -332,7 +332,7 @@ export function ReciboView({ venta, items, servicios, pagos, config }: ReciboVie
         <div className="my-2 border-t border-dashed border-slate-300" />
 
         {Number(venta.subtotal) !== Number(venta.total) && (
-          <div className="mb-1 flex justify-between text-steel-500">
+          <div className="mb-1 flex justify-between text-slate-500">
             <span>Subtotal</span><span>{fmt(Number(venta.subtotal))}</span>
           </div>
         )}
@@ -344,14 +344,14 @@ export function ReciboView({ venta, items, servicios, pagos, config }: ReciboVie
 
         <div className="my-2 border-t border-dashed border-slate-300" />
 
-        <div className="flex justify-between text-sm font-bold text-steel-900">
+        <div className="flex justify-between text-sm font-bold text-slate-900">
           <span>TOTAL</span><span>{fmt(Number(venta.total))}</span>
         </div>
 
         <div className="my-2 border-t border-dashed border-slate-300" />
 
         {pagos.map(p => (
-          <div key={p.id} className="flex justify-between text-steel-700">
+          <div key={p.id} className="flex justify-between text-slate-700">
             <span>{METODO_LABEL[p.metodo] ?? p.metodo}</span>
             <span>{fmt(Number(p.monto))}</span>
           </div>
@@ -360,14 +360,14 @@ export function ReciboView({ venta, items, servicios, pagos, config }: ReciboVie
         {venta.observaciones && (
           <>
             <div className="my-2 border-t border-dashed border-slate-300" />
-            <p className="text-steel-500">Obs: {venta.observaciones}</p>
+            <p className="text-slate-500">Obs: {venta.observaciones}</p>
           </>
         )}
 
         {config?.mensaje_pie && (
           <>
             <div className="my-2 border-t border-dashed border-slate-300" />
-            <p className="text-center text-steel-500">{config.mensaje_pie}</p>
+            <p className="text-center text-slate-500">{config.mensaje_pie}</p>
           </>
         )}
       </div>

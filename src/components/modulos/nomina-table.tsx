@@ -166,8 +166,8 @@ export function NominaTable({
       <div className="flex gap-2">
         {(['hoy', 'historial'] as const).map(tab => (
           <button key={tab} onClick={() => setTabActiva(tab)}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-              tabActiva === tab ? 'bg-steel-900 text-white' : 'border border-slate-200 text-steel-700 hover:bg-slate-50'
+            className={`rounded-xl px-4 py-2 text-sm font-semibold transition-colors ${
+              tabActiva === tab ? 'bg-brand-yellow text-steel-900' : 'border border-white/10 bg-[#1a2430] text-steel-300 hover:bg-white/5 hover:text-white'
             }`}>
             {tab === 'hoy' ? 'Pago de hoy' : 'Historial'}
           </button>
@@ -177,115 +177,117 @@ export function NominaTable({
       {tabActiva === 'hoy' && (
         <div className="space-y-3">
           {empleadosEnTurno.length === 0 && (
-            <div className="rounded-xl border border-slate-200 bg-white p-6 text-center text-sm text-steel-300">
+            <div className="rounded-2xl border border-white/10 bg-[#111820] p-6 text-center text-sm text-steel-500">
               No hay empleados con turno asignado para hoy ({fechaHoy})
             </div>
           )}
 
           {pendientes.length > 0 && (
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
+            <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
               {!confirmandoTodos ? (
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-steel-900">
+                    <p className="text-sm font-medium text-white">
                       {pendientes.length} empleado{pendientes.length !== 1 ? 's' : ''} en turno pendiente{pendientes.length !== 1 ? 's' : ''}
                     </p>
-                    <p className="text-xs text-steel-500">Total: ${totalPagarTodos.toLocaleString('es-CO')}</p>
+                    <p className="text-xs text-steel-300">Total: ${totalPagarTodos.toLocaleString('es-CO')}</p>
                   </div>
-                  <Button onClick={() => setConfirmandoTodos(true)} disabled={pagandoTodos}>
+                  <Button className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={() => setConfirmandoTodos(true)} disabled={pagandoTodos}>
                     Pagar a todos
                   </Button>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-sm font-medium text-steel-900">¿Confirmas el pago para {pendientes.length} empleados en turno?</p>
-                  <ul className="space-y-0.5 text-xs text-steel-700">
+                  <p className="text-sm font-medium text-white">¿Confirmas el pago para {pendientes.length} empleados en turno?</p>
+                  <ul className="space-y-0.5 text-xs text-steel-300">
                     {pendientes.map(e => (
                       <li key={e.id} className="flex justify-between">
                         <span>{e.nombre_completo} · {getMetodo(e.id)}</span>
                         <span>${e.pagoSugerido.toLocaleString('es-CO')}</span>
                       </li>
                     ))}
-                    <li className="mt-1 flex justify-between border-t border-slate-100 pt-1 font-bold">
+                    <li className="mt-1 flex justify-between border-t border-white/8 pt-1 font-bold text-white">
                       <span>Total</span><span>${totalPagarTodos.toLocaleString('es-CO')}</span>
                     </li>
                   </ul>
                   <div className="flex gap-2">
-                    <Button onClick={handlePagarTodos} disabled={pagandoTodos}>
+                    <Button className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={handlePagarTodos} disabled={pagandoTodos}>
                       {pagandoTodos ? 'Pagando…' : 'Sí, pagar a todos'}
                     </Button>
-                    <Button variant="outline" onClick={() => setConfirmandoTodos(false)} disabled={pagandoTodos}>Cancelar</Button>
+                    <Button variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => setConfirmandoTodos(false)} disabled={pagandoTodos}>Cancelar</Button>
                   </div>
                 </div>
               )}
             </div>
           )}
 
-          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-slate-50">
-                  <TableHead>Empleado</TableHead>
-                  <TableHead className="text-right">Salario base</TableHead>
-                  <TableHead className="text-right">Horas hoy</TableHead>
-                  <TableHead className="text-right">Pago sugerido</TableHead>
-                  <TableHead>Método pago</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="text-right">Acción</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {empleadosEnTurno.map(e => (
-                  <TableRow key={e.id}>
-                    <TableCell className="font-medium text-steel-900">{e.nombre_completo}</TableCell>
-                    <TableCell className="text-right text-steel-900">${e.salario_base.toLocaleString('es-CO')}</TableCell>
-                    <TableCell className="text-right text-steel-500">
-                      {e.horasTurno != null ? `${e.horasTurno.toFixed(1)}h / ${horasEstandarHoy}h` : 'Sin turno'}
-                    </TableCell>
-                    <TableCell className="text-right font-medium text-steel-900">${e.pagoSugerido.toLocaleString('es-CO')}</TableCell>
-                    <TableCell>
-                      {!e.nominaHoy && (
-                        <Select
-                          items={METODOS_NOMINA}
-                          value={getMetodo(e.id)}
-                          onValueChange={v => v && setMetodosPago(prev => ({ ...prev, [e.id]: v }))}>
-                          <SelectTrigger className="h-8 w-40 text-xs"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {METODOS_NOMINA.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {e.nominaHoy
-                        ? <Badge variant="default">Pagado</Badge>
-                        : <Badge variant="secondary">Pendiente</Badge>}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {e.nominaHoy ? (
-                        <span className="text-xs text-steel-300">${Number(e.nominaHoy.total_pago).toLocaleString('es-CO')}</span>
-                      ) : confirmandoEmpleado === e.id ? (
-                        <div className="flex items-center justify-end gap-2">
-                          <span className="text-xs text-steel-700">¿Confirmar ${e.pagoSugerido.toLocaleString('es-CO')}?</span>
-                          <button onClick={() => handlePagarUno(e.id)} className="text-xs font-medium text-green-700 hover:underline">Sí</button>
-                          <button onClick={() => setConfirmandoEmpleado(null)} className="text-xs text-steel-500 hover:underline">No</button>
-                        </div>
-                      ) : (
-                        <button onClick={() => setConfirmandoEmpleado(e.id)}
-                          className="text-sm text-brand-blue hover:underline">
-                          Pagar
-                        </button>
-                      )}
-                    </TableCell>
+          <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+                    <TableHead>Empleado</TableHead>
+                    <TableHead className="text-right">Salario base</TableHead>
+                    <TableHead className="text-right">Horas hoy</TableHead>
+                    <TableHead className="text-right">Pago sugerido</TableHead>
+                    <TableHead>Método pago</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead className="text-right">Acción</TableHead>
                   </TableRow>
-                ))}
-                {empleadosEnTurno.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={7} className="py-8 text-center text-steel-300">Sin empleados en turno hoy</TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {empleadosEnTurno.map(e => (
+                    <TableRow key={e.id} className="border-white/8 hover:bg-white/5">
+                      <TableCell className="text-xs font-medium text-white">{e.nombre_completo}</TableCell>
+                      <TableCell className="text-right text-xs text-white">${e.salario_base.toLocaleString('es-CO')}</TableCell>
+                      <TableCell className="text-right text-xs text-steel-300">
+                        {e.horasTurno != null ? `${e.horasTurno.toFixed(1)}h / ${horasEstandarHoy}h` : 'Sin turno'}
+                      </TableCell>
+                      <TableCell className="text-right font-display text-sm font-bold text-white">${e.pagoSugerido.toLocaleString('es-CO')}</TableCell>
+                      <TableCell>
+                        {!e.nominaHoy && (
+                          <Select
+                            items={METODOS_NOMINA}
+                            value={getMetodo(e.id)}
+                            onValueChange={v => v && setMetodosPago(prev => ({ ...prev, [e.id]: v }))}>
+                            <SelectTrigger className="h-8 w-40 border-white/10 bg-[#1a2430] text-xs text-white"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {METODOS_NOMINA.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {e.nominaHoy
+                          ? <span className="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-400">Pagado</span>
+                          : <span className="inline-flex items-center rounded-full border border-brand-yellow/30 bg-brand-yellow/20 px-2.5 py-0.5 text-xs font-semibold text-brand-yellow">Pendiente</span>}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {e.nominaHoy ? (
+                          <span className="text-xs text-steel-500">${Number(e.nominaHoy.total_pago).toLocaleString('es-CO')}</span>
+                        ) : confirmandoEmpleado === e.id ? (
+                          <div className="flex items-center justify-end gap-2">
+                            <span className="text-xs text-steel-300">¿Confirmar ${e.pagoSugerido.toLocaleString('es-CO')}?</span>
+                            <button onClick={() => handlePagarUno(e.id)} className="text-xs font-medium text-emerald-400 hover:underline">Sí</button>
+                            <button onClick={() => setConfirmandoEmpleado(null)} className="text-xs text-steel-300 hover:underline">No</button>
+                          </div>
+                        ) : (
+                          <button onClick={() => setConfirmandoEmpleado(e.id)}
+                            className="text-sm text-brand-blue hover:underline">
+                            Pagar
+                          </button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {empleadosEnTurno.length === 0 && (
+                    <TableRow className="border-white/8">
+                      <TableCell colSpan={7} className="py-8 text-center text-steel-500">Sin empleados en turno hoy</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </div>
       )}
@@ -294,23 +296,23 @@ export function NominaTable({
         <div className="space-y-3">
           <div className="flex flex-wrap gap-3">
             <div className="space-y-1">
-              <label className="text-xs text-steel-500">Desde</label>
-              <Input type="date" value={filtroFechaDesde} onChange={e => setFiltroFechaDesde(e.target.value)} className="w-36" />
+              <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Desde</label>
+              <Input type="date" value={filtroFechaDesde} onChange={e => setFiltroFechaDesde(e.target.value)} className="w-36 border-white/10 bg-[#1a2430] text-white" />
             </div>
             <div className="space-y-1">
-              <label className="text-xs text-steel-500">Hasta</label>
-              <Input type="date" value={filtroFechaHasta} onChange={e => setFiltroFechaHasta(e.target.value)} className="w-36" />
+              <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Hasta</label>
+              <Input type="date" value={filtroFechaHasta} onChange={e => setFiltroFechaHasta(e.target.value)} className="w-36 border-white/10 bg-[#1a2430] text-white" />
             </div>
             <div className="space-y-1">
-              <label className="text-xs text-steel-500">Empleado</label>
-              <Input placeholder="Buscar…" value={filtroEmpleado} onChange={e => setFiltroEmpleado(e.target.value)} className="w-48" />
+              <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Empleado</label>
+              <Input placeholder="Buscar…" value={filtroEmpleado} onChange={e => setFiltroEmpleado(e.target.value)} className="w-48 border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500" />
             </div>
           </div>
-          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-            <div className="max-h-96 overflow-y-auto">
+          <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
+            <div className="max-h-96 overflow-y-auto overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-slate-50">
+                  <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
                     <TableHead>Empleado</TableHead>
                     <TableHead>Fecha</TableHead>
                     <TableHead className="text-right">Horas</TableHead>
@@ -322,18 +324,18 @@ export function NominaTable({
                 </TableHeader>
                 <TableBody>
                   {historialFiltrado.map(n => (
-                    <TableRow key={n.id}>
-                      <TableCell className="font-medium text-steel-900">{n.profiles?.nombre_completo ?? '—'}</TableCell>
-                      <TableCell className="text-steel-500">{n.periodo_inicio}</TableCell>
-                      <TableCell className="text-right text-steel-500">{n.horas_trabajadas != null ? `${n.horas_trabajadas}h` : '—'}</TableCell>
-                      <TableCell className="text-right text-steel-900">${Number(n.salario_base).toLocaleString('es-CO')}</TableCell>
-                      <TableCell className="text-right text-green-700">{Number(n.bonificaciones) > 0 ? `+$${Number(n.bonificaciones).toLocaleString('es-CO')}` : '—'}</TableCell>
-                      <TableCell className="text-right text-brand-red">{Number(n.deducciones) > 0 ? `-$${Number(n.deducciones).toLocaleString('es-CO')}` : '—'}</TableCell>
-                      <TableCell className="text-right font-bold text-steel-900">${Number(n.total_pago).toLocaleString('es-CO')}</TableCell>
+                    <TableRow key={n.id} className="border-white/8 hover:bg-white/5">
+                      <TableCell className="text-xs font-medium text-white">{n.profiles?.nombre_completo ?? '—'}</TableCell>
+                      <TableCell className="text-xs text-steel-300">{n.periodo_inicio}</TableCell>
+                      <TableCell className="text-right text-xs text-steel-300">{n.horas_trabajadas != null ? `${n.horas_trabajadas}h` : '—'}</TableCell>
+                      <TableCell className="text-right text-xs text-white">${Number(n.salario_base).toLocaleString('es-CO')}</TableCell>
+                      <TableCell className="text-right text-xs text-emerald-400">{Number(n.bonificaciones) > 0 ? `+$${Number(n.bonificaciones).toLocaleString('es-CO')}` : '—'}</TableCell>
+                      <TableCell className="text-right text-xs text-brand-red">{Number(n.deducciones) > 0 ? `-$${Number(n.deducciones).toLocaleString('es-CO')}` : '—'}</TableCell>
+                      <TableCell className="text-right font-display font-bold text-white">${Number(n.total_pago).toLocaleString('es-CO')}</TableCell>
                     </TableRow>
                   ))}
                   {historialFiltrado.length === 0 && (
-                    <TableRow><TableCell colSpan={7} className="py-8 text-center text-steel-300">Sin registros</TableCell></TableRow>
+                    <TableRow className="border-white/8"><TableCell colSpan={7} className="py-8 text-center text-steel-500">Sin registros</TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>

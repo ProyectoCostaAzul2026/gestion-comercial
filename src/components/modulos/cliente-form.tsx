@@ -127,42 +127,45 @@ export function ClienteForm({ cliente, onSuccess }: ClienteFormProps) {
     router.refresh()
   }
 
+  const inputCls = 'h-12 border-white/10 bg-[#1a2430] text-[16px] text-white placeholder:text-steel-500 focus:border-brand-yellow/60'
+  const labelCls = 'text-[10px] font-bold uppercase tracking-widest text-steel-300'
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="nombre">Nombre *</Label>
-        <Input id="nombre" value={form.nombre} onChange={(e) => handleChange('nombre', e.target.value)} />
+        <Label htmlFor="nombre" className={labelCls}>Nombre *</Label>
+        <Input id="nombre" className={inputCls} value={form.nombre} onChange={(e) => handleChange('nombre', e.target.value)} />
         {errors.nombre && <p className="text-xs text-brand-red">{errors.nombre}</p>}
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="telefono">Teléfono</Label>
-          <Input id="telefono" value={form.telefono} onChange={(e) => handleChange('telefono', e.target.value)} />
+          <Label htmlFor="telefono" className={labelCls}>Teléfono</Label>
+          <Input id="telefono" className={inputCls} value={form.telefono} onChange={(e) => handleChange('telefono', e.target.value)} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" value={form.email} onChange={(e) => handleChange('email', e.target.value)} />
+          <Label htmlFor="email" className={labelCls}>Email</Label>
+          <Input id="email" type="email" className={inputCls} value={form.email} onChange={(e) => handleChange('email', e.target.value)} />
           {errors.email && <p className="text-xs text-brand-red">{errors.email}</p>}
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="nit_cc">NIT / CC</Label>
-        <Input id="nit_cc" value={form.nit_cc} onChange={(e) => handleChange('nit_cc', e.target.value)} />
+        <Label htmlFor="nit_cc" className={labelCls}>NIT / CC</Label>
+        <Input id="nit_cc" className={inputCls} value={form.nit_cc} onChange={(e) => handleChange('nit_cc', e.target.value)} />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="direccion">Dirección</Label>
-        <Input id="direccion" value={form.direccion} onChange={(e) => handleChange('direccion', e.target.value)} />
+        <Label htmlFor="direccion" className={labelCls}>Dirección</Label>
+        <Input id="direccion" className={inputCls} value={form.direccion} onChange={(e) => handleChange('direccion', e.target.value)} />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="notas">Notas</Label>
-        <Textarea id="notas" value={form.notas} onChange={(e) => handleChange('notas', e.target.value)} rows={3} />
+        <Label htmlFor="notas" className={labelCls}>Notas</Label>
+        <Textarea id="notas" className="border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500 focus:border-brand-yellow/60" value={form.notas} onChange={(e) => handleChange('notas', e.target.value)} rows={3} />
       </div>
 
-      <Button type="submit" disabled={isSubmitting} className="w-full">
+      <Button type="submit" disabled={isSubmitting} className="h-12 w-full bg-brand-yellow text-base font-bold text-steel-900 hover:bg-brand-yellow hover:brightness-105">
         {isSubmitting ? 'Guardando...' : esEdicion ? 'Guardar cambios' : 'Crear cliente'}
       </Button>
 
@@ -171,7 +174,7 @@ export function ClienteForm({ cliente, onSuccess }: ClienteFormProps) {
           type="button"
           disabled={isDesactivando}
           onClick={handleDesactivar}
-          className={buttonVariants({ variant: 'outline', className: 'w-full border-brand-red/30 text-brand-red hover:bg-brand-red-soft' })}
+          className={buttonVariants({ variant: 'outline', className: 'h-12 w-full border-brand-red/30 bg-brand-red/15 text-brand-red hover:bg-brand-red/25 hover:text-brand-red' })}
         >
           {isDesactivando ? 'Desactivando...' : 'Desactivar cliente'}
         </button>
