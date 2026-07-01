@@ -80,7 +80,7 @@ function CreditoCard({ credito }: { credito: Credito }) {
         p_venta_credito_id: credito.id,
         p_monto: monto,
         p_fuentes: fuentes.map(f => ({ fuente: f.fuente, monto: f.monto })),
-        p_observaciones: observaciones || null,
+        p_observaciones: observaciones || undefined,
       })
       if (error) throw error
       toast.success('Abono registrado')
@@ -101,7 +101,7 @@ function CreditoCard({ credito }: { credito: Credito }) {
       const { error } = await supabase.rpc('actualizar_fecha_pago_credito', {
         p_venta_credito_id: credito.id,
         p_fecha_pago: nuevaFecha,
-        p_notas: notaFecha || null,
+        p_notas: notaFecha || undefined,
       })
       if (error) throw error
       toast.success('Fecha actualizada')

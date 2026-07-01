@@ -21,7 +21,10 @@ import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 
 export const UNIDADES_BASE = ['Pulgada', 'mm', 'cm', 'Kg', 'g', 'mL', 'L', 'Caja', 'Unidad', 'Galón', 'Metro']
-export const MEDIDA_REGEX = /^\d+(\/\d+)?$/
+// Un "segmento" de medida: entero (50), fracción (3/4) o mixto (1-1/4)
+const SEGMENTO_MEDIDA = '\\d+(?:-\\d+\\/\\d+|\\/\\d+)?'
+// Hasta 3 segmentos combinados con "x" — ej: 3/8x2, 1-1/4x3/8x2, 30x40x50
+export const MEDIDA_REGEX = new RegExp(`^${SEGMENTO_MEDIDA}(?:[xX]${SEGMENTO_MEDIDA}){0,2}$`)
 
 export const INPUT_CLS = 'border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500 focus:border-brand-yellow/60'
 export const LABEL_CLS = 'text-[10px] font-bold uppercase tracking-widest text-steel-300'
@@ -118,7 +121,8 @@ interface ProductoFormProps {
 
 export function parseUnidadMedida(value: string | null): { medida: string; unidad: string } {
   if (!value) return { medida: '', unidad: '' }
-  const match = value.trim().match(/^(\d+\/\d+|\d+)\s+(.+)$/)
+  const patronMedida = new RegExp(`^(${SEGMENTO_MEDIDA}(?:[xX]${SEGMENTO_MEDIDA}){0,2})\\s+(.+)$`)
+  const match = value.trim().match(patronMedida)
   if (match) return { medida: match[1], unidad: match[2] }
   return { medida: '', unidad: value.trim() }
 }
@@ -350,7 +354,7 @@ export function ProductoForm({ categorias, proveedores, empleadoId, rol, product
     if (!form.nombre.trim()) newErrors.nombre = 'El nombre es obligatorio'
     if (form.precio_venta <= 0) newErrors.precio_venta = 'El precio debe ser mayor a 0'
     if (form.medida.trim() && !MEDIDA_REGEX.test(form.medida.trim())) {
-      newErrors.medida = 'Solo número entero o fracción (ej: 50 o 1/2)'
+      newErrors.medida = 'Formato inválido (ej: 50, 3/4, 1-1/4, 3/8x2, 30x40x50)'
     }
     if (form.proveedores.length === 0) newErrors.proveedores = 'Debes agregar al menos un proveedor'
     form.proveedores.forEach((p, i) => {
@@ -375,7 +379,7 @@ export function ProductoForm({ categorias, proveedores, empleadoId, rol, product
         form.porcentaje_iva
       )
       const unidadMedidaFinal = form.medida.trim()
-        ? `${form.medida.trim()} ${form.unidad_medida_select}`.trim()
+        ? `${form.medida.trim().replace(/X/g, 'x')} ${form.unidad_medida_select}`.trim()
         : form.unidad_medida_select || null
 
       const datosProducto = {
@@ -492,7 +496,11 @@ export function ProductoForm({ categorias, proveedores, empleadoId, rol, product
         onSuccess?.()
       }
     } catch (err: any) {
-      toast.error('Error al guardar: ' + err.message)
+      if (err.code === '23505' && err.message?.includes('idx_productos_unicos_nombre_marca_medida')) {
+        toast.error('Ya existe un producto activo con el mismo Nombre, Marca y Medida.')
+      } else {
+        toast.error('Error al guardar: ' + err.message)
+      }
     } finally {
       setIsSubmitting(false)
     }

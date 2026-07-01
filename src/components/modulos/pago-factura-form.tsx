@@ -46,7 +46,7 @@ export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId }: Pago
         p_monto: monto,
         p_fuentes: fuentes as any,
         p_fecha_pago: fechaPago,
-        p_observaciones: observaciones || null,
+        p_observaciones: observaciones || undefined,
       })
       if (error) throw error
       toast.success('Pago registrado')

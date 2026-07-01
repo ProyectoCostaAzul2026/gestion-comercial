@@ -240,8 +240,8 @@ export function ContabilidadPanel({
         p_categoria: nuevoGasto.categoria || 'Otros',
         p_monto: nuevoGasto.monto,
         p_fuentes: fuentesGasto.map(f => ({ fuente: f.fuente, monto: f.monto })) as any,
-        p_proveedor_id: nuevoGasto.proveedor_id || null,
-        p_notas: nuevoGasto.notas || null,
+        p_proveedor_id: nuevoGasto.proveedor_id || undefined,
+        p_notas: nuevoGasto.notas || undefined,
       })
       if (error) throw error
       toast.success('Gasto registrado')

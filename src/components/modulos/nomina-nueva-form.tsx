@@ -77,11 +77,11 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
         p_horas_trabajadas: horasTrabajadas,
         p_salario_base: pagoDia,
         p_bonificaciones: bonificaciones,
-        p_concepto_bonificacion: conceptoBonificacion || null,
+        p_concepto_bonificacion: conceptoBonificacion || undefined,
         p_deducciones: deducciones,
-        p_concepto_deduccion: conceptoDeduccion || null,
+        p_concepto_deduccion: conceptoDeduccion || undefined,
         p_metodo_pago: metodoPago,
-        p_notas: notas || null,
+        p_notas: notas || undefined,
       })
       if (error) throw error
       toast.success('Nómina registrada')

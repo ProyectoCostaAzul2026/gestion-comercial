@@ -123,7 +123,7 @@ export function ArqueoPanel({ ventasEfectivo, egresosEfectivo, montoBase, fechaH
       const { error } = await supabase.rpc('cerrar_caja_arqueo', {
         p_conteo_base: conteoBase.filter(i => i.cantidad > 0).map(i => ({ denominacion: i.denominacion, es_moneda: i.es_moneda, cantidad: i.cantidad, subtotal: i.subtotal })) as any,
         p_conteo_sobrante: conteoSobrante.filter(i => i.cantidad > 0).map(i => ({ denominacion: i.denominacion, es_moneda: i.es_moneda, cantidad: i.cantidad, subtotal: i.subtotal })) as any,
-        p_observacion_diferencia: observacion || null,
+        p_observacion_diferencia: observacion || undefined,
       })
       if (error) throw error
       toast.success('Caja cerrada y sobrante transferido a Caja Mayor')

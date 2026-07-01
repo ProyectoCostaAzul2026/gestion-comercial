@@ -127,7 +127,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, producto, mi
     }
     for (const f of filasValidas) {
       if (!MEDIDA_REGEX.test(f.medida.trim())) {
-        toast.error(`Medida inválida: "${f.medida}". Usa número entero o fracción (ej: 50 o 1/2)`)
+        toast.error(`Medida inválida: "${f.medida}". Formato: 50, 3/4, 1-1/4, 3/8x2, 30x40x50`)
         return
       }
     }
@@ -146,7 +146,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, producto, mi
         : 0
 
       for (const fila of filasValidas) {
-        const medida = fila.medida.trim()
+        const medida = fila.medida.trim().replace(/X/g, 'x')
         const stockAlmacen = parseInt(fila.stock_almacen) || 0
         const stockBodega = parseInt(fila.stock_bodega) || 0
         const costoFila = parseFloat(fila.costo) || 0
@@ -222,7 +222,11 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, producto, mi
       await recargarMiembros(familiaId)
       router.refresh()
     } catch (err: any) {
-      toast.error('Error al crear miembros: ' + err.message)
+      if (err.code === '23505' && err.message?.includes('idx_productos_unicos_nombre_marca_medida')) {
+        toast.error('Esa medida ya existe para este producto (o coincide con otro producto activo).')
+      } else {
+        toast.error('Error al crear miembros: ' + err.message)
+      }
     } finally {
       setGuardando(false)
     }
@@ -231,14 +235,14 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, producto, mi
   const guardarCambios = async () => {
     for (const f of filasEdicion) {
       if (f.medida.trim() && !MEDIDA_REGEX.test(f.medida.trim())) {
-        toast.error(`Medida inválida: "${f.medida}". Usa número entero o fracción (ej: 50 o 1/2)`)
+        toast.error(`Medida inválida: "${f.medida}". Formato: 50, 3/4, 1-1/4, 3/8x2, 30x40x50`)
         return
       }
     }
     setGuardando(true)
     try {
       for (const fila of filasEdicion) {
-        const unidadMedidaFinal = fila.medida.trim() ? `${fila.medida.trim()} ${unidad}`.trim() : null
+        const unidadMedidaFinal = fila.medida.trim() ? `${fila.medida.trim().replace(/X/g, 'x')} ${unidad}`.trim() : null
         const { error } = await supabase
           .from('productos')
           .update({
@@ -255,7 +259,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, producto, mi
         if (!fila) return m
         return {
           ...m,
-          unidad_medida: fila.medida.trim() ? `${fila.medida.trim()} ${unidad}`.trim() : null,
+          unidad_medida: fila.medida.trim() ? `${fila.medida.trim().replace(/X/g, 'x')} ${unidad}`.trim() : null,
           stock_almacen: parseInt(fila.stock_almacen) || 0,
           stock_bodega: parseInt(fila.stock_bodega) || 0,
         }

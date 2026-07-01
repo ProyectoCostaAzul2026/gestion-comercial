@@ -328,8 +328,8 @@ export function CajaPanel({
         p_categoria: gasto.categoria || 'General',
         p_monto: gasto.monto,
         p_fuentes: fuentesGasto.map(f => ({ fuente: f.fuente, monto: f.monto })) as any,
-        p_proveedor_id: null,
-        p_notas: gasto.notas || null,
+        p_proveedor_id: undefined,
+        p_notas: gasto.notas || undefined,
       })
       if (error) throw error
       toast.success('Gasto registrado')
@@ -374,7 +374,7 @@ export function CajaPanel({
         p_monto: pagoProveedor.monto,
         p_fuentes: fuentesPagoProveedor.map(f => ({ fuente: f.fuente, monto: f.monto })) as any,
         p_fecha_pago: fechaHoy,
-        p_observaciones: pagoProveedor.observaciones || null,
+        p_observaciones: pagoProveedor.observaciones || undefined,
       })
       if (error) throw error
       toast.success('Pago a proveedor registrado')
@@ -420,11 +420,11 @@ export function CajaPanel({
         p_horas_trabajadas: item.horas,
         p_salario_base: pagoDia,
         p_bonificaciones: item.bonificaciones,
-        p_concepto_bonificacion: null,
+        p_concepto_bonificacion: undefined,
         p_deducciones: item.deducciones,
-        p_concepto_deduccion: null,
+        p_concepto_deduccion: undefined,
         p_metodo_pago: item.metodo_pago,
-        p_notas: null,
+        p_notas: undefined,
       })
       if (error) throw error
       setNominaItems(prev => prev.map(it => it.empleado_id === item.empleado_id ? { ...it, pagado: true, expandido: false } : it))
@@ -453,11 +453,11 @@ export function CajaPanel({
           p_horas_trabajadas: item.horas,
           p_salario_base: pagoDia,
           p_bonificaciones: item.bonificaciones,
-          p_concepto_bonificacion: null,
+          p_concepto_bonificacion: undefined,
           p_deducciones: item.deducciones,
-          p_concepto_deduccion: null,
+          p_concepto_deduccion: undefined,
           p_metodo_pago: item.metodo_pago,
-          p_notas: null,
+          p_notas: undefined,
         })
         if (!error) {
           setNominaItems(prev => prev.map(it => it.empleado_id === item.empleado_id ? { ...it, pagado: true, expandido: false } : it))

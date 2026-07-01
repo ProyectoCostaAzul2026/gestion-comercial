@@ -476,10 +476,10 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
           p_items: items,
           p_servicios: serviciosPayload.length > 0 ? serviciosPayload : null,
           p_descuento_habilitado: descuentoHabilitado,
-          p_descuento_tipo: descuentoTipo,
+          p_descuento_tipo: descuentoTipo || undefined,
           p_descuento_total_porcentaje: descuentoHabilitado && descuentoTotalActivo ? descuentoTotalPct : 0,
-          p_fecha_pago_programada: fechaPagoCredito || null,
-          p_observaciones: observaciones || null,
+          p_fecha_pago_programada: fechaPagoCredito || undefined,
+          p_observaciones: observaciones || undefined,
           p_factura_electronica: facturaElectronica,
         })
         if (rpcError) throw rpcError
@@ -511,10 +511,10 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
         p_items: items,
         p_pagos: pagosPayload,
         p_descuento_habilitado: descuentoHabilitado,
-        p_descuento_tipo: descuentoTipo,
+        p_descuento_tipo: descuentoTipo || undefined,
         p_descuento_total_porcentaje: descuentoHabilitado && descuentoTotalActivo ? descuentoTotalPct : 0,
         p_factura_electronica: facturaElectronica,
-        p_observaciones: observaciones || null,
+        p_observaciones: observaciones || undefined,
         p_servicios: serviciosPayload.length > 0 ? serviciosPayload : null,
       })
 
