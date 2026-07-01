@@ -6,10 +6,16 @@ import { ArrowLeft } from 'lucide-react'
 
 export default async function EditarProductoPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ volver?: string; origen?: string }>
 }) {
   const { id } = await params
+  const sp = await searchParams
+  const rutaVolver = sp.volver === 'familia' && sp.origen
+    ? `/dashboard/inventario/${sp.origen}/familia`
+    : `/dashboard/inventario/${id}`
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -41,7 +47,7 @@ export default async function EditarProductoPage({
     <div className="min-h-screen bg-[#0a0e14]">
       <div className="sticky top-0 z-10 border-b border-white/10 bg-[#0a0e14] px-4 py-3">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/inventario" className="rounded-xl border border-white/20 p-2 hover:bg-white/5">
+          <Link href={rutaVolver} className="rounded-xl border border-white/20 p-2 hover:bg-white/5">
             <ArrowLeft className="h-4 w-4 text-white" />
           </Link>
           <div>
@@ -62,6 +68,7 @@ export default async function EditarProductoPage({
           }}
           isSheet={false}
           rol={(profile?.rol as 'empleado' | 'administrador') ?? 'empleado'}
+          rutaVolver={rutaVolver}
         />
       </div>
     </div>

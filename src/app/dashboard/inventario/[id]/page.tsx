@@ -84,12 +84,20 @@ export default async function DetalleProductoPage({
           ))}
         </dl>
 
-        <Link
-          href={`/dashboard/inventario/${producto.id}/editar`}
-          className="block w-full rounded-xl bg-brand-yellow px-4 py-3 text-center text-sm font-bold text-steel-900 hover:brightness-105"
-        >
-          Editar producto
-        </Link>
+        <div className="space-y-2">
+          <Link
+            href={`/dashboard/inventario/${producto.id}/editar`}
+            className="block w-full rounded-xl bg-brand-yellow px-4 py-3 text-center text-sm font-bold text-steel-900 hover:brightness-105"
+          >
+            Editar producto
+          </Link>
+          <Link
+            href={`/dashboard/inventario/${producto.id}/familia`}
+            className="block w-full rounded-xl border border-brand-blue/60 px-4 py-3 text-center text-sm font-bold text-brand-blue hover:bg-brand-blue/10"
+          >
+            Familia de medidas
+          </Link>
+        </div>
       </div>
     </div>
   )

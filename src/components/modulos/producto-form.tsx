@@ -20,11 +20,11 @@ import { Plus, Trash2, ArrowLeftRight, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 
-const UNIDADES_BASE = ['Pulgada', 'mm', 'cm', 'Kg', 'g', 'mL', 'L', 'Caja', 'Unidad', 'Galón', 'Metro']
-const MEDIDA_REGEX = /^\d+(\/\d+)?$/
+export const UNIDADES_BASE = ['Pulgada', 'mm', 'cm', 'Kg', 'g', 'mL', 'L', 'Caja', 'Unidad', 'Galón', 'Metro']
+export const MEDIDA_REGEX = /^\d+(\/\d+)?$/
 
-const INPUT_CLS = 'border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500 focus:border-brand-yellow/60'
-const LABEL_CLS = 'text-[10px] font-bold uppercase tracking-widest text-steel-300'
+export const INPUT_CLS = 'border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500 focus:border-brand-yellow/60'
+export const LABEL_CLS = 'text-[10px] font-bold uppercase tracking-widest text-steel-300'
 
 interface ProveedorForm {
   id?: string
@@ -113,9 +113,10 @@ interface ProductoFormProps {
   onSuccess?: () => void
   isSheet?: boolean
   margenDefault?: number
+  rutaVolver?: string
 }
 
-function parseUnidadMedida(value: string | null): { medida: string; unidad: string } {
+export function parseUnidadMedida(value: string | null): { medida: string; unidad: string } {
   if (!value) return { medida: '', unidad: '' }
   const match = value.trim().match(/^(\d+\/\d+|\d+)\s+(.+)$/)
   if (match) return { medida: match[1], unidad: match[2] }
@@ -194,7 +195,7 @@ function estadoInicial(producto?: ProductoExistente, margenDefault = 40): Produc
   }
 }
 
-function generarSKU(nombre: string, categoria: string, marca: string, medida: string, unidad: string): string {
+export function generarSKU(nombre: string, categoria: string, marca: string, medida: string, unidad: string): string {
   const tomar3 = (s: string) => s.trim().replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 3)
   const pNombre = tomar3(nombre)
   const pCat = tomar3(categoria)
@@ -206,7 +207,7 @@ function generarSKU(nombre: string, categoria: string, marca: string, medida: st
   return `${pNombre}-${pCat}-${pMarca}-${pMedida}${pUnidad}`
 }
 
-export function ProductoForm({ categorias, proveedores, empleadoId, rol, producto, onSuccess, isSheet, margenDefault = 40 }: ProductoFormProps) {
+export function ProductoForm({ categorias, proveedores, empleadoId, rol, producto, onSuccess, isSheet, margenDefault = 40, rutaVolver = '/dashboard/inventario' }: ProductoFormProps) {
   const esEdicion = !!producto
   const supabase = createClient()
   const router = useRouter()
@@ -448,7 +449,7 @@ export function ProductoForm({ categorias, proveedores, empleadoId, rol, product
 
         toast.success('Producto actualizado')
         router.refresh()
-        router.push('/dashboard/inventario')
+        router.push(rutaVolver)
         onSuccess?.()
       } else {
         const { data: nuevoProducto, error: productoError } = await supabase
@@ -509,7 +510,7 @@ export function ProductoForm({ categorias, proveedores, empleadoId, rol, product
       return
     }
     toast.success('Producto desactivado')
-    router.push('/dashboard/inventario')
+    router.push(rutaVolver)
     router.refresh()
   }
 
