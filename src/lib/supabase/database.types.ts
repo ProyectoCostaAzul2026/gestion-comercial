@@ -1136,11 +1136,30 @@ export type Database = {
           },
         ]
       }
+      producto_familias: {
+        Row: {
+          created_at: string
+          id: string
+          nombre_base: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nombre_base: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nombre_base?: string
+        }
+        Relationships: []
+      }
       productos: {
         Row: {
           activo: boolean
           cantidad_minima_venta: number | null
           cantidad_total_unidad: number | null
+          caracteristica: string | null
           categoria_id: string | null
           codigo: string | null
           created_at: string
@@ -1173,6 +1192,7 @@ export type Database = {
           activo?: boolean
           cantidad_minima_venta?: number | null
           cantidad_total_unidad?: number | null
+          caracteristica?: string | null
           categoria_id?: string | null
           codigo?: string | null
           created_at?: string
@@ -1205,6 +1225,7 @@ export type Database = {
           activo?: boolean
           cantidad_minima_venta?: number | null
           cantidad_total_unidad?: number | null
+          caracteristica?: string | null
           categoria_id?: string | null
           codigo?: string | null
           created_at?: string
@@ -1239,6 +1260,13 @@ export type Database = {
             columns: ["categoria_id"]
             isOneToOne: false
             referencedRelation: "categorias_producto"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "productos_familia_id_fkey"
+            columns: ["familia_id"]
+            isOneToOne: false
+            referencedRelation: "producto_familias"
             referencedColumns: ["id"]
           },
         ]

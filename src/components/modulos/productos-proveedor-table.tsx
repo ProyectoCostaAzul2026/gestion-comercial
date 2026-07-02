@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Trash2, ShoppingCart, FileDown } from 'lucide-react'
+import { Trash2, ShoppingCart, FileDown, Search, X } from 'lucide-react'
 import { jsPDF } from 'jspdf'
 import { autoTable } from 'jspdf-autotable'
 import { toast } from 'sonner'
@@ -25,8 +25,13 @@ interface ProductoProveedor {
     marca: string | null
     unidad_medida: string | null
     posicion?: number
+    familiaId: string | null
+    familiaNombre: string | null
   }
 }
+
+interface FamiliaOpcion { id: string; nombre: string }
+const SIN_FAMILIA = '__sin_familia__'
 
 interface ItemPedido {
   id: string
@@ -55,10 +60,43 @@ export function ProductosProveedorTable({
   const [calculando, setCalculando] = useState(false)
   const [calculado, setCalculado] = useState(false)
 
+  // ── Filtro de familia (buscador con sugerencias, para cuando hay muchas) ──
+  const [queryFamilia, setQueryFamilia] = useState('')
+  const [familiaSeleccionada, setFamiliaSeleccionada] = useState<FamiliaOpcion | null>(null)
+  const [mostrarOpcionesFamilia, setMostrarOpcionesFamilia] = useState(false)
+
+  const familiasDisponibles = useMemo(() => {
+    const mapa = new Map<string, string>()
+    let haySinFamilia = false
+    for (const pp of productos) {
+      if (pp.producto.familiaId && pp.producto.familiaNombre) {
+        mapa.set(pp.producto.familiaId, pp.producto.familiaNombre)
+      } else {
+        haySinFamilia = true
+      }
+    }
+    const lista: FamiliaOpcion[] = Array.from(mapa, ([id, nombre]) => ({ id, nombre }))
+      .sort((a, b) => a.nombre.localeCompare(b.nombre))
+    if (haySinFamilia) lista.push({ id: SIN_FAMILIA, nombre: 'Sin familia asignada' })
+    return lista
+  }, [productos])
+
+  const opcionesFamiliaFiltradas = useMemo(() => {
+    if (!queryFamilia.trim()) return familiasDisponibles
+    const q = queryFamilia.trim().toLowerCase()
+    return familiasDisponibles.filter(f => f.nombre.toLowerCase().includes(q))
+  }, [familiasDisponibles, queryFamilia])
+
+  const productosFiltrados = useMemo(() => {
+    if (!familiaSeleccionada) return productos
+    if (familiaSeleccionada.id === SIN_FAMILIA) return productos.filter(pp => !pp.producto.familiaId)
+    return productos.filter(pp => pp.producto.familiaId === familiaSeleccionada.id)
+  }, [productos, familiaSeleccionada])
+
   const calcularYMostrarPedido = async () => {
     setCalculando(true)
     try {
-      const productoIds = productos
+      const productoIds = productosFiltrados
         .filter(pp => pp.producto.activo)
         .map(pp => pp.producto.id)
 
@@ -74,7 +112,7 @@ export function ProductosProveedorTable({
         rotacionMap[r.producto_id] = Number(r.rotacion_diaria)
       }
 
-      const items: ItemPedido[] = productos
+      const items: ItemPedido[] = productosFiltrados
         .filter(pp => pp.producto.activo)
         .map((pp, idx) => {
           const rotacion = rotacionMap[pp.producto.id] ?? 0
@@ -139,9 +177,9 @@ export function ProductosProveedorTable({
 
   return (
     <div className="space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
-          Productos asociados ({productos.length})
+          Productos asociados ({productosFiltrados.length}{familiaSeleccionada ? ` de ${productos.length}` : ''})
         </h2>
         {!modoPedido && (
           <Button type="button" variant="outline" size="sm" className="border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={() => setModoPedido(true)}>
@@ -151,11 +189,44 @@ export function ProductosProveedorTable({
         )}
       </div>
 
+      {familiasDisponibles.length > 0 && (
+        <div className="relative w-full sm:w-72">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-500" />
+          <Input
+            value={familiaSeleccionada ? familiaSeleccionada.nombre : queryFamilia}
+            onChange={e => { setQueryFamilia(e.target.value); setFamiliaSeleccionada(null); setMostrarOpcionesFamilia(true) }}
+            onFocus={() => setMostrarOpcionesFamilia(true)}
+            placeholder="Filtrar por familia…"
+            className="h-9 border-white/10 bg-[#1a2430] pl-9 pr-8 text-sm text-white placeholder:text-steel-500"
+          />
+          {(familiaSeleccionada || queryFamilia) && (
+            <button type="button"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-steel-500 hover:text-white"
+              onClick={() => { setFamiliaSeleccionada(null); setQueryFamilia(''); setMostrarOpcionesFamilia(false) }}>
+              <X className="h-4 w-4" />
+            </button>
+          )}
+          {mostrarOpcionesFamilia && opcionesFamiliaFiltradas.length > 0 && (
+            <div className="absolute z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-white/10 bg-[#111820] shadow-xl">
+              {opcionesFamiliaFiltradas.map(op => (
+                <button key={op.id} type="button"
+                  className="block w-full px-3 py-2 text-left text-sm text-white hover:bg-white/5"
+                  onClick={() => { setFamiliaSeleccionada(op); setQueryFamilia(''); setMostrarOpcionesFamilia(false) }}>
+                  {op.nombre}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Tabla de productos */}
       {!modoPedido && (
         <>
-          {productos.length === 0 ? (
-            <p className="text-sm text-steel-500">Sin productos asociados.</p>
+          {productosFiltrados.length === 0 ? (
+            <p className="text-sm text-steel-500">
+              {familiaSeleccionada ? 'Ningún producto de esta familia con este proveedor.' : 'Sin productos asociados.'}
+            </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -168,7 +239,7 @@ export function ProductosProveedorTable({
                   </tr>
                 </thead>
                 <tbody>
-                  {productos.map(pp => {
+                  {productosFiltrados.map(pp => {
                     const stockBajo = pp.producto.stock_actual <= pp.producto.stock_minimo
                     return (
                       <tr key={pp.id} className="border-b border-white/8 last:border-0">

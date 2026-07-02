@@ -32,7 +32,7 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
   const [{ data: productos }, { data: facturas }, { data: garantiasProveedor }] = await Promise.all([
     supabase
       .from('producto_proveedores')
-      .select('id, precio_costo, es_proveedor_principal, referencia_proveedor, productos(id, nombre, codigo, activo, stock_actual, stock_minimo, marca, unidad_medida)')
+      .select('id, precio_costo, es_proveedor_principal, referencia_proveedor, productos(id, nombre, codigo, activo, stock_actual, stock_minimo, marca, unidad_medida, familia_id, producto_familias(nombre_base))')
       .eq('proveedor_id', id)
       .order('created_at', { ascending: false }),
     supabase
@@ -132,6 +132,8 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
             stock_minimo: pp.productos?.stock_minimo ?? 0,
             marca: pp.productos?.marca ?? null,
             unidad_medida: pp.productos?.unidad_medida ?? null,
+            familiaId: pp.productos?.familia_id ?? null,
+            familiaNombre: pp.productos?.producto_familias?.nombre_base ?? null,
           },
         }))}
       />

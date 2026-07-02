@@ -95,7 +95,7 @@ export default async function DetalleProductoPage({
             href={`/dashboard/inventario/${producto.id}/familia`}
             className="block w-full rounded-xl border border-brand-blue/60 px-4 py-3 text-center text-sm font-bold text-brand-blue hover:bg-brand-blue/10"
           >
-            Familia de medidas
+            Familia de productos
           </Link>
         </div>
       </div>

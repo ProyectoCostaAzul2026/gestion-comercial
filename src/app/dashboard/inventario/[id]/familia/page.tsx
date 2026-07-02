@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { FamiliaMedidasPanel } from '@/components/modulos/familia-medidas-panel'
+import { FamiliaMedidasPanel, type Miembro } from '@/components/modulos/familia-medidas-panel'
 
 export default async function FamiliaMedidasPage({
   params,
@@ -19,7 +19,7 @@ export default async function FamiliaMedidasPage({
     .select(`
       id, nombre, descripcion, codigo, categoria_id, marca, ubicacion, precio_venta,
       tiene_iva, iva_incluido, porcentaje_iva, stock_bodega, stock_almacen, stock_minimo,
-      prioridad, unidad_medida, imagen_url, familia_id,
+      prioridad, unidad_medida, imagen_url, familia_id, caracteristica,
       vender_por_fraccion, medida_venta, cantidad_total_unidad,
       cantidad_minima_venta, precio_por_unidad_medida,
       categorias_producto(nombre),
@@ -32,22 +32,53 @@ export default async function FamiliaMedidasPage({
 
   const categoriaNombre = (producto.categorias_producto as { nombre: string } | null)?.nombre ?? null
 
+  // Nombre base de la familia (título del panel). Si aún no tiene familia, se usa el nombre actual del producto.
+  let nombreBase = producto.nombre
+  if (producto.familia_id) {
+    const { data: familia } = await supabase
+      .from('producto_familias')
+      .select('nombre_base')
+      .eq('id', producto.familia_id)
+      .single()
+    if (familia) nombreBase = familia.nombre_base
+  }
+
   // Miembros de la familia (si aún no tiene familia, la lista es solo este producto)
-  let miembros: { id: string; nombre: string; codigo: string | null; unidad_medida: string | null; stock_almacen: number; stock_bodega: number }[] = []
+  let miembros: Miembro[] = []
+
+  type MiembroCrudo = {
+    id: string; nombre: string; codigo: string | null; unidad_medida: string | null
+    marca: string | null; caracteristica: string | null
+    stock_almacen: number; stock_bodega: number
+    producto_proveedores: { precio_costo: number }[] | null
+  }
+
+  const mapear = (m: MiembroCrudo): Miembro => {
+    const costos = (m.producto_proveedores ?? []).map(p => p.precio_costo)
+    const costoMinimo = costos.length > 0 ? Math.min(...costos) : 0
+    const sinActualizar = m.stock_almacen === 0 && m.stock_bodega === 0 && costoMinimo === 0
+    return {
+      id: m.id, nombre: m.nombre, codigo: m.codigo, unidad_medida: m.unidad_medida,
+      marca: m.marca, caracteristica: m.caracteristica,
+      stock_almacen: m.stock_almacen, stock_bodega: m.stock_bodega, sinActualizar,
+    }
+  }
 
   if (producto.familia_id) {
     const { data: familiaData } = await supabase
       .from('productos')
-      .select('id, nombre, codigo, unidad_medida, stock_almacen, stock_bodega')
+      .select('id, nombre, codigo, unidad_medida, marca, caracteristica, stock_almacen, stock_bodega, producto_proveedores(precio_costo)')
       .eq('familia_id', producto.familia_id)
       .eq('activo', true)
       .order('created_at', { ascending: true })
-    miembros = familiaData ?? []
+    miembros = (familiaData ?? []).map(mapear)
   } else {
-    miembros = [{
+    miembros = [mapear({
       id: producto.id, nombre: producto.nombre, codigo: producto.codigo,
-      unidad_medida: producto.unidad_medida, stock_almacen: producto.stock_almacen, stock_bodega: producto.stock_bodega,
-    }]
+      unidad_medida: producto.unidad_medida, marca: producto.marca, caracteristica: producto.caracteristica,
+      stock_almacen: producto.stock_almacen, stock_bodega: producto.stock_bodega,
+      producto_proveedores: producto.producto_proveedores,
+    })]
   }
 
   return (
@@ -58,8 +89,8 @@ export default async function FamiliaMedidasPage({
             <ArrowLeft className="h-4 w-4 text-white" />
           </Link>
           <div>
-            <h1 className="font-display text-lg font-bold text-white">Familia de medidas</h1>
-            <p className="text-xs text-steel-300">{producto.nombre}</p>
+            <h1 className="font-display text-lg font-bold text-white">Familia de productos</h1>
+            <p className="text-xs text-steel-300">{nombreBase}</p>
           </div>
         </div>
       </div>
@@ -68,6 +99,7 @@ export default async function FamiliaMedidasPage({
         <FamiliaMedidasPanel
           empleadoId={user.id}
           productoActualId={producto.id}
+          nombreBase={nombreBase}
           producto={{
             id: producto.id,
             nombre: producto.nombre,
