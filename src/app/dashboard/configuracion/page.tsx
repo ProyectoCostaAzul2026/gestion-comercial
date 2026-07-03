@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { ConfiguracionForm } from '@/components/modulos/configuracion-form'
 import { CategoriasGastoForm } from '@/components/modulos/categorias-gasto-form'
 import { ServiciosGestion } from '@/components/modulos/servicios-gestion'
+import { UnidadesMedidaForm } from '@/components/modulos/unidades-medida-form'
 
 export default async function ConfiguracionPage() {
   const supabase = await createClient()
@@ -13,10 +14,11 @@ export default async function ConfiguracionPage() {
     .from('profiles').select('rol').eq('id', user.id).single()
   if ((profile as any)?.rol !== 'administrador') redirect('/dashboard')
 
-  const [{ data: config }, { data: categorias }, { data: servicios }] = await Promise.all([
+  const [{ data: config }, { data: categorias }, { data: servicios }, { data: unidades }] = await Promise.all([
     supabase.from('configuracion_negocio').select('*').single(),
     supabase.from('categorias_gasto').select('*').order('nombre'),
     supabase.from('servicios').select('id, nombre, descripcion, precio, activo').order('nombre'),
+    supabase.from('unidades_medida').select('*').order('orden'),
   ])
 
   return (
@@ -43,6 +45,11 @@ export default async function ConfiguracionPage() {
       <section>
         <h2 className="mb-4 flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">Servicios</h2>
         <ServiciosGestion servicios={servicios ?? []} />
+      </section>
+
+      <section>
+        <h2 className="mb-4 flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">Unidades de medida</h2>
+        <UnidadesMedidaForm unidades={unidades ?? []} />
       </section>
     </div>
   )

@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
-import { parseUnidadMedida, generarSKU, MEDIDA_REGEX, UNIDADES_BASE, INPUT_CLS, LABEL_CLS } from './producto-form'
+import { parseUnidadMedida, generarSKU, MEDIDA_REGEX, INPUT_CLS, LABEL_CLS } from './producto-form'
 
 interface Proveedor {
   id: string
@@ -82,6 +82,7 @@ interface FamiliaMedidasPanelProps {
   nombreBase: string
   producto: ProductoBase
   miembrosIniciales: Miembro[]
+  unidades: string[]
 }
 
 const MARCA_GENERICA = 'Generica'
@@ -117,7 +118,7 @@ function construirArbolDesdeMiembros(miembros: Miembro[]): CaracteristicaFila[] 
   return resultado
 }
 
-export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, producto, miembrosIniciales }: FamiliaMedidasPanelProps) {
+export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, producto, miembrosIniciales, unidades }: FamiliaMedidasPanelProps) {
   const supabase = createClient()
   const router = useRouter()
 
@@ -454,7 +455,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
                           <SelectValue placeholder="Selecciona…" />
                         </SelectTrigger>
                         <SelectContent>
-                          {UNIDADES_BASE.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                          {unidades.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
                         </SelectContent>
                       </Select>
                     </div>

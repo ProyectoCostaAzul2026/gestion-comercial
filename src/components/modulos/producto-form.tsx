@@ -20,7 +20,6 @@ import { Plus, Trash2, ArrowLeftRight, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 
-export const UNIDADES_BASE = ['Pulgada', 'mm', 'cm', 'Kg', 'g', 'mL', 'L', 'Caja', 'Unidad', 'Galón', 'Metro']
 // Un "segmento" de medida: entero (50), fracción (3/4) o mixto (1-1/4)
 const SEGMENTO_MEDIDA = '\\d+(?:-\\d+\\/\\d+|\\/\\d+)?'
 // Hasta 3 segmentos combinados con "x" — ej: 3/8x2, 1-1/4x3/8x2, 30x40x50
@@ -110,6 +109,7 @@ export interface ProductoExistente {
 interface ProductoFormProps {
   categorias: Categoria[]
   proveedores: Proveedor[]
+  unidades: string[]
   empleadoId: string
   rol: Rol
   producto?: ProductoExistente
@@ -211,7 +211,7 @@ export function generarSKU(nombre: string, categoria: string, marca: string, med
   return `${pNombre}-${pCat}-${pMarca}-${pMedida}${pUnidad}`
 }
 
-export function ProductoForm({ categorias, proveedores, empleadoId, rol, producto, onSuccess, isSheet, margenDefault = 40, rutaVolver = '/dashboard/inventario' }: ProductoFormProps) {
+export function ProductoForm({ categorias, proveedores, unidades, empleadoId, rol, producto, onSuccess, isSheet, margenDefault = 40, rutaVolver = '/dashboard/inventario' }: ProductoFormProps) {
   const esEdicion = !!producto
   const supabase = createClient()
   const router = useRouter()
@@ -222,7 +222,7 @@ export function ProductoForm({ categorias, proveedores, empleadoId, rol, product
   const [categoriasList, setCategoriasList] = useState<Categoria[]>(categorias)
   const [unidadesList, setUnidadesList] = useState<string[]>(() => {
     const inicial = producto ? parseUnidadMedida(producto.unidad_medida).unidad : ''
-    return inicial && !UNIDADES_BASE.includes(inicial) ? [...UNIDADES_BASE, inicial] : UNIDADES_BASE
+    return inicial && !unidades.includes(inicial) ? [...unidades, inicial] : unidades
   })
   const [mostrarNuevaUnidad, setMostrarNuevaUnidad] = useState(false)
   const [nuevaUnidadNombre, setNuevaUnidadNombre] = useState('')
@@ -311,10 +311,16 @@ export function ProductoForm({ categorias, proveedores, empleadoId, rol, product
     toast.success('Categoría creada')
   }
 
-  const handleCrearUnidad = () => {
+  const handleCrearUnidad = async () => {
     const nombre = nuevaUnidadNombre.trim()
     if (!nombre) return
     if (!unidadesList.includes(nombre)) {
+      const { error } = await supabase
+        .from('unidades_medida')
+        .insert({ nombre, activo: true, orden: 9999 })
+      if (error && !error.message.includes('duplicate')) {
+        toast.error('Error al guardar la unidad: ' + error.message)
+      }
       setUnidadesList((prev) => [...prev, nombre])
     }
     handleChange('unidad_medida_select', nombre)

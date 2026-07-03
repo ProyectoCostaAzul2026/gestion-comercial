@@ -14,6 +14,10 @@ export default async function FamiliaMedidasPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  const { data: unidadesData } = await supabase
+    .from('unidades_medida').select('nombre').eq('activo', true).order('orden')
+  const unidades = (unidadesData ?? []).map(u => u.nombre)
+
   const { data: producto, error } = await supabase
     .from('productos')
     .select(`
@@ -100,6 +104,7 @@ export default async function FamiliaMedidasPage({
           empleadoId={user.id}
           productoActualId={producto.id}
           nombreBase={nombreBase}
+          unidades={unidades}
           producto={{
             id: producto.id,
             nombre: producto.nombre,

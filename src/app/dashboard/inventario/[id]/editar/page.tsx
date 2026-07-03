@@ -38,9 +38,10 @@ export default async function EditarProductoPage({
 
   if (error || !producto) notFound()
 
-  const [{ data: categorias }, { data: proveedores }] = await Promise.all([
+  const [{ data: categorias }, { data: proveedores }, { data: unidades }] = await Promise.all([
     supabase.from('categorias_producto').select('id, nombre').order('nombre'),
     supabase.from('proveedores').select('id, nombre').eq('activo', true).order('nombre'),
+    supabase.from('unidades_medida').select('nombre').eq('activo', true).order('orden'),
   ])
 
   return (
@@ -60,6 +61,7 @@ export default async function EditarProductoPage({
         <ProductoForm
           categorias={categorias ?? []}
           proveedores={proveedores ?? []}
+          unidades={(unidades ?? []).map(u => u.nombre)}
           empleadoId={user.id}
           producto={{
             ...producto,

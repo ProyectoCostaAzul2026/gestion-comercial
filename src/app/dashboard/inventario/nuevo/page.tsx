@@ -12,9 +12,10 @@ export default async function NuevoProductoPage() {
   const { data: profile } = await supabase.from('profiles').select('rol').eq('id', user.id).single()
   const { data: config } = await supabase.from('configuracion_negocio').select('margen_default').single()
 
-  const [{ data: categorias }, { data: proveedores }] = await Promise.all([
+  const [{ data: categorias }, { data: proveedores }, { data: unidades }] = await Promise.all([
     supabase.from('categorias_producto').select('id, nombre').order('nombre'),
     supabase.from('proveedores').select('id, nombre').eq('activo', true).order('nombre'),
+    supabase.from('unidades_medida').select('nombre').eq('activo', true).order('orden'),
   ])
 
   return (
@@ -33,6 +34,7 @@ export default async function NuevoProductoPage() {
         <ProductoForm
           categorias={categorias ?? []}
           proveedores={proveedores ?? []}
+          unidades={(unidades ?? []).map(u => u.nombre)}
           empleadoId={user.id}
           isSheet={false}
           rol={(profile?.rol as 'empleado' | 'administrador') ?? 'empleado'}

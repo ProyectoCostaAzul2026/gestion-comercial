@@ -7,8 +7,6 @@
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
@@ -1088,6 +1086,24 @@ export type Database = {
           },
         ]
       }
+      producto_familias: {
+        Row: {
+          created_at: string
+          id: string
+          nombre_base: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nombre_base: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nombre_base?: string
+        }
+        Relationships: []
+      }
       producto_proveedores: {
         Row: {
           created_at: string
@@ -1135,24 +1151,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      producto_familias: {
-        Row: {
-          created_at: string
-          id: string
-          nombre_base: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          nombre_base: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          nombre_base?: string
-        }
-        Relationships: []
       }
       productos: {
         Row: {
@@ -1438,6 +1436,30 @@ export type Database = {
           nombre?: string
           precio?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      unidades_medida: {
+        Row: {
+          activo: boolean
+          created_at: string
+          id: string
+          nombre: string
+          orden: number
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          nombre: string
+          orden?: number
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          nombre?: string
+          orden?: number
         }
         Relationships: []
       }
