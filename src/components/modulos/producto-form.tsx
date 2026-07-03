@@ -121,10 +121,12 @@ interface ProductoFormProps {
 
 export function parseUnidadMedida(value: string | null): { medida: string; unidad: string } {
   if (!value) return { medida: '', unidad: '' }
-  const patronMedida = new RegExp(`^(${SEGMENTO_MEDIDA}(?:[xX]${SEGMENTO_MEDIDA}){0,2})\\s+(.+)$`)
-  const match = value.trim().match(patronMedida)
-  if (match) return { medida: match[1], unidad: match[2] }
-  return { medida: '', unidad: value.trim() }
+  // La unidad siempre es la última palabra (ninguna unidad de la lista tiene espacios internos);
+  // todo lo anterior es la medida, sin importar qué contenga (números, decimales, texto libre).
+  const texto = value.trim()
+  const idx = texto.lastIndexOf(' ')
+  if (idx === -1) return { medida: '', unidad: texto }
+  return { medida: texto.slice(0, idx), unidad: texto.slice(idx + 1) }
 }
 
 function estadoInicial(producto?: ProductoExistente, margenDefault = 40): ProductoFormState {

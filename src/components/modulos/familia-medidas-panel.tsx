@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
-import { parseUnidadMedida, generarSKU, MEDIDA_REGEX, INPUT_CLS, LABEL_CLS } from './producto-form'
+import { parseUnidadMedida, generarSKU, INPUT_CLS, LABEL_CLS } from './producto-form'
 
 interface Proveedor {
   id: string
@@ -219,24 +219,31 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
         return
       }
       for (const med of car.medidas) {
-        if (!med.medida.trim() || !MEDIDA_REGEX.test(med.medida.trim())) {
-          toast.error(`Medida inválida en "${car.texto}": "${med.medida}" (ej: 50, 3/4, 1-1/4, 3/8x2)`)
+        const medidaTexto = med.medida.trim()
+        if (!medidaTexto) {
+          toast.error(`Falta la medida en "${car.texto}"`)
           return
         }
         if (!med.unidad) {
-          toast.error(`Falta elegir la unidad en "${car.texto}" — ${med.medida}`)
+          toast.error(`Falta elegir la unidad en "${car.texto}" — ${medidaTexto}`)
           return
         }
-        const marcas = med.marcas.length > 0 ? med.marcas : [{ key: '', productoId: null, marca: '' }]
-        for (const mar of marcas) {
-          hojas.push({
-            caracteristica: car.texto.trim(),
-            medida: med.medida.trim(),
-            unidad: med.unidad,
-            marca: mar.marca.trim() || MARCA_GENERICA,
-            productoId: mar.productoId,
-          })
-        }
+        // Varias medidas separadas por ";" (ej: "Corto;Mediano;Grande") generan un producto por cada una.
+        const subMedidas = medidaTexto.split(';').map(s => s.trim()).filter(Boolean)
+        subMedidas.forEach((subMedida, subIdx) => {
+          const marcas = med.marcas.length > 0 ? med.marcas : [{ key: '', productoId: null, marca: '' }]
+          for (const mar of marcas) {
+            hojas.push({
+              caracteristica: car.texto.trim(),
+              medida: subMedida,
+              unidad: med.unidad,
+              marca: mar.marca.trim() || MARCA_GENERICA,
+              // Si hay varias medidas en el mismo campo, solo la primera actualiza el producto ya existente;
+              // las demás siempre crean productos nuevos (para no pisar el mismo producto dos veces).
+              productoId: subIdx === 0 ? mar.productoId : null,
+            })
+          }
+        })
       }
     }
 
@@ -441,34 +448,35 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
               </div>
 
               {car.medidas.map(med => (
-                <div key={med.key} className="ml-4 space-y-2 rounded-lg border border-brand-blue/30 bg-brand-blue/5 p-3">
-                  <div className="flex items-end gap-2">
-                    <div className="w-24 space-y-1">
+                <div key={med.key} className="ml-4 space-y-3 rounded-lg border border-brand-blue/30 bg-brand-blue/5 p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="w-full space-y-1">
                       <Label className={LABEL_CLS}>Medida</Label>
-                      <Input className={INPUT_CLS} placeholder="1/2" value={med.medida}
+                      <Input className={`${INPUT_CLS} h-11 w-full text-base`} placeholder="Ej: 3/4, 2.6, Corto;Mediano;Grande" value={med.medida}
                         onChange={e => actualizarMedida(car.key, med.key, 'medida', e.target.value)} />
+                      <p className="text-[11px] text-steel-500">Separa varias con &quot;;&quot; para crear un producto por cada una.</p>
                     </div>
-                    <div className="flex-1 space-y-1">
-                      <Label className={LABEL_CLS}>Unidad</Label>
-                      <Select value={med.unidad} onValueChange={v => v && actualizarMedida(car.key, med.key, 'unidad', v)}>
-                        <SelectTrigger className="border-white/10 bg-[#1a2430] text-white">
-                          <SelectValue placeholder="Selecciona…" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {unidades.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <Button type="button" variant="outline" size="sm"
-                      className="border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10"
-                      onClick={() => agregarMarca(car.key, med.key)}>
-                      <Plus className="mr-1 h-4 w-4" />Marca
-                    </Button>
-                    <Button type="button" variant="ghost" size="icon-sm" className="text-steel-300 hover:text-brand-red"
+                    <Button type="button" variant="ghost" size="icon-sm" className="mt-5 shrink-0 text-steel-300 hover:text-brand-red"
                       onClick={() => quitarMedida(car.key, med.key)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
+                  <div className="w-full space-y-1">
+                    <Label className={LABEL_CLS}>Unidad</Label>
+                    <Select value={med.unidad} onValueChange={v => v && actualizarMedida(car.key, med.key, 'unidad', v)}>
+                      <SelectTrigger className="h-11 w-full border-white/10 bg-[#1a2430] text-white">
+                        <SelectValue placeholder="Selecciona…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {unidades.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button type="button" variant="outline" size="sm"
+                    className="w-full border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10 sm:w-auto"
+                    onClick={() => agregarMarca(car.key, med.key)}>
+                    <Plus className="mr-1 h-4 w-4" />Marca
+                  </Button>
 
                   {med.marcas.map(mar => (
                     <div key={mar.key} className="ml-4 flex items-end gap-2">
