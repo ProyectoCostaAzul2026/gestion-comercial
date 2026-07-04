@@ -80,6 +80,7 @@ export const navItems: NavItem[] = [
   { label: 'Caja', href: '/dashboard/caja', icon: 'Wallet', soloAdmin: true },
   { label: 'Contabilidad', href: '/dashboard/contabilidad', icon: 'BookOpen', soloAdmin: true },
   { label: 'Reportes', href: '/dashboard/reportes', icon: 'BarChart3', soloAdmin: true },
+  { label: 'Instrucciones', href: '/dashboard/instrucciones', icon: 'HelpCircle' },
   { label: 'Configuración', href: '/dashboard/configuracion', icon: 'Settings', soloAdmin: true },
 ]
 

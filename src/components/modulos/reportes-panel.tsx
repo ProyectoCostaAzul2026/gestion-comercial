@@ -64,6 +64,29 @@ const TOOLTIP_STYLE = { backgroundColor: '#1a2430', border: '1px solid rgba(255,
 function fmt(n: number) { return `$${Math.round(n).toLocaleString('es-CO')}` }
 function pct(n: number) { return `${n.toFixed(1)}%` }
 
+type ModoGrafico = 'valor' | 'ticket' | 'valorTicket'
+const ETIQUETA_MODO: Record<ModoGrafico, string> = { valor: 'Valor', ticket: 'Ticket', valorTicket: 'Valor/Ticket' }
+function SelectorModoGrafico({ modo, onChange }: { modo: ModoGrafico; onChange: (m: ModoGrafico) => void }) {
+  return (
+    <div className="mb-3 flex gap-1.5">
+      {(['valor', 'ticket', 'valorTicket'] as ModoGrafico[]).map(m => (
+        <button
+          key={m}
+          type="button"
+          onClick={() => onChange(m)}
+          className={`rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide transition-colors ${
+            modo === m
+              ? 'border-brand-yellow bg-brand-yellow/15 text-brand-yellow'
+              : 'border-white/10 text-steel-300 hover:border-white/20'
+          }`}
+        >
+          {ETIQUETA_MODO[m]}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 function KPICard({ label, valor, sub, color }: {
   label: string; valor: string; sub?: string; color?: string
 }) {
@@ -121,8 +144,8 @@ export function ReportesPanel({
   mediosPeriodoStats: Record<string, { total: number; count: number }>
   graficaFlujoCaja: FlujoCajaItem[]
   graficaMedios: { metodo: string; total: number }[]
-  graficaHoras: { hora: string; total: number }[]
-  graficaDiasSemana: { dia: string; promedio: number }[]
+  graficaHoras: { hora: string; total: number; tickets: number; valorPorTicket: number }[]
+  graficaDiasSemana: { dia: string; promedio: number; ticketsPromedio: number; valorPorTicket: number }[]
   graficaEmpleados: { nombre: string; total: number; tickets: number }[]
   topProductosData: ProductoTop[]
   inventario: { valorCosto: number; valorVenta: number }
@@ -133,6 +156,8 @@ export function ReportesPanel({
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [topN, setTopN] = useState(10)
+  const [modoHoras, setModoHoras] = useState<'valor' | 'ticket' | 'valorTicket'>('valor')
+  const [modoDias, setModoDias] = useState<'valor' | 'ticket' | 'valorTicket'>('valor')
 
   const actualizarURL = (params: Record<string, string>) => {
     const p = new URLSearchParams(searchParams.toString())
@@ -162,6 +187,16 @@ export function ReportesPanel({
     (s, m) => s + (mediosPeriodoStats[m]?.total ?? 0), 0)
   const totalTxMediosPeriodo = MEDIOS_ORDEN.reduce(
     (s, m) => s + (mediosPeriodoStats[m]?.count ?? 0), 0)
+
+  const datosHorasMostrados = useMemo(() => graficaHoras.map(h => ({
+    hora: h.hora,
+    valor: modoHoras === 'valor' ? h.total : modoHoras === 'ticket' ? h.tickets : h.valorPorTicket,
+  })), [graficaHoras, modoHoras])
+
+  const datosDiasMostrados = useMemo(() => graficaDiasSemana.map(d => ({
+    dia: d.dia,
+    valor: modoDias === 'valor' ? d.promedio : modoDias === 'ticket' ? d.ticketsPromedio : d.valorPorTicket,
+  })), [graficaDiasSemana, modoDias])
 
   // Datos para gráfico estado de resultados
   const datosEstadoResultados = [
@@ -406,19 +441,20 @@ export function ReportesPanel({
 
           {/* Ventas por hora */}
           <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
-            <p className="mb-4 text-sm font-semibold text-white">Ventas por hora del día</p>
+            <p className="mb-1 text-sm font-semibold text-white">Ventas por hora del día</p>
+            <SelectorModoGrafico modo={modoHoras} onChange={setModoHoras} />
             <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={graficaHoras} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+              <BarChart data={datosHorasMostrados} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
                 <XAxis dataKey="hora" tick={AXIS_TICK} />
                 <YAxis
                   tick={AXIS_TICK}
-                  tickFormatter={v => `$${(Math.abs(v) / 1000).toFixed(0)}K`}
+                  tickFormatter={v => modoHoras === 'ticket' ? `${v}` : `$${(Math.abs(v) / 1000).toFixed(0)}K`}
                   domain={['auto', 'auto']}
                   allowDataOverflow={false}
                 />
-                <Tooltip formatter={(v: any) => [fmt(Number(v)), 'Ventas']} contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
-                <Bar dataKey="total" fill="#1c6cb4" radius={[2, 2, 0, 0]} />
+                <Tooltip formatter={(v: any) => [modoHoras === 'ticket' ? Number(v).toFixed(0) : fmt(Number(v)), ETIQUETA_MODO[modoHoras]]} contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+                <Bar dataKey="valor" fill="#1c6cb4" radius={[2, 2, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -427,19 +463,20 @@ export function ReportesPanel({
         {/* Ventas promedio por día de la semana */}
         <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
           <p className="mb-1 text-sm font-semibold text-white">Ventas promedio por día de la semana</p>
-          <p className="mb-4 text-xs text-steel-500">Lunes a domingo · promedio sobre el período seleccionado</p>
+          <p className="mb-3 text-xs text-steel-500">Lunes a domingo · promedio sobre el período seleccionado</p>
+          <SelectorModoGrafico modo={modoDias} onChange={setModoDias} />
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={graficaDiasSemana} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+            <BarChart data={datosDiasMostrados} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
               <XAxis dataKey="dia" tick={AXIS_TICK} />
               <YAxis
                 tick={AXIS_TICK}
-                tickFormatter={v => `$${(Math.abs(v) / 1000).toFixed(0)}K`}
+                tickFormatter={v => modoDias === 'ticket' ? `${v.toFixed(1)}` : `$${(Math.abs(v) / 1000).toFixed(0)}K`}
                 domain={['auto', 'auto']}
                 allowDataOverflow={false}
               />
-              <Tooltip formatter={(v: any) => [fmt(Number(v)), 'Promedio']} contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
-              <Bar dataKey="promedio" fill="#ffce00" radius={[2, 2, 0, 0]} />
+              <Tooltip formatter={(v: any) => [modoDias === 'ticket' ? Number(v).toFixed(1) : fmt(Number(v)), ETIQUETA_MODO[modoDias]]} contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+              <Bar dataKey="valor" fill="#ffce00" radius={[2, 2, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

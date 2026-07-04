@@ -4,13 +4,15 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Package, Plus, Trash2, Pencil, X } from 'lucide-react'
+import { Package, Plus, Trash2, Pencil, X, Settings2, HelpCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { parseUnidadMedida, generarSKU, INPUT_CLS, LABEL_CLS } from './producto-form'
+import { TEMAS_AYUDA } from '@/lib/temas-ayuda'
 
 interface Proveedor {
   id: string
@@ -52,6 +54,7 @@ export interface Miembro {
   unidad_medida: string | null
   marca: string | null
   caracteristica: string | null
+  activo: boolean
   stock_almacen: number
   stock_bodega: number
   sinActualizar: boolean
@@ -83,6 +86,8 @@ interface FamiliaMedidasPanelProps {
   producto: ProductoBase
   miembrosIniciales: Miembro[]
   unidades: string[]
+  categorias: { id: string; nombre: string }[]
+  proveedoresDisponibles: { id: string; nombre: string }[]
 }
 
 const MARCA_GENERICA = 'Generica'
@@ -118,7 +123,7 @@ function construirArbolDesdeMiembros(miembros: Miembro[]): CaracteristicaFila[] 
   return resultado
 }
 
-export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, producto, miembrosIniciales, unidades }: FamiliaMedidasPanelProps) {
+export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, producto, miembrosIniciales, unidades, categorias, proveedoresDisponibles }: FamiliaMedidasPanelProps) {
   const supabase = createClient()
   const router = useRouter()
 
@@ -126,10 +131,130 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
   const [modoArbol, setModoArbol] = useState(false)
   const [arbol, setArbol] = useState<CaracteristicaFila[]>([])
   const [guardando, setGuardando] = useState(false)
+  const [medidasConError, setMedidasConError] = useState<Set<string>>(new Set())
+
+  // ── "Editar Datos": prellenar datos compartidos (no de medida) en varios productos a la vez ──
+  const [modoEditarDatos, setModoEditarDatos] = useState(false)
+  const [seleccionados, setSeleccionados] = useState<Set<string>>(new Set())
+  const [datosCompartidos, setDatosCompartidos] = useState({
+    categoria_id: '', descripcion: '', imagen_url: '',
+    ivaIncluido: 'sin_cambio' as 'sin_cambio' | 'si' | 'no',
+    venderPorFraccion: 'sin_cambio' as 'sin_cambio' | 'si' | 'no',
+    medida_venta: '', cantidad_total_unidad: '', cantidad_minima_venta: '', precio_por_unidad_medida: '',
+  })
+  const [proveedoresAAsignar, setProveedoresAAsignar] = useState<{ key: string; proveedor_id: string; codigo: string }[]>([])
+  const [aplicandoDatos, setAplicandoDatos] = useState(false)
+  const [mostrarAyuda, setMostrarAyuda] = useState(false)
+  const temaAyuda = TEMAS_AYUDA.find(t => t.id === 'familia-anadir-miembro')
+
+  const abrirEditarDatos = () => {
+    setSeleccionados(new Set())
+    setDatosCompartidos({
+      categoria_id: '', descripcion: '', imagen_url: '',
+      ivaIncluido: 'sin_cambio', venderPorFraccion: 'sin_cambio',
+      medida_venta: '', cantidad_total_unidad: '', cantidad_minima_venta: '', precio_por_unidad_medida: '',
+    })
+    setProveedoresAAsignar([])
+    setModoEditarDatos(true)
+    setModoArbol(false)
+  }
+  const cerrarEditarDatos = () => setModoEditarDatos(false)
+
+  const toggleSeleccion = (id: string) => {
+    setSeleccionados(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+  const seleccionarTodos = () => setSeleccionados(new Set(miembros.map(m => m.id)))
+  const deseleccionarTodos = () => setSeleccionados(new Set())
+
+  const agregarProveedorAAsignar = () => {
+    setProveedoresAAsignar(prev => [...prev, { key: crypto.randomUUID(), proveedor_id: '', codigo: '' }])
+  }
+  const quitarProveedorAAsignar = (key: string) => {
+    setProveedoresAAsignar(prev => prev.filter(p => p.key !== key))
+  }
+  const actualizarProveedorAAsignar = (key: string, campo: 'proveedor_id' | 'codigo', valor: string) => {
+    setProveedoresAAsignar(prev => prev.map(p => p.key === key ? { ...p, [campo]: valor } : p))
+  }
+
+  const aplicarDatosCompartidos = async () => {
+    if (seleccionados.size === 0) {
+      toast.error('Selecciona al menos un producto de la lista')
+      return
+    }
+
+    const payload: Record<string, any> = {}
+    if (datosCompartidos.categoria_id) payload.categoria_id = datosCompartidos.categoria_id
+    if (datosCompartidos.descripcion.trim()) payload.descripcion = datosCompartidos.descripcion.trim()
+    if (datosCompartidos.imagen_url.trim()) payload.imagen_url = datosCompartidos.imagen_url.trim()
+    if (datosCompartidos.ivaIncluido !== 'sin_cambio') payload.iva_incluido = datosCompartidos.ivaIncluido === 'si'
+    if (datosCompartidos.venderPorFraccion !== 'sin_cambio') {
+      payload.vender_por_fraccion = datosCompartidos.venderPorFraccion === 'si'
+      if (datosCompartidos.venderPorFraccion === 'si') {
+        if (datosCompartidos.medida_venta.trim()) payload.medida_venta = datosCompartidos.medida_venta.trim()
+        if (datosCompartidos.cantidad_total_unidad) payload.cantidad_total_unidad = Number(datosCompartidos.cantidad_total_unidad)
+        if (datosCompartidos.cantidad_minima_venta) payload.cantidad_minima_venta = Number(datosCompartidos.cantidad_minima_venta)
+        if (datosCompartidos.precio_por_unidad_medida) payload.precio_por_unidad_medida = Number(datosCompartidos.precio_por_unidad_medida)
+      }
+    }
+
+    const proveedoresValidos = proveedoresAAsignar.filter(p => p.proveedor_id)
+
+    if (Object.keys(payload).length === 0 && proveedoresValidos.length === 0) {
+      toast.error('Llena al menos un campo, o agrega un proveedor, para poder aplicar algo')
+      return
+    }
+
+    setAplicandoDatos(true)
+    try {
+      const ids = Array.from(seleccionados)
+
+      if (Object.keys(payload).length > 0) {
+        const { error } = await supabase.from('productos').update(payload as any).in('id', ids)
+        if (error) throw error
+      }
+
+      if (proveedoresValidos.length > 0) {
+        for (const productoId of ids) {
+          const { data: existentes } = await supabase
+            .from('producto_proveedores')
+            .select('proveedor_id')
+            .eq('producto_id', productoId)
+          const yaVinculados = new Set((existentes ?? []).map(e => e.proveedor_id))
+          const nuevos = proveedoresValidos
+            .filter(p => !yaVinculados.has(p.proveedor_id))
+            .map(p => ({
+              producto_id: productoId,
+              proveedor_id: p.proveedor_id,
+              precio_costo: 0,
+              referencia_proveedor: p.codigo.trim() || null,
+              notas: null,
+            }))
+          if (nuevos.length > 0) {
+            const { error } = await supabase.from('producto_proveedores').insert(nuevos)
+            if (error) throw error
+          }
+        }
+      }
+
+      toast.success(`Datos aplicados a ${ids.length} producto(s). Esto no los activa — sigue siendo necesario "Editar producto" para eso.`)
+      cerrarEditarDatos()
+      router.refresh()
+      if (producto.familia_id) await recargarMiembros(producto.familia_id)
+    } catch (err: any) {
+      toast.error('Error al aplicar los datos: ' + err.message)
+    } finally {
+      setAplicandoDatos(false)
+    }
+  }
 
   const abrirArbol = () => {
     setArbol(producto.familia_id ? construirArbolDesdeMiembros(miembros) : [])
     setModoArbol(true)
+    setModoEditarDatos(false)
   }
 
   const cerrarArbol = () => {
@@ -162,6 +287,12 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
     setArbol(prev => prev.map(c => c.key === carKey
       ? { ...c, medidas: c.medidas.map(m => m.key === medKey ? { ...m, [campo]: valor } : m) }
       : c))
+    setMedidasConError(prev => {
+      if (!prev.has(medKey)) return prev
+      const next = new Set(prev)
+      next.delete(medKey)
+      return next
+    })
   }
 
   const agregarMarca = (carKey: string, medKey: string) => {
@@ -183,9 +314,8 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
   const recargarMiembros = async (familiaId: string) => {
     const { data } = await supabase
       .from('productos')
-      .select('id, nombre, codigo, unidad_medida, marca, caracteristica, stock_almacen, stock_bodega, producto_proveedores(precio_costo)')
+      .select('id, nombre, codigo, unidad_medida, marca, caracteristica, activo, stock_almacen, stock_bodega, producto_proveedores(precio_costo)')
       .eq('familia_id', familiaId)
-      .eq('activo', true)
       .order('created_at', { ascending: true })
     const mapeados: Miembro[] = (data ?? []).map((m: any) => {
       const costos = (m.producto_proveedores ?? []).map((p: any) => p.precio_costo)
@@ -193,7 +323,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
       const sinActualizar = m.stock_almacen === 0 && m.stock_bodega === 0 && costoMinimo === 0
       return {
         id: m.id, nombre: m.nombre, codigo: m.codigo, unidad_medida: m.unidad_medida,
-        marca: m.marca, caracteristica: m.caracteristica,
+        marca: m.marca, caracteristica: m.caracteristica, activo: m.activo,
         stock_almacen: m.stock_almacen, stock_bodega: m.stock_bodega, sinActualizar,
       }
     })
@@ -201,7 +331,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
   }
 
   const guardarArbol = async () => {
-    interface Hoja { caracteristica: string; medida: string; unidad: string; marca: string; productoId: string | null }
+    interface Hoja { caracteristica: string; medida: string; unidad: string; marca: string; productoId: string | null; medKeyOrigen: string }
     const hojas: Hoja[] = []
 
     if (arbol.length === 0) {
@@ -241,11 +371,33 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
               // Si hay varias medidas en el mismo campo, solo la primera actualiza el producto ya existente;
               // las demás siempre crean productos nuevos (para no pisar el mismo producto dos veces).
               productoId: subIdx === 0 ? mar.productoId : null,
+              medKeyOrigen: med.key,
             })
           }
         })
       }
     }
+
+    // Antes de guardar nada: revisa que no haya la misma combinación Característica+Medida+Marca repetida
+    // (ya sea por escribir la misma medida dos veces en el mismo campo, o en dos campos distintos).
+    const gruposPorCombinacion = new Map<string, Hoja[]>()
+    for (const hoja of hojas) {
+      const clave = `${hoja.caracteristica}|||${hoja.medida}|||${hoja.marca}`
+      if (!gruposPorCombinacion.has(clave)) gruposPorCombinacion.set(clave, [])
+      gruposPorCombinacion.get(clave)!.push(hoja)
+    }
+    const duplicados = Array.from(gruposPorCombinacion.values()).filter(grupo => grupo.length > 1)
+    if (duplicados.length > 0) {
+      const medKeysConError = new Set<string>()
+      for (const grupo of duplicados) {
+        for (const hoja of grupo) medKeysConError.add(hoja.medKeyOrigen)
+      }
+      setMedidasConError(medKeysConError)
+      const primero = duplicados[0][0]
+      toast.error(`Medida repetida en "${primero.caracteristica}": "${primero.medida}" con marca "${primero.marca}" aparece más de una vez. Corrígela en el recuadro marcado en rojo.`)
+      return
+    }
+    setMedidasConError(new Set())
 
     setGuardando(true)
     try {
@@ -313,7 +465,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
               cantidad_minima_venta: producto.vender_por_fraccion ? producto.cantidad_minima_venta : null,
               precio_por_unidad_medida: producto.vender_por_fraccion ? producto.precio_por_unidad_medida : null,
               familia_id: familiaId,
-              activo: true,
+              activo: false,
             })
             .select('id')
             .single()
@@ -360,6 +512,34 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
 
   return (
     <div className="space-y-6">
+      {/* Botón de ayuda */}
+      <div className="flex justify-end">
+        <button type="button" onClick={() => setMostrarAyuda(v => !v)}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-blue hover:underline">
+          <HelpCircle className="h-3.5 w-3.5" />
+          {mostrarAyuda ? 'Ocultar instrucciones' : '¿Cómo funciona "Añadir Miembro"?'}
+        </button>
+      </div>
+      {mostrarAyuda && temaAyuda && (
+        <div className="space-y-4 rounded-2xl border border-brand-blue/30 bg-brand-blue/5 p-4">
+          <h3 className="font-display font-bold text-white">{temaAyuda.titulo}</h3>
+          {temaAyuda.secciones.map((sec, i) => (
+            <div key={i} className="space-y-2">
+              {sec.subtitulo && <p className="text-sm font-semibold text-brand-blue">{sec.subtitulo}</p>}
+              <ol className="space-y-1.5">
+                {sec.pasos.map((paso, j) => (
+                  <li key={j} className="flex gap-2 text-xs text-steel-300">
+                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-white/10 text-[10px] font-bold text-white">
+                      {j + 1}
+                    </span>
+                    <span>{paso}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ))}
+        </div>
+      )}
       {/* Encabezado — datos compartidos de la familia, no editables aquí */}
       <div className="space-y-3 text-center">
         {producto.imagen_url ? (
@@ -391,6 +571,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
             <span className="text-sm text-white">
               {m.caracteristica || '—'}
               {m.id === productoActualId && <span className="ml-2 text-[10px] font-bold uppercase text-brand-yellow">Actual</span>}
+              {!m.activo && <span className="ml-2 rounded-full bg-steel-700 px-2 py-0.5 text-[10px] font-bold uppercase text-steel-300">Inactivo</span>}
             </span>
             <span className="text-sm text-steel-300">{m.unidad_medida || '—'}</span>
             <span className="text-sm text-steel-300">
@@ -411,11 +592,162 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
       </div>
 
       {/* Acción principal */}
-      {!modoArbol && (
-        <Button type="button" onClick={abrirArbol}
-          className="h-11 w-full rounded-xl bg-brand-yellow font-bold text-steel-900 hover:brightness-105">
-          <Plus className="mr-2 h-4 w-4" />Añadir Miembro
-        </Button>
+      {!modoArbol && !modoEditarDatos && (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Button type="button" onClick={abrirArbol}
+            className="h-11 rounded-xl bg-brand-yellow font-bold text-steel-900 hover:brightness-105">
+            <Plus className="mr-2 h-4 w-4" />Añadir Miembro
+          </Button>
+          <Button type="button" variant="outline" onClick={abrirEditarDatos}
+            className="h-11 rounded-xl border-brand-blue/60 bg-transparent font-bold text-brand-blue hover:bg-brand-blue/10">
+            <Settings2 className="mr-2 h-4 w-4" />Editar Datos
+          </Button>
+        </div>
+      )}
+
+      {/* Editar Datos: prellena datos compartidos (categoría, descripción, imagen, IVA, fracción, proveedores)
+          en varios productos seleccionados a la vez. No los activa — eso solo lo hace "Editar producto". */}
+      {modoEditarDatos && (
+        <div className="space-y-5 rounded-2xl border border-white/10 bg-[#111820] p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-display font-bold text-white">Editar Datos</h3>
+              <p className="text-xs text-steel-500">Selecciona una o más ramas y prellena los datos que compartan. Todo es opcional — deja vacío lo que no aplique.</p>
+            </div>
+            <Button type="button" variant="ghost" size="icon-sm" className="text-steel-300 hover:text-white" onClick={cerrarEditarDatos}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Lista de ramas con checkbox */}
+          <div className="overflow-hidden rounded-xl border border-white/10">
+            <div className="flex items-center justify-between border-b border-white/10 bg-[#1a2430] px-3 py-2">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Ramas ({seleccionados.size} de {miembros.length} seleccionadas)</span>
+              <div className="flex gap-3 text-[11px] font-semibold">
+                <button type="button" className="text-brand-blue hover:underline" onClick={seleccionarTodos}>Todas</button>
+                <button type="button" className="text-steel-300 hover:underline" onClick={deseleccionarTodos}>Ninguna</button>
+              </div>
+            </div>
+            {miembros.map(m => (
+              <label key={m.id} className="flex cursor-pointer items-center gap-3 border-b border-white/5 px-3 py-2 last:border-0 hover:bg-white/5">
+                <input type="checkbox" checked={seleccionados.has(m.id)} onChange={() => toggleSeleccion(m.id)}
+                  className="size-4 rounded border-white/20 accent-brand-yellow" />
+                <span className="flex-1 text-sm text-white">{m.caracteristica || '—'}</span>
+                <span className="text-sm text-steel-300">{m.unidad_medida || '—'}</span>
+                <span className="text-sm text-steel-300">{m.marca || '—'}</span>
+              </label>
+            ))}
+          </div>
+
+          {/* Datos compartidos */}
+          <div className="space-y-4 border-t border-white/10 pt-4">
+            <div className="space-y-1">
+              <Label className={LABEL_CLS}>Categoría</Label>
+<Select value={datosCompartidos.categoria_id} onValueChange={v => v && setDatosCompartidos(prev => ({ ...prev, categoria_id: v }))}>                <SelectTrigger className="w-full border-white/10 bg-[#1a2430] text-white">
+                  <SelectValue placeholder="Sin cambiar" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categorias.map(c => <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <Label className={LABEL_CLS}>Descripción</Label>
+              <Textarea value={datosCompartidos.descripcion} onChange={e => setDatosCompartidos(prev => ({ ...prev, descripcion: e.target.value }))}
+                placeholder="Sin cambiar" className={`${INPUT_CLS} min-h-20`} />
+            </div>
+
+            <div className="space-y-1">
+              <Label className={LABEL_CLS}>URL Imagen</Label>
+              <Input value={datosCompartidos.imagen_url} onChange={e => setDatosCompartidos(prev => ({ ...prev, imagen_url: e.target.value }))}
+                placeholder="Sin cambiar" className={INPUT_CLS} />
+            </div>
+
+            <div className="space-y-1">
+              <Label className={LABEL_CLS}>IVA incluido en el precio</Label>
+<Select value={datosCompartidos.ivaIncluido} onValueChange={v => v && setDatosCompartidos(prev => ({ ...prev, ivaIncluido: v as any }))}>                <SelectTrigger className="w-full border-white/10 bg-[#1a2430] text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sin_cambio">No cambiar</SelectItem>
+                  <SelectItem value="si">Activar</SelectItem>
+                  <SelectItem value="no">Desactivar</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <Label className={LABEL_CLS}>Vender por fracción</Label>
+<Select value={datosCompartidos.venderPorFraccion} onValueChange={v => v && setDatosCompartidos(prev => ({ ...prev, venderPorFraccion: v as any }))}>                <SelectTrigger className="w-full border-white/10 bg-[#1a2430] text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sin_cambio">No cambiar</SelectItem>
+                  <SelectItem value="si">Activar</SelectItem>
+                  <SelectItem value="no">Desactivar</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {datosCompartidos.venderPorFraccion === 'si' && (
+              <div className="ml-4 grid grid-cols-2 gap-3 rounded-lg border border-brand-blue/30 bg-brand-blue/5 p-3">
+                <div className="col-span-2 space-y-1">
+                  <Label className={LABEL_CLS}>Medida de venta (ej: metro, kg)</Label>
+                  <Input value={datosCompartidos.medida_venta} onChange={e => setDatosCompartidos(prev => ({ ...prev, medida_venta: e.target.value }))} className={INPUT_CLS} />
+                </div>
+                <div className="space-y-1">
+                  <Label className={LABEL_CLS}>Cantidad total por unidad</Label>
+                  <Input type="number" value={datosCompartidos.cantidad_total_unidad} onChange={e => setDatosCompartidos(prev => ({ ...prev, cantidad_total_unidad: e.target.value }))} className={INPUT_CLS} />
+                </div>
+                <div className="space-y-1">
+                  <Label className={LABEL_CLS}>Cantidad mínima de venta</Label>
+                  <Input type="number" value={datosCompartidos.cantidad_minima_venta} onChange={e => setDatosCompartidos(prev => ({ ...prev, cantidad_minima_venta: e.target.value }))} className={INPUT_CLS} />
+                </div>
+                <div className="col-span-2 space-y-1">
+                  <Label className={LABEL_CLS}>Precio por unidad de medida</Label>
+                  <Input type="number" value={datosCompartidos.precio_por_unidad_medida} onChange={e => setDatosCompartidos(prev => ({ ...prev, precio_por_unidad_medida: e.target.value }))} className={INPUT_CLS} />
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label className={LABEL_CLS}>Proveedores asociados</Label>
+              {proveedoresAAsignar.map(p => (
+                <div key={p.key} className="flex items-end gap-2 rounded-lg border border-white/10 bg-[#1a2430] p-2">
+                  <div className="flex-1 space-y-1">
+<Select value={p.proveedor_id} onValueChange={v => v && actualizarProveedorAAsignar(p.key, 'proveedor_id', v)}>                      <SelectTrigger className="w-full border-white/10 bg-[#111820] text-white">
+                        <SelectValue placeholder="Selecciona proveedor…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {proveedoresDisponibles.map(pr => <SelectItem key={pr.id} value={pr.id}>{pr.nombre}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <Input value={p.codigo} onChange={e => actualizarProveedorAAsignar(p.key, 'codigo', e.target.value)}
+                      placeholder="Código del proveedor (opcional)" className={INPUT_CLS} />
+                  </div>
+                  <Button type="button" variant="ghost" size="icon-sm" className="text-steel-300 hover:text-brand-red"
+                    onClick={() => quitarProveedorAAsignar(p.key)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              <Button type="button" variant="outline" size="sm"
+                className="border-brand-blue/60 bg-transparent font-semibold text-brand-blue hover:bg-brand-blue/10"
+                onClick={agregarProveedorAAsignar}>
+                <Plus className="mr-1 h-4 w-4" />Proveedor
+              </Button>
+              <p className="text-[11px] text-steel-500">El costo de estos proveedores queda en $0 — ajústalo luego desde "Editar producto".</p>
+            </div>
+          </div>
+
+          <Button type="button" disabled={aplicandoDatos} onClick={aplicarDatosCompartidos}
+            className="h-11 w-full rounded-xl bg-brand-blue font-bold text-white hover:brightness-110">
+            {aplicandoDatos ? 'Aplicando…' : `Aplicar a ${seleccionados.size} seleccionado(s)`}
+          </Button>
+        </div>
       )}
 
       {/* Árbol Característica → Medida → Marca */}
@@ -448,7 +780,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
               </div>
 
               {car.medidas.map(med => (
-                <div key={med.key} className="ml-4 space-y-3 rounded-lg border border-brand-blue/30 bg-brand-blue/5 p-3">
+                <div key={med.key} className={`ml-4 space-y-3 rounded-lg border p-3 ${medidasConError.has(med.key) ? 'border-brand-red bg-brand-red/10 ring-2 ring-brand-red/40' : 'border-brand-blue/30 bg-brand-blue/5'}`}>
                   <div className="flex items-start justify-between gap-2">
                     <div className="w-full space-y-1">
                       <Label className={LABEL_CLS}>Medida</Label>

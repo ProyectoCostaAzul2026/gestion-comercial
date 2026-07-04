@@ -9,13 +9,14 @@ export default async function EditarProductoPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ volver?: string; origen?: string }>
+  searchParams: Promise<{ volver?: string; origen?: string; activar?: string }>
 }) {
   const { id } = await params
   const sp = await searchParams
   const rutaVolver = sp.volver === 'familia' && sp.origen
     ? `/dashboard/inventario/${sp.origen}/familia`
     : `/dashboard/inventario/${id}`
+  const forzarActivacion = sp.activar === '1'
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -26,13 +27,12 @@ export default async function EditarProductoPage({
     .from('productos')
     .select(`
       id, nombre, descripcion, codigo, categoria_id, marca, ubicacion, precio_venta,
-      precio_costo_base,
+      precio_costo_base, activo, familia_id,
       tiene_iva, iva_incluido, porcentaje_iva, stock_bodega, stock_almacen, stock_minimo,
       prioridad, unidad_medida, imagen_url,
       vender_por_fraccion, medida_venta, cantidad_total_unidad,
       cantidad_minima_venta, precio_por_unidad_medida,
-      producto_proveedores ( id, proveedor_id, precio_costo, referencia_proveedor, notas )
-    `)
+producto_proveedores ( id, proveedor_id, precio_costo, referencia_proveedor, notas, es_costo_base_manual )    `)
     .eq('id', id)
     .single()
 
@@ -71,6 +71,7 @@ export default async function EditarProductoPage({
           isSheet={false}
           rol={(profile?.rol as 'empleado' | 'administrador') ?? 'empleado'}
           rutaVolver={rutaVolver}
+          forzarActivacion={forzarActivacion}
         />
       </div>
     </div>

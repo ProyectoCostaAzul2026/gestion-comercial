@@ -6,14 +6,14 @@ import { useState, useEffect } from 'react'
 import {
   Home, Package, Users, ShoppingCart, Wallet, Truck, UserCog,
   BarChart3, LogOut, Settings, Calendar, DollarSign, BookOpen,
-  Zap, Menu, X, ChevronRight,
+  Zap, Menu, X, ChevronRight, HelpCircle,
 } from 'lucide-react'
 import { navItems } from '@/lib/permissions'
 import { createClient } from '@/lib/supabase/client'
 
 const iconMap: Record<string, React.ElementType> = {
   Home, Package, Users, ShoppingCart, Wallet, Truck, UserCog,
-  BarChart3, Settings, Calendar, DollarSign, BookOpen,
+  BarChart3, Settings, Calendar, DollarSign, BookOpen, HelpCircle,
 }
 
 export default function NavigationShell({

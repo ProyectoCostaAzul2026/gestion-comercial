@@ -1107,6 +1107,7 @@ export type Database = {
       producto_proveedores: {
         Row: {
           created_at: string
+          es_costo_base_manual: boolean
           es_proveedor_principal: boolean
           id: string
           notas: string | null
@@ -1117,6 +1118,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          es_costo_base_manual?: boolean
           es_proveedor_principal?: boolean
           id?: string
           notas?: string | null
@@ -1127,6 +1129,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          es_costo_base_manual?: boolean
           es_proveedor_principal?: boolean
           id?: string
           notas?: string | null

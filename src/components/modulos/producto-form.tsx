@@ -76,6 +76,8 @@ interface Proveedor {
 export interface ProductoExistente {
   id: string
   precio_costo_base: number
+  activo: boolean
+  familia_id: string | null
   nombre: string
   descripcion: string | null
   codigo: string | null
@@ -117,6 +119,7 @@ interface ProductoFormProps {
   isSheet?: boolean
   margenDefault?: number
   rutaVolver?: string
+  forzarActivacion?: boolean
 }
 
 export function parseUnidadMedida(value: string | null): { medida: string; unidad: string } {
@@ -213,7 +216,7 @@ export function generarSKU(nombre: string, categoria: string, marca: string, med
   return `${pNombre}-${pCat}-${pMarca}-${pMedida}${pUnidad}`
 }
 
-export function ProductoForm({ categorias, proveedores, unidades, empleadoId, rol, producto, onSuccess, isSheet, margenDefault = 40, rutaVolver = '/dashboard/inventario' }: ProductoFormProps) {
+export function ProductoForm({ categorias, proveedores, unidades, empleadoId, rol, producto, onSuccess, isSheet, margenDefault = 40, rutaVolver = '/dashboard/inventario', forzarActivacion = false }: ProductoFormProps) {
   const esEdicion = !!producto
   const supabase = createClient()
   const router = useRouter()
@@ -416,9 +419,14 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
       }
 
       if (esEdicion) {
+        // Un producto de familia que aún no se ha activado, se activa solo al editarlo por primera vez.
+        // (Un producto normal que un admin desactivó a propósito NO se reactiva solo con esto.)
+        // También se fuerza la activación si se llegó aquí desde "Activar producto" en Desactivados,
+        // sin importar si el producto pertenece o no a una familia.
+        const activarAlEditar = forzarActivacion || (producto.familia_id && !producto.activo) ? { activo: true } : {}
         const { error: updateError } = await supabase
           .from('productos')
-          .update(datosProducto)
+          .update({ ...datosProducto, ...activarAlEditar })
           .eq('id', producto.id)
         if (updateError) throw updateError
 

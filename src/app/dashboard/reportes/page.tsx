@@ -195,24 +195,31 @@ export default async function ReportesPage({
   const graficaMedios = Object.entries(mediosPeriodoStats)
     .map(([metodo, { total }]) => ({ metodo, total }))
 
-  // ── Ventas por hora ──
+ // ── Ventas por hora ──
   const ventasPorHora: Record<number, number> = {}
+  const ticketsPorHora: Record<number, number> = {}
   for (const v of ventas ?? []) {
     const hora = parseInt((v as any).hora?.slice(0, 2) ?? '0')
     ventasPorHora[hora] = (ventasPorHora[hora] ?? 0) + Number((v as any).total)
+    ticketsPorHora[hora] = (ticketsPorHora[hora] ?? 0) + 1
   }
   const graficaHoras = Array.from({ length: 13 }, (_, i) => i + 8).map(h => ({
     hora: `${h}:00`,
     total: ventasPorHora[h] ?? 0,
+    tickets: ticketsPorHora[h] ?? 0,
+    valorPorTicket: (ticketsPorHora[h] ?? 0) > 0 ? (ventasPorHora[h] ?? 0) / (ticketsPorHora[h] ?? 0) : 0,
   }))
 
   // ── Ventas promedio por día de la semana (lunes a domingo) ──
   const DIAS_SEMANA = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
   const totalPorDiaSemana = [0, 0, 0, 0, 0, 0, 0]
+  const ticketsPorDiaSemana = [0, 0, 0, 0, 0, 0, 0]
   for (const v of ventas ?? []) {
     const fecha = (v as any).fecha as string
     const d = new Date(fecha + 'T00:00:00')
-    totalPorDiaSemana[(d.getDay() + 6) % 7] += Number((v as any).total)
+    const idx = (d.getDay() + 6) % 7
+    totalPorDiaSemana[idx] += Number((v as any).total)
+    ticketsPorDiaSemana[idx] += 1
   }
   const conteoPorDiaSemana = [0, 0, 0, 0, 0, 0, 0]
   {
@@ -226,6 +233,8 @@ export default async function ReportesPage({
   const graficaDiasSemana = DIAS_SEMANA.map((dia, i) => ({
     dia,
     promedio: conteoPorDiaSemana[i] > 0 ? totalPorDiaSemana[i] / conteoPorDiaSemana[i] : 0,
+    ticketsPromedio: conteoPorDiaSemana[i] > 0 ? ticketsPorDiaSemana[i] / conteoPorDiaSemana[i] : 0,
+    valorPorTicket: ticketsPorDiaSemana[i] > 0 ? totalPorDiaSemana[i] / ticketsPorDiaSemana[i] : 0,
   }))
 
   // ── Ventas por empleado ──
