@@ -206,7 +206,11 @@ function estadoInicial(producto?: ProductoExistente, margenDefault = 40): Produc
 
 export function generarSKU(nombre: string, categoria: string, marca: string, medida: string, unidad: string): string {
   const tomar3 = (s: string) => s.trim().replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 3)
-  const pNombre = tomar3(nombre)
+  // Si el nombre viene de una Familia de productos ("Base — Característica"), se toman 3 letras
+  // de CADA parte para que la Característica también distinga el código — si no, dos características
+  // distintas con la misma marca y medida generan el mismo código y chocan al guardar.
+  const partes = nombre.split(' — ')
+  const pNombre = partes.length > 1 ? tomar3(partes[0]) + tomar3(partes[1]) : tomar3(partes[0])
   const pCat = tomar3(categoria)
   const pMarca = tomar3(marca)
   if (!pNombre || !pCat || !pMarca) return ''

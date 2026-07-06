@@ -502,6 +502,8 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
     } catch (err: any) {
       if (err.code === '23505' && err.message?.includes('idx_productos_unicos_nombre_marca_medida')) {
         toast.error('Ya existe un producto activo con ese mismo Nombre + Marca + Medida.')
+      } else if (err.code === '23505' && err.message?.includes('productos_codigo_key')) {
+        toast.error('El código generado ya existe en otro producto (activo o inactivo). Puede quedar algún producto a medio crear de este intento — revisa la lista de miembros antes de reintentar.')
       } else {
         toast.error('Error al guardar la familia: ' + err.message)
       }
