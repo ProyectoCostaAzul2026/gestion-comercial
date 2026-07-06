@@ -62,7 +62,10 @@ export interface Miembro {
 
 interface MarcaFila {
   key: string
-  productoId: string | null
+  // Antes se guardaba un solo productoId por marca. Ahora se guarda uno por cada valor de medida
+  // (ej: {"1/2x1/2x40": "id-1", "1/2x1/2x60": "id-2"}), porque una sola fila de Marca puede
+  // representar varios productos ya existentes cuando la Medida combina varios valores con ";".
+  productoIdsPorMedida: Record<string, string>
   marca: string
 }
 
@@ -102,22 +105,38 @@ function construirArbolDesdeMiembros(miembros: Miembro[]): CaracteristicaFila[] 
 
   const resultado: CaracteristicaFila[] = []
   for (const [car, lista] of porCaracteristica) {
-    const porMedida = new Map<string, Miembro[]>()
+    // Se agrupa solo por UNIDAD (no por el texto completo de medida), para poder combinar
+    // varias medidas del mismo tipo en un solo campo separado por ";", tal como se escribieron.
+    const porUnidad = new Map<string, { medida: string; marca: string; id: string }[]>()
     for (const m of lista) {
-      const clave = m.unidad_medida ?? ''
-      if (!porMedida.has(clave)) porMedida.set(clave, [])
-      porMedida.get(clave)!.push(m)
+      const { medida, unidad } = parseUnidadMedida(m.unidad_medida)
+      if (!porUnidad.has(unidad)) porUnidad.set(unidad, [])
+      porUnidad.get(unidad)!.push({ medida, marca: m.marca ?? '', id: m.id })
     }
+
     const medidas: MedidaFila[] = []
-    for (const listaMedida of porMedida.values()) {
-      const { medida, unidad } = parseUnidadMedida(listaMedida[0].unidad_medida)
-      medidas.push({
-        key: crypto.randomUUID(),
-        medida,
-        unidad,
-        marcas: listaMedida.map(m => ({ key: crypto.randomUUID(), productoId: m.id, marca: m.marca ?? '' })),
+    for (const [unidad, entradas] of porUnidad) {
+      const medidasUnicas: string[] = []
+      for (const e of entradas) {
+        if (!medidasUnicas.includes(e.medida)) medidasUnicas.push(e.medida)
+      }
+
+      const marcasUnicas: string[] = []
+      for (const e of entradas) {
+        if (!marcasUnicas.includes(e.marca)) marcasUnicas.push(e.marca)
+      }
+
+      const marcas: MarcaFila[] = marcasUnicas.map(marcaTexto => {
+        const productoIdsPorMedida: Record<string, string> = {}
+        for (const e of entradas) {
+          if (e.marca === marcaTexto) productoIdsPorMedida[e.medida] = e.id
+        }
+        return { key: crypto.randomUUID(), marca: marcaTexto, productoIdsPorMedida }
       })
+
+      medidas.push({ key: crypto.randomUUID(), medida: medidasUnicas.join(';'), unidad, marcas })
     }
+
     resultado.push({ key: crypto.randomUUID(), texto: car, medidas })
   }
   return resultado
@@ -210,6 +229,9 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
 
     setAplicandoDatos(true)
     try {
+      // Misma razón que al guardar el árbol: puede hacer varias llamadas seguidas si se seleccionan varios productos.
+      await supabase.auth.refreshSession()
+
       const ids = Array.from(seleccionados)
 
       if (Object.keys(payload).length > 0) {
@@ -273,6 +295,29 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
     setArbol(prev => prev.map(c => c.key === carKey ? { ...c, texto } : c))
   }
 
+  // Atajo: si al salir del campo la Característica quedó con varias separadas por ";" (ej: "Lavaplatos;Sanitario"),
+  // y esa característica todavía no tiene ninguna medida cargada (para no perder datos ya ingresados),
+  // se reemplaza por una rama independiente por cada una, cada una con un campo de Medida vacío listo para llenar.
+  const expandirCaracteristicaSiAplica = (carKey: string) => {
+    setArbol(prev => {
+      const idx = prev.findIndex(c => c.key === carKey)
+      if (idx === -1) return prev
+      const car = prev[idx]
+      const partes = car.texto.split(';').map(s => s.trim()).filter(Boolean)
+      if (partes.length <= 1 || car.medidas.length > 0) return prev
+
+      const nuevas: CaracteristicaFila[] = partes.map(texto => ({
+        key: crypto.randomUUID(),
+        texto,
+        medidas: [{ key: crypto.randomUUID(), medida: '', unidad: '', marcas: [] }],
+      }))
+
+      const nuevoArbol = [...prev]
+      nuevoArbol.splice(idx, 1, ...nuevas)
+      return nuevoArbol
+    })
+  }
+
   const agregarMedida = (carKey: string) => {
     setArbol(prev => prev.map(c => c.key === carKey
       ? { ...c, medidas: [...c.medidas, { key: crypto.randomUUID(), medida: '', unidad: '', marcas: [] }] }
@@ -297,7 +342,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
 
   const agregarMarca = (carKey: string, medKey: string) => {
     setArbol(prev => prev.map(c => c.key === carKey
-      ? { ...c, medidas: c.medidas.map(m => m.key === medKey ? { ...m, marcas: [...m.marcas, { key: crypto.randomUUID(), productoId: null, marca: '' }] } : m) }
+      ? { ...c, medidas: c.medidas.map(m => m.key === medKey ? { ...m, marcas: [...m.marcas, { key: crypto.randomUUID(), productoIdsPorMedida: {}, marca: '' }] } : m) }
       : c))
   }
   const quitarMarca = (carKey: string, medKey: string, marKey: string) => {
@@ -360,21 +405,31 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
         }
         // Varias medidas separadas por ";" (ej: "Corto;Mediano;Grande") generan un producto por cada una.
         const subMedidas = medidaTexto.split(';').map(s => s.trim()).filter(Boolean)
-        subMedidas.forEach((subMedida, subIdx) => {
-          const marcas = med.marcas.length > 0 ? med.marcas : [{ key: '', productoId: null, marca: '' }]
+        const marcas = med.marcas.length > 0 ? med.marcas : [{ key: '', productoIdsPorMedida: {}, marca: '' }]
+
+        for (const subMedida of subMedidas) {
           for (const mar of marcas) {
-            hojas.push({
-              caracteristica: car.texto.trim(),
-              medida: subMedida,
-              unidad: med.unidad,
-              marca: mar.marca.trim() || MARCA_GENERICA,
-              // Si hay varias medidas en el mismo campo, solo la primera actualiza el producto ya existente;
-              // las demás siempre crean productos nuevos (para no pisar el mismo producto dos veces).
-              productoId: subIdx === 0 ? mar.productoId : null,
-              medKeyOrigen: med.key,
-            })
+            // Una marca también puede traer varias separadas por ";" (ej: "Grival;Plastgrifos").
+            // Si el campo queda vacío, se guarda como "Generica" (igual que antes).
+            const subMarcas = mar.marca.trim()
+              ? mar.marca.split(';').map(s => s.trim()).filter(Boolean)
+              : [MARCA_GENERICA]
+
+            for (const subMarca of subMarcas) {
+              hojas.push({
+                caracteristica: car.texto.trim(),
+                medida: subMedida,
+                unidad: med.unidad,
+                marca: subMarca || MARCA_GENERICA,
+                // Cada combinación de medida+marca busca su propio producto ya existente (si lo hay).
+                // Esto permite que una fila combine varias medidas y varias marcas a la vez, sin perder
+                // el vínculo con los productos que ya existían en cada posición.
+                productoId: mar.productoIdsPorMedida?.[subMedida] ?? null,
+                medKeyOrigen: med.key,
+              })
+            }
           }
-        })
+        }
       }
     }
 
@@ -401,6 +456,10 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
 
     setGuardando(true)
     try {
+      // Esta operación hace varias llamadas seguidas (crear familia, actualizar el padre, crear cada producto).
+      // Se renueva la sesión antes de empezar para que no falle a la mitad por un token a punto de vencer.
+      await supabase.auth.refreshSession()
+
       const esPrimeraCreacion = !producto.familia_id
       let familiaId = producto.familia_id
 
@@ -522,6 +581,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
           {mostrarAyuda ? 'Ocultar instrucciones' : '¿Cómo funciona "Añadir Miembro"?'}
         </button>
       </div>
+
       {mostrarAyuda && temaAyuda && (
         <div className="space-y-4 rounded-2xl border border-brand-blue/30 bg-brand-blue/5 p-4">
           <h3 className="font-display font-bold text-white">{temaAyuda.titulo}</h3>
@@ -542,6 +602,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
           ))}
         </div>
       )}
+
       {/* Encabezado — datos compartidos de la familia, no editables aquí */}
       <div className="space-y-3 text-center">
         {producto.imagen_url ? (
@@ -645,7 +706,8 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
           <div className="space-y-4 border-t border-white/10 pt-4">
             <div className="space-y-1">
               <Label className={LABEL_CLS}>Categoría</Label>
-<Select value={datosCompartidos.categoria_id} onValueChange={v => v && setDatosCompartidos(prev => ({ ...prev, categoria_id: v }))}>                <SelectTrigger className="w-full border-white/10 bg-[#1a2430] text-white">
+              <Select value={datosCompartidos.categoria_id} onValueChange={v => v && setDatosCompartidos(prev => ({ ...prev, categoria_id: v }))}>
+                <SelectTrigger className="w-full border-white/10 bg-[#1a2430] text-white">
                   <SelectValue placeholder="Sin cambiar" />
                 </SelectTrigger>
                 <SelectContent>
@@ -668,7 +730,8 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
 
             <div className="space-y-1">
               <Label className={LABEL_CLS}>IVA incluido en el precio</Label>
-<Select value={datosCompartidos.ivaIncluido} onValueChange={v => v && setDatosCompartidos(prev => ({ ...prev, ivaIncluido: v as any }))}>                <SelectTrigger className="w-full border-white/10 bg-[#1a2430] text-white">
+              <Select value={datosCompartidos.ivaIncluido} onValueChange={v => v && setDatosCompartidos(prev => ({ ...prev, ivaIncluido: v as any }))}>
+                <SelectTrigger className="w-full border-white/10 bg-[#1a2430] text-white">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -681,7 +744,8 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
 
             <div className="space-y-1">
               <Label className={LABEL_CLS}>Vender por fracción</Label>
-<Select value={datosCompartidos.venderPorFraccion} onValueChange={v => v && setDatosCompartidos(prev => ({ ...prev, venderPorFraccion: v as any }))}>                <SelectTrigger className="w-full border-white/10 bg-[#1a2430] text-white">
+              <Select value={datosCompartidos.venderPorFraccion} onValueChange={v => v && setDatosCompartidos(prev => ({ ...prev, venderPorFraccion: v as any }))}>
+                <SelectTrigger className="w-full border-white/10 bg-[#1a2430] text-white">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -718,7 +782,8 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
               {proveedoresAAsignar.map(p => (
                 <div key={p.key} className="flex items-end gap-2 rounded-lg border border-white/10 bg-[#1a2430] p-2">
                   <div className="flex-1 space-y-1">
-<Select value={p.proveedor_id} onValueChange={v => v && actualizarProveedorAAsignar(p.key, 'proveedor_id', v)}>                      <SelectTrigger className="w-full border-white/10 bg-[#111820] text-white">
+                    <Select value={p.proveedor_id} onValueChange={v => v && actualizarProveedorAAsignar(p.key, 'proveedor_id', v)}>
+                      <SelectTrigger className="w-full border-white/10 bg-[#111820] text-white">
                         <SelectValue placeholder="Selecciona proveedor…" />
                       </SelectTrigger>
                       <SelectContent>
@@ -767,8 +832,9 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
               <div className="flex items-end gap-2">
                 <div className="flex-1 space-y-1">
                   <Label className={LABEL_CLS}>Característica</Label>
-                  <Input className={INPUT_CLS} placeholder="Ej: CPVC" value={car.texto}
-                    onChange={e => actualizarCaracteristica(car.key, e.target.value)} />
+                  <Input className={INPUT_CLS} placeholder="Ej: CPVC (o varias separadas por ; para crear una rama por cada una)" value={car.texto}
+                    onChange={e => actualizarCaracteristica(car.key, e.target.value)}
+                    onBlur={() => expandirCaracteristicaSiAplica(car.key)} />
                 </div>
                 <Button type="button" variant="outline" size="sm"
                   className="border-brand-blue/60 bg-transparent font-semibold text-brand-blue hover:bg-brand-blue/10"
@@ -816,7 +882,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
                     <div key={mar.key} className="ml-4 flex items-end gap-2">
                       <div className="flex-1 space-y-1">
                         <Label className={LABEL_CLS}>Marca</Label>
-                        <Input className={INPUT_CLS} placeholder="Generica" value={mar.marca}
+                        <Input className={INPUT_CLS} placeholder="Generica (o varias separadas por ;)" value={mar.marca}
                           onChange={e => actualizarMarca(car.key, med.key, mar.key, e.target.value)} />
                       </div>
                       <Button type="button" variant="ghost" size="icon-sm" className="text-steel-300 hover:text-brand-red"
