@@ -34,6 +34,7 @@ interface ProveedorForm {
   precio_costo: number
   referencia_proveedor: string
   notas: string
+  esCostoBaseManual: boolean
 }
 
 interface ProductoFormState {
@@ -105,6 +106,7 @@ export interface ProductoExistente {
     precio_costo: number
     referencia_proveedor: string | null
     notas: string | null
+    es_costo_base_manual: boolean
   }[]
 }
 
@@ -132,8 +134,10 @@ export function parseUnidadMedida(value: string | null): { medida: string; unida
   return { medida: texto.slice(0, idx), unidad: texto.slice(idx + 1) }
 }
 
-function estadoInicial(producto?: ProductoExistente, margenDefault = 40): ProductoFormState {
+function estadoInicial(producto: ProductoExistente | undefined, margenDefault = 40, proveedoresDisponibles: Proveedor[] = []): ProductoFormState {
   if (!producto) {
+    // Si solo hay un proveedor cargado en el sistema, se preselecciona para agilizar la creación rápida.
+    const proveedorPorDefecto = proveedoresDisponibles.length === 1 ? proveedoresDisponibles[0].id : ''
     return {
       nombre: '',
       descripcion: '',
@@ -158,7 +162,7 @@ function estadoInicial(producto?: ProductoExistente, margenDefault = 40): Produc
       cantidad_total_unidad: 0,
       cantidad_minima_venta: 0,
       precio_por_unidad_medida: 0,
-      proveedores: [{ proveedor_id: '', precio_costo: 0, referencia_proveedor: '', notas: '' }],
+      proveedores: [{ proveedor_id: proveedorPorDefecto, precio_costo: 0, referencia_proveedor: '', notas: '', esCostoBaseManual: false }],
     }
   }
   const { medida, unidad } = parseUnidadMedida(producto.unidad_medida)
@@ -199,8 +203,9 @@ function estadoInicial(producto?: ProductoExistente, margenDefault = 40): Produc
           precio_costo: p.precio_costo,
           referencia_proveedor: p.referencia_proveedor ?? '',
           notas: p.notas ?? '',
+          esCostoBaseManual: p.es_costo_base_manual,
         }))
-      : [{ proveedor_id: '', precio_costo: producto.precio_costo_base ?? 0, referencia_proveedor: '', notas: '' }],
+      : [{ proveedor_id: '', precio_costo: producto.precio_costo_base ?? 0, referencia_proveedor: '', notas: '', esCostoBaseManual: false }],
   }
 }
 
@@ -238,7 +243,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDesactivando, setIsDesactivando] = useState(false)
-  const [form, setForm] = useState<ProductoFormState>(estadoInicial(producto, margenDefault))
+  const [form, setForm] = useState<ProductoFormState>(estadoInicial(producto, margenDefault, proveedores))
   const [proveedoresEliminados, setProveedoresEliminados] = useState<string[]>([])
   const [moverCantidad, setMoverCantidad] = useState(0)
   const [moverDireccion, setMoverDireccion] = useState<'bodega_a_almacen' | 'almacen_a_bodega'>('bodega_a_almacen')
@@ -269,10 +274,17 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
     })
   }
 
+  const handleSeleccionarCostoBase = (index: number) => {
+    setForm((prev) => ({
+      ...prev,
+      proveedores: prev.proveedores.map((p, i) => ({ ...p, esCostoBaseManual: i === index })),
+    }))
+  }
+
   const addProveedor = () => {
     setForm((prev) => ({
       ...prev,
-      proveedores: [...prev.proveedores, { proveedor_id: '', precio_costo: 0, referencia_proveedor: '', notas: '' }],
+      proveedores: [...prev.proveedores, { proveedor_id: '', precio_costo: 0, referencia_proveedor: '', notas: '', esCostoBaseManual: false }],
     }))
   }
 
@@ -373,7 +385,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
     }
     if (form.proveedores.length === 0) newErrors.proveedores = 'Debes agregar al menos un proveedor'
     form.proveedores.forEach((p, i) => {
-      if (form.proveedores.length > 1 && !p.proveedor_id) newErrors[`proveedor_${i}`] = 'Selecciona un proveedor'
+      if (!p.proveedor_id) newErrors[`proveedor_${i}`] = 'Selecciona un proveedor'
       if (p.precio_costo <= 0) newErrors[`precio_${i}`] = 'El precio debe ser mayor a 0'
     })
     setErrors(newErrors)
@@ -442,6 +454,13 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
           if (delError) throw delError
         }
 
+        // Se limpia cualquier marca de "costo base manual" anterior antes de re-guardar,
+        // para no chocar con la regla de "solo uno puede estar marcado" mientras se actualiza fila por fila.
+        await supabase
+          .from('producto_proveedores')
+          .update({ es_costo_base_manual: false })
+          .eq('producto_id', producto.id)
+
         const aActualizar = form.proveedores.filter((p): p is ProveedorForm & { id: string } => !!p.id)
         const aInsertar = form.proveedores.filter((p) => !p.id)
 
@@ -453,6 +472,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
               precio_costo: p.precio_costo,
               referencia_proveedor: p.referencia_proveedor || null,
               notas: p.notas || null,
+              es_costo_base_manual: p.esCostoBaseManual,
             })
             .eq('id', p.id)
           if (upError) throw upError
@@ -466,6 +486,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
               precio_costo: p.precio_costo,
               referencia_proveedor: p.referencia_proveedor || null,
               notas: p.notas || null,
+              es_costo_base_manual: p.esCostoBaseManual,
             }))
           )
           if (insError) throw insError
@@ -489,6 +510,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
           precio_costo: p.precio_costo,
           referencia_proveedor: p.referencia_proveedor || null,
           notas: p.notas || null,
+          es_costo_base_manual: p.esCostoBaseManual,
         }))
         const { error: proveedoresError } = await supabase
           .from('producto_proveedores')
@@ -768,6 +790,17 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
                 </Button>
               )}
             </div>
+            {form.proveedores.length > 1 && (
+              <label className="flex cursor-pointer items-center gap-2 md:col-span-12">
+                <input
+                  type="checkbox"
+                  checked={proveedor.esCostoBaseManual}
+                  onChange={() => handleSeleccionarCostoBase(index)}
+                  className="size-4 rounded border-white/20 accent-brand-yellow"
+                />
+                <span className="text-xs text-steel-300">Usar el precio de este proveedor como costo base (en vez del más bajo automático)</span>
+              </label>
+            )}
           </div>
         ))}
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
