@@ -18,11 +18,18 @@ export default async function DashboardPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('id, nombre_completo, rol, telefono, salario_base, activo, foto_url, email')
     .eq('id', user.id)
     .single()
+
+  if (profileError || !profile) {
+    // El usuario está autenticado pero no tiene un perfil válido en la base de datos
+    // (por ejemplo, una invitación de empleado que no terminó de crear su registro).
+    // Se cierra la sesión y se manda a login con un aviso, en vez de intentar renderizar con datos incompletos.
+    redirect('/login?error=perfil_no_encontrado')
+  }
 
   const esAdmin = (profile as any)?.rol === 'administrador'
   const hoy = new Date().toISOString().slice(0, 10)

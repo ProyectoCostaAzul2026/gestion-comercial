@@ -36,6 +36,13 @@ interface Props {
 }
 
 export function DashboardAdmin({ profile, config, fechaHoy, kpisHoy, ultimasVentas, alertas }: Props) {
+  if (!profile) {
+    return (
+      <div className="rounded-2xl border border-white/10 bg-[#111820] p-6 text-center text-sm text-steel-300">
+        No se pudo cargar tu perfil. Por favor cierra sesión y vuelve a entrar.
+      </div>
+    )
+  }
   const nominaAlDia = kpisHoy.nominasPagadas >= kpisHoy.empleadosActivos
   const totalAlertas = alertas.productosAgotados.length + alertas.facturasPendientes.length + alertas.pagosProgramados.length
   const esAdmin = profile.rol === 'administrador'

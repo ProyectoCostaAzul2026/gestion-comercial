@@ -19,6 +19,12 @@ export default function LoginPage() {
   const router = useRouter()
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('error') === 'perfil_no_encontrado') {
+      setError('Tu cuenta no tiene un perfil configurado todavía. Pídele a un administrador que revise tu usuario, o intenta iniciar sesión de nuevo en unos minutos.')
+    }
+  }, [])
+
+  useEffect(() => {
     const supabase = createClient()
     supabase
       .from('configuracion_negocio')

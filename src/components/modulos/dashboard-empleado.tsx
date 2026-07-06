@@ -32,6 +32,13 @@ interface Props {
 }
 
 export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, turnos, kpis, filtros }: Props) {
+  if (!profile) {
+    return (
+      <div className="rounded-2xl border border-white/10 bg-[#111820] p-6 text-center text-sm text-steel-300">
+        No se pudo cargar tu perfil. Por favor cierra sesión y vuelve a entrar.
+      </div>
+    )
+  }
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
