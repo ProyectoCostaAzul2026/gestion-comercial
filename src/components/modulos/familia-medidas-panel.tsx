@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
-import { parseUnidadMedida, generarSKU, INPUT_CLS, LABEL_CLS } from './producto-form'
+import { parseUnidadMedida, generarSKU, SEPARADOR_FAMILIA, INPUT_CLS, LABEL_CLS } from './producto-form'
 import { TEMAS_AYUDA } from '@/lib/temas-ayuda'
 
 interface Proveedor {
@@ -229,9 +229,6 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
 
     setAplicandoDatos(true)
     try {
-      // Misma razón que al guardar el árbol: puede hacer varias llamadas seguidas si se seleccionan varios productos.
-      await supabase.auth.refreshSession()
-
       const ids = Array.from(seleccionados)
 
       if (Object.keys(payload).length > 0) {
@@ -240,26 +237,19 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
       }
 
       if (proveedoresValidos.length > 0) {
-        for (const productoId of ids) {
-          const { data: existentes } = await supabase
-            .from('producto_proveedores')
-            .select('proveedor_id')
-            .eq('producto_id', productoId)
-          const yaVinculados = new Set((existentes ?? []).map(e => e.proveedor_id))
-          const nuevos = proveedoresValidos
-            .filter(p => !yaVinculados.has(p.proveedor_id))
-            .map(p => ({
-              producto_id: productoId,
-              proveedor_id: p.proveedor_id,
-              precio_costo: 0,
-              referencia_proveedor: p.codigo.trim() || null,
-              notas: null,
-            }))
-          if (nuevos.length > 0) {
-            const { error } = await supabase.from('producto_proveedores').insert(nuevos)
-            if (error) throw error
-          }
-        }
+        // Una sola llamada para todos los productos: los vínculos producto-proveedor que ya existen
+        // se dejan como están (ignoreDuplicates) y solo se crean los que faltan.
+        const vinculos = ids.flatMap(productoId => proveedoresValidos.map(p => ({
+          producto_id: productoId,
+          proveedor_id: p.proveedor_id,
+          precio_costo: 0,
+          referencia_proveedor: p.codigo.trim() || null,
+          notas: null,
+        })))
+        const { error } = await supabase
+          .from('producto_proveedores')
+          .upsert(vinculos, { onConflict: 'producto_id,proveedor_id', ignoreDuplicates: true })
+        if (error) throw error
       }
 
       toast.success(`Datos aplicados a ${ids.length} producto(s). Esto no los activa — sigue siendo necesario "Editar producto" para eso.`)
@@ -456,103 +446,72 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
 
     setGuardando(true)
     try {
-      // Esta operación hace varias llamadas seguidas (crear familia, actualizar el padre, crear cada producto).
-      // Se renueva la sesión antes de empezar para que no falle a la mitad por un token a punto de vencer.
-      await supabase.auth.refreshSession()
-
       const esPrimeraCreacion = !producto.familia_id
-      let familiaId = producto.familia_id
 
-      if (esPrimeraCreacion) {
-        const { data: nuevaFamilia, error: famError } = await supabase
-          .from('producto_familias')
-          .insert({ nombre_base: nombreBase })
-          .select('id')
-          .single()
-        if (famError) throw famError
-        familiaId = nuevaFamilia.id
-      }
-
+      // Cada hoja del árbol se traduce en una operación y todas se aplican en una sola transacción
+      // (función guardar_familia): si una falla, no queda ningún producto a medio crear.
+      type DatosHoja = { nombre: string; marca: string; caracteristica: string; unidad_medida: string }
+      type Operacion =
+        | ({ tipo: 'actualizar' | 'padre'; id: string } & DatosHoja)
+        | ({ tipo: 'insertar'; codigo: string | null } & DatosHoja)
+      const operaciones: Operacion[] = []
       const idsGuardados = new Set<string>()
       let padreAsignado = !esPrimeraCreacion
 
       for (const hoja of hojas) {
-        const nombreFinal = `${nombreBase} — ${hoja.caracteristica}`
-        const unidadMedidaFinal = `${hoja.medida} ${hoja.unidad}`.trim()
+        const nombreFinal = `${nombreBase}${SEPARADOR_FAMILIA}${hoja.caracteristica}`
+        const datosHoja: DatosHoja = {
+          nombre: nombreFinal,
+          marca: hoja.marca,
+          caracteristica: hoja.caracteristica,
+          unidad_medida: `${hoja.medida} ${hoja.unidad}`.trim(),
+        }
 
         if (hoja.productoId) {
-          const { error } = await supabase
-            .from('productos')
-            .update({ nombre: nombreFinal, unidad_medida: unidadMedidaFinal, marca: hoja.marca, caracteristica: hoja.caracteristica })
-            .eq('id', hoja.productoId)
-          if (error) throw error
+          operaciones.push({ tipo: 'actualizar', id: hoja.productoId, ...datosHoja })
           idsGuardados.add(hoja.productoId)
         } else if (!padreAsignado) {
           // Esta hoja ocupa el lugar del producto padre (primera combinación de la familia)
-          const { error } = await supabase
-            .from('productos')
-            .update({ nombre: nombreFinal, unidad_medida: unidadMedidaFinal, marca: hoja.marca, caracteristica: hoja.caracteristica, familia_id: familiaId })
-            .eq('id', producto.id)
-          if (error) throw error
+          operaciones.push({ tipo: 'padre', id: producto.id, ...datosHoja })
           idsGuardados.add(producto.id)
           padreAsignado = true
         } else {
           const codigo = generarSKU(nombreFinal, producto.categoriaNombre ?? '', hoja.marca, hoja.medida, hoja.unidad) || null
-          const { data: nuevo, error: prodError } = await supabase
-            .from('productos')
-            .insert({
-              nombre: nombreFinal,
-              descripcion: producto.descripcion,
-              codigo,
-              categoria_id: producto.categoria_id,
-              marca: hoja.marca,
-              caracteristica: hoja.caracteristica,
-              ubicacion: producto.ubicacion,
-              precio_venta: producto.precio_venta,
-              tiene_iva: producto.tiene_iva,
-              iva_incluido: producto.iva_incluido,
-              porcentaje_iva: producto.porcentaje_iva,
-              stock_bodega: 0,
-              stock_almacen: 0,
-              stock_minimo: producto.stock_minimo,
-              prioridad: producto.prioridad,
-              unidad_medida: unidadMedidaFinal,
-              imagen_url: producto.imagen_url,
-              vender_por_fraccion: producto.vender_por_fraccion,
-              medida_venta: producto.vender_por_fraccion ? producto.medida_venta : null,
-              cantidad_total_unidad: producto.vender_por_fraccion ? producto.cantidad_total_unidad : null,
-              cantidad_minima_venta: producto.vender_por_fraccion ? producto.cantidad_minima_venta : null,
-              precio_por_unidad_medida: producto.vender_por_fraccion ? producto.precio_por_unidad_medida : null,
-              familia_id: familiaId,
-              activo: false,
-            })
-            .select('id')
-            .single()
-          if (prodError) throw prodError
-
-          if (producto.proveedores.length > 0) {
-            const proveedoresInsert = producto.proveedores.map(p => ({
-              producto_id: nuevo.id,
-              proveedor_id: p.proveedor_id,
-              precio_costo: 0,
-              referencia_proveedor: null,
-              notas: null,
-            }))
-            const { error: provError } = await supabase.from('producto_proveedores').insert(proveedoresInsert)
-            if (provError) throw provError
-          }
-          idsGuardados.add(nuevo.id)
+          operaciones.push({ tipo: 'insertar', codigo, ...datosHoja })
         }
       }
 
       // Los miembros que ya no aparecen en el árbol quedan desactivados
-      if (!esPrimeraCreacion) {
-        for (const m of miembros) {
-          if (!idsGuardados.has(m.id)) {
-            await supabase.from('productos').update({ activo: false }).eq('id', m.id)
-          }
-        }
+      const desactivar = esPrimeraCreacion ? [] : miembros.filter(m => !idsGuardados.has(m.id)).map(m => m.id)
+
+      // Datos que heredan los productos nuevos del producto de origen; sus proveedores quedan con costo $0.
+      const base = {
+        descripcion: producto.descripcion,
+        categoria_id: producto.categoria_id,
+        ubicacion: producto.ubicacion,
+        precio_venta: producto.precio_venta,
+        tiene_iva: producto.tiene_iva,
+        iva_incluido: producto.iva_incluido,
+        porcentaje_iva: producto.porcentaje_iva,
+        stock_minimo: producto.stock_minimo,
+        prioridad: producto.prioridad,
+        imagen_url: producto.imagen_url,
+        vender_por_fraccion: producto.vender_por_fraccion,
+        medida_venta: producto.vender_por_fraccion ? producto.medida_venta : null,
+        cantidad_total_unidad: producto.vender_por_fraccion ? producto.cantidad_total_unidad : null,
+        cantidad_minima_venta: producto.vender_por_fraccion ? producto.cantidad_minima_venta : null,
+        precio_por_unidad_medida: producto.vender_por_fraccion ? producto.precio_por_unidad_medida : null,
+        proveedores: producto.proveedores.map(p => p.proveedor_id),
       }
+
+      const { data: familiaId, error: rpcError } = await supabase.rpc('guardar_familia', {
+        p_familia_id: producto.familia_id ?? undefined,
+        p_nombre_base: nombreBase,
+        p_base: base,
+        p_operaciones: operaciones,
+        p_desactivar: desactivar,
+      })
+      if (rpcError) throw rpcError
 
       toast.success(esPrimeraCreacion ? `Familia creada: ${hojas.length} producto(s)` : 'Familia actualizada')
       cerrarArbol()
@@ -562,7 +521,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
       if (err.code === '23505' && err.message?.includes('idx_productos_unicos_nombre_marca_medida')) {
         toast.error('Ya existe un producto activo con ese mismo Nombre + Marca + Medida.')
       } else if (err.code === '23505' && err.message?.includes('productos_codigo_key')) {
-        toast.error('El código generado ya existe en otro producto (activo o inactivo). Puede quedar algún producto a medio crear de este intento — revisa la lista de miembros antes de reintentar.')
+        toast.error('El código generado ya existe en otro producto (activo o inactivo). No se guardó ningún cambio de este intento.')
       } else {
         toast.error('Error al guardar la familia: ' + err.message)
       }

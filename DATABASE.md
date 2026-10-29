@@ -1,7 +1,7 @@
 # DATABASE.md — Ferreléctricos Costa Azul
 > Documentación de la base de datos en Supabase (PostgreSQL)
 > Proyecto: `qmeegynucijohagywdcr`
-> Última actualización: 2026-06-29
+> Última actualización: 2026-10-29
 
 ---
 
@@ -105,10 +105,43 @@ Extiende `auth.users` de Supabase. Un registro por usuario autenticado.
 | cantidad_minima_venta | numeric | YES | — | |
 | precio_por_unidad_medida | numeric | YES | — | |
 | remanente_fraccion | numeric | NO | 0 | |
+| familia_id | uuid | YES | — | FK → producto_familias |
+| caracteristica | text | YES | — | Característica dentro de la familia (ej: "PVC Presion") |
+| created_at / updated_at | timestamptz | NO | now() | |
+
+**Convención de nombres:** `nombre = "<producto_familias.nombre_base> - <caracteristica>"` (guion corto con un espacio a
+cada lado) y `unidad_medida = "<medida> <Unidad>"` (la unidad es la última palabra y existe en `unidades_medida`).
+
+**Índice único parcial:** `idx_productos_unicos_nombre_marca_medida` — no puede haber dos productos **activos** con el mismo
+`lower(trim(nombre))` + marca + unidad_medida.
 
 **Triggers:**
 - `fn_sync_stock_actual` — actualiza `stock_actual = stock_bodega + stock_almacen`
-- `fn_actualizar_precio_costo_base` — actualiza `precio_costo_base` desde el menor precio de `producto_proveedores`
+- `fn_actualizar_precio_costo_base` — actualiza `precio_costo_base` con el costo del proveedor marcado `es_costo_base_manual` o, si no hay, el menor de `producto_proveedores`
+
+---
+
+### `producto_familias`
+Agrupa las variantes de un mismo producto (Característica + Medida + Marca).
+
+| Columna | Tipo | Nullable | Default |
+|---|---|---|---|
+| id | uuid | NO | gen_random_uuid() |
+| nombre_base | text | NO | — |
+| created_at | timestamptz | NO | now() |
+
+---
+
+### `unidades_medida`
+Catálogo de unidades que se ofrecen al crear productos y familias (se administra desde Configuración).
+
+| Columna | Tipo | Nullable | Default |
+|---|---|---|---|
+| id | uuid | NO | gen_random_uuid() |
+| nombre | varchar | NO | — | UNIQUE |
+| orden | int4 | NO | 0 |
+| activo | boolean | NO | true |
+| created_at | timestamptz | NO | now() |
 
 ---
 
@@ -124,9 +157,10 @@ Relación muchos-a-muchos entre productos y proveedores.
 | referencia_proveedor | varchar | YES | — | |
 | notas | text | YES | — | |
 | es_proveedor_principal | boolean | NO | false | |
+| es_costo_base_manual | boolean | NO | false | Si está marcado, su costo es el costo base del producto |
 | created_at | timestamptz | NO | now() | |
 
-**Índice único:** `(producto_id, proveedor_id)`
+**Índices únicos:** `(producto_id, proveedor_id)` y `idx_un_costo_base_manual_por_producto` (solo un costo base manual por producto)
 
 ---
 
@@ -660,6 +694,12 @@ servicios ─────────────────────── 
 | `buscar_productos(p_query)` | Búsqueda fuzzy con pg_trgm |
 | `mover_stock_bodega_almacen(p_producto_id, p_cantidad, p_direccion)` | Traslado entre bodega y almacén |
 | `calcular_rotacion_productos(...)` | KPIs de rotación por período |
+| `guardar_producto(p_datos, p_proveedores, p_producto_id?, p_activar?, p_proveedores_eliminados?, p_empleado_id?)` | Crea o edita un producto con sus proveedores (y el movimiento de stock inicial al crear) en una sola transacción. `SECURITY INVOKER`: aplica RLS del usuario |
+| `guardar_familia(p_nombre_base, p_base, p_operaciones, p_familia_id?, p_desactivar?)` | Guarda el árbol de una familia (actualizar / asignar padre / insertar miembros, desactivar los que salen) en una sola transacción. `SECURITY INVOKER` |
+
+> **Permisos de las RPC:** ninguna función de negocio se puede ejecutar sin sesión (se revocó `EXECUTE` a `public` y `anon`).
+> Al crear una RPC nueva: `revoke execute on function ... from public, anon;` y `grant execute ... to authenticated, service_role;`.
+> `is_admin()` sí queda ejecutable por todos porque las políticas RLS la evalúan.
 
 ### Clientes
 | Función | Descripción |
@@ -691,6 +731,7 @@ servicios ─────────────────────── 
 | `fn_sync_stock_actual()` | Trigger: sincroniza stock_actual |
 | `fn_actualizar_precio_costo_base()` | Trigger: actualiza precio_costo_base |
 | `update_updated_at_column()` | Trigger: actualiza updated_at |
+| `proteger_campos_sensibles_profiles()` | Trigger en `profiles`: solo un admin cambia `rol`, `salario_base` o `activo` |
 
 ---
 
@@ -713,6 +754,10 @@ servicios ─────────────────────── 
 | producto_proveedores | producto_proveedores_producto_id_proveedor_id_key | UNIQUE btree | producto_id, proveedor_id |
 | fondos_denominaciones | fondos_denominaciones_tipo_denominacion_key | UNIQUE btree | tipo, denominacion |
 | configuracion_negocio | configuracion_negocio_singleton | UNIQUE btree | (true) |
+| productos | idx_productos_unicos_nombre_marca_medida | UNIQUE btree parcial (activo) | lower(trim(nombre)), marca, unidad_medida |
+| productos | idx_productos_familia_id | btree parcial | familia_id |
+| producto_proveedores | idx_un_costo_base_manual_por_producto | UNIQUE btree parcial | producto_id |
+| (40 tablas) | idx_&lt;tabla&gt;_&lt;columna&gt; | btree | Una por cada clave foránea (agregados el 2026-10-29) |
 
 ---
 
@@ -740,7 +785,10 @@ servicios ─────────────────────── 
 - `venta_items` — SELECT (ventas propias o admin), INSERT
 - `nominas` — SELECT (propio o admin), INSERT
 
-### Autenticados (cualquier usuario)
+> Desde 2026-10-29 **ninguna tabla se puede leer sin sesión**. Las políticas usan `(select auth.uid())` y
+> `(select is_admin())` para que se evalúen una vez por consulta y no por fila.
+
+### Autenticados (cualquier usuario con sesión)
 - `clientes` — SELECT, INSERT, UPDATE
 - `productos` — SELECT (activos o admin), INSERT, UPDATE
 - `producto_proveedores` — SELECT, INSERT, UPDATE, DELETE
@@ -758,7 +806,10 @@ servicios ─────────────────────── 
 - `categorias_gasto` — SELECT, INSERT
 - `horario_laboral` — SELECT (todos), ALL (admin)
 - `configuracion_negocio` — SELECT (todos), UPDATE (admin)
-- `profiles` — SELECT (todos), UPDATE (propio + admin)
+- `profiles` — SELECT (con sesión), UPDATE (propio + admin), INSERT/DELETE (admin). El trigger
+  `trg_proteger_campos_sensibles_profiles` impide que alguien que no es admin cambie `rol`, `salario_base` o `activo`.
+- `producto_familias` — SELECT, INSERT, UPDATE (rol authenticated)
+- `unidades_medida` — SELECT (con sesión), INSERT/UPDATE (admin)
 
 ---
 
@@ -772,3 +823,6 @@ servicios ─────────────────────── 
 6. **Ticket número**: Único por fecha, se reinicia cada día.
 7. **Garantías**: Un producto en garantía NO regresa al inventario hasta confirmar `recibir_garantia()`.
 8. **Arqueo**: Solo uno por día (`fecha` UNIQUE). Resetea saldo efectivo a 0 y transfiere sobrante a caja mayor.
+9. **Respaldo**: antes de la carga del catálogo (2026-10-29) se copiaron `productos`, `producto_proveedores`,
+   `producto_familias`, `unidades_medida` y `movimientos_inventario` al esquema privado `respaldo` (tablas `*_20261029`,
+   no expuestas por la API). Se pueden borrar cuando el catálogo nuevo esté validado.

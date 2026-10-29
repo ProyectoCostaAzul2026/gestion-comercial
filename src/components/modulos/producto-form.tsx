@@ -20,10 +20,11 @@ import { Plus, Trash2, ArrowLeftRight, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 
-// Un "segmento" de medida: entero (50), fracción (3/4) o mixto (1-1/4)
-const SEGMENTO_MEDIDA = '\\d+(?:-\\d+\\/\\d+|\\/\\d+)?'
-// Hasta 3 segmentos combinados con "x" — ej: 3/8x2, 1-1/4x3/8x2, 30x40x50
-export const MEDIDA_REGEX = new RegExp(`^${SEGMENTO_MEDIDA}(?:[xX]${SEGMENTO_MEDIDA}){0,2}$`)
+// La medida acepta el mismo texto libre que el panel de Familias (enteros, fracciones, decimales,
+// varias dimensiones o rangos: 50, 3/4, 1-1/4, 2.5, 1/2x1/2x40, 4 A 32). Antes se exigía un formato
+// más estricto y los productos creados desde una familia con, por ejemplo, decimales no se podían guardar.
+// Lo único que se exige es una sola medida por producto (sin ";", que en Familias separa varias).
+export const MEDIDA_REGEX = /^[^;]+$/
 
 export const INPUT_CLS = 'border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500 focus:border-brand-yellow/60'
 export const LABEL_CLS = 'text-[10px] font-bold uppercase tracking-widest text-steel-300'
@@ -209,12 +210,15 @@ function estadoInicial(producto: ProductoExistente | undefined, margenDefault = 
   }
 }
 
+// Separa el nombre base de la familia y la característica en el nombre de cada producto ("Codo - PVC Presion").
+export const SEPARADOR_FAMILIA = ' - '
+
 export function generarSKU(nombre: string, categoria: string, marca: string, medida: string, unidad: string): string {
   const tomar3 = (s: string) => s.trim().replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 3)
-  // Si el nombre viene de una Familia de productos ("Base — Característica"), se toman 3 letras
+  // Si el nombre viene de una Familia de productos ("Base - Característica"), se toman 3 letras
   // de CADA parte para que la Característica también distinga el código — si no, dos características
   // distintas con la misma marca y medida generan el mismo código y chocan al guardar.
-  const partes = nombre.split(' — ')
+  const partes = nombre.split(SEPARADOR_FAMILIA)
   const pNombre = partes.length > 1 ? tomar3(partes[0]) + tomar3(partes[1]) : tomar3(partes[0])
   const pCat = tomar3(categoria)
   const pMarca = tomar3(marca)
@@ -230,7 +234,6 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
   const supabase = createClient()
   const router = useRouter()
   const [precioSugerido, setPrecioSugerido] = useState<number | null>(null)
-  const [skuSugerido, setSkuSugerido] = useState('')
   const [mostrarNuevaCategoria, setMostrarNuevaCategoria] = useState(false)
   const [nuevaCategoriaNombre, setNuevaCategoriaNombre] = useState('')
   const [categoriasList, setCategoriasList] = useState<Categoria[]>(categorias)
@@ -248,11 +251,10 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
   const [moverCantidad, setMoverCantidad] = useState(0)
   const [moverDireccion, setMoverDireccion] = useState<'bodega_a_almacen' | 'almacen_a_bodega'>('bodega_a_almacen')
 
-  // Auto-generar SKU
-  useMemo(() => {
+  // Auto-generar SKU (valor derivado del formulario, sin estado aparte)
+  const skuSugerido = useMemo(() => {
     const cat = categoriasList.find(c => c.id === form.categoria_id)?.nombre ?? ''
-    const sku = generarSKU(form.nombre, cat, form.marca, form.medida, form.unidad_medida_select)
-    setSkuSugerido(sku)
+    return generarSKU(form.nombre, cat, form.marca, form.medida, form.unidad_medida_select)
   }, [form.nombre, form.categoria_id, form.marca, form.medida, form.unidad_medida_select, categoriasList])
 
   const handleChange = (field: keyof ProductoFormState, value: any) => {
@@ -381,7 +383,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
     if (!form.nombre.trim()) newErrors.nombre = 'El nombre es obligatorio'
     if (form.precio_venta <= 0) newErrors.precio_venta = 'El precio debe ser mayor a 0'
     if (form.medida.trim() && !MEDIDA_REGEX.test(form.medida.trim())) {
-      newErrors.medida = 'Formato inválido (ej: 50, 3/4, 1-1/4, 3/8x2, 30x40x50)'
+      newErrors.medida = 'Escribe una sola medida, sin ";" (ej: 50, 3/4, 1-1/4, 2.5, 3/8x2)'
     }
     if (form.proveedores.length === 0) newErrors.proveedores = 'Debes agregar al menos un proveedor'
     form.proveedores.forEach((p, i) => {
@@ -434,103 +436,46 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
         precio_por_unidad_medida: form.vender_por_fraccion ? form.precio_por_unidad_medida : null,
       }
 
+      // Proveedores tal como quedan en el formulario: los que ya tienen id se actualizan y los demás se crean.
+      const proveedoresPayload = form.proveedores.map((p) => ({
+        id: p.id ?? null,
+        proveedor_id: p.proveedor_id,
+        precio_costo: p.precio_costo,
+        referencia_proveedor: p.referencia_proveedor || null,
+        notas: p.notas || null,
+        es_costo_base_manual: p.esCostoBaseManual,
+      }))
+
+      // El producto, sus proveedores y el movimiento de stock inicial se guardan en una sola transacción
+      // (función guardar_producto): si algo falla, no queda nada a medio guardar.
       if (esEdicion) {
         // Un producto de familia que aún no se ha activado, se activa solo al editarlo por primera vez.
         // (Un producto normal que un admin desactivó a propósito NO se reactiva solo con esto.)
         // También se fuerza la activación si se llegó aquí desde "Activar producto" en Desactivados,
         // sin importar si el producto pertenece o no a una familia.
-        const activarAlEditar = forzarActivacion || (producto.familia_id && !producto.activo) ? { activo: true } : {}
-        const { error: updateError } = await supabase
-          .from('productos')
-          .update({ ...datosProducto, ...activarAlEditar })
-          .eq('id', producto.id)
-        if (updateError) throw updateError
-
-        if (proveedoresEliminados.length > 0) {
-          const { error: delError } = await supabase
-            .from('producto_proveedores')
-            .delete()
-            .in('id', proveedoresEliminados)
-          if (delError) throw delError
-        }
-
-        // Se limpia cualquier marca de "costo base manual" anterior antes de re-guardar,
-        // para no chocar con la regla de "solo uno puede estar marcado" mientras se actualiza fila por fila.
-        await supabase
-          .from('producto_proveedores')
-          .update({ es_costo_base_manual: false })
-          .eq('producto_id', producto.id)
-
-        const aActualizar = form.proveedores.filter((p): p is ProveedorForm & { id: string } => !!p.id)
-        const aInsertar = form.proveedores.filter((p) => !p.id)
-
-        for (const p of aActualizar) {
-          const { error: upError } = await supabase
-            .from('producto_proveedores')
-            .update({
-              proveedor_id: p.proveedor_id,
-              precio_costo: p.precio_costo,
-              referencia_proveedor: p.referencia_proveedor || null,
-              notas: p.notas || null,
-              es_costo_base_manual: p.esCostoBaseManual,
-            })
-            .eq('id', p.id)
-          if (upError) throw upError
-        }
-
-        if (aInsertar.length > 0) {
-          const { error: insError } = await supabase.from('producto_proveedores').insert(
-            aInsertar.map((p) => ({
-              producto_id: producto.id,
-              proveedor_id: p.proveedor_id,
-              precio_costo: p.precio_costo,
-              referencia_proveedor: p.referencia_proveedor || null,
-              notas: p.notas || null,
-              es_costo_base_manual: p.esCostoBaseManual,
-            }))
-          )
-          if (insError) throw insError
-        }
+        const activarAlEditar = forzarActivacion || (!!producto.familia_id && !producto.activo)
+        const { error: rpcError } = await supabase.rpc('guardar_producto', {
+          p_producto_id: producto.id,
+          p_datos: datosProducto,
+          p_activar: activarAlEditar,
+          p_proveedores: proveedoresPayload,
+          p_proveedores_eliminados: proveedoresEliminados,
+          p_empleado_id: empleadoId,
+        })
+        if (rpcError) throw rpcError
 
         toast.success('Producto actualizado')
         router.refresh()
         router.push(rutaVolver)
         onSuccess?.()
       } else {
-        const { data: nuevoProducto, error: productoError } = await supabase
-          .from('productos')
-          .insert({ ...datosProducto, activo: true })
-          .select('id')
-          .single()
-        if (productoError) throw productoError
-
-        const proveedoresInsert = form.proveedores.map((p) => ({
-          producto_id: nuevoProducto.id,
-          proveedor_id: p.proveedor_id,
-          precio_costo: p.precio_costo,
-          referencia_proveedor: p.referencia_proveedor || null,
-          notas: p.notas || null,
-          es_costo_base_manual: p.esCostoBaseManual,
-        }))
-        const { error: proveedoresError } = await supabase
-          .from('producto_proveedores')
-          .insert(proveedoresInsert)
-        if (proveedoresError) throw proveedoresError
-
-        const stockTotal = form.stock_bodega + form.stock_almacen
-        if (stockTotal > 0) {
-          const { error: movError } = await supabase.from('movimientos_inventario').insert({
-            producto_id: nuevoProducto.id,
-            tipo: 'entrada',
-            cantidad: stockTotal,
-            stock_anterior: 0,
-            stock_nuevo: stockTotal,
-            notas: 'Stock inicial al crear producto',
-            empleado_id: empleadoId,
-            referencia_tipo: 'producto_inicial',
-          })
-          if (movError) throw movError
-        }
+        const { error: rpcError } = await supabase.rpc('guardar_producto', {
+          p_datos: datosProducto,
+          p_activar: true,
+          p_proveedores: proveedoresPayload,
+          p_empleado_id: empleadoId,
+        })
+        if (rpcError) throw rpcError
 
         toast.success('Producto creado')
         router.refresh()
