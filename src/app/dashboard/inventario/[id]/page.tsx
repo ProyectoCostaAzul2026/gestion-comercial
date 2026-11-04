@@ -28,6 +28,14 @@ export default async function DetalleProductoPage({
 
   if (error || !producto) notFound()
 
+  // Últimos cambios de precio: la tabla solo la pueden leer los administradores (RLS), así que a un empleado le llega vacía
+  const { data: cambiosPrecio } = await supabase
+    .from('historial_precios')
+    .select('id, campo, precio_anterior, precio_nuevo, origen, created_at, usuario:profiles(nombre_completo)')
+    .eq('producto_id', id)
+    .order('created_at', { ascending: false })
+    .limit(10)
+
   const categoriaNombre = (producto.categorias_producto as { nombre: string } | null)?.nombre ?? '—'
 
   const filas: [string, string][] = [
@@ -97,7 +105,38 @@ export default async function DetalleProductoPage({
           >
             Familia de productos
           </Link>
+          <Link
+            href={`/dashboard/inventario/${producto.id}/grupo`}
+            className="block w-full rounded-xl border border-white/20 px-4 py-3 text-center text-sm font-bold text-white hover:bg-white/5"
+          >
+            Grupo de medidas
+          </Link>
         </div>
+
+        {(cambiosPrecio ?? []).length > 0 && (
+          <div className="space-y-2">
+            <h2 className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Últimos cambios de precio</h2>
+            <ul className="divide-y divide-white/5 overflow-hidden rounded-xl border border-white/10 bg-[#111820]">
+              {cambiosPrecio!.map(c => {
+                const usuario = c.usuario as { nombre_completo: string } | null
+                return (
+                  <li key={c.id} className="px-3 py-2 text-xs">
+                    <p className="text-white">
+                      {c.campo === 'precio_venta' ? 'Precio de venta' : 'Precio por fracción'}: de{' '}
+                      {c.precio_anterior != null ? `$${Number(c.precio_anterior).toLocaleString('es-CO')}` : 'sin precio'} a{' '}
+                      {c.precio_nuevo != null ? `$${Number(c.precio_nuevo).toLocaleString('es-CO')}` : 'sin precio'}
+                    </p>
+                    <p className="text-steel-500">
+                      {new Date(c.created_at).toLocaleString('es-CO', { timeZone: 'America/Bogota', dateStyle: 'medium', timeStyle: 'short' })}
+                      {' · '}{c.origen === 'escala' ? 'Escala de precios' : 'Producto'}
+                      {usuario?.nombre_completo ? ` · ${usuario.nombre_completo}` : ''}
+                    </p>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   )

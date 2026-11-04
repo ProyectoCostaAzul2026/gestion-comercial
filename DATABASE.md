@@ -107,6 +107,7 @@ Extiende `auth.users` de Supabase. Un registro por usuario autenticado.
 | remanente_fraccion | numeric | NO | 0 | |
 | familia_id | uuid | YES | — | FK → producto_familias |
 | caracteristica | text | YES | — | Característica dentro de la familia (ej: "PVC Presion") |
+| orden_medida | int4 | YES | — | Orden manual dentro de su grupo de medidas; null = orden automático por tamaño |
 | created_at / updated_at | timestamptz | NO | now() | |
 
 **Convención de nombres:** `nombre = "<producto_familias.nombre_base> - <caracteristica>"` (guion corto con un espacio a
@@ -118,6 +119,11 @@ cada lado) y `unidad_medida = "<medida> <Unidad>"` (la unidad es la última pala
 **Triggers:**
 - `fn_sync_stock_actual` — actualiza `stock_actual = stock_bodega + stock_almacen`
 - `fn_actualizar_precio_costo_base` — actualiza `precio_costo_base` con el costo del proveedor marcado `es_costo_base_manual` o, si no hay, el menor de `producto_proveedores`
+- `fn_proteger_precios_productos` (`trg_proteger_precios_productos`, BEFORE UPDATE de `precio_venta` y
+  `precio_por_unidad_medida`) — solo un administrador cambia precios de venta desde la app (roles `authenticated`/`anon`).
+  Crear un producto con su precio sigue permitido, y quitar el precio por fracción (al apagarla) no cuenta como cambio
+- `fn_registrar_historial_precios` (`trg_historial_precios`, AFTER UPDATE de los mismos campos) — guarda cada cambio de
+  precio en `historial_precios`
 
 ---
 
@@ -129,6 +135,28 @@ Agrupa las variantes de un mismo producto (Característica + Medida + Marca).
 | id | uuid | NO | gen_random_uuid() |
 | nombre_base | text | NO | — |
 | created_at | timestamptz | NO | now() |
+
+**Grupo de medidas:** los productos de una familia con la misma `caracteristica` y `marca`, que solo cambian de
+`unidad_medida` (ej. todas las medidas de "Tornillo - Drywall Negro"). No tiene tabla propia: la app lo arma con
+`familia_id` + `caracteristica` + `marca` y ordena sus medidas por tamaño (`src/lib/escala-precios.ts`) o por
+`productos.orden_medida` si se guardó un orden manual.
+
+---
+
+### `historial_precios`
+Cada cambio de precio de venta de un producto: antes, después, quién y cuándo. Lo llena el trigger
+`trg_historial_precios`; solo lo leen los administradores (RLS) y nadie lo escribe directamente.
+
+| Columna | Tipo | Nullable | Default |
+|---|---|---|---|
+| id | uuid | NO | gen_random_uuid() |
+| producto_id | uuid | NO | — | FK → productos (on delete cascade) |
+| campo | varchar | NO | — | `precio_venta` o `precio_por_unidad_medida` |
+| precio_anterior | numeric | YES | — | |
+| precio_nuevo | numeric | YES | — | |
+| origen | varchar | NO | producto | `producto` (formulario o SQL) o `escala` (escala de precios del grupo) |
+| usuario_id | uuid | YES | — | FK → profiles (on delete set null); null si el cambio se hizo por SQL |
+| created_at | timestamptz | NO | now() | |
 
 ---
 
@@ -637,6 +665,7 @@ profiles ───────────────────────�
 profiles ──────────────────────── pagos_factura_proveedor (registrado_por)
 profiles ──────────────────────── retiros (realizado_por)
 profiles ──────────────────────── caja_menor (registrado_por)
+profiles ──────────────────────── historial_precios (usuario_id)
 
 clientes ──────────────────────── ventas (cliente_id)
 clientes ──────────────────────── ventas_credito (cliente_id)
@@ -653,6 +682,7 @@ productos ─────────────────────── 
 productos ─────────────────────── movimientos_inventario (producto_id)
 productos ─────────────────────── devolucion_items (producto_id)
 productos ─────────────────────── garantias (producto_id)
+productos ─────────────────────── historial_precios (producto_id)
 
 ventas ────────────────────────── venta_items (venta_id)
 ventas ────────────────────────── venta_pagos (venta_id)
@@ -737,6 +767,8 @@ servicios ─────────────────────── 
 | `calcular_rotacion_productos(...)` | KPIs de rotación por período |
 | `guardar_producto(p_datos, p_proveedores, p_producto_id?, p_activar?, p_proveedores_eliminados?, p_empleado_id?)` | Crea o edita un producto con sus proveedores (y el movimiento de stock inicial al crear) en una sola transacción. `SECURITY INVOKER`: aplica RLS del usuario |
 | `guardar_familia(p_nombre_base, p_base, p_operaciones, p_familia_id?, p_desactivar?)` | Guarda el árbol de una familia (actualizar / asignar padre / insertar miembros, desactivar los que salen) en una sola transacción. `SECURITY INVOKER` |
+| `aplicar_escala_precios(p_precios)` | Solo administrador. Guarda los precios de la escala de un grupo de medidas en una sola transacción: `p_precios` = `[{ producto_id, precio_venta }]`. Recalcula `margen_calculado` con `precio_costo_base` (igual que `calcularMargenCalculado`) y deja los cambios en `historial_precios` con origen `escala`. Devuelve cuántos productos actualizó |
+| `ordenar_medidas(p_producto_ids, p_restablecer?)` | Guarda el orden manual de las medidas de un grupo (`orden_medida` = posición en el arreglo) o lo quita con `p_restablecer`. `SECURITY INVOKER` |
 
 > **Permisos de las RPC:** ninguna función de negocio se puede ejecutar sin sesión (se revocó `EXECUTE` a `public` y `anon`).
 > Al crear una RPC nueva: `revoke execute on function ... from public, anon;` y `grant execute ... to authenticated, service_role;`.
@@ -797,6 +829,8 @@ servicios ─────────────────────── 
 | configuracion_negocio | configuracion_negocio_singleton | UNIQUE btree | (true) |
 | productos | idx_productos_unicos_nombre_marca_medida | UNIQUE btree parcial (activo) | lower(trim(nombre)), marca, unidad_medida |
 | productos | idx_productos_familia_id | btree parcial | familia_id |
+| historial_precios | idx_historial_precios_producto | btree | producto_id, created_at desc |
+| historial_precios | idx_historial_precios_usuario_id | btree | usuario_id |
 | producto_proveedores | idx_un_costo_base_manual_por_producto | UNIQUE btree parcial | producto_id |
 | (40 tablas) | idx_&lt;tabla&gt;_&lt;columna&gt; | btree | Una por cada clave foránea (agregados el 2026-10-29) |
 
@@ -831,7 +865,8 @@ servicios ─────────────────────── 
 
 ### Autenticados (cualquier usuario con sesión)
 - `clientes` — SELECT, INSERT, UPDATE
-- `productos` — SELECT (activos o admin), INSERT, UPDATE
+- `productos` — SELECT (activos o admin), INSERT, UPDATE. Los precios de venta solo los cambia un administrador
+  (trigger `trg_proteger_precios_productos`)
 - `producto_proveedores` — SELECT, INSERT, UPDATE, DELETE
 - `categorias_producto` — SELECT, INSERT, UPDATE
 - `servicios` — SELECT, INSERT, UPDATE
@@ -845,6 +880,7 @@ servicios ─────────────────────── 
 - `movimiento_fuentes` — SELECT, INSERT
 - `garantias` — ALL
 - `categorias_gasto` — SELECT, INSERT
+- `historial_precios` — SELECT (solo lo escribe el trigger `trg_historial_precios`)
 - `horario_laboral` — SELECT (todos), ALL (admin)
 - `configuracion_negocio` — SELECT (todos), UPDATE (admin)
 - `profiles` — SELECT (con sesión), UPDATE (propio + admin), INSERT/DELETE (admin). El trigger
@@ -876,3 +912,8 @@ servicios ─────────────────────── 
    borrar cuando el catálogo nuevo esté validado.
 10. **Facturas históricas**: las 233 facturas cargadas el 2026-10-31 desde los PDF de proveedores no tienen filas en
     `pagos_factura_proveedor` ni movimientos de caja; las vencidas se registraron directamente como `pagada`.
+11. **Precios de venta** (migración `grupos_medidas_y_escala_de_precios`, 2026-11-04): solo un administrador cambia
+    `precio_venta` o `precio_por_unidad_medida` de un producto existente; la base lo exige con
+    `trg_proteger_precios_productos` y el formulario de producto bloquea esos campos a los empleados. Cada cambio queda en
+    `historial_precios`. La escala de precios de un grupo de medidas sugiere `costo × (1 + IVA) / (1 − margen)` redondeado
+    hacia arriba (por defecto a $50 bajo $1.000 y a $100 desde $1.000) y guarda con `aplicar_escala_precios`.

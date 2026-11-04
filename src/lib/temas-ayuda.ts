@@ -182,6 +182,42 @@ export const TEMAS_AYUDA: TemaAyuda[] = [
         pasos: [
           'Esta función NO activa los productos ni les asigna stock o precio — eso sigue siendo exclusivo de "Editar producto".',
           'Los proveedores que asignes aquí quedan con costo $0 hasta que los ajustes individualmente.',
+          'El precio por unidad de medida (venta por fracción) solo lo puede poner un administrador.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'grupo-medidas',
+    categoria: 'Inventario',
+    titulo: 'Grupo de medidas y escala de precios',
+    soloAdmin: false,
+    secciones: [
+      {
+        subtitulo: 'Qué es un grupo de medidas',
+        pasos: [
+          'Reúne los productos de la misma familia, característica y marca que solo cambian de medida. Por ejemplo, todas las medidas de "Tornillo - Drywall Negro".',
+          'Se arma solo: no hay que crearlo. Entra desde la ficha de cualquiera de sus productos con el botón "Grupo de medidas".',
+          'En Inventario, activa "Ver por grupos de medidas" para ver una fila por grupo; tócala para desplegar sus medidas.',
+        ],
+      },
+      {
+        subtitulo: 'Orden y datos del grupo',
+        pasos: [
+          'Las medidas se ordenan solas por tamaño: primero el calibre o diámetro y después el largo (6x1/2, 6x3/4, 6x1… 8x1/2…).',
+          'Con "Ordenar medidas" puedes moverlas con las flechas y guardar ese orden. "Volver al orden por tamaño" lo quita.',
+          'Con "Editar datos del grupo" cambias en bloque categoría, descripción, imagen, IVA incluido en el costo, ubicación, stock mínimo y proveedores. Lo que dejes vacío no cambia.',
+        ],
+      },
+      {
+        subtitulo: 'Escala de precios (administradores)',
+        pasos: [
+          'Pon un margen y elige el redondeo. El sistema sugiere un precio por medida a partir de su costo; si una medida no tiene costo, lo estima con las medidas vecinas y lo marca como estimado.',
+          'El redondeo automático lleva a $50 los precios menores de $1.000 y a $100 los demás.',
+          'Puedes usar todos los sugeridos, tocar el sugerido de una medida para usarlo, o escribir tu propio precio. También puedes poner un margen distinto en una fila.',
+          'Las alertas avisan si una medida queda más barata que la anterior, con el mismo precio, con más del doble o por debajo del costo. La gráfica muestra la escala con una línea por calibre.',
+          'Al guardar, los precios nuevos quedan como precios de venta. Cada cambio de precio queda registrado con quién y cuándo lo hizo; los últimos se ven en la ficha del producto.',
+          'Solo un administrador puede cambiar precios de venta, aquí o en "Editar producto". Al crear un producto, quien lo crea pone su precio.',
         ],
       },
     ],

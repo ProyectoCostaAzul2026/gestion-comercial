@@ -76,6 +76,7 @@ Roles: `administrador` (todo) y `empleado` (ventas, inventario, clientes, horari
   `caja`, `contabilidad`, `nomina`, `horario`, `reportes`, `configuracion`, `instrucciones`, `mi-perfil`.
 - `src/components/modulos/`: formularios y paneles cliente; aquí vive la lógica de negocio del front.
 - `src/lib/`: `permissions.ts` (permisos por rol y `RUTAS_SOLO_ADMIN`), `precio-utils.ts` (margen e IVA),
+  `escala-precios.ts` (motor de precios por medida: orden de medidas, redondeo, sugeridos, costos estimados y alertas),
   `temas-ayuda.ts` (textos del panel Instrucciones), `festivos-colombia.ts`.
 - `src/proxy.ts`: exige sesión en `/dashboard`, cierra la sesión si el perfil está inactivo y manda a los
   empleados fuera de las rutas de administrador.
@@ -98,6 +99,9 @@ Roles: `administrador` (todo) y `empleado` (ventas, inventario, clientes, horari
   guarda lo que cambió la deuda y `repartirAjusteCredito` replica el reparto en la vista previa.
 - El guardado de productos y familias va por `guardar_producto` y `guardar_familia` (`SECURITY INVOKER`, una sola
   transacción). `producto-form.tsx` y `familia-medidas-panel.tsx` las llaman con `supabase.rpc`.
+- **Solo un administrador cambia precios de venta** (`precio_venta`, `precio_por_unidad_medida`) de un producto existente:
+  lo exige el trigger `trg_proteger_precios_productos` y el formulario bloquea esos campos a los empleados; crear un
+  producto con su precio sigue permitido. Cada cambio queda en `historial_precios` (trigger, solo lo leen los admin).
 - Ninguna RPC de negocio se puede ejecutar sin sesión. Al crear una RPC nueva: `revoke execute ... from public, anon` y
   `grant execute ... to authenticated, service_role`.
 - Ninguna tabla se puede leer sin sesión. Las políticas usan `(select auth.uid())` / `(select is_admin())`.
@@ -137,6 +141,12 @@ Roles: `administrador` (todo) y `empleado` (ventas, inventario, clientes, horari
 - El formulario "Editar producto" acepta la medida en texto libre, igual que el panel de familias
   (`MEDIDA_REGEX` solo exige una medida, sin `;`). Antes era más estricto y bloqueaba decimales y rangos.
 - Un empleado no ve productos inactivos (RLS de SELECT), así que en el panel de familias solo ve los miembros activos.
+- Un **grupo de medidas** son los productos de una familia con la misma característica y marca, que solo cambian de
+  medida. No tiene tabla: se arma con `familia_id` + `caracteristica` + `marca` (página `inventario/[id]/grupo`, vista
+  "por grupos" en Inventario). Las medidas se ordenan por tamaño (calibre o diámetro y luego largo) o por
+  `productos.orden_medida` (orden manual, RPC `ordenar_medidas`). La escala de precios del grupo (solo admin) sugiere
+  precios con un margen y el redondeo de `escala-precios.ts` ($50 bajo $1.000, $100 desde $1.000) y guarda con
+  `aplicar_escala_precios`.
 - Para guardar un producto se exige al menos un proveedor con costo > 0 y un precio de venta > 0.
 - Precio sugerido (`precio-utils.ts`): `costo_neto × (1 + IVA) / (1 − margen)`. Por defecto IVA 19 % y el
   IVA no viene incluido en el costo.
