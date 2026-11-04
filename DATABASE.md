@@ -258,7 +258,7 @@ Relación muchos-a-muchos entre productos y proveedores.
 | monto_original | numeric | NO | — | |
 | saldo_pendiente | numeric | NO | — | |
 | fecha_pago_programada | date | YES | — | |
-| estado | varchar | NO | pendiente | pendiente/parcial/pagado |
+| estado | varchar | NO | pendiente | pendiente/parcial/pagado/anulado (`anulado`: la venta se anuló o se devolvió completa; saldo 0) |
 | notas | text | YES | — | |
 | created_at | timestamptz | NO | now() | |
 | updated_at | timestamptz | NO | now() | |
@@ -285,8 +285,9 @@ Relación muchos-a-muchos entre productos y proveedores.
 | venta_id | uuid | NO | — | FK → ventas |
 | tipo | varchar | NO | — | total/parcial/cambio (`anular_venta` también registra una `total`) |
 | observacion | text | YES | — | |
-| monto_devuelto | numeric | NO | 0 | Dinero devuelto al cliente (en un cambio, la diferencia a su favor) |
-| monto_cobrado | numeric | NO | 0 | Diferencia cobrada al cliente en un cambio |
+| monto_devuelto | numeric | NO | 0 | Dinero devuelto al cliente (en un cambio, la diferencia a su favor). Solo dinero: en una venta a crédito, lo descontado de la deuda va en `ajuste_credito` |
+| monto_cobrado | numeric | NO | 0 | Diferencia cobrada al cliente en caja en un cambio |
+| ajuste_credito | numeric | NO | 0 | Cambio en la deuda de una venta a crédito: negativo si la bajó, positivo si la subió |
 | registrado_por | uuid | YES | — | FK → profiles |
 | created_at | timestamptz | NO | now() | |
 
@@ -683,11 +684,11 @@ servicios ─────────────────────── 
 |---|---|
 | `registrar_venta(p_cliente_id, p_tipo_pago, p_items, p_pagos, p_descuento_habilitado, p_descuento_tipo, p_descuento_total_porcentaje, p_factura_electronica, p_observaciones, p_servicios, p_total_manual?)` | Registra venta completa, descuenta stock, actualiza saldos. `p_total_manual`: total editado a mano (ver Descuentos en Notas importantes) |
 | `registrar_venta_credito(p_cliente_id, p_items, p_servicios?, p_descuento_habilitado?, p_descuento_tipo?, p_descuento_total_porcentaje?, p_fecha_pago_programada?, p_observaciones?, p_factura_electronica?, p_total_manual?)` | Registra venta a crédito; la deuda (`ventas_credito.saldo_pendiente`) es el total de la venta. Valida descuentos y fracciones igual que `registrar_venta` |
-| `registrar_abono_credito(p_venta_credito_id, p_monto, p_fuentes, p_observaciones)` | Abona a crédito, actualiza saldo |
+| `registrar_abono_credito(p_venta_credito_id, p_monto, p_fuentes, p_observaciones)` | Abona a crédito, actualiza saldo. Rechaza créditos `pagado` o `anulado` |
 | `actualizar_fecha_pago_credito(...)` | Cambia fecha programada de pago |
-| `anular_venta(p_venta_id, p_motivo, p_medio_devolucion?)` | Solo administrador. Anula una venta sin devoluciones ni cambios: reintegra el stock y revierte cada pago por su medio (o todo el total por `p_medio_devolucion`) |
-| `devolver_productos(p_venta_id, p_items_devolucion, p_observacion, p_medio_devolucion?)` | Solo administrador. Devolución parcial o total: reintegra stock y devuelve la parte pagada por el medio elegido. `p_items_devolucion`: `[{ venta_item_id, cantidad }]` o, en fraccionados, `[{ venta_item_id, cantidad_fraccion }]` |
-| `cambiar_productos(p_venta_id, p_items_retirar, p_items_agregar, p_observacion, p_medio_pago?)` | Solo administrador. Cambia unidades de líneas por unidades (no fraccionadas) por productos nuevos y cobra o devuelve la diferencia. Devuelve `{ devolucion_id, diferencia, cobrar_al_cliente, devolver_al_cliente, total_nuevo, medio }` |
+| `anular_venta(p_venta_id, p_motivo, p_medio_devolucion?)` | Solo administrador. Anula una venta sin devoluciones ni cambios: reintegra el stock y revierte cada pago por su medio (o todo el total por `p_medio_devolucion`). A crédito: cancela la deuda y devuelve lo abonado (ver abajo) |
+| `devolver_productos(p_venta_id, p_items_devolucion, p_observacion, p_medio_devolucion?)` | Solo administrador. Devolución parcial o total: reintegra stock y devuelve la parte pagada por el medio elegido (a crédito, baja primero la deuda). `p_items_devolucion`: `[{ venta_item_id, cantidad }]` o, en fraccionados, `[{ venta_item_id, cantidad_fraccion }]` |
+| `cambiar_productos(p_venta_id, p_items_retirar, p_items_agregar, p_observacion, p_medio_pago?)` | Solo administrador. Cambia unidades de líneas por unidades (no fraccionadas) por productos nuevos y cobra o devuelve la diferencia (a crédito, primero en la deuda). Devuelve `{ devolucion_id, diferencia, cobrar_al_cliente, devolver_al_cliente, ajuste_credito, saldo_credito, total_nuevo, medio }`: `cobrar_al_cliente` y `devolver_al_cliente` son dinero por el medio; `ajuste_credito`, lo que cambió la deuda; `saldo_credito`, la deuda que queda (null si no es a crédito) |
 
 > **IVA informativo:** `registrar_venta`, `registrar_venta_credito` y `cambiar_productos` guardan en
 > `venta_items.iva_unitario` el IVA contenido en el precio de venta, `precio_venta − precio_venta / (1 + porcentaje_iva / 100)`
@@ -711,6 +712,22 @@ servicios ─────────────────────── 
 >   caso se devuelve lo que queda.
 > - La vista previa de `venta-acciones.tsx` usa las mismas fórmulas (`src/lib/ajustes-venta.ts`): si se cambia una, hay
 >   que cambiar la otra.
+
+> **Ventas a crédito en anulaciones, devoluciones y cambios** (migración `ventas_credito_en_ajustes_de_venta`,
+> 2026-11-04). Lo que el cliente no ha pagado se ajusta en la deuda, no en la caja:
+> - **Modelo:** el saldo `credito` de `saldos_medios_pago` es la suma de `ventas_credito.saldo_pendiente`. La venta a
+>   crédito lo sube (movimiento `ingreso` / `credito`), un abono lo baja (sin movimiento de `credito`; el dinero entra por
+>   sus fuentes) y cada ajuste de deuda de estas tres RPC lo sube o baja con su movimiento `ingreso` o `egreso` / `credito`.
+> - **Anulación:** cancela la deuda pendiente y devuelve lo abonado: todo por `p_medio_devolucion` o, si no se elige, cada
+>   abono por la fuente con que entró. El crédito queda `anulado` con saldo 0.
+> - **Devolución:** el monto devuelto baja primero la deuda; solo lo que pase de ella sale en dinero por el medio elegido.
+>   Si se devuelve todo, se cancela la deuda que quede (aunque el redondeo deje lo devuelto por debajo) y el crédito
+>   queda `anulado`. Si la deuda llega a 0 sin devolver todo, el crédito queda `pagado` y la venta `modificada`.
+> - **Cambio:** una diferencia a favor del cliente baja primero la deuda y el resto se devuelve en dinero; si la deuda
+>   llega a 0, el crédito queda `pagado` y la venta `completada`, como al pagarla con abonos. Una diferencia a cobrar se
+>   suma a la deuda si el crédito sigue abierto; si ya está pagado, se cobra en caja como en una venta de contado.
+> - `devoluciones.monto_devuelto` y `monto_cobrado` son solo dinero; lo que cambia la deuda queda en `ajuste_credito`.
+>   `ventas.monto_devolucion` sigue sumando el valor devuelto (deuda + dinero).
 
 ### Inventario
 | Función | Descripción |

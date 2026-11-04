@@ -46,8 +46,9 @@ export default async function VentasPage({
   // Créditos del día
   const { data: creditosHoy } = await supabase
     .from('ventas_credito')
-    .select('monto_original, ventas!inner(fecha)')
+    .select('monto_original, ventas!inner(fecha, estado)')
     .eq('ventas.fecha', hoy)
+    .neq('ventas.estado', 'anulada')
 
   // KPIs
   const desgloseMedios: Record<string, number> = {}

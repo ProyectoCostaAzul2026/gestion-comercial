@@ -1,5 +1,5 @@
 // Cálculos de devoluciones y cambios de una venta, para mostrarlos antes de confirmar.
-// Replican las RPC devolver_productos y cambiar_productos (Supabase): si se cambia una fórmula aquí,
+// Replican las RPC anular_venta, devolver_productos y cambiar_productos (Supabase): si se cambia una fórmula aquí,
 // hay que cambiarla también allá (y al revés).
 
 export const MEDIOS_AJUSTE = ['efectivo', 'nequi', 'daviplata', 'tarjeta'] as const
@@ -92,4 +92,30 @@ export function calcularCambio(params: {
 
   const totalNuevo = Math.max(params.totalVenta + valorCalculado(base) - valorCalculado(params.baseVenta), 0)
   return { totalNuevo, diferencia: totalNuevo - params.totalVenta }
+}
+
+/**
+ * Reparte un ajuste de una venta a crédito entre la deuda y la caja, como devolver_productos y cambiar_productos.
+ * - A favor del cliente (devolución o cambio que baja el total): baja primero la deuda y solo lo que pase de ella se
+ *   devuelve en dinero.
+ * - A cobrar (cambio que sube el total): se suma a la deuda si el crédito sigue abierto; si ya está pagado, se cobra
+ *   en caja como en una venta de contado.
+ * En una venta de contado (`saldoPendiente` null) todo va por caja.
+ * @param diferencia lo que cambia lo que debe pagar el cliente: el monto devuelto en negativo, o la diferencia del cambio
+ * @param saldoPendiente ventas_credito.saldo_pendiente, o null si la venta no es a crédito
+ * @param devuelveTodo se devuelven todos los productos (venta sin servicios): se cancela toda la deuda aunque lo
+ *   devuelto quede por debajo por el redondeo
+ * @returns `deuda`: cuánto sube (+) o baja (−) la deuda; `caja`: dinero que entra (+) o sale (−) por el medio elegido
+ */
+export function repartirAjusteCredito(
+  diferencia: number,
+  saldoPendiente: number | null,
+  devuelveTodo = false,
+): { deuda: number; caja: number } {
+  if (saldoPendiente == null) return { deuda: 0, caja: diferencia }
+  const saldo = limpiar(saldoPendiente)
+  if (devuelveTodo) return { deuda: -saldo, caja: Math.min(limpiar(diferencia + saldo), 0) }
+  if (diferencia > 0) return saldo > 0 ? { deuda: diferencia, caja: 0 } : { deuda: 0, caja: diferencia }
+  const deuda = -Math.min(-diferencia, saldo)
+  return { deuda, caja: limpiar(diferencia - deuda) }
 }

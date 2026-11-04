@@ -10,6 +10,7 @@ const METODO_LABEL: Record<string, string> = {
   daviplata: 'Daviplata',
   tarjeta: 'Tarjeta',
   mixto: 'Mixto',
+  credito: 'Crédito',
 }
 
 export default async function VentaDetallePage({
@@ -53,6 +54,7 @@ export default async function VentaDetallePage({
     { data: servicios },
     { data: pagos },
     { data: devoluciones },
+    { data: credito },
   ] = await Promise.all([
     supabase
       .from('venta_items')
@@ -68,9 +70,14 @@ export default async function VentaDetallePage({
       .eq('venta_id', id),
     supabase
       .from('devoluciones')
-      .select('id, tipo, observacion, monto_devuelto, monto_cobrado, created_at')
+      .select('id, tipo, observacion, monto_devuelto, monto_cobrado, ajuste_credito, created_at')
       .eq('venta_id', id)
       .order('created_at', { ascending: false }),
+    supabase
+      .from('ventas_credito')
+      .select('saldo_pendiente, estado, abonos_credito(fuentes)')
+      .eq('venta_id', id)
+      .maybeSingle(),
   ])
 
   const cliente = venta.clientes as any
@@ -82,9 +89,16 @@ export default async function VentaDetallePage({
     (items ?? []).reduce((suma, i) => suma + Number(i.subtotal_linea), 0) +
     (servicios ?? []).reduce((suma, s) => suma + Number(s.precio_aplicado), 0)
 
+  // Venta a crédito: deuda pendiente y lo abonado (suma de las fuentes de cada abono, como anular_venta)
+  const abonado = (credito?.abonos_credito ?? []).reduce((suma, a) => {
+    const fuentes = Array.isArray(a.fuentes) ? (a.fuentes as { monto?: number | string }[]) : []
+    return suma + fuentes.reduce((s, f) => s + Number(f.monto ?? 0), 0)
+  }, 0)
+  const creditoVenta = credito ? { saldoPendiente: Number(credito.saldo_pendiente), abonado } : null
+
   const estadoBadge =
     venta.estado === 'anulada' ? 'border-brand-red/30 bg-brand-red/20 text-brand-red'
-    : venta.estado === 'modificada' ? 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow'
+    : venta.estado === 'modificada' || venta.estado === 'credito' ? 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow'
     : 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400'
 
   return (
@@ -98,7 +112,8 @@ export default async function VentaDetallePage({
             <h1 className="font-display text-2xl font-bold text-white">Ticket #{venta.numero_ticket}</h1>
             <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${estadoBadge}`}>
               {venta.estado === 'anulada' ? 'Anulada' :
-               venta.estado === 'modificada' ? 'Modificada' : 'Completada'}
+               venta.estado === 'modificada' ? 'Modificada' :
+               venta.estado === 'credito' ? 'Crédito' : 'Completada'}
             </span>
           </div>
           <p className="text-xs text-steel-300">{venta.fecha} · {venta.hora?.slice(0, 5)}</p>
@@ -244,6 +259,14 @@ export default async function VentaDetallePage({
             <dt>Total</dt>
             <dd className="font-display">${Number(venta.total).toLocaleString('es-CO')}</dd>
           </div>
+          {creditoVenta && (
+            <div className="flex justify-between text-sm">
+              <dt className="text-steel-300">
+                Deuda pendiente{credito?.estado === 'anulado' ? ' (crédito anulado)' : ''}
+              </dt>
+              <dd className="font-display font-bold text-brand-red">${creditoVenta.saldoPendiente.toLocaleString('es-CO')}</dd>
+            </div>
+          )}
         </dl>
       </div>
 
@@ -269,6 +292,12 @@ export default async function VentaDetallePage({
                 {Number(d.monto_cobrado) > 0 && (
                   <p className="text-xs text-emerald-400">Cobrado adicional: ${Number(d.monto_cobrado).toLocaleString('es-CO')}</p>
                 )}
+                {Number(d.ajuste_credito) !== 0 && (
+                  <p className="text-xs text-brand-yellow">
+                    {Number(d.ajuste_credito) < 0 ? 'Descontado de la deuda' : 'Sumado a la deuda'}:
+                    {' '}${Math.abs(Number(d.ajuste_credito)).toLocaleString('es-CO')}
+                  </p>
+                )}
               </div>
             ))}
           </div>
@@ -286,6 +315,8 @@ export default async function VentaDetallePage({
           descuentoGlobalPorcentaje={venta.descuento_habilitado ? Number(venta.descuento_total_porcentaje) : 0}
           tipoPago={venta.tipo_pago}
           tieneAjustes={(devoluciones ?? []).length > 0}
+          tieneServicios={(servicios ?? []).length > 0}
+          credito={creditoVenta}
           items={(items ?? []).map(i => {
             const devueltos: { cantidad: number; cantidad_fraccion: number | null }[] = (i as any).devolucion_items ?? []
             const yaDevuelto = devueltos.reduce((sum, d) => sum + d.cantidad, 0)

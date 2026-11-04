@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Search, Trash2 } from 'lucide-react'
 import {
   MEDIOS_AJUSTE, MEDIO_AJUSTE_LABEL, calcularCambio, calcularMontoDevolucion, medioPorDefecto,
-  type MedioAjuste,
+  repartirAjusteCredito, type MedioAjuste,
 } from '@/lib/ajustes-venta'
 
 interface VentaItem {
@@ -77,6 +77,10 @@ interface VentaAccionesProps {
   tipoPago: string
   /** La venta ya tiene devoluciones o cambios: no se puede anular */
   tieneAjustes: boolean
+  /** La venta tiene servicios: devolver todos los productos no la anula */
+  tieneServicios: boolean
+  /** Venta a crédito: deuda pendiente y lo abonado (null si es de contado) */
+  credito: { saldoPendiente: number; abonado: number } | null
 }
 
 type Accion = 'ninguna' | 'anular' | 'devolver' | 'cambiar'
@@ -112,6 +116,7 @@ const selectMedioCls = 'rounded-lg border border-white/10 bg-[#111820] px-2 py-1
 
 export function VentaAcciones({
   ventaId, esAdmin, items, ventaTotal, baseVenta, descuentoGlobalPorcentaje, tipoPago, tieneAjustes,
+  tieneServicios, credito,
 }: VentaAccionesProps) {
   const router = useRouter()
   const supabase = createClient()
@@ -180,6 +185,12 @@ export function VentaAcciones({
       : { subtotalLinea: i.subtotal_linea, cantidadLinea: i.cantidad_linea, cantidadDevuelta: i.cantidad }),
     ventaTotal, baseVenta,
   )
+  // En una venta a crédito, lo devuelto baja primero la deuda y solo el resto sale en dinero (devolver_productos)
+  const devuelveTodo = !tieneServicios && itemsDevolucion.length > 0 && itemsDevolucion.every(i =>
+    i.seleccionado && (i.es_fraccionado ? (i.cantidad_fraccion ?? 0) >= (i.cantidad_fraccion_max ?? 0) : i.cantidad >= i.cantidad_max))
+  const repartoDevolucion = repartirAjusteCredito(-montoDevolucion, credito?.saldoPendiente ?? null, devuelveTodo)
+  const devolucionEnDinero = -repartoDevolucion.caja
+  const devolucionADeuda = -repartoDevolucion.deuda
 
   // Registra en garantías los items marcados como defectuosos (no regresan a inventario)
   const registrarGarantias = async (
@@ -223,9 +234,11 @@ export function VentaAcciones({
       })
       if (error) throw error
       await registrarGarantias(garantiasDevolucion, seleccionadosDevolucion.map(i => i.venta_item_id))
-      toast.success(montoDevolucion > 0
-        ? `Devolución registrada. Devolver: $${montoDevolucion.toLocaleString('es-CO')} (${MEDIO_AJUSTE_LABEL[medioDevolucion]})`
-        : 'Devolución registrada')
+      const partes = [
+        devolucionADeuda > 0 ? `Descontado de la deuda: $${devolucionADeuda.toLocaleString('es-CO')}` : '',
+        devolucionEnDinero > 0 ? `Devolver: $${devolucionEnDinero.toLocaleString('es-CO')} (${MEDIO_AJUSTE_LABEL[medioDevolucion]})` : '',
+      ].filter(Boolean)
+      toast.success(partes.length > 0 ? `Devolución registrada. ${partes.join('. ')}` : 'Devolución registrada')
       router.refresh()
       cerrar()
     } catch (err: any) {
@@ -264,6 +277,8 @@ export function VentaAcciones({
     agregados: itemsAgregar.map(i => ({ precioVenta: i.precio_venta, cantidad: i.cantidad })),
     descuentoGlobalPorcentaje,
   })
+  // En una venta a crédito, la diferencia ajusta primero la deuda (cambiar_productos); cajaCambio es el dinero
+  const { deuda: deudaCambio, caja: cajaCambio } = repartirAjusteCredito(diferencia, credito?.saldoPendiente ?? null)
 
   const handleCambiar = async () => {
     if (seleccionadosCambio.length === 0) { toast.error('Selecciona al menos un producto a retirar'); return }
@@ -282,9 +297,14 @@ export function VentaAcciones({
       await registrarGarantias(garantiasCambio, seleccionadosCambio.map(i => i.venta_item_id))
       const r = data as any
       const medio = MEDIO_AJUSTE_LABEL[medioCambio]
-      if (r.cobrar_al_cliente > 0) toast.success(`Cambio registrado. Cobrar: $${Number(r.cobrar_al_cliente).toLocaleString('es-CO')} (${medio})`)
-      else if (r.devolver_al_cliente > 0) toast.success(`Cambio registrado. Devolver: $${Number(r.devolver_al_cliente).toLocaleString('es-CO')} (${medio})`)
-      else toast.success('Cambio registrado sin diferencia')
+      const ajuste = Number(r.ajuste_credito ?? 0)
+      const partes = [
+        ajuste > 0 ? `Sumado a la deuda: $${ajuste.toLocaleString('es-CO')}` : '',
+        ajuste < 0 ? `Descontado de la deuda: $${(-ajuste).toLocaleString('es-CO')}` : '',
+        r.cobrar_al_cliente > 0 ? `Cobrar: $${Number(r.cobrar_al_cliente).toLocaleString('es-CO')} (${medio})` : '',
+        r.devolver_al_cliente > 0 ? `Devolver: $${Number(r.devolver_al_cliente).toLocaleString('es-CO')} (${medio})` : '',
+      ].filter(Boolean)
+      toast.success(partes.length > 0 ? `Cambio registrado. ${partes.join('. ')}` : 'Cambio registrado sin diferencia')
       router.refresh(); cerrar()
     } catch (err: any) {
       toast.error('Error: ' + err.message)
@@ -325,6 +345,20 @@ export function VentaAcciones({
       {accionActiva === 'anular' && (
         <div className="space-y-3 rounded-xl border border-brand-red/30 bg-brand-red/10 p-3">
           <p className="text-sm font-medium text-brand-red">Confirmar anulación</p>
+          {credito && (
+            <div className="space-y-0.5 rounded-xl border border-white/10 bg-[#1a2430] p-2 text-xs text-steel-300">
+              <div className="flex justify-between gap-2">
+                <span>Se cancela la deuda pendiente</span>
+                <span className="text-white">${credito.saldoPendiente.toLocaleString('es-CO')}</span>
+              </div>
+              {credito.abonado > 0 && (
+                <div className="flex justify-between gap-2">
+                  <span>Se devuelve lo abonado (cada abono por el medio con que se pagó)</span>
+                  <span className="text-white">${credito.abonado.toLocaleString('es-CO')}</span>
+                </div>
+              )}
+            </div>
+          )}
           <div className="space-y-1">
             <Label className="text-xs text-brand-red">Motivo (obligatorio)</Label>
             <Textarea value={motivo} onChange={e => setMotivo(e.target.value)} rows={2} className="border-white/10 bg-[#111820] text-white placeholder:text-steel-500" />
@@ -433,13 +467,25 @@ export function VentaAcciones({
           {seleccionadosDevolucion.length > 0 && (
             <div className="rounded-xl border border-white/10 bg-[#1a2430] p-2 text-sm">
               <div className="flex justify-between font-medium">
-                <span className="text-white">Monto a devolver</span>
+                <span className="text-white">{credito ? 'Valor devuelto' : 'Monto a devolver'}</span>
                 <span className="font-display text-brand-yellow">${montoDevolucion.toLocaleString('es-CO')}</span>
               </div>
               <p className="mt-0.5 text-xs text-steel-500">
                 Calculado proporcionalmente según el descuento aplicado en la venta original
               </p>
-              {montoDevolucion > 0 && (
+              {credito && (
+                <div className="mt-2 space-y-0.5 border-t border-white/8 pt-2 text-xs">
+                  <div className="flex justify-between gap-2 text-steel-300">
+                    <span>Se descuenta de la deuda (${credito.saldoPendiente.toLocaleString('es-CO')})</span>
+                    <span className="text-white">${devolucionADeuda.toLocaleString('es-CO')}</span>
+                  </div>
+                  <div className="flex justify-between gap-2 font-medium text-brand-yellow">
+                    <span>Se devuelve en dinero</span>
+                    <span>${devolucionEnDinero.toLocaleString('es-CO')}</span>
+                  </div>
+                </div>
+              )}
+              {devolucionEnDinero > 0 && (
                 <div className="mt-2 flex items-center justify-between gap-2 border-t border-white/8 pt-2">
                   <label htmlFor="medio-devolucion" className="text-xs text-steel-300">Devolver por</label>
                   <select id="medio-devolucion" value={medioDevolucion}
@@ -608,13 +654,21 @@ export function VentaAcciones({
                 <div className="rounded-xl border border-white/10 bg-[#1a2430] p-2 text-sm">
                   <div className="flex justify-between"><span className="text-steel-300">Total actual de la venta</span><span className="text-white">${ventaTotal.toLocaleString('es-CO')}</span></div>
                   <div className="flex justify-between"><span className="text-steel-300">Total con el cambio</span><span className="text-white">${totalTrasCambio.toLocaleString('es-CO')}</span></div>
-                  <div className={`mt-1 flex justify-between border-t border-white/8 pt-1 font-bold ${diferencia > 0 ? 'text-emerald-400' : diferencia < 0 ? 'text-brand-yellow' : 'text-steel-300'}`}>
-                    <span>{diferencia > 0 ? 'Cobrar al cliente' : diferencia < 0 ? 'Devolver al cliente' : 'Sin diferencia'}</span>
-                    <span>${Math.abs(diferencia).toLocaleString('es-CO')}</span>
-                  </div>
-                  {diferencia !== 0 && (
+                  {deudaCambio !== 0 && (
+                    <div className="mt-1 flex justify-between border-t border-white/8 pt-1 font-bold text-brand-yellow">
+                      <span>{deudaCambio > 0 ? 'Se suma a la deuda' : 'Se descuenta de la deuda'}</span>
+                      <span>${Math.abs(deudaCambio).toLocaleString('es-CO')}</span>
+                    </div>
+                  )}
+                  {(deudaCambio === 0 || cajaCambio !== 0) && (
+                    <div className={`mt-1 flex justify-between border-t border-white/8 pt-1 font-bold ${cajaCambio > 0 ? 'text-emerald-400' : cajaCambio < 0 ? 'text-brand-yellow' : 'text-steel-300'}`}>
+                      <span>{cajaCambio > 0 ? 'Cobrar al cliente' : cajaCambio < 0 ? 'Devolver al cliente' : 'Sin diferencia'}</span>
+                      <span>${Math.abs(cajaCambio).toLocaleString('es-CO')}</span>
+                    </div>
+                  )}
+                  {cajaCambio !== 0 && (
                     <div className="mt-2 flex items-center justify-between gap-2">
-                      <label htmlFor="medio-cambio" className="text-xs text-steel-300">{diferencia > 0 ? 'Cobrar por' : 'Devolver por'}</label>
+                      <label htmlFor="medio-cambio" className="text-xs text-steel-300">{cajaCambio > 0 ? 'Cobrar por' : 'Devolver por'}</label>
                       <select id="medio-cambio" value={medioCambio}
                         onChange={e => setMedioCambio(e.target.value as MedioAjuste)} className={selectMedioCls}>
                         {MEDIOS_AJUSTE.map(m => <option key={m} value={m}>{MEDIO_AJUSTE_LABEL[m]}</option>)}
@@ -625,6 +679,7 @@ export function VentaAcciones({
                     Lo retirado se toma con el descuento con que se vendió y los productos nuevos entran a precio de venta
                     {descuentoGlobalPorcentaje > 0 ? ` con el descuento global de la venta (${descuentoGlobalPorcentaje} %)` : ''}.
                     Un total editado a mano conserva su descuento.
+                    {credito ? ' En una venta a crédito, la diferencia ajusta primero la deuda.' : ''}
                   </p>
                 </div>
               )}
