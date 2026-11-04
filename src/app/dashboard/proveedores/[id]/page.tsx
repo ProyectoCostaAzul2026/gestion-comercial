@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { traerTodo } from '@/lib/supabase/traer-todo'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
@@ -30,11 +31,15 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
   if (error || !proveedor) notFound()
 
   const [{ data: productos }, { data: facturas }, { data: garantiasProveedor }] = await Promise.all([
-    supabase
-      .from('producto_proveedores')
-      .select('id, precio_costo, es_proveedor_principal, referencia_proveedor, productos(id, nombre, codigo, activo, stock_actual, stock_minimo, marca, unidad_medida, familia_id, producto_familias(nombre_base))')
-      .eq('proveedor_id', id)
-      .order('created_at', { ascending: false }),
+    traerTodo((filaDesde, filaHasta) =>
+      supabase
+        .from('producto_proveedores')
+        .select('id, precio_costo, es_proveedor_principal, referencia_proveedor, productos(id, nombre, codigo, activo, stock_actual, stock_minimo, marca, unidad_medida, familia_id, producto_familias(nombre_base))')
+        .eq('proveedor_id', id)
+        .order('created_at', { ascending: false })
+        .order('id')
+        .range(filaDesde, filaHasta)
+    ),
     supabase
       .from('facturas_proveedor')
       .select(`

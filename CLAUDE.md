@@ -94,6 +94,10 @@ Roles: `administrador` (todo) y `empleado` (ventas, inventario, clientes, horari
 - Ninguna RPC de negocio se puede ejecutar sin sesión. Al crear una RPC nueva: `revoke execute ... from public, anon` y
   `grant execute ... to authenticated, service_role`.
 - Ninguna tabla se puede leer sin sesión. Las políticas usan `(select auth.uid())` / `(select is_admin())`.
+- La API de Supabase devuelve como máximo **1000 filas por consulta** y corta el resto sin avisar. Toda lista que
+  pueda pasar de 1000 filas (productos, ventas, ítems, pagos, movimientos, clientes) se trae con `traerTodo()` de
+  `src/lib/supabase/traer-todo.ts`, que pide páginas con `.range()`; la consulta debe terminar en un orden único
+  (`.order('id')`).
 - El trigger `trg_proteger_campos_sensibles_profiles` impide que quien no es admin cambie `rol`, `salario_base` o `activo`.
 - `is_admin()` alimenta las políticas RLS. Todas las RPC usan la zona horaria `America/Bogota`.
 - Triggers: `productos.stock_actual = stock_bodega + stock_almacen`; `productos.precio_costo_base` toma el

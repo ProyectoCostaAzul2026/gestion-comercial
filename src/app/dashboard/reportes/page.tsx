@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { traerTodo } from '@/lib/supabase/traer-todo'
 import { redirect } from 'next/navigation'
 import { ReportesPanel } from '@/components/modulos/reportes-panel'
 
@@ -61,38 +62,54 @@ export default async function ReportesPage({
     { data: facturasPendientes },
     { data: movimientosCaja },
   ] = await Promise.all([
-    supabase
-      .from('ventas')
-      .select('id, fecha, hora, total, tipo_pago, estado, empleado_id, profiles!empleado_id(nombre_completo)')
-      .gte('fecha', desde)
-      .lte('fecha', hasta)
-      .in('estado', ['completada', 'modificada', 'credito'])
-      .order('fecha'),
+    traerTodo((filaDesde, filaHasta) =>
+      supabase
+        .from('ventas')
+        .select('id, fecha, hora, total, tipo_pago, estado, empleado_id, profiles!empleado_id(nombre_completo)')
+        .gte('fecha', desde)
+        .lte('fecha', hasta)
+        .in('estado', ['completada', 'modificada', 'credito'])
+        .order('fecha')
+        .order('id')
+        .range(filaDesde, filaHasta)
+    ),
 
-    supabase
-      .from('venta_pagos')
-      .select('metodo, monto, ventas!inner(fecha, estado)')
-      .gte('ventas.fecha', desde)
-      .lte('ventas.fecha', hasta)
-      .neq('ventas.estado', 'anulada'),
+    traerTodo((filaDesde, filaHasta) =>
+      supabase
+        .from('venta_pagos')
+        .select('metodo, monto, ventas!inner(fecha, estado)')
+        .gte('ventas.fecha', desde)
+        .lte('ventas.fecha', hasta)
+        .neq('ventas.estado', 'anulada')
+        .order('id')
+        .range(filaDesde, filaHasta)
+    ),
 
-    supabase
-      .from('venta_items')
-      .select(`
-        id, nombre_producto, cantidad, precio_unitario, subtotal_linea,
-        costo_unitario, es_fraccionado, cantidad_fraccion, venta_id, producto_id,
-        productos(id, codigo, nombre, marca, unidad_medida, precio_costo_base),
-        ventas!inner(fecha, estado)
-      `)
-      .gte('ventas.fecha', desde)
-      .lte('ventas.fecha', hasta)
-      .neq('ventas.estado', 'anulada'),
+    traerTodo((filaDesde, filaHasta) =>
+      supabase
+        .from('venta_items')
+        .select(`
+          id, nombre_producto, cantidad, precio_unitario, subtotal_linea,
+          costo_unitario, es_fraccionado, cantidad_fraccion, venta_id, producto_id,
+          productos(id, codigo, nombre, marca, unidad_medida, precio_costo_base),
+          ventas!inner(fecha, estado)
+        `)
+        .gte('ventas.fecha', desde)
+        .lte('ventas.fecha', hasta)
+        .neq('ventas.estado', 'anulada')
+        .order('id')
+        .range(filaDesde, filaHasta)
+    ),
 
-    supabase
-      .from('gastos')
-      .select('monto, categoria_gasto')
-      .gte('fecha', desde)
-      .lte('fecha', hasta),
+    traerTodo((filaDesde, filaHasta) =>
+      supabase
+        .from('gastos')
+        .select('monto, categoria_gasto')
+        .gte('fecha', desde)
+        .lte('fecha', hasta)
+        .order('id')
+        .range(filaDesde, filaHasta)
+    ),
 
     supabase
       .from('nominas')
@@ -106,10 +123,14 @@ export default async function ReportesPage({
       .select('id, nombre_completo')
       .eq('activo', true),
 
-    supabase
-      .from('productos')
-      .select('id, codigo, nombre, stock_actual, stock_minimo, precio_costo_base, precio_venta, activo')
-      .eq('activo', true),
+    traerTodo((filaDesde, filaHasta) =>
+      supabase
+        .from('productos')
+        .select('id, codigo, nombre, stock_actual, stock_minimo, precio_costo_base, precio_venta, activo')
+        .eq('activo', true)
+        .order('id')
+        .range(filaDesde, filaHasta)
+    ),
 
     supabase
       .from('facturas_proveedor')
@@ -117,20 +138,28 @@ export default async function ReportesPage({
       .in('estado', ['pendiente', 'parcial']),
 
     // Flujo de caja: todos los movimientos del período
-    supabase
-      .from('movimientos_caja')
-      .select('fecha, tipo_movimiento, monto')
-      .gte('fecha', desde)
-      .lte('fecha', hasta)
-      .neq('tipo_movimiento', 'transferencia_caja_mayor'),
+    traerTodo((filaDesde, filaHasta) =>
+      supabase
+        .from('movimientos_caja')
+        .select('fecha, tipo_movimiento, monto')
+        .gte('fecha', desde)
+        .lte('fecha', hasta)
+        .neq('tipo_movimiento', 'transferencia_caja_mayor')
+        .order('id')
+        .range(filaDesde, filaHasta)
+    ),
   ])
 
   // Créditos del período
-  const { data: creditosPeriodo } = await supabase
-    .from('ventas_credito')
-    .select('monto_original, ventas!inner(fecha)')
-    .gte('ventas.fecha', desde)
-    .lte('ventas.fecha', hasta)
+  const { data: creditosPeriodo } = await traerTodo((filaDesde, filaHasta) =>
+    supabase
+      .from('ventas_credito')
+      .select('monto_original, ventas!inner(fecha)')
+      .gte('ventas.fecha', desde)
+      .lte('ventas.fecha', hasta)
+      .order('id')
+      .range(filaDesde, filaHasta)
+  )
 
   // ── KPIs período ──
   // Solo ventas completadas/modificadas para ingresos reales

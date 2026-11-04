@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { traerTodo } from '@/lib/supabase/traer-todo'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ClienteTable } from '@/components/modulos/cliente-table'
@@ -10,18 +11,26 @@ export default async function ClientesPage() {
   if (!user) redirect('/login')
 
   const [{ data: clientes, error }, { data: statsVentas }] = await Promise.all([
-    supabase
-      .from('clientes')
-      .select('id, nombre, telefono, email, nit_cc, es_cliente_generico')
-      .eq('activo', true)
-      .order('es_cliente_generico', { ascending: false })
-      .order('nombre', { ascending: true }),
+    traerTodo((filaDesde, filaHasta) =>
+      supabase
+        .from('clientes')
+        .select('id, nombre, telefono, email, nit_cc, es_cliente_generico')
+        .eq('activo', true)
+        .order('es_cliente_generico', { ascending: false })
+        .order('nombre', { ascending: true })
+        .order('id', { ascending: true })
+        .range(filaDesde, filaHasta)
+    ),
 
-    supabase
-      .from('ventas')
-      .select('cliente_id, total, fecha')
-      .neq('estado', 'anulada')
-      .not('cliente_id', 'is', null),
+    traerTodo((filaDesde, filaHasta) =>
+      supabase
+        .from('ventas')
+        .select('cliente_id, total, fecha')
+        .neq('estado', 'anulada')
+        .not('cliente_id', 'is', null)
+        .order('id')
+        .range(filaDesde, filaHasta)
+    ),
   ])
 
   // Calcular stats por cliente en el servidor

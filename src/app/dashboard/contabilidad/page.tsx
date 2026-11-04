@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { traerTodo } from '@/lib/supabase/traer-todo'
 import { redirect } from 'next/navigation'
 import { ContabilidadPanel } from '@/components/modulos/contabilidad-panel'
 
@@ -48,39 +49,55 @@ export default async function ContabilidadPage({
     { data: cuentasCobrar },
     { data: cuentasPagar },
   ] = await Promise.all([
-    supabase
-      .from('ventas')
-      .select('id, numero_ticket, fecha, total, tipo_pago, estado, clientes(nombre)')
-      .gte('fecha', desde)
-      .lte('fecha', hasta)
-      .in('estado', ['completada', 'modificada', 'credito'])
-      .order('fecha', { ascending: false }),
+    traerTodo((filaDesde, filaHasta) =>
+      supabase
+        .from('ventas')
+        .select('id, numero_ticket, fecha, total, tipo_pago, estado, clientes(nombre)')
+        .gte('fecha', desde)
+        .lte('fecha', hasta)
+        .in('estado', ['completada', 'modificada', 'credito'])
+        .order('fecha', { ascending: false })
+        .order('id')
+        .range(filaDesde, filaHasta)
+    ),
 
-    supabase
-      .from('venta_servicios')
-      .select('id, nombre_servicio, precio_aplicado, ventas!inner(id, fecha, numero_ticket, estado)')
-      .gte('ventas.fecha', desde)
-      .lte('ventas.fecha', hasta)
-      .neq('ventas.estado', 'anulada'),
+    traerTodo((filaDesde, filaHasta) =>
+      supabase
+        .from('venta_servicios')
+        .select('id, nombre_servicio, precio_aplicado, ventas!inner(id, fecha, numero_ticket, estado)')
+        .gte('ventas.fecha', desde)
+        .lte('ventas.fecha', hasta)
+        .neq('ventas.estado', 'anulada')
+        .order('id')
+        .range(filaDesde, filaHasta)
+    ),
 
-    supabase
-      .from('venta_items')
-      .select(`
-        id, nombre_producto, cantidad, costo_unitario, subtotal_linea,
-        es_fraccionado, cantidad_fraccion,
-        productos(id, nombre, producto_proveedores(proveedor_id, proveedores(nombre))),
-        ventas!inner(fecha, estado)
-      `)
-      .gte('ventas.fecha', desde)
-      .lte('ventas.fecha', hasta)
-      .neq('ventas.estado', 'anulada'),
+    traerTodo((filaDesde, filaHasta) =>
+      supabase
+        .from('venta_items')
+        .select(`
+          id, nombre_producto, cantidad, costo_unitario, subtotal_linea,
+          es_fraccionado, cantidad_fraccion,
+          productos(id, nombre, producto_proveedores(proveedor_id, proveedores(nombre))),
+          ventas!inner(fecha, estado)
+        `)
+        .gte('ventas.fecha', desde)
+        .lte('ventas.fecha', hasta)
+        .neq('ventas.estado', 'anulada')
+        .order('id')
+        .range(filaDesde, filaHasta)
+    ),
 
-    supabase
-      .from('gastos')
-      .select('id, fecha, concepto, categoria_gasto, monto, metodo_pago, notas, proveedores(nombre)')
-      .gte('fecha', desde)
-      .lte('fecha', hasta)
-      .order('fecha', { ascending: false }),
+    traerTodo((filaDesde, filaHasta) =>
+      supabase
+        .from('gastos')
+        .select('id, fecha, concepto, categoria_gasto, monto, metodo_pago, notas, proveedores(nombre)')
+        .gte('fecha', desde)
+        .lte('fecha', hasta)
+        .order('fecha', { ascending: false })
+        .order('id')
+        .range(filaDesde, filaHasta)
+    ),
 
     supabase
       .from('nominas')
@@ -94,15 +111,19 @@ export default async function ContabilidadPage({
     supabase.from('profiles').select('id, nombre_completo').eq('activo', true).order('nombre_completo'),
     supabase.from('categorias_gasto').select('id, nombre').eq('activo', true).order('nombre'),
 
-    supabase
-      .from('ventas_credito')
-      .select(`
-        id, monto_original, saldo_pendiente, estado, fecha_pago_programada, created_at,
-        cliente_id,
-        ventas(numero_ticket, fecha)
-      `)
-      .in('estado', ['pendiente', 'parcial'])
-      .order('created_at', { ascending: false }),
+    traerTodo((filaDesde, filaHasta) =>
+      supabase
+        .from('ventas_credito')
+        .select(`
+          id, monto_original, saldo_pendiente, estado, fecha_pago_programada, created_at,
+          cliente_id,
+          ventas(numero_ticket, fecha)
+        `)
+        .in('estado', ['pendiente', 'parcial'])
+        .order('created_at', { ascending: false })
+        .order('id')
+        .range(filaDesde, filaHasta)
+    ),
 
     supabase
       .from('facturas_proveedor')
