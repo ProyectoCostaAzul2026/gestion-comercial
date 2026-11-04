@@ -49,14 +49,18 @@ const ESTADO_LABEL: Record<string, string> = {
   pendiente: 'Pendiente',
   parcial: 'Parcial',
   pagado: 'Pagado',
+  anulado: 'Anulado',
 }
+
+/** Créditos sin deuda que cobrar: pagados o anulados (la venta se anuló o se devolvió completa) */
+const esCerrado = (estado: string) => estado === 'pagado' || estado === 'anulado'
 
 function fmt(n: number) { return `$${Math.round(n).toLocaleString('es-CO')}` }
 
 function CreditoCard({ credito }: { credito: Credito }) {
   const supabase = createClient()
   const router = useRouter()
-  const [expandido, setExpandido] = useState(credito.estado !== 'pagado')
+  const [expandido, setExpandido] = useState(!esCerrado(credito.estado))
   const [mostrarAbono, setMostrarAbono] = useState(false)
   const [mostrarFecha, setMostrarFecha] = useState(false)
   const [monto, setMonto] = useState(credito.saldo_pendiente)
@@ -115,11 +119,12 @@ function CreditoCard({ credito }: { credito: Credito }) {
   }
 
   const esPagado = credito.estado === 'pagado'
+  const cerrado = esCerrado(credito.estado)
   const hoy = new Date().toISOString().slice(0, 10)
-  const vencido = credito.fecha_pago_programada && credito.fecha_pago_programada < hoy && !esPagado
+  const vencido = credito.fecha_pago_programada && credito.fecha_pago_programada < hoy && !cerrado
 
   return (
-    <div className={`space-y-3 rounded-2xl border p-4 ${esPagado ? 'border-white/10 bg-[#1a2430] opacity-70' : vencido ? 'border-brand-red/30 bg-brand-red/10' : 'border-white/10 bg-[#111820]'}`}>
+    <div className={`space-y-3 rounded-2xl border p-4 ${cerrado ? 'border-white/10 bg-[#1a2430] opacity-70' : vencido ? 'border-brand-red/30 bg-brand-red/10' : 'border-white/10 bg-[#111820]'}`}>
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -127,7 +132,7 @@ function CreditoCard({ credito }: { credito: Credito }) {
             <span className="font-medium text-white">
               Ticket #{credito.ventas?.numero_ticket ?? '—'}
             </span>
-            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${esPagado ? 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400' : credito.estado === 'parcial' ? 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow' : 'border-brand-red/30 bg-brand-red/20 text-brand-red'}`}>
+            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${esPagado ? 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400' : credito.estado === 'anulado' ? 'border-white/20 bg-white/10 text-steel-300' : credito.estado === 'parcial' ? 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow' : 'border-brand-red/30 bg-brand-red/20 text-brand-red'}`}>
               {ESTADO_LABEL[credito.estado] ?? credito.estado}
             </span>
             {vencido && <span className="inline-flex items-center rounded-full border border-brand-red/30 bg-brand-red/20 px-2.5 py-0.5 text-xs font-semibold text-brand-red">Vencido</span>}
@@ -138,7 +143,7 @@ function CreditoCard({ credito }: { credito: Credito }) {
           </p>
         </div>
         <div className="shrink-0 text-right">
-          {!esPagado && (
+          {!cerrado && (
             <p className="font-display text-lg font-bold text-brand-red">{fmt(credito.saldo_pendiente)}</p>
           )}
           <button type="button" onClick={() => setExpandido(v => !v)} className="mt-1 text-steel-300 hover:text-white">
@@ -166,7 +171,7 @@ function CreditoCard({ credito }: { credito: Credito }) {
           )}
 
           {/* Acciones */}
-          {!esPagado && (
+          {!cerrado && (
             <div className="flex flex-wrap gap-2 pt-1">
               <Button type="button" size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={() => { setMostrarAbono(v => !v); setMostrarFecha(false) }}>
                 Registrar abono
@@ -178,7 +183,7 @@ function CreditoCard({ credito }: { credito: Credito }) {
           )}
 
           {/* Panel abono */}
-          {mostrarAbono && !esPagado && (
+          {mostrarAbono && !cerrado && (
             <div className="space-y-3 rounded-xl border border-white/10 bg-[#1a2430] p-3">
               <p className="text-xs font-medium text-steel-300">
                 Registrar abono · Saldo pendiente: {fmt(credito.saldo_pendiente)}
@@ -268,7 +273,7 @@ function CreditoCard({ credito }: { credito: Credito }) {
           )}
 
           {/* Panel fecha */}
-          {mostrarFecha && !esPagado && (
+          {mostrarFecha && !cerrado && (
             <div className="space-y-2 rounded-xl border border-white/10 bg-[#1a2430] p-3">
               <p className="text-xs font-medium text-steel-300">Programar fecha de pago</p>
               <Input type="date" value={nuevaFecha} onChange={e => setNuevaFecha(e.target.value)} className="w-44 border-white/10 bg-[#111820] text-white" />
@@ -291,8 +296,8 @@ function CreditoCard({ credito }: { credito: Credito }) {
 }
 
 export function PerfilClienteCreditos({ creditos }: { creditos: Credito[] }) {
-  const activos = creditos.filter(c => c.estado !== 'pagado')
-  const pagados = creditos.filter(c => c.estado === 'pagado')
+  const activos = creditos.filter(c => !esCerrado(c.estado))
+  const pagados = creditos.filter(c => esCerrado(c.estado))
   const [mostrarPagados, setMostrarPagados] = useState(false)
 
   return (
@@ -312,7 +317,7 @@ export function PerfilClienteCreditos({ creditos }: { creditos: Credito[] }) {
           <button type="button" onClick={() => setMostrarPagados(v => !v)}
             className="flex items-center gap-1 text-xs text-steel-300 hover:text-white">
             {mostrarPagados ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-            {mostrarPagados ? 'Ocultar' : 'Ver'} {pagados.length} crédito{pagados.length !== 1 ? 's' : ''} pagado{pagados.length !== 1 ? 's' : ''}
+            {mostrarPagados ? 'Ocultar' : 'Ver'} {pagados.length} crédito{pagados.length !== 1 ? 's' : ''} pagado{pagados.length !== 1 ? 's' : ''} o anulado{pagados.length !== 1 ? 's' : ''}
           </button>
           {mostrarPagados && pagados.map(c => <CreditoCard key={c.id} credito={c} />)}
         </div>

@@ -93,6 +93,9 @@ Roles: `administrador` (todo) y `empleado` (ventas, inventario, clientes, horari
   PostgREST responde 300 `PGRST203` y la llamada falla desde la app. `anular_venta`, `devolver_productos` y
   `cambiar_productos` son solo para administrador y reciben el medio por el que sale o entra el dinero; sus reglas están
   en `DATABASE.md` y la vista previa de `venta-acciones.tsx` las replica en `src/lib/ajustes-venta.ts` (cambiar las dos).
+  En una venta a crédito ajustan primero la deuda (`ventas_credito.saldo_pendiente` y el saldo `credito`) y solo el resto
+  pasa por caja; un crédito cuya venta se anula o se devuelve completa queda `anulado`. `devoluciones.ajuste_credito`
+  guarda lo que cambió la deuda y `repartirAjusteCredito` replica el reparto en la vista previa.
 - El guardado de productos y familias va por `guardar_producto` y `guardar_familia` (`SECURITY INVOKER`, una sola
   transacción). `producto-form.tsx` y `familia-medidas-panel.tsx` las llaman con `supabase.rpc`.
 - Ninguna RPC de negocio se puede ejecutar sin sesión. Al crear una RPC nueva: `revoke execute ... from public, anon` y
@@ -193,8 +196,6 @@ Roles: `administrador` (todo) y `empleado` (ventas, inventario, clientes, horari
 - El repositorio de GitHub es público: valorar hacerlo privado. Si se hace, instalar la app de Claude en GitHub
   (github.com/apps/claude) para que las sesiones en la nube puedan clonarlo.
 - La búsqueda del inventario filtra en el navegador (bien con ~3000 productos; pasar a búsqueda en el servidor si crece).
-- Ventas a crédito: `anular_venta`, `devolver_productos` y `cambiar_productos` no tocan `ventas_credito` ni el saldo
-  `credito` (una venta a crédito anulada sigue como deuda; una devolución saca dinero aunque el cliente no haya pagado).
 - Garantías desde una devolución o un cambio: en `venta-acciones.tsx` no se puede elegir el proveedor (la lista no se
   carga), la cantidad va fija en 1 y no se guarda `devolucion_id`; además la RPC reintegra el stock y `recibir_garantia`
   lo vuelve a sumar.

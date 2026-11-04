@@ -62,8 +62,9 @@ export default async function CajaPage() {
 
   const { data: creditosHoy } = await supabase
     .from('ventas_credito')
-    .select('monto_original, ventas!inner(fecha)')
+    .select('monto_original, ventas!inner(fecha, estado)')
     .eq('ventas.fecha', hoy)
+    .neq('ventas.estado', 'anulada')
   const ventasCredito = (creditosHoy ?? []).reduce((s: number, c: any) => s + Number(c.monto_original), 0)
 
   const totalIngresos = (movimientos ?? [])

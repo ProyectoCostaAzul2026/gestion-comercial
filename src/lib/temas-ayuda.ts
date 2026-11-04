@@ -76,6 +76,15 @@ export const TEMAS_AYUDA: TemaAyuda[] = [
           'Si necesitas mover la fecha de pago programada, también se puede editar desde ahí.',
         ],
       },
+      {
+        subtitulo: 'Anular, devolver o cambiar una venta a crédito',
+        pasos: [
+          'Al devolver productos o hacer un cambio a favor del cliente, el valor se descuenta primero de la deuda; solo lo que pase de ella se le devuelve en dinero.',
+          'Si el cambio sube el total y el crédito sigue abierto, la diferencia se suma a la deuda; si ya estaba pagado, se cobra en caja.',
+          'Al anular la venta se cancela la deuda pendiente y se le devuelve al cliente lo que había abonado. El crédito queda "Anulado".',
+          'Antes de confirmar, la pantalla muestra cuánto va a la deuda y cuánto en dinero.',
+        ],
+      },
     ],
   },
   {
@@ -216,7 +225,7 @@ export const TEMAS_AYUDA: TemaAyuda[] = [
       {
         pasos: [
           'Entra al perfil del cliente desde el listado de Clientes.',
-          'Verás sus créditos activos y pagados, con saldo pendiente y fecha programada de pago.',
+          'Verás sus créditos activos, pagados y anulados, con saldo pendiente y fecha programada de pago.',
           'Desde ahí mismo puedes registrar abonos (ver el tema "Vender a crédito y registrar abonos").',
         ],
       },

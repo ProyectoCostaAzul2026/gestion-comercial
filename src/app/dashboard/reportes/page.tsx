@@ -154,9 +154,10 @@ export default async function ReportesPage({
   const { data: creditosPeriodo } = await traerTodo((filaDesde, filaHasta) =>
     supabase
       .from('ventas_credito')
-      .select('monto_original, ventas!inner(fecha)')
+      .select('monto_original, ventas!inner(fecha, estado)')
       .gte('ventas.fecha', desde)
       .lte('ventas.fecha', hasta)
+      .neq('ventas.estado', 'anulada')
       .order('id')
       .range(filaDesde, filaHasta)
   )

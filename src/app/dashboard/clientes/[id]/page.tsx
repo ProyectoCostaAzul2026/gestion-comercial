@@ -45,7 +45,7 @@ export default async function PerfilClientePage({
   ])
 
   const totalDeuda = (creditos ?? [])
-    .filter((c: any) => c.estado !== 'pagado')
+    .filter((c: any) => c.estado !== 'pagado' && c.estado !== 'anulado')
     .reduce((s: number, c: any) => s + Number(c.saldo_pendiente), 0)
 
   return (
@@ -95,7 +95,7 @@ export default async function PerfilClientePage({
             <div>
               <p className="text-sm font-semibold text-brand-red">Saldo pendiente total</p>
               <p className="mt-0.5 text-xs text-brand-red">
-                {(creditos ?? []).filter((c: any) => c.estado !== 'pagado').length} crédito(s) activo(s)
+                {(creditos ?? []).filter((c: any) => c.estado !== 'pagado' && c.estado !== 'anulado').length} crédito(s) activo(s)
               </p>
             </div>
             <p className="font-display text-2xl font-black text-brand-red">${totalDeuda.toLocaleString('es-CO')}</p>
