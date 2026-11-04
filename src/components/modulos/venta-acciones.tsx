@@ -9,11 +9,23 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Search, Trash2 } from 'lucide-react'
+import {
+  MEDIOS_AJUSTE, MEDIO_AJUSTE_LABEL, calcularCambio, calcularMontoDevolucion, medioPorDefecto,
+  type MedioAjuste,
+} from '@/lib/ajustes-venta'
 
 interface VentaItem {
-  id: string; nombre_producto: string; cantidad: number
-  precio_unitario: number; subtotal_linea: number
-  es_fraccionado?: boolean; cantidad_fraccion?: number | null
+  id: string; nombre_producto: string
+  /** Unidades que quedan por devolver (en líneas fraccionadas, siempre 1) */
+  cantidad: number
+  /** venta_items.cantidad */
+  cantidad_linea?: number
+  precio_unitario: number; subtotal_linea: number; descuento_linea?: number
+  es_fraccionado?: boolean
+  /** Fracción que queda por devolver */
+  cantidad_fraccion?: number | null
+  /** venta_items.cantidad_fraccion */
+  cantidad_fraccion_linea?: number | null
   cantidad_minima_venta?: number | null; medida_venta?: string | null
   producto_id?: string
 }
@@ -27,8 +39,8 @@ interface ItemDevolucion {
   venta_item_id: string; nombre: string
   es_fraccionado: boolean
   cantidad_max: number; cantidad: number; seleccionado: boolean
-  subtotal_linea: number
-  cantidad_fraccion_max?: number; cantidad_fraccion?: number
+  subtotal_linea: number; cantidad_linea: number
+  cantidad_fraccion_max?: number; cantidad_fraccion?: number; cantidad_fraccion_linea: number
   cantidad_minima_venta?: number | null; medida_venta?: string | null
   proveedores_producto?: { id: string }[]
 }
@@ -36,6 +48,7 @@ interface ItemDevolucion {
 interface ItemRetirar {
   venta_item_id: string; nombre: string; cantidad_max: number
   cantidad: number; seleccionado: boolean; precio_unitario: number
+  cantidad_linea: number; descuento_linea: number; subtotal_linea: number
   proveedores_producto?: { id: string }[]
 }
 
@@ -53,19 +66,53 @@ interface GarantiaItem {
   observacion: string
 }
 
-// Moved outside component so it's available at module level
-interface FuenteDev { key: string; fuente: string; monto: number }
-
 interface VentaAccionesProps {
   ventaId: string; esAdmin: boolean
   items: VentaItem[]
   ventaTotal: number
-  ventaSubtotal: number
+  /** Suma de subtotal_linea de todas las líneas de la venta más sus servicios */
+  baseVenta: number
+  /** Descuento global de la venta en porcentaje (0 si no tiene) */
+  descuentoGlobalPorcentaje: number
+  tipoPago: string
+  /** La venta ya tiene devoluciones o cambios: no se puede anular */
+  tieneAjustes: boolean
 }
 
 type Accion = 'ninguna' | 'anular' | 'devolver' | 'cambiar'
 
-export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtotal }: VentaAccionesProps) {
+const itemsDevolucionIniciales = (items: VentaItem[]): ItemDevolucion[] =>
+  items.map(i => ({
+    venta_item_id: i.id,
+    nombre: i.nombre_producto,
+    es_fraccionado: i.es_fraccionado ?? false,
+    cantidad_max: i.cantidad,
+    cantidad: i.cantidad,
+    seleccionado: false,
+    subtotal_linea: i.subtotal_linea,
+    cantidad_linea: i.cantidad_linea ?? i.cantidad,
+    cantidad_fraccion_max: i.cantidad_fraccion ?? 0,
+    cantidad_fraccion: i.cantidad_fraccion ?? 0,
+    cantidad_fraccion_linea: i.cantidad_fraccion_linea ?? i.cantidad_fraccion ?? 0,
+    cantidad_minima_venta: i.cantidad_minima_venta,
+    medida_venta: i.medida_venta,
+  }))
+
+const itemsRetirarIniciales = (items: VentaItem[]): ItemRetirar[] =>
+  items.filter(i => !i.es_fraccionado).map(i => ({
+    venta_item_id: i.id, nombre: i.nombre_producto,
+    cantidad_max: i.cantidad, cantidad: i.cantidad,
+    seleccionado: false, precio_unitario: i.precio_unitario,
+    cantidad_linea: i.cantidad_linea ?? i.cantidad,
+    descuento_linea: i.descuento_linea ?? 0,
+    subtotal_linea: i.subtotal_linea,
+  }))
+
+const selectMedioCls = 'rounded-lg border border-white/10 bg-[#111820] px-2 py-1 text-xs text-white'
+
+export function VentaAcciones({
+  ventaId, esAdmin, items, ventaTotal, baseVenta, descuentoGlobalPorcentaje, tipoPago, tieneAjustes,
+}: VentaAccionesProps) {
   const router = useRouter()
   const supabase = createClient()
   const [accionActiva, setAccionActiva] = useState<Accion>('ninguna')
@@ -73,37 +120,19 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
   const [motivo, setMotivo] = useState('')
   const [anulando, setAnulando] = useState(false)
 
-  const [itemsDevolucion, setItemsDevolucion] = useState<ItemDevolucion[]>(
-    items.map(i => ({
-      venta_item_id: i.id,
-      nombre: i.nombre_producto,
-      es_fraccionado: i.es_fraccionado ?? false,
-      cantidad_max: i.cantidad,
-      cantidad: i.cantidad,
-      seleccionado: false,
-      subtotal_linea: i.subtotal_linea,
-      cantidad_fraccion_max: i.cantidad_fraccion ?? 0,
-      cantidad_fraccion: i.cantidad_fraccion ?? 0,
-      cantidad_minima_venta: i.cantidad_minima_venta,
-      medida_venta: i.medida_venta,
-    }))
-  )
+  const [itemsDevolucion, setItemsDevolucion] = useState<ItemDevolucion[]>(() => itemsDevolucionIniciales(items))
   const [observacionDev, setObservacionDev] = useState('')
   const [devolviendo, setDevolviendo] = useState(false)
+  const [medioDevolucion, setMedioDevolucion] = useState<MedioAjuste>(medioPorDefecto(tipoPago))
 
   const [paso, setPaso] = useState<1 | 2>(1)
-  const [itemsRetirar, setItemsRetirar] = useState<ItemRetirar[]>(
-    items.filter(i => !i.es_fraccionado).map(i => ({
-      venta_item_id: i.id, nombre: i.nombre_producto,
-      cantidad_max: i.cantidad, cantidad: i.cantidad,
-      seleccionado: false, precio_unitario: i.precio_unitario,
-    }))
-  )
+  const [itemsRetirar, setItemsRetirar] = useState<ItemRetirar[]>(() => itemsRetirarIniciales(items))
   const [itemsAgregar, setItemsAgregar] = useState<ItemAgregar[]>([])
   const [queryProducto, setQueryProducto] = useState('')
   const [resultadosProducto, setResultadosProducto] = useState<ProductoSearch[]>([])
   const [observacionCambio, setObservacionCambio] = useState('')
   const [cambiando, setCambiando] = useState(false)
+  const [medioCambio, setMedioCambio] = useState<MedioAjuste>(medioPorDefecto(tipoPago))
 
   // ── Garantías ──
   const [garantiasDevolucion, setGarantiasDevolucion] = useState<Record<string, GarantiaItem>>({})
@@ -119,22 +148,13 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
     setCargandoProveedores(false)
   }
 
-  const ratioGlobal = ventaSubtotal > 0 ? ventaTotal / ventaSubtotal : 1
-
   const cerrar = () => {
     setAccionActiva('ninguna'); setMotivo(''); setObservacionDev(''); setObservacionCambio(''); setPaso(1)
-    setItemsDevolucion(items.map(i => ({
-      venta_item_id: i.id, nombre: i.nombre_producto, es_fraccionado: i.es_fraccionado ?? false,
-      cantidad_max: i.cantidad, cantidad: i.cantidad, seleccionado: false, subtotal_linea: i.subtotal_linea,
-      cantidad_fraccion_max: i.cantidad_fraccion ?? 0, cantidad_fraccion: i.cantidad_fraccion ?? 0,
-      cantidad_minima_venta: i.cantidad_minima_venta, medida_venta: i.medida_venta,
-    })))
-    setItemsRetirar(items.filter(i => !i.es_fraccionado).map(i => ({
-      venta_item_id: i.id, nombre: i.nombre_producto, cantidad_max: i.cantidad,
-      cantidad: i.cantidad, seleccionado: false, precio_unitario: i.precio_unitario,
-    })))
+    setItemsDevolucion(itemsDevolucionIniciales(items))
+    setItemsRetirar(itemsRetirarIniciales(items))
     setItemsAgregar([]); setQueryProducto(''); setResultadosProducto([])
     setGarantiasDevolucion({}); setGarantiasCambio({})
+    setMedioDevolucion(medioPorDefecto(tipoPago)); setMedioCambio(medioPorDefecto(tipoPago))
   }
 
   const handleAnular = async () => {
@@ -152,20 +172,14 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
     }
   }
 
-  // Cálculo correcto: proporcional al subtotal_linea × ratio_global
+  // Misma fórmula que devolver_productos: la parte del total pagado que corresponde a lo devuelto
   const seleccionadosDevolucion = itemsDevolucion.filter(i => i.seleccionado)
-  const montoDevolucion = Math.floor(seleccionadosDevolucion.reduce((sum, i) => {
-    if (i.es_fraccionado) {
-      const fraccionDevuelta = i.cantidad_fraccion ?? 0
-      const fraccionOriginal = i.cantidad_fraccion_max ?? 1
-      return sum + (i.subtotal_linea * ratioGlobal * (fraccionDevuelta / fraccionOriginal))
-    }
-    return sum + (i.subtotal_linea * ratioGlobal * (i.cantidad / i.cantidad_max))
-  }, 0) / 100) * 100
-
-  // ── Fuentes de pago devolución ──
-  const [fuentesDev, setFuentesDev] = useState<FuenteDev[]>([{ key: '1', fuente: 'caja_menor', monto: 0 }])
-  const [esMixtoDev, setEsMixtoDev] = useState(false)
+  const montoDevolucion = calcularMontoDevolucion(
+    seleccionadosDevolucion.map(i => i.es_fraccionado
+      ? { subtotalLinea: i.subtotal_linea, cantidadLinea: i.cantidad_fraccion_linea, cantidadDevuelta: i.cantidad_fraccion ?? 0 }
+      : { subtotalLinea: i.subtotal_linea, cantidadLinea: i.cantidad_linea, cantidadDevuelta: i.cantidad }),
+    ventaTotal, baseVenta,
+  )
 
   // Registra en garantías los items marcados como defectuosos (no regresan a inventario)
   const registrarGarantias = async (
@@ -205,10 +219,13 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
       )
       const { error } = await supabase.rpc('devolver_productos', {
         p_venta_id: ventaId, p_items_devolucion: payload, p_observacion: observacionDev,
+        p_medio_devolucion: medioDevolucion,
       })
       if (error) throw error
       await registrarGarantias(garantiasDevolucion, seleccionadosDevolucion.map(i => i.venta_item_id))
-      toast.success('Devolución registrada')
+      toast.success(montoDevolucion > 0
+        ? `Devolución registrada. Devolver: $${montoDevolucion.toLocaleString('es-CO')} (${MEDIO_AJUSTE_LABEL[medioDevolucion]})`
+        : 'Devolución registrada')
       router.refresh()
       cerrar()
     } catch (err: any) {
@@ -235,10 +252,18 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
     setQueryProducto(''); setResultadosProducto([])
   }
 
+  // Misma fórmula que cambiar_productos: se cobra (o devuelve) lo que cambia el valor de la venta con sus descuentos
   const seleccionadosCambio = itemsRetirar.filter(i => i.seleccionado)
-  const valorRetirado = seleccionadosCambio.reduce((s, i) => s + i.precio_unitario * i.cantidad, 0)
-  const valorAgregado = itemsAgregar.reduce((s, i) => s + i.precio_venta * i.cantidad, 0)
-  const diferencia = valorAgregado - valorRetirado
+  const { totalNuevo: totalTrasCambio, diferencia } = calcularCambio({
+    totalVenta: ventaTotal,
+    baseVenta,
+    retiros: seleccionadosCambio.map(i => ({
+      precioUnitario: i.precio_unitario, cantidadLinea: i.cantidad_linea, descuentoLinea: i.descuento_linea,
+      subtotalLinea: i.subtotal_linea, cantidadRetirada: i.cantidad,
+    })),
+    agregados: itemsAgregar.map(i => ({ precioVenta: i.precio_venta, cantidad: i.cantidad })),
+    descuentoGlobalPorcentaje,
+  })
 
   const handleCambiar = async () => {
     if (seleccionadosCambio.length === 0) { toast.error('Selecciona al menos un producto a retirar'); return }
@@ -251,12 +276,14 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
         p_items_retirar: seleccionadosCambio.map(i => ({ venta_item_id: i.venta_item_id, cantidad: i.cantidad })),
         p_items_agregar: itemsAgregar.map(i => ({ producto_id: i.producto_id, cantidad: i.cantidad })),
         p_observacion: observacionCambio,
+        p_medio_pago: medioCambio,
       })
       if (error) throw error
       await registrarGarantias(garantiasCambio, seleccionadosCambio.map(i => i.venta_item_id))
       const r = data as any
-      if (r.cobrar_al_cliente > 0) toast.success(`Cambio registrado. Cobrar: $${Number(r.cobrar_al_cliente).toLocaleString('es-CO')}`)
-      else if (r.devolver_al_cliente > 0) toast.success(`Cambio registrado. Devolver: $${Number(r.devolver_al_cliente).toLocaleString('es-CO')}`)
+      const medio = MEDIO_AJUSTE_LABEL[medioCambio]
+      if (r.cobrar_al_cliente > 0) toast.success(`Cambio registrado. Cobrar: $${Number(r.cobrar_al_cliente).toLocaleString('es-CO')} (${medio})`)
+      else if (r.devolver_al_cliente > 0) toast.success(`Cambio registrado. Devolver: $${Number(r.devolver_al_cliente).toLocaleString('es-CO')} (${medio})`)
       else toast.success('Cambio registrado sin diferencia')
       router.refresh(); cerrar()
     } catch (err: any) {
@@ -275,12 +302,23 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
       </h2>
 
       {accionActiva === 'ninguna' && (
-        <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={() => setAccionActiva('devolver')} className="text-sm text-brand-yellow hover:underline">Devolver productos</button>
-          <span className="text-steel-500">·</span>
-          <button type="button" onClick={() => setAccionActiva('cambiar')} className="text-sm text-brand-blue hover:underline">Cambiar productos</button>
-          <span className="text-steel-500">·</span>
-          <button type="button" onClick={() => setAccionActiva('anular')} className="text-sm text-brand-red hover:underline">Anular venta</button>
+        <div className="space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" onClick={() => setAccionActiva('devolver')} className="text-sm text-brand-yellow hover:underline">Devolver productos</button>
+            <span className="text-steel-500">·</span>
+            <button type="button" onClick={() => setAccionActiva('cambiar')} className="text-sm text-brand-blue hover:underline">Cambiar productos</button>
+            {!tieneAjustes && (
+              <>
+                <span className="text-steel-500">·</span>
+                <button type="button" onClick={() => setAccionActiva('anular')} className="text-sm text-brand-red hover:underline">Anular venta</button>
+              </>
+            )}
+          </div>
+          {tieneAjustes && (
+            <p className="text-xs text-steel-500">
+              La venta ya tiene devoluciones o cambios, así que no se puede anular: para deshacerla, devuelve los productos que quedan.
+            </p>
+          )}
         </div>
       )}
 
@@ -401,6 +439,15 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
               <p className="mt-0.5 text-xs text-steel-500">
                 Calculado proporcionalmente según el descuento aplicado en la venta original
               </p>
+              {montoDevolucion > 0 && (
+                <div className="mt-2 flex items-center justify-between gap-2 border-t border-white/8 pt-2">
+                  <label htmlFor="medio-devolucion" className="text-xs text-steel-300">Devolver por</label>
+                  <select id="medio-devolucion" value={medioDevolucion}
+                    onChange={e => setMedioDevolucion(e.target.value as MedioAjuste)} className={selectMedioCls}>
+                    {MEDIOS_AJUSTE.map(m => <option key={m} value={m}>{MEDIO_AJUSTE_LABEL[m]}</option>)}
+                  </select>
+                </div>
+              )}
             </div>
           )}
 
@@ -515,9 +562,8 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
               <div className="space-y-0.5 rounded-xl border border-white/10 bg-[#1a2430] p-2 text-xs text-steel-300">
                 <p className="mb-1 font-medium text-white">Retirando:</p>
                 {seleccionadosCambio.map(i => (
-                  <div key={i.venta_item_id} className="flex justify-between">
+                  <div key={i.venta_item_id}>
                     <span>{i.nombre} × {i.cantidad}</span>
-                    <span>-${(i.precio_unitario * i.cantidad).toLocaleString('es-CO')}</span>
                   </div>
                 ))}
               </div>
@@ -560,12 +606,26 @@ export function VentaAcciones({ ventaId, esAdmin, items, ventaTotal, ventaSubtot
 
               {itemsAgregar.length > 0 && (
                 <div className="rounded-xl border border-white/10 bg-[#1a2430] p-2 text-sm">
-                  <div className="flex justify-between"><span className="text-steel-300">Valor retirado</span><span className="text-white">-${valorRetirado.toLocaleString('es-CO')}</span></div>
-                  <div className="flex justify-between"><span className="text-steel-300">Valor agregado</span><span className="text-white">+${valorAgregado.toLocaleString('es-CO')}</span></div>
+                  <div className="flex justify-between"><span className="text-steel-300">Total actual de la venta</span><span className="text-white">${ventaTotal.toLocaleString('es-CO')}</span></div>
+                  <div className="flex justify-between"><span className="text-steel-300">Total con el cambio</span><span className="text-white">${totalTrasCambio.toLocaleString('es-CO')}</span></div>
                   <div className={`mt-1 flex justify-between border-t border-white/8 pt-1 font-bold ${diferencia > 0 ? 'text-emerald-400' : diferencia < 0 ? 'text-brand-yellow' : 'text-steel-300'}`}>
                     <span>{diferencia > 0 ? 'Cobrar al cliente' : diferencia < 0 ? 'Devolver al cliente' : 'Sin diferencia'}</span>
                     <span>${Math.abs(diferencia).toLocaleString('es-CO')}</span>
                   </div>
+                  {diferencia !== 0 && (
+                    <div className="mt-2 flex items-center justify-between gap-2">
+                      <label htmlFor="medio-cambio" className="text-xs text-steel-300">{diferencia > 0 ? 'Cobrar por' : 'Devolver por'}</label>
+                      <select id="medio-cambio" value={medioCambio}
+                        onChange={e => setMedioCambio(e.target.value as MedioAjuste)} className={selectMedioCls}>
+                        {MEDIOS_AJUSTE.map(m => <option key={m} value={m}>{MEDIO_AJUSTE_LABEL[m]}</option>)}
+                      </select>
+                    </div>
+                  )}
+                  <p className="mt-1 text-xs text-steel-500">
+                    Lo retirado se toma con el descuento con que se vendió y los productos nuevos entran a precio de venta
+                    {descuentoGlobalPorcentaje > 0 ? ` con el descuento global de la venta (${descuentoGlobalPorcentaje} %)` : ''}.
+                    Un total editado a mano conserva su descuento.
+                  </p>
                 </div>
               )}
 

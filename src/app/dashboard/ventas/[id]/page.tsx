@@ -56,7 +56,7 @@ export default async function VentaDetallePage({
   ] = await Promise.all([
     supabase
       .from('venta_items')
-      .select('id, nombre_producto, precio_unitario, iva_unitario, cantidad, descuento_linea, subtotal_linea, es_fraccionado, cantidad_fraccion, descuento_porcentaje, producto_id, devolucion_items(cantidad), productos(producto_proveedores(proveedor_id, es_proveedor_principal, proveedores(id, nombre)))')
+      .select('id, nombre_producto, precio_unitario, iva_unitario, cantidad, descuento_linea, subtotal_linea, es_fraccionado, cantidad_fraccion, descuento_porcentaje, producto_id, devolucion_items(cantidad, cantidad_fraccion), productos(producto_proveedores(proveedor_id, es_proveedor_principal, proveedores(id, nombre)))')
       .eq('venta_id', id),
     supabase
       .from('venta_servicios')
@@ -76,6 +76,11 @@ export default async function VentaDetallePage({
   const cliente = venta.clientes as any
   const empleado = venta.empleado as any
   const anuladoPor = venta.anulado_por as any
+
+  // Base del descuento global (líneas con su descuento + servicios), como en devolver_productos y cambiar_productos
+  const baseVenta =
+    (items ?? []).reduce((suma, i) => suma + Number(i.subtotal_linea), 0) +
+    (servicios ?? []).reduce((suma, s) => suma + Number(s.precio_aplicado), 0)
 
   const estadoBadge =
     venta.estado === 'anulada' ? 'border-brand-red/30 bg-brand-red/20 text-brand-red'
@@ -273,24 +278,34 @@ export default async function VentaDetallePage({
       {/* Acciones */}
       {venta.estado !== 'anulada' && (
         <VentaAcciones
-          key={JSON.stringify((items ?? []).map(i => i.id + i.cantidad))}
+          key={JSON.stringify([(items ?? []).map(i => i.id + i.cantidad), (devoluciones ?? []).length])}
           ventaId={id}
           esAdmin={esAdmin}
           ventaTotal={Number(venta.total)}
-          ventaSubtotal={Number(venta.subtotal)}
+          baseVenta={baseVenta}
+          descuentoGlobalPorcentaje={venta.descuento_habilitado ? Number(venta.descuento_total_porcentaje) : 0}
+          tipoPago={venta.tipo_pago}
+          tieneAjustes={(devoluciones ?? []).length > 0}
           items={(items ?? []).map(i => {
-            const yaDevuelto = ((i as any).devolucion_items ?? [])
-              .reduce((sum: number, d: any) => sum + d.cantidad, 0)
+            const devueltos: { cantidad: number; cantidad_fraccion: number | null }[] = (i as any).devolucion_items ?? []
+            const yaDevuelto = devueltos.reduce((sum, d) => sum + d.cantidad, 0)
+            // Fracción que queda por devolver (redondeada para no arrastrar decimales de punto flotante)
+            const fraccionRestante = Math.round(
+              (Number(i.cantidad_fraccion ?? 0) - devueltos.reduce((sum, d) => sum + Number(d.cantidad_fraccion ?? 0), 0)) * 1e4,
+            ) / 1e4
             const proveedoresProducto = (i as any).productos?.producto_proveedores ?? []
             const proveedorPrincipal = proveedoresProducto.find((p: any) => p.es_proveedor_principal) ?? proveedoresProducto[0]
             return {
               id: i.id,
               nombre_producto: i.nombre_producto,
               cantidad: i.es_fraccionado ? i.cantidad : i.cantidad - yaDevuelto,
+              cantidad_linea: i.cantidad,
               precio_unitario: Number(i.precio_unitario),
               subtotal_linea: Number(i.subtotal_linea),
+              descuento_linea: Number(i.descuento_linea),
               es_fraccionado: i.es_fraccionado,
-              cantidad_fraccion: Number(i.cantidad_fraccion),
+              cantidad_fraccion: i.es_fraccionado ? fraccionRestante : Number(i.cantidad_fraccion),
+              cantidad_fraccion_linea: Number(i.cantidad_fraccion),
               producto_id: (i as any).producto_id,
               proveedores_producto: proveedoresProducto.map((p: any) => ({
                 id: p.proveedores?.id ?? p.proveedor_id,
@@ -298,7 +313,7 @@ export default async function VentaDetallePage({
               })),
               proveedor_preseleccionado: proveedoresProducto.length === 1 ? proveedorPrincipal?.proveedores?.id ?? '' : '',
             }
-          }).filter(i => i.es_fraccionado ? true : i.cantidad > 0)}
+          }).filter(i => i.es_fraccionado ? i.cantidad_fraccion > 0 : i.cantidad > 0)}
         />
       )}
 
