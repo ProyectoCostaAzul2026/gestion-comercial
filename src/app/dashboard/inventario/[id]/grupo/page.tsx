@@ -9,7 +9,7 @@ import { GrupoMedidasPanel, type MiembroGrupo } from '@/components/modulos/grupo
 // No tiene tabla propia; se arma desde cualquiera de sus productos.
 const CAMPOS_MIEMBRO = `
   id, nombre, codigo, unidad_medida, marca, activo, stock_actual, stock_minimo, ubicacion,
-  precio_venta, precio_costo_base, tiene_iva, iva_incluido, porcentaje_iva, orden_medida
+  precio_venta, precio_costo_base, tiene_iva, iva_incluido, porcentaje_iva, orden_medida, peso_unitario_g
 `
 
 export default async function GrupoMedidasPage({
@@ -59,6 +59,7 @@ export default async function GrupoMedidasPage({
     precio_venta: Number(m.precio_venta),
     precio_costo_base: m.precio_costo_base != null ? Number(m.precio_costo_base) : null,
     porcentaje_iva: Number(m.porcentaje_iva),
+    peso_unitario_g: m.peso_unitario_g != null ? Number(m.peso_unitario_g) : null,
   }))
 
   return (

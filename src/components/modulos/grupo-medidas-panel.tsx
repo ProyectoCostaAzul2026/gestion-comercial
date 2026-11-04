@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { ArrowDown, ArrowUp, ListOrdered, Pencil, Plus, Settings2, Trash2, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, ListOrdered, Pencil, Plus, Scale, Settings2, Trash2, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,7 +12,9 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ordenarPorMedida } from '@/lib/escala-precios'
+import { formatearPeso, pesoDeCantidad } from '@/lib/peso'
 import { EscalaPrecios } from './escala-precios'
+import { CalculadoraPesoUnitario } from './peso-por-unidad'
 import { INPUT_CLS, LABEL_CLS } from './producto-form'
 
 // Grupo de medidas: los productos de una misma familia, característica y marca que solo cambian de medida. Se ven
@@ -35,6 +37,8 @@ export interface MiembroGrupo {
   iva_incluido: boolean
   porcentaje_iva: number
   orden_medida: number | null
+  /** Peso de una unidad en gramos (null: no se cuenta por peso) */
+  peso_unitario_g: number | null
 }
 
 interface Props {
@@ -116,6 +120,7 @@ export function GrupoMedidasPanel({
     setDatos(DATOS_VACIOS)
     setProveedoresAAsignar([])
     setEditando(true)
+    setEditandoPesos(false)
     setOrdenEdicion(null)
   }
 
@@ -188,6 +193,51 @@ export function GrupoMedidasPanel({
     }
   }
 
+  // ── Pesos por unidad: el peso de una unidad de cada medida, en una sola pantalla ──
+  const [editandoPesos, setEditandoPesos] = useState(false)
+  const [pesosEdicion, setPesosEdicion] = useState<Record<string, string>>({})
+  const [calculandoPara, setCalculandoPara] = useState<string | null>(null)
+  const [guardandoPesos, setGuardandoPesos] = useState(false)
+
+  const abrirPesos = () => {
+    setPesosEdicion(Object.fromEntries(miembros.map(m => [m.id, m.peso_unitario_g != null ? String(m.peso_unitario_g) : ''])))
+    setCalculandoPara(null)
+    setEditandoPesos(true)
+    setEditando(false)
+    setOrdenEdicion(null)
+  }
+
+  /** null: sin peso (campo vacío); undefined: valor no válido */
+  const leerPeso = (texto: string | undefined): number | null | undefined => {
+    const t = (texto ?? '').trim()
+    if (t === '') return null
+    const n = Number(t.replace(',', '.'))
+    return Number.isFinite(n) && n > 0 ? n : undefined
+  }
+  const cambiosPeso = ordenados
+    .map(m => ({ m, peso: leerPeso(pesosEdicion[m.id]) }))
+    .filter(({ m, peso }) => peso !== undefined && peso !== m.peso_unitario_g)
+  const pesosInvalidos = editandoPesos ? ordenados.filter(m => leerPeso(pesosEdicion[m.id]) === undefined).length : 0
+
+  const guardarPesos = async () => {
+    if (pesosInvalidos > 0 || cambiosPeso.length === 0) return
+    setGuardandoPesos(true)
+    try {
+      const p_pesos = cambiosPeso.map(({ m, peso }) => ({ producto_id: m.id, peso_unitario_g: peso ?? null }))
+      const { error } = await supabase.rpc('guardar_pesos_unitarios', { p_pesos })
+      if (error) throw error
+      const nuevos = new Map(p_pesos.map(x => [x.producto_id, x.peso_unitario_g]))
+      setMiembros(prev => prev.map(m => nuevos.has(m.id) ? { ...m, peso_unitario_g: nuevos.get(m.id) ?? null } : m))
+      setEditandoPesos(false)
+      toast.success(`Peso por unidad guardado en ${p_pesos.length} medida(s)`)
+      router.refresh()
+    } catch (err) {
+      toast.error('Error al guardar los pesos: ' + mensajeError(err))
+    } finally {
+      setGuardandoPesos(false)
+    }
+  }
+
   return (
     <div className="space-y-4">
       <p className="text-xs text-steel-500">
@@ -211,7 +261,10 @@ export function GrupoMedidasPanel({
               </Link>
               {m.id === productoActualId && <span className="ml-2 text-[10px] font-bold uppercase text-brand-yellow">Actual</span>}
               {!m.activo && <span className="ml-2 rounded-full bg-steel-700 px-2 py-0.5 text-[10px] font-bold uppercase text-steel-300">Inactivo</span>}
-              <p className="truncate font-mono text-[10px] text-steel-500">{m.codigo ?? '—'}</p>
+              <p className="truncate font-mono text-[10px] text-steel-500">
+                {m.codigo ?? '—'}
+                {m.peso_unitario_g != null && <span className="font-sans"> · {formatearPeso(m.peso_unitario_g)} c/u</span>}
+              </p>
             </div>
             <span className={`w-14 text-right font-display text-sm font-bold ${m.stock_actual === 0 ? 'text-brand-red' : 'text-brand-yellow'}`}>
               {m.stock_actual}
@@ -235,8 +288,8 @@ export function GrupoMedidasPanel({
       </div>
 
       {/* Acciones */}
-      {!editando && !ordenEdicion && (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      {!editando && !ordenEdicion && !editandoPesos && (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <Button type="button" variant="outline" onClick={() => setOrdenEdicion(ordenados.map(m => m.id))}
             className="h-11 rounded-xl border-white/15 bg-transparent font-bold text-white hover:bg-white/5 hover:text-white">
             <ListOrdered className="mr-2 h-4 w-4" />Ordenar medidas
@@ -244,6 +297,66 @@ export function GrupoMedidasPanel({
           <Button type="button" variant="outline" onClick={abrirEdicion}
             className="h-11 rounded-xl border-brand-blue/60 bg-transparent font-bold text-brand-blue hover:bg-brand-blue/10">
             <Settings2 className="mr-2 h-4 w-4" />Editar datos del grupo
+          </Button>
+          <Button type="button" variant="outline" onClick={abrirPesos}
+            className="h-11 rounded-xl border-white/15 bg-transparent font-bold text-white hover:bg-white/5 hover:text-white">
+            <Scale className="mr-2 h-4 w-4" />Pesos por unidad
+          </Button>
+        </div>
+      )}
+
+      {editandoPesos && (
+        <div className="space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-4">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <h3 className="font-display font-bold text-white">Peso por unidad</h3>
+              <p className="text-xs text-steel-500">
+                Escribe cuánto pesa una unidad de cada medida, en gramos. Con eso la venta muestra cuánto pesar y el stock se
+                puede contar por peso. Déjalo vacío para no usar el peso en esa medida.
+              </p>
+            </div>
+            <Button type="button" variant="ghost" size="icon-sm" aria-label="Cerrar" className="text-steel-300 hover:text-white"
+              onClick={() => setEditandoPesos(false)}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <div className="overflow-hidden rounded-xl border border-white/10">
+            {ordenados.map(m => {
+              const peso = leerPeso(pesosEdicion[m.id])
+              return (
+                <div key={m.id} className="space-y-2 border-b border-white/5 px-3 py-2.5 last:border-0">
+                  <div className="flex items-center gap-3">
+                    <span className="min-w-0 flex-1 text-sm text-white">
+                      {m.unidad_medida || '—'}
+                      {!m.activo && <span className="ml-2 text-[10px] font-bold uppercase text-steel-500">Inactivo</span>}
+                    </span>
+                    <Input type="number" inputMode="decimal" min={0} step="0.001" placeholder="g"
+                      aria-label={`Peso de una unidad de ${m.unidad_medida ?? 'esta medida'}, en gramos`}
+                      value={pesosEdicion[m.id] ?? ''} onChange={e => setPesosEdicion(prev => ({ ...prev, [m.id]: e.target.value }))}
+                      className={`${INPUT_CLS} h-9 w-28 text-[16px] ${peso === undefined ? 'border-brand-red/60' : ''}`} />
+                    <button type="button" onClick={() => setCalculandoPara(calculandoPara === m.id ? null : m.id)}
+                      className="shrink-0 text-xs font-semibold text-brand-blue hover:underline">
+                      Pesar varias
+                    </button>
+                  </div>
+                  {typeof peso === 'number' && (
+                    <p className="text-[11px] text-steel-500">100 unidades pesan {formatearPeso(pesoDeCantidad(100, peso))}</p>
+                  )}
+                  {calculandoPara === m.id && (
+                    <CalculadoraPesoUnitario onUsar={p => { setPesosEdicion(prev => ({ ...prev, [m.id]: String(p) })); setCalculandoPara(null) }} />
+                  )}
+                </div>
+              )
+            })}
+          </div>
+
+          {pesosInvalidos > 0 && (
+            <p className="text-xs text-brand-red">Revisa los pesos en rojo: deben ser mayores que 0, o quedar vacíos.</p>
+          )}
+          <Button type="button" disabled={guardandoPesos || cambiosPeso.length === 0 || pesosInvalidos > 0} onClick={guardarPesos}
+            className="h-11 w-full rounded-xl bg-brand-blue font-bold text-white hover:bg-brand-blue hover:brightness-110">
+            {guardandoPesos ? 'Guardando…' : cambiosPeso.length === 0 ? 'Sin cambios de peso' : `Guardar ${cambiosPeso.length} peso(s)`}
           </Button>
         </div>
       )}

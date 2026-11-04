@@ -14,6 +14,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import { Search, Plus, Trash2, AlertTriangle, ArrowRightLeft, MapPin, Package, Wrench } from 'lucide-react'
+import { AyudaPesoVenta } from './peso-por-unidad'
 
 type MetodoPago = 'efectivo' | 'nequi' | 'daviplata' | 'tarjeta'
 
@@ -44,6 +45,8 @@ interface ProductoSearch {
   iva_incluido: boolean
   porcentaje_iva: number
   imagen_url: string | null
+  /** Peso de una unidad en gramos, si el producto se cuenta por peso */
+  peso_unitario_g?: number | null
 }
 
 interface ServicioSearch {
@@ -72,6 +75,8 @@ interface ItemCarrito {
   remanente_fraccion: number
   cantidad_total_unidad: number | null
   imagen_url: string | null
+  /** Peso de una unidad en gramos: la venta muestra cuánto pesar (solo en unidades completas) */
+  peso_unitario_g: number | null
 }
 
 interface ServicioCarrito {
@@ -319,7 +324,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
         es_fraccionado: false, cantidad_fraccion: 0,
         medida_venta: null, cantidad_minima_venta: null,
         remanente_fraccion: p.remanente_fraccion, cantidad_total_unidad: p.cantidad_total_unidad,
-        imagen_url: p.imagen_url,
+        imagen_url: p.imagen_url, peso_unitario_g: p.peso_unitario_g ?? null,
       }])
       return
     }
@@ -338,8 +343,22 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
       es_fraccionado: true, cantidad_fraccion: p.cantidad_minima_venta ?? 1,
       medida_venta: p.medida_venta, cantidad_minima_venta: p.cantidad_minima_venta,
       remanente_fraccion: p.remanente_fraccion, cantidad_total_unidad: p.cantidad_total_unidad,
-      imagen_url: p.imagen_url,
+      imagen_url: p.imagen_url, peso_unitario_g: null,
     }])
+  }
+
+  // Cantidad de una línea por unidades: si pasa del stock del almacén, ofrece traer de bodega o avisa el máximo
+  const cambiarCantidad = (idx: number, item: ItemCarrito, val: number) => {
+    if (val > item.stock_almacen) {
+      if (item.stock_bodega > 0) {
+        setAlertaStock({ productoId: item.producto_id, productoNombre: item.nombre, stockAlmacen: item.stock_almacen, stockBodega: item.stock_bodega, cantidadNecesaria: val - item.stock_almacen })
+        setCantidadTransferir(Math.min(val - item.stock_almacen, item.stock_bodega))
+      } else {
+        toast.error(`Máximo disponible en almacén: ${item.stock_almacen}`)
+      }
+      return
+    }
+    setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, cantidad: val } : it))
   }
 
   const handleTransferirStock = async () => {
@@ -382,7 +401,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
       descuento_habilitado: false, descuento_porcentaje: 0,
       es_fraccionado: false, cantidad_fraccion: 0,
       medida_venta: null, cantidad_minima_venta: null, remanente_fraccion: 0, cantidad_total_unidad: null,
-      imagen_url: null,
+      imagen_url: null, peso_unitario_g: null,
     }])
     setMostrarAltaRapida(false)
     setAltaRapida({ nombre: '', precio: 0, margen: 30 })
@@ -845,16 +864,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                             if (raw === '') { setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, cantidad: 0 } : it)); return }
                             const val = parseInt(raw)
                             if (isNaN(val) || val < 1) return
-                            if (val > item.stock_almacen) {
-                              if (item.stock_bodega > 0) {
-                                setAlertaStock({ productoId: item.producto_id, productoNombre: item.nombre, stockAlmacen: item.stock_almacen, stockBodega: item.stock_bodega, cantidadNecesaria: val - item.stock_almacen })
-                                setCantidadTransferir(Math.min(val - item.stock_almacen, item.stock_bodega))
-                              } else {
-                                toast.error(`Máximo disponible en almacén: ${item.stock_almacen}`)
-                              }
-                              return
-                            }
-                            setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, cantidad: val } : it))
+                            cambiarCantidad(idx, item, val)
                           }}
                           onBlur={e => {
                             if (!e.target.value || parseInt(e.target.value) < 1) {
@@ -874,6 +884,11 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                         </p>
                       </div>
                     </div>
+                  )}
+
+                  {!item.es_fraccionado && item.peso_unitario_g != null && item.peso_unitario_g > 0 && (
+                    <AyudaPesoVenta id={`peso-${item.key}`} pesoUnitario={item.peso_unitario_g} cantidad={item.cantidad}
+                      onCantidad={n => cambiarCantidad(idx, item, n)} />
                   )}
 
                   {descuentoHabilitado && !item.es_fraccionado && (
