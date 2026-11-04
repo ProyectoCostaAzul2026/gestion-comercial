@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { calcularIvaUnitario } from '@/lib/precio-utils'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -112,10 +113,11 @@ const METODO_LABEL: Record<MetodoPago, string> = {
   tarjeta: 'Tarjeta',
 }
 
-function calcularIva(p: Pick<ProductoSearch, 'tiene_iva' | 'iva_incluido' | 'porcentaje_iva' | 'precio_venta'>): number {
+// IVA informativo por unidad: el contenido en el precio de venta, que ya trae el IVA
+// (iva_incluido se refiere al costo, no al precio). Debe coincidir con registrar_venta.
+function calcularIva(p: Pick<ProductoSearch, 'tiene_iva' | 'porcentaje_iva' | 'precio_venta'>): number {
   if (!p.tiene_iva) return 0
-  if (p.iva_incluido) return p.precio_venta - p.precio_venta / (1 + p.porcentaje_iva / 100)
-  return p.precio_venta * (p.porcentaje_iva / 100)
+  return calcularIvaUnitario(p.precio_venta, p.porcentaje_iva)
 }
 
 function redondear100(valor: number): number {
@@ -360,7 +362,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
     }).select('id, nombre, precio_venta, tiene_iva, iva_incluido, porcentaje_iva').single()
     setGuardandoAltaRapida(false)
     if (error) { toast.error('Error: ' + error.message); return }
-    const iva = calcularIva({ ...data, precio_venta: data.precio_venta })
+    const iva = calcularIva(data)
     setCarrito(prev => [...prev, {
       key: `${data.id}-${Date.now()}`, producto_id: data.id, nombre: data.nombre,
       precio_unitario: data.precio_venta, iva_unitario: iva,

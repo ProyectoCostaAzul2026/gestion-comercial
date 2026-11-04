@@ -688,7 +688,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
             </div>
 
             <div className="space-y-1">
-              <Label className={LABEL_CLS}>IVA incluido en el precio</Label>
+              <Label className={LABEL_CLS}>IVA incluido en el costo</Label>
               <Select value={datosCompartidos.ivaIncluido} onValueChange={v => v && setDatosCompartidos(prev => ({ ...prev, ivaIncluido: v as any }))}>
                 <SelectTrigger className="w-full border-white/10 bg-[#1a2430] text-white">
                   <SelectValue />

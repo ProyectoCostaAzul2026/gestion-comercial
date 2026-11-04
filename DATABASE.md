@@ -85,11 +85,11 @@ Extiende `auth.users` de Supabase. Un registro por usuario autenticado.
 | categoria_id | uuid | YES | — | FK → categorias_producto |
 | marca | varchar | YES | — | Índice GIN trgm |
 | ubicacion | varchar | YES | — | |
-| precio_venta | numeric | NO | — | |
+| precio_venta | numeric | NO | — | Precio final al público: ya trae el IVA |
 | precio_costo_base | numeric | YES | — | Calculado por trigger desde producto_proveedores |
 | margen_calculado | numeric | YES | — | |
-| tiene_iva | boolean | NO | false | |
-| iva_incluido | boolean | NO | false | |
+| tiene_iva | boolean | NO | true | |
+| iva_incluido | boolean | NO | false | Se refiere al **costo** del proveedor; no cambia el precio de venta ni el IVA de la venta |
 | porcentaje_iva | numeric | NO | 19 | |
 | stock_bodega | int4 | NO | 0 | |
 | stock_almacen | int4 | NO | 0 | |
@@ -180,7 +180,7 @@ Relación muchos-a-muchos entre productos y proveedores.
 | descuento_tipo | varchar | YES | — | |
 | descuento_total_porcentaje | numeric | NO | 0 | |
 | total_descuentos | numeric | NO | 0 | |
-| total_iva | numeric | NO | 0 | Informativo |
+| total_iva | numeric | NO | 0 | Informativo: IVA contenido en los productos vendidos; no se suma al total |
 | total | numeric | NO | 0 | |
 | total_redondeado | numeric | YES | — | |
 | factura_electronica | boolean | NO | false | |
@@ -203,7 +203,7 @@ Relación muchos-a-muchos entre productos y proveedores.
 | producto_id | uuid | YES | — | FK → productos |
 | nombre_producto | varchar | NO | — | Snapshot del nombre |
 | precio_unitario | numeric | NO | — | |
-| iva_unitario | numeric | NO | 0 | |
+| iva_unitario | numeric | NO | 0 | Informativo: IVA contenido en `precio_unitario` (0 en líneas fraccionadas) |
 | cantidad | int4 | NO | — | |
 | descuento_linea | numeric | NO | 0 | |
 | subtotal_linea | numeric | NO | — | |
@@ -687,6 +687,12 @@ servicios ─────────────────────── 
 | `anular_venta(p_venta_id, p_motivo)` | Anula venta, devuelve stock |
 | `devolver_productos(p_venta_id, p_items_devolucion, p_observacion)` | Devolución parcial/total, reintegra stock |
 | `cambiar_productos(p_venta_id, p_items_retirar, p_items_agregar, p_observacion)` | Cambio de productos |
+
+> **IVA informativo:** `registrar_venta`, `registrar_venta_credito` y `cambiar_productos` guardan en
+> `venta_items.iva_unitario` el IVA contenido en el precio de venta, `precio_venta − precio_venta / (1 + porcentaje_iva / 100)`
+> ($11.900 al 19 % → $1.900), sin importar `iva_incluido`. `ventas.total_iva` suma `iva_unitario × cantidad` de los ítems no
+> fraccionados (`cambiar_productos` lo recalcula). Se calcula sobre el precio antes de descuentos, no cuenta ventas
+> fraccionadas ni servicios y nunca se suma al total. El formulario de venta usa la misma fórmula (`calcularIvaUnitario`).
 
 ### Inventario
 | Función | Descripción |

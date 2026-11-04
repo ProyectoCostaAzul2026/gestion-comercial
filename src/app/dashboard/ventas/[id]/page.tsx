@@ -226,7 +226,7 @@ export default async function VentaDetallePage({
           {Number(venta.total_iva) > 0 && (
             <div className="flex justify-between text-xs text-steel-300">
               <dt>IVA incluido (informativo)</dt>
-              <dd>${Number(venta.total_iva).toLocaleString('es-CO')}</dd>
+              <dd>${Math.round(Number(venta.total_iva)).toLocaleString('es-CO')}</dd>
             </div>
           )}
           {Number(venta.monto_devolucion ?? 0) > 0 && (

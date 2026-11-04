@@ -163,7 +163,7 @@ export const TEMAS_AYUDA: TemaAyuda[] = [
         pasos: [
           'Desde "Familia de productos", haz clic en "Editar Datos" (junto a "Añadir Miembro").',
           'Marca con el check una o más ramas de la lista (puedes usar "Todas"/"Ninguna" para ir rápido).',
-          'Llena SOLO los campos que quieras aplicar — todo es opcional: Categoría, Descripción, URL de imagen, IVA incluido, Vender por fracción (y su configuración), y Proveedores asociados (con su código de referencia).',
+          'Llena SOLO los campos que quieras aplicar — todo es opcional: Categoría, Descripción, URL de imagen, IVA incluido en el costo, Vender por fracción (y su configuración), y Proveedores asociados (con su código de referencia).',
           'Haz clic en "Aplicar a X seleccionados".',
           'Esto llena esos datos en todos los productos marcados de una sola vez, para no editarlos uno por uno.',
         ],

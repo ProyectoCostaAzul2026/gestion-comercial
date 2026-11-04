@@ -133,6 +133,9 @@ Roles: `administrador` (todo) y `empleado` (ventas, inventario, clientes, horari
 - Para guardar un producto se exige al menos un proveedor con costo > 0 y un precio de venta > 0.
 - Precio sugerido (`precio-utils.ts`): `costo_neto × (1 + IVA) / (1 − margen)`. Por defecto IVA 19 % y el
   IVA no viene incluido en el costo.
+- El IVA de una venta es informativo y es el **contenido en el precio**: `precio − precio / (1 + IVA)` ($11.900 al 19 %
+  → $1.900); nunca se suma al total. `iva_incluido` se refiere al costo, así que no cambia ese cálculo. Lo aplican
+  `calcularIvaUnitario` en el front y las RPC `registrar_venta`, `registrar_venta_credito` y `cambiar_productos`.
 
 ## Estado de los datos (2026-10-31)
 

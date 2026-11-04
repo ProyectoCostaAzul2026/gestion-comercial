@@ -47,6 +47,12 @@ export function calcularMargenCalculado(
   return Math.round(margen * 10000) / 100
 }
 
+/**
+ * IVA contenido en un precio de venta. El precio de venta siempre trae el IVA
+ * (`calcularPrecioVentaSugerido` lo suma) y `iva_incluido` solo se refiere al costo,
+ * así que el IVA de una venta se extrae del precio y nunca se suma aparte.
+ * Ej: $11.900 con IVA 19 % → $1.900.
+ */
 export function calcularIvaUnitario(
   precioUnitario: number,
   porcentajeIva: number
