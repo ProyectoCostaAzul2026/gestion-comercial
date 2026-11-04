@@ -1,7 +1,7 @@
 # DATABASE.md — Ferreléctricos Costa Azul
 > Documentación de la base de datos en Supabase (PostgreSQL)
 > Proyecto: `qmeegynucijohagywdcr`
-> Última actualización: 2026-10-31
+> Última actualización: 2026-11-04
 
 ---
 
@@ -283,10 +283,10 @@ Relación muchos-a-muchos entre productos y proveedores.
 |---|---|---|---|
 | id | uuid | NO | gen_random_uuid() |
 | venta_id | uuid | NO | — | FK → ventas |
-| tipo | varchar | NO | — | total/parcial/cambio |
+| tipo | varchar | NO | — | total/parcial/cambio (`anular_venta` también registra una `total`) |
 | observacion | text | YES | — | |
-| monto_devuelto | numeric | NO | 0 | |
-| monto_cobrado | numeric | NO | 0 | |
+| monto_devuelto | numeric | NO | 0 | Dinero devuelto al cliente (en un cambio, la diferencia a su favor) |
+| monto_cobrado | numeric | NO | 0 | Diferencia cobrada al cliente en un cambio |
 | registrado_por | uuid | YES | — | FK → profiles |
 | created_at | timestamptz | NO | now() | |
 
@@ -300,9 +300,10 @@ Relación muchos-a-muchos entre productos y proveedores.
 | venta_item_id | uuid | YES | — | FK → venta_items |
 | producto_id | uuid | YES | — | FK → productos |
 | nombre_producto | varchar | NO | — | |
-| cantidad | int4 | NO | — | |
-| precio_unitario | numeric | NO | — | |
-| subtotal_devuelto | numeric | NO | — | |
+| cantidad | int4 | NO | — | Unidades devueltas (1 en las líneas fraccionadas) |
+| cantidad_fraccion | numeric | YES | — | Fracción devuelta de una línea fraccionada, en su medida de venta (null en las demás) |
+| precio_unitario | numeric | NO | — | `venta_items.precio_unitario` de la línea |
+| subtotal_devuelto | numeric | NO | — | Parte del total pagado que corresponde a lo devuelto (antes de redondear la devolución) |
 
 ---
 
@@ -684,15 +685,32 @@ servicios ─────────────────────── 
 | `registrar_venta_credito(p_cliente_id, p_items, p_servicios?, p_descuento_habilitado?, p_descuento_tipo?, p_descuento_total_porcentaje?, p_fecha_pago_programada?, p_observaciones?, p_factura_electronica?, p_total_manual?)` | Registra venta a crédito; la deuda (`ventas_credito.saldo_pendiente`) es el total de la venta. Valida descuentos y fracciones igual que `registrar_venta` |
 | `registrar_abono_credito(p_venta_credito_id, p_monto, p_fuentes, p_observaciones)` | Abona a crédito, actualiza saldo |
 | `actualizar_fecha_pago_credito(...)` | Cambia fecha programada de pago |
-| `anular_venta(p_venta_id, p_motivo)` | Anula venta, devuelve stock |
-| `devolver_productos(p_venta_id, p_items_devolucion, p_observacion)` | Devolución parcial/total, reintegra stock |
-| `cambiar_productos(p_venta_id, p_items_retirar, p_items_agregar, p_observacion)` | Cambio de productos |
+| `anular_venta(p_venta_id, p_motivo, p_medio_devolucion?)` | Solo administrador. Anula una venta sin devoluciones ni cambios: reintegra el stock y revierte cada pago por su medio (o todo el total por `p_medio_devolucion`) |
+| `devolver_productos(p_venta_id, p_items_devolucion, p_observacion, p_medio_devolucion?)` | Solo administrador. Devolución parcial o total: reintegra stock y devuelve la parte pagada por el medio elegido. `p_items_devolucion`: `[{ venta_item_id, cantidad }]` o, en fraccionados, `[{ venta_item_id, cantidad_fraccion }]` |
+| `cambiar_productos(p_venta_id, p_items_retirar, p_items_agregar, p_observacion, p_medio_pago?)` | Solo administrador. Cambia unidades de líneas por unidades (no fraccionadas) por productos nuevos y cobra o devuelve la diferencia. Devuelve `{ devolucion_id, diferencia, cobrar_al_cliente, devolver_al_cliente, total_nuevo, medio }` |
 
 > **IVA informativo:** `registrar_venta`, `registrar_venta_credito` y `cambiar_productos` guardan en
 > `venta_items.iva_unitario` el IVA contenido en el precio de venta, `precio_venta − precio_venta / (1 + porcentaje_iva / 100)`
 > ($11.900 al 19 % → $1.900), sin importar `iva_incluido`. `ventas.total_iva` suma `iva_unitario × cantidad` de los ítems no
 > fraccionados (`cambiar_productos` lo recalcula). Se calcula sobre el precio antes de descuentos, no cuenta ventas
 > fraccionadas ni servicios y nunca se suma al total. El formulario de venta usa la misma fórmula (`calcularIvaUnitario`).
+
+> **Anulaciones, devoluciones y cambios** (migración `unificar_rpc_anular_devolver_cambiar`, 2026-11-04):
+> - Cada RPC tiene una sola versión; antes había dos y PostgREST respondía 300 `PGRST203`.
+> - **Medio:** si no se elige, el de la venta cuando se pagó con uno solo; si fue mixta o a crédito, `efectivo`. Solo se
+>   aceptan `efectivo`, `nequi`, `daviplata` y `tarjeta` (`caja_menor` cuenta como `efectivo`).
+> - **Devolución:** devuelve la parte del total pagado que corresponde a lo devuelto, redondeada hacia abajo a la centena:
+>   `subtotal_linea × total × cantidad / (base × cantidad_línea)`, con `base` = suma de `subtotal_linea` + servicios. No se
+>   puede devolver más de lo que queda (se descuenta lo ya devuelto en `devolucion_items`). La venta queda `anulada` (tipo
+>   `total`) solo cuando no queda nada por devolver y no tiene servicios; si no, `modificada` (o sigue `credito`).
+> - **Cambio:** retirar parte de una línea la reduce (el descuento de línea se reparte por unidad); solo se borra si sale
+>   completa. Los productos nuevos entran a precio de venta, sin descuento de línea, y guardan `costo_unitario`. El valor
+>   calculado de la venta es líneas + servicios − descuento global, redondeado a la centena; se cobra o devuelve lo que
+>   cambia ese valor y `total` se ajusta en esa cantidad, así que un total editado a mano conserva su descuento.
+> - **Anulación:** se rechaza si la venta ya tiene devoluciones o cambios (devolvería otra vez lo ya devuelto); en ese
+>   caso se devuelve lo que queda.
+> - La vista previa de `venta-acciones.tsx` usa las mismas fórmulas (`src/lib/ajustes-venta.ts`): si se cambia una, hay
+>   que cambiar la otra.
 
 ### Inventario
 | Función | Descripción |
