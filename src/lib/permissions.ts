@@ -74,6 +74,7 @@ export const navItems: NavItem[] = [
   { label: 'Inicio', href: '/dashboard', icon: 'Home' },
   { label: 'Ventas', href: '/dashboard/ventas', icon: 'ShoppingCart' },
   { label: 'Inventario', href: '/dashboard/inventario', icon: 'Package' },
+  { label: 'Recepción', href: '/dashboard/recepcion', icon: 'ClipboardCheck' },
   { label: 'Proveedores', href: '/dashboard/proveedores', icon: 'Truck', soloAdmin: true },
   { label: 'Clientes', href: '/dashboard/clientes', icon: 'Users' },
   { label: 'Empleados', href: '/dashboard/empleados', icon: 'UserCog', soloAdmin: true },

@@ -1450,6 +1450,165 @@ export type Database = {
         }
         Relationships: []
       }
+      recepcion_items: {
+        Row: {
+          cantidad_averiada: number
+          cantidad_contada: number | null
+          cantidad_facturada: number
+          contado_at: string | null
+          contado_por: string | null
+          costo_unitario: number
+          created_at: string
+          descripcion: string
+          destino: string
+          id: string
+          precio_aprobado: number | null
+          producto_id: string | null
+          recepcion_id: string
+          referencia: string | null
+          stock_ingresado: number
+        }
+        Insert: {
+          cantidad_averiada?: number
+          cantidad_contada?: number | null
+          cantidad_facturada: number
+          contado_at?: string | null
+          contado_por?: string | null
+          costo_unitario: number
+          created_at?: string
+          descripcion: string
+          destino?: string
+          id?: string
+          precio_aprobado?: number | null
+          producto_id?: string | null
+          recepcion_id: string
+          referencia?: string | null
+          stock_ingresado?: number
+        }
+        Update: {
+          cantidad_averiada?: number
+          cantidad_contada?: number | null
+          cantidad_facturada?: number
+          contado_at?: string | null
+          contado_por?: string | null
+          costo_unitario?: number
+          created_at?: string
+          descripcion?: string
+          destino?: string
+          id?: string
+          precio_aprobado?: number | null
+          producto_id?: string | null
+          recepcion_id?: string
+          referencia?: string | null
+          stock_ingresado?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recepcion_items_contado_por_fkey"
+            columns: ["contado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recepcion_items_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recepcion_items_recepcion_id_fkey"
+            columns: ["recepcion_id"]
+            isOneToOne: false
+            referencedRelation: "recepciones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recepciones: {
+        Row: {
+          cerrada_at: string | null
+          cerrada_por: string | null
+          costos_con_iva: boolean
+          creada_por: string | null
+          created_at: string
+          estado: string
+          factura_id: string
+          fecha_factura: string
+          id: string
+          nota_cierre: string | null
+          nota_resolucion: string | null
+          numero_factura: string | null
+          precios_aprobados_at: string | null
+          proveedor_id: string
+          resuelta_at: string | null
+        }
+        Insert: {
+          cerrada_at?: string | null
+          cerrada_por?: string | null
+          costos_con_iva?: boolean
+          creada_por?: string | null
+          created_at?: string
+          estado?: string
+          factura_id: string
+          fecha_factura: string
+          id?: string
+          nota_cierre?: string | null
+          nota_resolucion?: string | null
+          numero_factura?: string | null
+          precios_aprobados_at?: string | null
+          proveedor_id: string
+          resuelta_at?: string | null
+        }
+        Update: {
+          cerrada_at?: string | null
+          cerrada_por?: string | null
+          costos_con_iva?: boolean
+          creada_por?: string | null
+          created_at?: string
+          estado?: string
+          factura_id?: string
+          fecha_factura?: string
+          id?: string
+          nota_cierre?: string | null
+          nota_resolucion?: string | null
+          numero_factura?: string | null
+          precios_aprobados_at?: string | null
+          proveedor_id?: string
+          resuelta_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recepciones_cerrada_por_fkey"
+            columns: ["cerrada_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recepciones_creada_por_fkey"
+            columns: ["creada_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recepciones_factura_id_fkey"
+            columns: ["factura_id"]
+            isOneToOne: true
+            referencedRelation: "facturas_proveedor"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recepciones_proveedor_id_fkey"
+            columns: ["proveedor_id"]
+            isOneToOne: false
+            referencedRelation: "proveedores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       retiros: {
         Row: {
           created_at: string
@@ -1893,6 +2052,10 @@ export type Database = {
         Returns: undefined
       }
       aplicar_escala_precios: { Args: { p_precios: Json }; Returns: number }
+      aprobar_precios_recepcion: {
+        Args: { p_precios: Json; p_recepcion_id: string }
+        Returns: number
+      }
       buscar_clientes: {
         Args: { p_query: string }
         Returns: {
@@ -1968,6 +2131,42 @@ export type Database = {
         }
         Returns: Json
       }
+      cerrar_recepcion: {
+        Args: { p_nota?: string; p_recepcion_id: string }
+        Returns: string
+      }
+      contar_renglon_recepcion: {
+        Args: {
+          p_cantidad_averiada?: number
+          p_cantidad_contada: number
+          p_destino?: string
+          p_renglon_id: string
+        }
+        Returns: number
+      }
+      crear_miembro_familia_renglon: {
+        Args: {
+          p_caracteristica: string
+          p_codigo?: string
+          p_marca: string
+          p_producto_base_id: string
+          p_renglon_id: string
+          p_unidad_medida: string
+        }
+        Returns: string
+      }
+      crear_recepcion: {
+        Args: {
+          p_costos_con_iva: boolean
+          p_fecha_emision: string
+          p_fecha_vencimiento?: string
+          p_monto_total: number
+          p_notas?: string
+          p_numero_factura?: string
+          p_proveedor_id: string
+        }
+        Returns: string
+      }
       devolver_productos: {
         Args: {
           p_items_devolucion: Json
@@ -2003,6 +2202,10 @@ export type Database = {
         }
         Returns: string
       }
+      guardar_renglon_recepcion: {
+        Args: { p_recepcion_id: string; p_renglon: Json }
+        Returns: string
+      }
       is_admin: { Args: never; Returns: boolean }
       mover_stock_bodega_almacen: {
         Args: { p_cantidad: number; p_producto_id: string }
@@ -2010,6 +2213,10 @@ export type Database = {
       }
       ordenar_medidas: {
         Args: { p_producto_ids: string[]; p_restablecer?: boolean }
+        Returns: undefined
+      }
+      quitar_renglon_recepcion: {
+        Args: { p_renglon_id: string }
         Returns: undefined
       }
       recibir_garantia: {
@@ -2096,8 +2303,16 @@ export type Database = {
         }
         Returns: string
       }
+      resolver_reclamacion_recepcion: {
+        Args: { p_nota: string; p_recepcion_id: string }
+        Returns: undefined
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      sincronizar_stock_renglon: {
+        Args: { p_renglon_id: string; p_usuario_id: string }
+        Returns: number
+      }
       transferir_entre_fondos: {
         Args: {
           p_destino: string

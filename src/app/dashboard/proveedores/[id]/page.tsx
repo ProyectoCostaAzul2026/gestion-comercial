@@ -6,6 +6,8 @@ import { ArrowLeft } from 'lucide-react'
 import { PerfilProveedorAcciones } from '@/components/modulos/perfil-proveedor-acciones'
 import { ProductosProveedorTable } from '@/components/modulos/productos-proveedor-table'
 import { GarantiasPanel } from '@/components/modulos/garantias-panel'
+import { ETIQUETA_ESTADO_RECEPCION, type EstadoRecepcion } from '@/lib/recepcion'
+import { CLASE_ESTADO_RECEPCION } from '@/components/modulos/recepcion-tipos'
 
 const hoy = new Date().toISOString().slice(0, 10)
 const en7Dias = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
@@ -46,7 +48,8 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
         id, numero_factura, fecha_emision, fecha_vencimiento,
         monto_total, monto_pagado, saldo_pendiente, estado, notas,
         pagos_factura_proveedor(id, monto, metodo_pago, fecha_pago, observaciones),
-        pagos_programados_proveedor(id, monto, fecha_programada, nota, pagado)
+        pagos_programados_proveedor(id, monto, fecha_programada, nota, pagado),
+        recepciones(id, estado)
       `)
       .eq('proveedor_id', id)
       .order('fecha_emision', { ascending: false }),
@@ -159,6 +162,8 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
             {(facturas ?? []).map((f: any) => {
               const vencida = f.fecha_vencimiento && f.fecha_vencimiento < hoy && f.estado !== 'pagada'
               const proxima = f.fecha_vencimiento && f.fecha_vencimiento >= hoy && f.fecha_vencimiento <= en7Dias && f.estado !== 'pagada'
+              // La recepción de mercancía de la factura, si se abrió desde Recepción (una por factura)
+              const recepcion = (Array.isArray(f.recepciones) ? f.recepciones[0] : f.recepciones) as { id: string; estado: EstadoRecepcion } | null | undefined
 
               return (
                 <div key={f.id} className={`space-y-3 rounded-xl border p-4 ${vencida ? 'border-brand-red/30 bg-brand-red/10' : proxima ? 'border-brand-yellow/30 bg-brand-yellow/10' : 'border-white/10 bg-[#1a2430]'}`}>
@@ -173,6 +178,12 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
                         </span>
                         {vencida && <span className="inline-flex items-center rounded-full border border-brand-red/30 bg-brand-red/20 px-2.5 py-0.5 text-xs font-semibold text-brand-red">Vencida</span>}
                         {proxima && <span className="inline-flex items-center rounded-full border border-brand-yellow/30 bg-brand-yellow/20 px-2.5 py-0.5 text-xs font-semibold text-brand-yellow">Vence pronto</span>}
+                        {recepcion && (
+                          <Link href={`/dashboard/recepcion/${recepcion.id}`}
+                            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold hover:brightness-125 ${CLASE_ESTADO_RECEPCION[recepcion.estado]}`}>
+                            Recepción: {ETIQUETA_ESTADO_RECEPCION[recepcion.estado].toLowerCase()}
+                          </Link>
+                        )}
                       </div>
                       <p className="mt-0.5 text-xs text-steel-300">
                         Emitida: {f.fecha_emision}

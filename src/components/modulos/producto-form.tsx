@@ -134,6 +134,19 @@ interface ProductoFormProps {
   forzarActivacion?: boolean
   /** Precios por cantidad que ya tiene el producto (solo un administrador los cambia) */
   preciosCantidad?: TramoPrecio[]
+  /** Datos con los que empieza un producto nuevo (por ejemplo, el de un renglón de la recepción de mercancía) */
+  nuevoInicial?: NuevoInicial
+  /** Al crear: se llama con el id del producto nuevo; devuelve un mensaje si algo falla (el producto ya quedó creado) */
+  alCrear?: (productoId: string) => Promise<string | null>
+}
+
+export interface NuevoInicial {
+  nombre?: string
+  proveedorId?: string
+  precioCosto?: number
+  referencia?: string
+  /** El stock no se escribe aquí: entra con el conteo de la recepción de mercancía */
+  stockDesdeRecepcion?: boolean
 }
 
 export function parseUnidadMedida(value: string | null): { medida: string; unidad: string } {
@@ -146,12 +159,13 @@ export function parseUnidadMedida(value: string | null): { medida: string; unida
   return { medida: texto.slice(0, idx), unidad: texto.slice(idx + 1) }
 }
 
-function estadoInicial(producto: ProductoExistente | undefined, margenDefault = 40, proveedoresDisponibles: Proveedor[] = []): ProductoFormState {
+function estadoInicial(producto: ProductoExistente | undefined, margenDefault = 40, proveedoresDisponibles: Proveedor[] = [], nuevoInicial?: NuevoInicial): ProductoFormState {
   if (!producto) {
     // Si solo hay un proveedor cargado en el sistema, se preselecciona para agilizar la creación rápida.
-    const proveedorPorDefecto = proveedoresDisponibles.length === 1 ? proveedoresDisponibles[0].id : ''
+    const proveedorPorDefecto = nuevoInicial?.proveedorId
+      ?? (proveedoresDisponibles.length === 1 ? proveedoresDisponibles[0].id : '')
     return {
-      nombre: '',
+      nombre: nuevoInicial?.nombre ?? '',
       descripcion: '',
       codigo: '',
       categoria_id: 'none',
@@ -176,7 +190,13 @@ function estadoInicial(producto: ProductoExistente | undefined, margenDefault = 
       precio_por_unidad_medida: 0,
       usa_peso: false,
       peso_unitario_g: 0,
-      proveedores: [{ proveedor_id: proveedorPorDefecto, precio_costo: 0, referencia_proveedor: '', notas: '', esCostoBaseManual: false }],
+      proveedores: [{
+        proveedor_id: proveedorPorDefecto,
+        precio_costo: nuevoInicial?.precioCosto ?? 0,
+        referencia_proveedor: nuevoInicial?.referencia ?? '',
+        notas: '',
+        esCostoBaseManual: false,
+      }],
     }
   }
   const { medida, unidad } = parseUnidadMedida(producto.unidad_medida)
@@ -244,7 +264,7 @@ export function generarSKU(nombre: string, categoria: string, marca: string, med
   return `${pNombre}-${pCat}-${pMarca}-${pMedida}${pUnidad}`
 }
 
-export function ProductoForm({ categorias, proveedores, unidades, empleadoId, rol, producto, onSuccess, isSheet, margenDefault = 40, rutaVolver = '/dashboard/inventario', forzarActivacion = false, preciosCantidad = [] }: ProductoFormProps) {
+export function ProductoForm({ categorias, proveedores, unidades, empleadoId, rol, producto, onSuccess, isSheet, margenDefault = 40, rutaVolver = '/dashboard/inventario', forzarActivacion = false, preciosCantidad = [], nuevoInicial, alCrear }: ProductoFormProps) {
   const esEdicion = !!producto
   // Solo un administrador cambia precios de venta de un producto existente (la base de datos también lo exige);
   // al crear un producto, quien lo crea pone su precio
@@ -268,7 +288,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDesactivando, setIsDesactivando] = useState(false)
-  const [form, setForm] = useState<ProductoFormState>(estadoInicial(producto, margenDefault, proveedores))
+  const [form, setForm] = useState<ProductoFormState>(estadoInicial(producto, margenDefault, proveedores, nuevoInicial))
   const [proveedoresEliminados, setProveedoresEliminados] = useState<string[]>([])
   const [moverCantidad, setMoverCantidad] = useState(0)
   const [moverDireccion, setMoverDireccion] = useState<'bodega_a_almacen' | 'almacen_a_bodega'>('bodega_a_almacen')
@@ -546,9 +566,11 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
         if (errorTramos) {
           toast.error(`El producto se creó, pero los precios por cantidad no: ${errorTramos}. Edítalo para agregarlos.`)
         }
+        const errorAlCrear = nuevoId && alCrear ? await alCrear(nuevoId) : null
+        if (errorAlCrear) toast.error(errorAlCrear)
         toast.success('Producto creado')
         router.refresh()
-        if (!isSheet) router.push('/dashboard/inventario')
+        if (!isSheet) router.push(rutaVolver)
         onSuccess?.()
       }
     } catch (err: any) {
@@ -861,6 +883,11 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
       <div className="space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-4">
         <h3 className="font-display font-bold text-white">Stock</h3>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {!esEdicion && nuevoInicial?.stockDesdeRecepcion ? (
+            <p className="text-sm text-steel-300 md:col-span-2">
+              El stock no se escribe aquí: lo que se contó en la recepción entra al inventario cuando el producto queda asociado al renglón.
+            </p>
+          ) : (<>
           <div className="space-y-2">
             <Label htmlFor="stock_bodega" className={LABEL_CLS}>Stock Bodega</Label>
             <Input
@@ -891,6 +918,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
                 lugar="almacén" onUsar={(n) => handleChange('stock_almacen', n)} />
             )}
           </div>
+          </>)}
           <div className="space-y-2">
             <Label htmlFor="stock_minimo" className={LABEL_CLS}>Stock mínimo *</Label>
             <Input
