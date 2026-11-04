@@ -1988,6 +1988,7 @@ export type Database = {
           p_pagos: Json
           p_servicios?: Json
           p_tipo_pago: string
+          p_total_manual?: number
         }
         Returns: string
       }
@@ -2002,6 +2003,7 @@ export type Database = {
           p_items: Json
           p_observaciones?: string
           p_servicios?: Json
+          p_total_manual?: number
         }
         Returns: string
       }
