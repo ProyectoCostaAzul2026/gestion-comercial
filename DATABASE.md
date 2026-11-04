@@ -156,7 +156,7 @@ solo lo leen los administradores (RLS) y nadie lo escribe directamente.
 | campo | varchar | NO | — | `precio_venta`, `precio_por_unidad_medida` o `precio_cantidad` |
 | precio_anterior | numeric | YES | — | En `precio_cantidad`, null si el tramo es nuevo |
 | precio_nuevo | numeric | YES | — | En `precio_cantidad`, null si el tramo se quitó |
-| origen | varchar | NO | producto | `producto` (formulario o SQL), `escala` (escala de precios del grupo) o `grupo` (precios por cantidad guardados desde un grupo; la app aún no lo usa) |
+| origen | varchar | NO | producto | `producto` (formulario o SQL), `escala` (escala de precios del grupo), `recepcion` (precios aprobados en una recepción de mercancía) o `grupo` (precios por cantidad guardados desde un grupo; la app aún no lo usa) |
 | usuario_id | uuid | YES | — | FK → profiles (on delete set null); null si el cambio se hizo por SQL |
 | created_at | timestamptz | NO | now() | |
 | cantidad_minima | int4 | YES | — | Solo en `precio_cantidad`: la cantidad mínima del tramo que cambió |
@@ -384,7 +384,7 @@ Productos enviados a garantía al proveedor (no regresan al inventario hasta con
 |---|---|---|---|
 | id | uuid | NO | gen_random_uuid() |
 | producto_id | uuid | NO | — | FK → productos |
-| tipo | varchar | NO | — | entrada/venta/devolucion/ajuste/traslado |
+| tipo | varchar | NO | — | entrada/venta/devolucion/ajuste/traslado. La recepción de mercancía deja `entrada` (o `ajuste` si el conteo se corrige hacia abajo) con `referencia_tipo` = `recepcion` y `referencia_id` = la recepción |
 | cantidad | int4 | NO | — | |
 | stock_anterior | int4 | NO | — | |
 | stock_nuevo | int4 | NO | — | |
@@ -434,6 +434,56 @@ Productos enviados a garantía al proveedor (no regresan al inventario hasta con
 | fecha_programada | date | NO | — | |
 | nota | text | YES | — | |
 | pagado | boolean | NO | false | |
+
+---
+
+### `recepciones`
+Recepción de mercancía de una factura de proveedor (una por factura). La abre un administrador con `crear_recepcion`, que
+también crea la factura en `facturas_proveedor`. `numero_factura` y `fecha_factura` se copian de la factura porque los
+empleados no leen `facturas_proveedor` (totales y pagos). La leen todos los usuarios con sesión y solo la escriben las RPC
+de recepción.
+
+| Columna | Tipo | Nullable | Default |
+|---|---|---|---|
+| id | uuid | NO | gen_random_uuid() |
+| factura_id | uuid | NO | — | FK → facturas_proveedor (on delete restrict). UNIQUE: una recepción por factura |
+| proveedor_id | uuid | NO | — | FK → proveedores (on delete restrict) |
+| numero_factura | varchar(100) | YES | — | Copia de la factura |
+| fecha_factura | date | NO | — | Copia de la factura |
+| costos_con_iva | boolean | NO | false | Si los costos de los renglones vienen con IVA |
+| estado | varchar(20) | NO | abierta | `abierta`, `reclamacion` (cerrada con diferencias, hasta marcarla resuelta) o `cerrada` |
+| precios_aprobados_at | timestamptz | YES | — | Última aprobación de costos y precios |
+| nota_cierre | text | YES | — | Nota de reclamación o devolución (obligatoria si hubo diferencias) |
+| nota_resolucion | text | YES | — | Cómo se resolvió la reclamación |
+| creada_por | uuid | YES | — | FK → profiles (on delete set null) |
+| cerrada_por | uuid | YES | — | FK → profiles (on delete set null) |
+| cerrada_at | timestamptz | YES | — | |
+| resuelta_at | timestamptz | YES | — | |
+| created_at | timestamptz | NO | now() | |
+
+---
+
+### `recepcion_items`
+Renglones de una recepción. Sin `producto_id`, el renglón queda pendiente (un producto que no existe) con la descripción
+de la factura. La leen todos los usuarios con sesión y solo la escriben las RPC de recepción.
+
+| Columna | Tipo | Nullable | Default |
+|---|---|---|---|
+| id | uuid | NO | gen_random_uuid() |
+| recepcion_id | uuid | NO | — | FK → recepciones (on delete cascade) |
+| producto_id | uuid | YES | — | FK → productos (on delete restrict); null = pendiente. No se repite en la misma recepción |
+| descripcion | text | NO | — | Nombre y medida del producto, o la descripción de la factura si está pendiente |
+| referencia | varchar(100) | YES | — | Referencia del proveedor |
+| cantidad_facturada | int4 | NO | — | Mayor que 0 |
+| costo_unitario | numeric(12,2) | NO | — | Como viene en la factura (con o sin IVA según `recepciones.costos_con_iva`); 0 = bonificación |
+| cantidad_contada | int4 | YES | — | null = sin contar |
+| cantidad_averiada | int4 | NO | 0 | De las contadas; no entran al inventario |
+| destino | varchar(10) | NO | bodega | `bodega` o `almacen` |
+| stock_ingresado | int4 | NO | 0 | Lo que ya entró al inventario (contadas menos averiadas) |
+| contado_por | uuid | YES | — | FK → profiles (on delete set null); quien contó o corrigió por última vez |
+| contado_at | timestamptz | YES | — | |
+| precio_aprobado | numeric(12,2) | YES | — | Precio de venta aprobado; vuelve a null si cambian el producto o el costo del renglón |
+| created_at | timestamptz | NO | now() | |
 
 ---
 
@@ -687,6 +737,8 @@ profiles ───────────────────────�
 profiles ──────────────────────── retiros (realizado_por)
 profiles ──────────────────────── caja_menor (registrado_por)
 profiles ──────────────────────── historial_precios (usuario_id)
+profiles ──────────────────────── recepciones (creada_por, cerrada_por)
+profiles ──────────────────────── recepcion_items (contado_por)
 
 clientes ──────────────────────── ventas (cliente_id)
 clientes ──────────────────────── ventas_credito (cliente_id)
@@ -695,6 +747,7 @@ proveedores ───────────────────── prod
 proveedores ───────────────────── facturas_proveedor (proveedor_id)
 proveedores ───────────────────── gastos (proveedor_id)
 proveedores ───────────────────── garantias (proveedor_id)
+proveedores ───────────────────── recepciones (proveedor_id)
 
 categorias_producto ───────────── productos (categoria_id)
 
@@ -705,6 +758,7 @@ productos ─────────────────────── 
 productos ─────────────────────── garantias (producto_id)
 productos ─────────────────────── historial_precios (producto_id)
 productos ─────────────────────── precios_cantidad (producto_id)
+productos ─────────────────────── recepcion_items (producto_id)
 
 ventas ────────────────────────── venta_items (venta_id)
 ventas ────────────────────────── venta_pagos (venta_id)
@@ -720,6 +774,8 @@ devoluciones ──────────────────── garant
 
 facturas_proveedor ────────────── pagos_factura_proveedor (factura_id)
 facturas_proveedor ────────────── pagos_programados_proveedor (factura_id)
+facturas_proveedor ────────────── recepciones (factura_id)
+recepciones ───────────────────── recepcion_items (recepcion_id)
 
 arqueo_caja ───────────────────── arqueo_detalle (arqueo_id)
 caja_menor ────────────────────── conteo_billetes (caja_menor_id)
@@ -800,6 +856,22 @@ servicios ─────────────────────── 
 > Al crear una RPC nueva: `revoke execute on function ... from public, anon;` y `grant execute ... to authenticated, service_role;`.
 > `is_admin()` sí queda ejecutable por todos porque las políticas RLS la evalúan.
 
+### Recepción de mercancía
+| Función | Descripción |
+|---|---|
+| `crear_recepcion(p_proveedor_id, p_fecha_emision, p_monto_total, p_costos_con_iva, p_numero_factura?, p_fecha_vencimiento?, p_notas?)` | Solo administrador. Crea la factura del proveedor (pendiente, saldo = total) y su recepción abierta. Rechaza un número de factura que ese proveedor ya tenga. Devuelve el id de la recepción |
+| `guardar_renglon_recepcion(p_recepcion_id, p_renglon)` | Cualquier usuario activo, recepción abierta. Agrega o edita un renglón: `{ id?, producto_id?, descripcion?, referencia?, cantidad_facturada, costo_unitario }`; sin producto queda pendiente. Si un renglón ya contado recibe su producto, su mercancía entra al inventario. Si cambian el producto o el costo, el precio del renglón se vuelve a aprobar |
+| `quitar_renglon_recepcion(p_renglon_id)` | Cualquier usuario activo, recepción abierta y renglón sin mercancía en el inventario |
+| `contar_renglon_recepcion(p_renglon_id, p_cantidad_contada, p_cantidad_averiada?, p_destino?)` | Cualquier usuario activo, recepción abierta o con reclamación. Guarda el conteo y quién contó; lo bueno (contadas − averiadas) entra al inventario y una corrección mueve la diferencia, sin dejar stock negativo. El destino solo se elige antes de que entre la mercancía. Devuelve las unidades movidas |
+| `crear_miembro_familia_renglon(p_renglon_id, p_producto_base_id, p_caracteristica, p_marca, p_unidad_medida, p_codigo?)` | Solo administrador. Crea el producto de un renglón pendiente en la familia del producto base (otra medida del grupo, u otra característica o marca) con `guardar_familia`: nace inactivo, con los datos del base y sus proveedores en costo 0. Lo asocia al renglón (si estaba contado, entra al inventario). `p_codigo` es el de `generarSKU()`; se le agrega el sufijo md5 del catálogo |
+| `aprobar_precios_recepcion(p_recepcion_id, p_precios)` | Solo administrador, recepción abierta. `p_precios` = `[{ renglon_id, precio_venta }]`, uno por cada renglón con producto. El costo del renglón, pasado a la forma del producto (con o sin IVA), y su referencia quedan como los de ese proveedor (lo agrega si no lo tenía; un costo 0 no cambia el costo); si otro proveedor del producto tiene costo 0, este queda como costo base. Guarda el precio y el margen como `aplicar_escala_precios`, con origen `recepcion` en el historial, y activa el producto |
+| `cerrar_recepcion(p_recepcion_id, p_nota?)` | Solo administrador. Exige renglones con producto, contados y con precio aprobado. Con diferencias (contadas distintas de facturadas, o averiadas) exige la nota y queda `reclamacion`; si no, `cerrada` |
+| `resolver_reclamacion_recepcion(p_recepcion_id, p_nota)` | Solo administrador. Pasa una recepción en `reclamacion` a `cerrada` con la nota de cómo se resolvió |
+| `sincronizar_stock_renglon(p_renglon_id, p_usuario_id)` | Interna: no la puede ejecutar la app. Pone el inventario de un renglón al día con su conteo y deja el movimiento |
+
+> Las reglas que usa la app (costo con o sin IVA, diferencias del conteo, lo que falta para cerrar) están en
+> `src/lib/recepcion.ts`: si cambias una RPC de recepción, cambia también esa librería.
+
 ### Clientes
 | Función | Descripción |
 |---|---|
@@ -859,6 +931,9 @@ servicios ─────────────────────── 
 | historial_precios | idx_historial_precios_usuario_id | btree | usuario_id |
 | precios_cantidad | precios_cantidad_producto_cantidad_key | UNIQUE btree | producto_id, cantidad_minima |
 | producto_proveedores | idx_un_costo_base_manual_por_producto | UNIQUE btree parcial | producto_id |
+| recepciones | recepciones_factura_key | UNIQUE btree | factura_id |
+| recepcion_items | recepcion_items_producto_key | UNIQUE btree parcial (producto_id no nulo) | recepcion_id, producto_id |
+| recepciones, recepcion_items | idx_recepciones_&lt;columna&gt;, idx_recepcion_items_&lt;columna&gt; | btree | Una por cada clave foránea |
 | (40 tablas) | idx_&lt;tabla&gt;_&lt;columna&gt; | btree | Una por cada clave foránea (agregados el 2026-10-29) |
 
 ---
@@ -909,6 +984,8 @@ servicios ─────────────────────── 
 - `garantias` — ALL
 - `categorias_gasto` — SELECT, INSERT
 - `precios_cantidad` — SELECT (solo la escribe `guardar_precios_cantidad`, administrador)
+- `recepciones`, `recepcion_items` — SELECT (solo las escriben las RPC de recepción; los totales y pagos de la factura
+  siguen en `facturas_proveedor`, que solo ve el administrador)
 - `horario_laboral` — SELECT (todos), ALL (admin)
 - `configuracion_negocio` — SELECT (todos), UPDATE (admin)
 - `profiles` — SELECT (con sesión), UPDATE (propio + admin), INSERT/DELETE (admin). El trigger
@@ -965,3 +1042,15 @@ servicios ─────────────────────── 
     - En un cambio (`cambiar_productos`), lo agregado toma el precio por cantidad según lo que se agrega del mismo
       producto, salvo en una venta con descuento global (porcentaje o total editado), donde va a precio normal.
     - Devoluciones y anulaciones devuelven el precio pagado, como siempre. La cotización usa la misma regla.
+14. **Recepción de mercancía** (migración `recepcion_mercancia`, 2026-11-04):
+    - El administrador abre la recepción de una factura (`crear_recepcion`, que también crea la factura del proveedor;
+      los pagos siguen por Proveedores y se pueden hacer antes de cerrar).
+    - Los empleados transcriben los renglones y cuentan a ciegas: la app no les muestra lo facturado al contar. Al marcar
+      un renglón, lo bueno entra al inventario en bodega o almacén con su movimiento; las averiadas no entran. Una
+      corrección del conteo mueve la diferencia.
+    - Un producto que no existe queda como renglón pendiente hasta asociarlo a uno existente, o hasta que el
+      administrador lo cree (formulario de producto prellenado, que lo asocia al guardar) o lo agregue a una familia o
+      grupo de medidas (`crear_miembro_familia_renglon`).
+    - El administrador aprueba costos y precios (`aprobar_precios_recepcion`) y cierra (`cerrar_recepcion`). Con
+      diferencias queda la reclamación pendiente: lo que llegue después se registra corrigiendo el conteo, y se cierra
+      con `resolver_reclamacion_recepcion`.

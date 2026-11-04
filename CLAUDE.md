@@ -9,10 +9,11 @@
 
 Sistema de gestión para **Ferreléctricos Costa Azul**, ferretería en Bogotá. Cubre punto de venta (ventas,
 cotizaciones, créditos, devoluciones, cambios, garantías), inventario con familias de productos, proveedores y
-sus facturas, clientes, caja (caja menor/mayor, arqueo, gastos, retiros), nómina, horario, reportes y
+sus facturas, recepción de mercancía, clientes, caja (caja menor/mayor, arqueo, gastos, retiros), nómina, horario, reportes y
 contabilidad. Interfaz *mobile-first*, tema oscuro, todo en español.
 
-Roles: `administrador` (todo) y `empleado` (ventas, inventario, clientes, horario y su propia nómina).
+Roles: `administrador` (todo) y `empleado` (ventas, inventario, recepción de mercancía, clientes, horario y su propia
+nómina).
 
 ## Stack
 
@@ -72,13 +73,15 @@ Roles: `administrador` (todo) y `empleado` (ventas, inventario, clientes, horari
 
 - `src/app/dashboard/<módulo>/`: páginas (Server Components que consultan Supabase y pasan datos a
   componentes cliente). Módulos: `ventas` (nueva, cotización, servicios, recibo), `inventario` (nuevo, editar,
-  familia, agotados, desactivados, garantías), `clientes`, `proveedores` (facturas, pagos), `empleados`,
+  familia, agotados, desactivados, garantías), `recepcion` (detalle y producto nuevo de un renglón), `clientes`,
+  `proveedores` (facturas, pagos), `empleados`,
   `caja`, `contabilidad`, `nomina`, `horario`, `reportes`, `configuracion`, `instrucciones`, `mi-perfil`.
 - `src/components/modulos/`: formularios y paneles cliente; aquí vive la lógica de negocio del front.
 - `src/lib/`: `permissions.ts` (permisos por rol y `RUTAS_SOLO_ADMIN`), `precio-utils.ts` (margen e IVA),
   `escala-precios.ts` (motor de precios por medida: orden de medidas, redondeo, sugeridos, costos estimados y alertas),
   `peso.ts` (cuentas del peso por unidad), `precios-cantidad.ts` (precios por cantidad: tramo que aplica, validación y
-  sugeridos), `temas-ayuda.ts` (textos del panel Instrucciones), `festivos-colombia.ts`.
+  sugeridos), `recepcion.ts` (recepción de mercancía: costo con o sin IVA, diferencias del conteo y lo que falta para
+  cerrar), `temas-ayuda.ts` (textos del panel Instrucciones), `festivos-colombia.ts`.
 - `src/proxy.ts`: exige sesión en `/dashboard`, cierra la sesión si el perfil está inactivo y manda a los
   empleados fuera de las rutas de administrador.
 - `DATABASE.md`: tablas, RPC, índices y políticas RLS (al día al 2026-11-04). Mantenerlo actualizado.
@@ -100,6 +103,11 @@ Roles: `administrador` (todo) y `empleado` (ventas, inventario, clientes, horari
   guarda lo que cambió la deuda y `repartirAjusteCredito` replica el reparto en la vista previa.
 - El guardado de productos y familias va por `guardar_producto` y `guardar_familia` (`SECURITY INVOKER`, una sola
   transacción). `producto-form.tsx` y `familia-medidas-panel.tsx` las llaman con `supabase.rpc`.
+- **Recepción de mercancía** (`recepciones`, `recepcion_items`): todo pasa por RPC (`crear_recepcion`,
+  `guardar_renglon_recepcion`, `quitar_renglon_recepcion`, `contar_renglon_recepcion`, `crear_miembro_familia_renglon`,
+  `aprobar_precios_recepcion`, `cerrar_recepcion`, `resolver_reclamacion_recepcion`). Los empleados transcriben y cuentan
+  (conteo ciego: el stock entra al marcar cada renglón); abrir, crear productos, aprobar precios y cerrar son del
+  administrador. `src/lib/recepcion.ts` replica sus reglas (si cambias una, cambia la otra). Reglas en `DATABASE.md` (nota 14).
 - **Solo un administrador cambia precios de venta** (`precio_venta`, `precio_por_unidad_medida`) de un producto existente:
   lo exige el trigger `trg_proteger_precios_productos` y el formulario bloquea esos campos a los empleados; crear un
   producto con su precio sigue permitido. Cada cambio queda en `historial_precios` (trigger, solo lo leen los admin).
@@ -224,4 +232,8 @@ Roles: `administrador` (todo) y `empleado` (ventas, inventario, clientes, horari
   lo vuelve a sumar.
 - Devolver o anular una línea fraccionada no deja movimiento en `movimientos_inventario`, y `anular_venta` suma la
   fracción al remanente sin pasarla a unidades.
+- Editar una factura de proveedor no guarda: `facturas_proveedor` no tiene política de UPDATE (la app dice "Factura
+  actualizada" sin cambiar nada) y el formulario pondría el saldo igual al total aunque haya pagos.
+- Recepción de mercancía: quedan para después adjuntar la foto o el PDF de la factura y repartir fletes y descuentos en
+  el costo de los renglones.
 - No hay tests ni CI.

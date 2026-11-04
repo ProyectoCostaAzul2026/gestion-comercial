@@ -290,6 +290,32 @@ export const TEMAS_AYUDA: TemaAyuda[] = [
     ],
   },
   {
+    id: 'recepcion-mercancia',
+    categoria: 'Recepción',
+    titulo: 'Recibir mercancía: transcribir y contar',
+    soloAdmin: false,
+    secciones: [
+      {
+        subtitulo: 'Transcribir la factura',
+        pasos: [
+          'Entra a Recepción y abre la recepción de la factura que llegó (el administrador la abre).',
+          'En la pestaña Factura busca cada producto por nombre, código o la referencia que trae la factura, y escribe la cantidad y el costo de cada unidad.',
+          'Si la factura trae cajas o paquetes, activa "Viene por empaque": escribes cuántos empaques, cuántas unidades trae cada uno y su costo, y la app lo pasa a unidades.',
+          'Si un producto no está en el sistema, toca "No está en el sistema" y escribe la descripción como viene en la factura. Queda pendiente hasta que el administrador lo cree o lo asocie.',
+        ],
+      },
+      {
+        subtitulo: 'Contar',
+        pasos: [
+          'En la pestaña Conteo cuenta cada producto sin mirar la factura: escribe cuántas unidades llegaron, cuántas de esas vienen averiadas y si van a bodega o a almacén.',
+          'Al marcar el renglón, lo que llegó bueno entra de una vez al inventario y queda tu nombre. Las averiadas no entran.',
+          'Si un renglón aparece en Diferencias, vuélvelo a contar y corrige el número: el inventario se ajusta solo.',
+          'Varias personas pueden contar la misma factura a la vez; toca el botón de actualizar para ver lo que contaron los demás.',
+        ],
+      },
+    ],
+  },
+  {
     id: 'productos-agotados',
     categoria: 'Inventario',
     titulo: 'Consultar productos agotados',
@@ -459,6 +485,46 @@ export const TEMAS_AYUDA: TemaAyuda[] = [
           'Para pagarla (total o parcialmente), abre la factura y registra el pago indicando fecha, medio de pago y monto.',
           'El saldo pendiente de la factura se actualiza solo; cuando llega a $0 queda marcada como pagada.',
           'También puedes programar pagos futuros para una factura sin registrarlos como pagados todavía.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'recepcion-administrar',
+    categoria: 'Recepción (Admin)',
+    titulo: 'Abrir, aprobar y cerrar una recepción',
+    soloAdmin: true,
+    secciones: [
+      {
+        subtitulo: 'Abrir',
+        pasos: [
+          'En Recepción toca "Nueva recepción": elige el proveedor y escribe el número, la fecha, el vencimiento y el total de la factura, y si sus costos vienen con IVA.',
+          'La factura queda en Proveedores, donde se paga como siempre. Se puede pagar antes de cerrar la recepción.',
+        ],
+      },
+      {
+        subtitulo: 'Productos que no están en el sistema',
+        pasos: [
+          'Los renglones pendientes se resuelven en la pestaña Factura. "Ya existe: asociar" sirve si el producto sí estaba en el sistema.',
+          '"Crear producto" abre el formulario con el nombre, el proveedor, el costo y la referencia del renglón. Al guardarlo queda asociado y lo contado entra al inventario.',
+          '"Agregar a una familia o grupo" lo crea como otra medida de un grupo (misma característica y marca) o como otra variante de una familia: busca un producto de esa familia, escribe la medida nueva y, si cambian, la característica o la marca. Hereda la categoría, el IVA, la imagen y los proveedores, y queda activo al aprobar los precios.',
+          'Si el producto que elegiste todavía no tiene familia, créala primero desde su página de familia (Añadir miembro).',
+        ],
+      },
+      {
+        subtitulo: 'Aprobar costos y precios',
+        pasos: [
+          'En la pestaña Precios pon el margen y toca "Proponer precios con este margen". Se propone el mayor entre el precio actual y el sugerido, para no bajar precios sin querer; en un producto nuevo, el sugerido.',
+          'Revisa cada precio, el costo nuevo y el margen que deja, y toca "Aprobar costos y precios". Se guardan el costo y la referencia del proveedor y el precio de venta, y el cambio queda en el historial de precios.',
+          'Si después cambias el costo o el producto de un renglón, vuelve a aprobar.',
+        ],
+      },
+      {
+        subtitulo: 'Cerrar',
+        pasos: [
+          'En la pestaña Cierre revisa que la suma de los renglones cuadre con el total de la factura.',
+          'Para cerrar, todos los renglones deben tener producto, estar contados y tener el precio aprobado.',
+          'Si hubo faltantes, sobrantes o averiadas, escribe la nota de reclamación o devolución. La recepción queda con la reclamación pendiente: lo que llegue después se registra corrigiendo el conteo, y cuando el proveedor responda la marcas resuelta.',
         ],
       },
     ],
