@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.18"
   }
   public: {
     Tables: {
@@ -436,6 +436,7 @@ export type Database = {
       devolucion_items: {
         Row: {
           cantidad: number
+          cantidad_fraccion: number | null
           devolucion_id: string
           id: string
           nombre_producto: string
@@ -446,6 +447,7 @@ export type Database = {
         }
         Insert: {
           cantidad: number
+          cantidad_fraccion?: number | null
           devolucion_id: string
           id?: string
           nombre_producto: string
@@ -456,6 +458,7 @@ export type Database = {
         }
         Update: {
           cantidad?: number
+          cantidad_fraccion?: number | null
           devolucion_id?: string
           id?: string
           nombre_producto?: string
@@ -1786,16 +1789,14 @@ export type Database = {
         }
         Returns: undefined
       }
-      anular_venta:
-        | { Args: { p_motivo: string; p_venta_id: string }; Returns: undefined }
-        | {
-            Args: {
-              p_medio_devolucion?: string
-              p_motivo: string
-              p_venta_id: string
-            }
-            Returns: undefined
-          }
+      anular_venta: {
+        Args: {
+          p_medio_devolucion?: string
+          p_motivo: string
+          p_venta_id: string
+        }
+        Returns: undefined
+      }
       buscar_clientes: {
         Args: { p_query: string }
         Returns: {
@@ -1843,26 +1844,16 @@ export type Database = {
           unidades_vendidas: number
         }[]
       }
-      cambiar_productos:
-        | {
-            Args: {
-              p_items_agregar: Json
-              p_items_retirar: Json
-              p_observacion: string
-              p_venta_id: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_items_agregar: Json
-              p_items_retirar: Json
-              p_medio_pago?: string
-              p_observacion: string
-              p_venta_id: string
-            }
-            Returns: Json
-          }
+      cambiar_productos: {
+        Args: {
+          p_items_agregar: Json
+          p_items_retirar: Json
+          p_medio_pago?: string
+          p_observacion: string
+          p_venta_id: string
+        }
+        Returns: Json
+      }
       cerrar_caja: {
         Args: {
           p_conteo_cierre?: Json
@@ -1879,24 +1870,15 @@ export type Database = {
         }
         Returns: Json
       }
-      devolver_productos:
-        | {
-            Args: {
-              p_items_devolucion: Json
-              p_observacion: string
-              p_venta_id: string
-            }
-            Returns: undefined
-          }
-        | {
-            Args: {
-              p_items_devolucion: Json
-              p_medio_devolucion?: string
-              p_observacion: string
-              p_venta_id: string
-            }
-            Returns: undefined
-          }
+      devolver_productos: {
+        Args: {
+          p_items_devolucion: Json
+          p_medio_devolucion?: string
+          p_observacion: string
+          p_venta_id: string
+        }
+        Returns: undefined
+      }
       guardar_familia: {
         Args: {
           p_base: Json

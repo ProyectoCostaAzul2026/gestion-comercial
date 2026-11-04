@@ -3,7 +3,7 @@
 # Contexto del proyecto — Gestión Comercial Ferreléctricos Costa Azul
 
 > Claude Code carga este archivo en cada sesión. Mantenerlo al día cuando cambie algo importante
-> (esquema de la BD, convenciones, estado de los datos). Última revisión: 2026-10-31.
+> (esquema de la BD, convenciones, estado de los datos). Última revisión: 2026-11-04.
 
 ## Qué es
 
@@ -89,6 +89,10 @@ Roles: `administrador` (todo) y `empleado` (ventas, inventario, clientes, horari
   `registrar_pago_factura`, `registrar_nomina`, `abrir_caja`, `cerrar_caja_arqueo`, `transferir_entre_fondos`,
   `actualizar_denominaciones`, `mover_stock_bodega_almacen`, `recibir_garantia`, `buscar_productos`,
   `buscar_clientes`, `calcular_rotacion_productos`. Las de administrador validan `profiles.rol` por dentro.
+- Cada RPC debe tener **una sola versión**: si se agrega un parámetro, borrar la firma vieja en la misma migración, o
+  PostgREST responde 300 `PGRST203` y la llamada falla desde la app. `anular_venta`, `devolver_productos` y
+  `cambiar_productos` son solo para administrador y reciben el medio por el que sale o entra el dinero; sus reglas están
+  en `DATABASE.md` y la vista previa de `venta-acciones.tsx` las replica en `src/lib/ajustes-venta.ts` (cambiar las dos).
 - El guardado de productos y familias va por `guardar_producto` y `guardar_familia` (`SECURITY INVOKER`, una sola
   transacción). `producto-form.tsx` y `familia-medidas-panel.tsx` las llaman con `supabase.rpc`.
 - Ninguna RPC de negocio se puede ejecutar sin sesión. Al crear una RPC nueva: `revoke execute ... from public, anon` y
@@ -189,4 +193,11 @@ Roles: `administrador` (todo) y `empleado` (ventas, inventario, clientes, horari
 - El repositorio de GitHub es público: valorar hacerlo privado. Si se hace, instalar la app de Claude en GitHub
   (github.com/apps/claude) para que las sesiones en la nube puedan clonarlo.
 - La búsqueda del inventario filtra en el navegador (bien con ~3000 productos; pasar a búsqueda en el servidor si crece).
+- Ventas a crédito: `anular_venta`, `devolver_productos` y `cambiar_productos` no tocan `ventas_credito` ni el saldo
+  `credito` (una venta a crédito anulada sigue como deuda; una devolución saca dinero aunque el cliente no haya pagado).
+- Garantías desde una devolución o un cambio: en `venta-acciones.tsx` no se puede elegir el proveedor (la lista no se
+  carga), la cantidad va fija en 1 y no se guarda `devolucion_id`; además la RPC reintegra el stock y `recibir_garantia`
+  lo vuelve a sumar.
+- Devolver o anular una línea fraccionada no deja movimiento en `movimientos_inventario`, y `anular_venta` suma la
+  fracción al remanente sin pasarla a unidades.
 - No hay tests ni CI.
