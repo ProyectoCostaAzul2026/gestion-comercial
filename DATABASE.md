@@ -177,9 +177,9 @@ Relación muchos-a-muchos entre productos y proveedores.
 | subtotal | numeric | NO | 0 | Sin descuentos |
 | descuento_global | numeric | NO | 0 | |
 | descuento_habilitado | boolean | NO | false | |
-| descuento_tipo | varchar | YES | — | |
+| descuento_tipo | varchar | YES | — | por_producto/total/manual |
 | descuento_total_porcentaje | numeric | NO | 0 | |
-| total_descuentos | numeric | NO | 0 | |
+| total_descuentos | numeric | NO | 0 | Descuentos por producto + global (porcentaje o total editado a mano) |
 | total_iva | numeric | NO | 0 | Informativo: IVA contenido en los productos vendidos; no se suma al total |
 | total | numeric | NO | 0 | |
 | total_redondeado | numeric | YES | — | |
@@ -680,8 +680,8 @@ servicios ─────────────────────── 
 ### Ventas
 | Función | Descripción |
 |---|---|
-| `registrar_venta(p_cliente_id, p_tipo_pago, p_items, p_pagos, p_descuento_habilitado, p_descuento_tipo, p_descuento_total_porcentaje, p_factura_electronica, p_observaciones, p_servicios)` | Registra venta completa, descuenta stock, actualiza saldos |
-| `registrar_venta_credito(...)` | Registra venta a crédito |
+| `registrar_venta(p_cliente_id, p_tipo_pago, p_items, p_pagos, p_descuento_habilitado, p_descuento_tipo, p_descuento_total_porcentaje, p_factura_electronica, p_observaciones, p_servicios, p_total_manual?)` | Registra venta completa, descuenta stock, actualiza saldos. `p_total_manual`: total editado a mano (ver Descuentos en Notas importantes) |
+| `registrar_venta_credito(p_cliente_id, p_items, p_servicios?, p_descuento_habilitado?, p_descuento_tipo?, p_descuento_total_porcentaje?, p_fecha_pago_programada?, p_observaciones?, p_factura_electronica?, p_total_manual?)` | Registra venta a crédito; la deuda (`ventas_credito.saldo_pendiente`) es el total de la venta. Valida descuentos y fracciones igual que `registrar_venta` |
 | `registrar_abono_credito(p_venta_credito_id, p_monto, p_fuentes, p_observaciones)` | Abona a crédito, actualiza saldo |
 | `actualizar_fecha_pago_credito(...)` | Cambia fecha programada de pago |
 | `anular_venta(p_venta_id, p_motivo)` | Anula venta, devuelve stock |
@@ -826,7 +826,10 @@ servicios ─────────────────────── 
 3. **Stock**: `stock_actual = stock_bodega + stock_almacen` (calculado por trigger automáticamente).
 4. **Precio costo base**: Se actualiza automáticamente con el costo del proveedor marcado `es_costo_base_manual` o, si
    no hay, con el menor precio de `producto_proveedores`.
-5. **Descuentos**: Máximo 10% por ítem y 10% global (configurable en `configuracion_negocio.max_descuento_porcentaje`).
+5. **Descuentos**: máximo 10% por ítem y 10% global. El descuento acumulado (ítems + global) sobre el valor bruto no
+   puede superar `configuracion_negocio.max_descuento_porcentaje` (0.10); lo validan el formulario y `registrar_venta` /
+   `registrar_venta_credito`. Si se edita el total a mano, el formulario lo envía en `p_total_manual`: debe ser mayor que
+   cero y no superar el total calculado (redondeado a la centena), y la diferencia se suma a `total_descuentos`.
 6. **Ticket número**: Único por fecha, se reinicia cada día.
 7. **Garantías**: Un producto en garantía NO regresa al inventario hasta confirmar `recibir_garantia()`.
 8. **Arqueo**: Solo uno por día (`fecha` UNIQUE). Resetea saldo efectivo a 0 y transfiere sobrante a caja mayor.
