@@ -77,7 +77,7 @@ Roles: `administrador` (todo) y `empleado` (ventas, inventario, clientes, horari
 - `src/components/modulos/`: formularios y paneles cliente; aquí vive la lógica de negocio del front.
 - `src/lib/`: `permissions.ts` (permisos por rol y `RUTAS_SOLO_ADMIN`), `precio-utils.ts` (margen e IVA),
   `escala-precios.ts` (motor de precios por medida: orden de medidas, redondeo, sugeridos, costos estimados y alertas),
-  `temas-ayuda.ts` (textos del panel Instrucciones), `festivos-colombia.ts`.
+  `peso.ts` (cuentas del peso por unidad), `temas-ayuda.ts` (textos del panel Instrucciones), `festivos-colombia.ts`.
 - `src/proxy.ts`: exige sesión en `/dashboard`, cierra la sesión si el perfil está inactivo y manda a los
   empleados fuera de las rutas de administrador.
 - `DATABASE.md`: tablas, RPC, índices y políticas RLS (al día al 2026-10-31). Mantenerlo actualizado.
@@ -144,6 +144,11 @@ Roles: `administrador` (todo) y `empleado` (ventas, inventario, clientes, horari
   `productos.orden_medida` (orden manual, RPC `ordenar_medidas`). La escala de precios del grupo (solo admin) sugiere
   precios con un margen y el redondeo de `escala-precios.ts` ($50 bajo $1.000, $100 desde $1.000) y guarda con
   `aplicar_escala_precios`.
+- **Peso por unidad** (`productos.peso_unitario_g`, gramos, opcional y solo informativo): con él la app calcula cuánto
+  deben pesar N unidades y cuántas unidades hay en un peso, en Nueva venta, en Editar producto ("Contar por peso" en
+  bodega y almacén: peso total menos el recipiente, dividido por el peso de una unidad) y por medida en el grupo
+  (`guardar_pesos_unitarios`). Las cuentas están en `src/lib/peso.ts` y los componentes en `peso-por-unidad.tsx`.
+  `guardar_producto` solo cambia el peso si la petición trae la clave `peso_unitario_g` (null lo quita).
 - Para guardar un producto se exige al menos un proveedor con costo > 0 y un precio de venta > 0.
 - Precio sugerido (`precio-utils.ts`): `costo_neto × (1 + IVA) / (1 − margen)`. Por defecto IVA 19 % y el
   IVA no viene incluido en el costo.

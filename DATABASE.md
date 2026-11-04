@@ -108,6 +108,7 @@ Extiende `auth.users` de Supabase. Un registro por usuario autenticado.
 | familia_id | uuid | YES | — | FK → producto_familias |
 | caracteristica | text | YES | — | Característica dentro de la familia (ej: "PVC Presion") |
 | orden_medida | int4 | YES | — | Orden manual dentro de su grupo de medidas; null = orden automático por tamaño |
+| peso_unitario_g | numeric | YES | — | Peso de una unidad en gramos, solo informativo (vender y contar pesando); null = no se maneja por peso. CHECK: null o > 0 (`productos_peso_unitario_g_check`) |
 | created_at / updated_at | timestamptz | NO | now() | |
 
 **Convención de nombres:** `nombre = "<producto_familias.nombre_base> - <caracteristica>"` (guion corto con un espacio a
@@ -745,13 +746,14 @@ servicios ─────────────────────── 
 ### Inventario
 | Función | Descripción |
 |---|---|
-| `buscar_productos(p_query)` | Búsqueda fuzzy con pg_trgm |
+| `buscar_productos(p_query)` | Búsqueda fuzzy con pg_trgm (Ventas, Cotización y Cambios). Devuelve hasta 10 productos activos con sus datos de venta, `peso_unitario_g` y `similitud`. `SECURITY DEFINER` |
 | `mover_stock_bodega_almacen(p_producto_id, p_cantidad, p_direccion)` | Traslado entre bodega y almacén |
 | `calcular_rotacion_productos(...)` | KPIs de rotación por período |
-| `guardar_producto(p_datos, p_proveedores, p_producto_id?, p_activar?, p_proveedores_eliminados?, p_empleado_id?)` | Crea o edita un producto con sus proveedores (y el movimiento de stock inicial al crear) en una sola transacción. `SECURITY INVOKER`: aplica RLS del usuario |
+| `guardar_producto(p_datos, p_proveedores, p_producto_id?, p_activar?, p_proveedores_eliminados?, p_empleado_id?)` | Crea o edita un producto con sus proveedores (y el movimiento de stock inicial al crear) en una sola transacción. `SECURITY INVOKER`: aplica RLS del usuario. Guarda `peso_unitario_g` si `p_datos` trae la clave; al editar sin ella, conserva el que había |
 | `guardar_familia(p_nombre_base, p_base, p_operaciones, p_familia_id?, p_desactivar?)` | Guarda el árbol de una familia (actualizar / asignar padre / insertar miembros, desactivar los que salen) en una sola transacción. `SECURITY INVOKER` |
 | `aplicar_escala_precios(p_precios)` | Solo administrador. Guarda los precios de la escala de un grupo de medidas en una sola transacción: `p_precios` = `[{ producto_id, precio_venta }]`. Recalcula `margen_calculado` con `precio_costo_base` (igual que `calcularMargenCalculado`) y deja los cambios en `historial_precios` con origen `escala`. Devuelve cuántos productos actualizó |
 | `ordenar_medidas(p_producto_ids, p_restablecer?)` | Guarda el orden manual de las medidas de un grupo (`orden_medida` = posición en el arreglo) o lo quita con `p_restablecer`. `SECURITY INVOKER` |
+| `guardar_pesos_unitarios(p_pesos)` | Guarda el peso por unidad de varias medidas (panel del grupo) en una sola transacción: `p_pesos` = `[{ producto_id, peso_unitario_g }]`, null lo quita. Si un peso no es mayor que 0 o un producto no existe (o el usuario no lo ve por RLS, como un empleado con un inactivo), no guarda ninguno. `SECURITY INVOKER`. Devuelve cuántos productos actualizó |
 
 > **Permisos de las RPC:** ninguna función de negocio se puede ejecutar sin sesión (se revocó `EXECUTE` a `public` y `anon`).
 > Al crear una RPC nueva: `revoke execute on function ... from public, anon;` y `grant execute ... to authenticated, service_role;`.
@@ -900,3 +902,8 @@ servicios ─────────────────────── 
     `trg_proteger_precios_productos` y el formulario de producto bloquea esos campos a los empleados. Cada cambio queda en
     `historial_precios`. La escala de precios de un grupo de medidas sugiere `costo × (1 + IVA) / (1 − margen)` redondeado
     hacia arriba (por defecto a $50 bajo $1.000 y a $100 desde $1.000) y guarda con `aplicar_escala_precios`.
+12. **Peso por unidad** (migración `peso_por_unidad`, 2026-11-04): `productos.peso_unitario_g` es solo informativo. Con
+    él la app calcula cuánto deben pesar N unidades y cuántas unidades hay en un peso: en Nueva venta, al contar inventario
+    en Editar producto ("Contar por peso": peso total menos el recipiente, dividido por el peso de una unidad) y por medida
+    en el grupo. No cambia precios, stock ni ventas; el conteo por peso solo llena el stock del formulario, que se guarda
+    con `guardar_producto` como cualquier edición (sin movimiento en `movimientos_inventario`).
