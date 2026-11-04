@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -248,9 +249,20 @@ export function ProductosProveedorTable({
                         </td>
                         <td className="py-2 pr-3">
                           <div className="flex items-center gap-2">
-                            <span className={!pp.producto.activo ? 'text-steel-500' : 'text-white'}>
-                              {pp.producto.nombre}
-                            </span>
+                            {pp.producto.id ? (
+                              // Sin prefetch: un proveedor puede tener cientos de productos en esta lista
+                              <Link
+                                href={`/dashboard/inventario/${pp.producto.id}`}
+                                prefetch={false}
+                                className={`underline-offset-2 hover:text-brand-yellow hover:underline ${!pp.producto.activo ? 'text-steel-500' : 'text-white'}`}
+                              >
+                                {pp.producto.nombre}
+                              </Link>
+                            ) : (
+                              <span className={!pp.producto.activo ? 'text-steel-500' : 'text-white'}>
+                                {pp.producto.nombre}
+                              </span>
+                            )}
                             {pp.es_proveedor_principal && (
                               <span className="inline-flex items-center rounded-full border border-brand-yellow/30 bg-brand-yellow/20 px-2 py-0.5 text-xs font-semibold text-brand-yellow">Principal</span>
                             )}
@@ -258,6 +270,12 @@ export function ProductosProveedorTable({
                               <span className="text-xs text-steel-500">(inactivo)</span>
                             )}
                           </div>
+                          {/* Marca y medida: varios productos comparten nombre y solo cambian en esto */}
+                          {(pp.producto.marca || pp.producto.unidad_medida) && (
+                            <p className="text-xs text-steel-500">
+                              {[pp.producto.marca, pp.producto.unidad_medida].filter(Boolean).join(' · ')}
+                            </p>
+                          )}
                         </td>
                         <td className="py-2 pr-3 text-right">
                           <span className={stockBajo ? 'font-medium text-brand-red' : 'text-white'}>

@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { calcularIvaUnitario } from '@/lib/precio-utils'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -112,15 +113,25 @@ const METODO_LABEL: Record<MetodoPago, string> = {
   tarjeta: 'Tarjeta',
 }
 
-function calcularIva(p: Pick<ProductoSearch, 'tiene_iva' | 'iva_incluido' | 'porcentaje_iva' | 'precio_venta'>): number {
+// IVA informativo por unidad: el contenido en el precio de venta, que ya trae el IVA
+// (iva_incluido se refiere al costo, no al precio). Debe coincidir con registrar_venta.
+function calcularIva(p: Pick<ProductoSearch, 'tiene_iva' | 'porcentaje_iva' | 'precio_venta'>): number {
   if (!p.tiene_iva) return 0
-  if (p.iva_incluido) return p.precio_venta - p.precio_venta / (1 + p.porcentaje_iva / 100)
-  return p.precio_venta * (p.porcentaje_iva / 100)
+  return calcularIvaUnitario(p.precio_venta, p.porcentaje_iva)
 }
 
+// Redondea hacia arriba a la centena, como las RPC de venta. Primero lleva el valor a centavos para que un
+// error de coma flotante (35700.000000001) no sume $100 al total.
 function redondear100(valor: number): number {
-  if (valor % 100 === 0) return valor
-  return Math.ceil(valor / 100) * 100
+  const centavos = Math.round(valor * 100) / 100
+  if (centavos % 100 === 0) return centavos
+  return Math.ceil(centavos / 100) * 100
+}
+
+// Si cantidad es múltiplo de minimo, tolerando el error de coma flotante (0.3 / 0.1 da 2.9999999999999996)
+function esMultiplo(cantidad: number, minimo: number): boolean {
+  const veces = Math.round(cantidad / minimo)
+  return Math.abs(veces * minimo - cantidad) < 1e-6
 }
 
 export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.10, whatsappNegocio }: NuevaVentaFormProps) {
@@ -215,6 +226,9 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
   }, [subtotalTotal, descuentoTotalMonto, editandoTotalManual, totalManual])
 
   const totalRedondeado = useMemo(() => redondear100(totalAntesRedondeo), [totalAntesRedondeo])
+
+  // Total de la venta sin el ajuste manual: el total editado a mano no puede superarlo (la BD también lo valida)
+  const totalCalculado = useMemo(() => redondear100(subtotalTotal - descuentoTotalMonto), [subtotalTotal, descuentoTotalMonto])
 
   const ivaInformativo = useMemo(() =>
     carrito.reduce((sum, item) => item.es_fraccionado ? sum : sum + item.iva_unitario * item.cantidad, 0),
@@ -360,7 +374,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
     }).select('id, nombre, precio_venta, tiene_iva, iva_incluido, porcentaje_iva').single()
     setGuardandoAltaRapida(false)
     if (error) { toast.error('Error: ' + error.message); return }
-    const iva = calcularIva({ ...data, precio_venta: data.precio_venta })
+    const iva = calcularIva(data)
     setCarrito(prev => [...prev, {
       key: `${data.id}-${Date.now()}`, producto_id: data.id, nombre: data.nombre,
       precio_unitario: data.precio_venta, iva_unitario: iva,
@@ -420,15 +434,22 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
   const validate = (): string | null => {
     if (carrito.length === 0 && serviciosCarrito.length === 0) return 'Agrega al menos un producto o servicio'
     if (esCredito && cliente.es_cliente_generico) return 'Las ventas a crédito requieren seleccionar un cliente específico'
-    if (esCredito) return null
     for (const item of carrito) {
-      if (item.es_fraccionado && item.cantidad_minima_venta && item.cantidad_fraccion % item.cantidad_minima_venta !== 0) {
+      if (item.es_fraccionado && item.cantidad_minima_venta && !esMultiplo(item.cantidad_fraccion, item.cantidad_minima_venta)) {
         return `La cantidad de "${item.nombre}" debe ser múltiplo de ${item.cantidad_minima_venta} ${item.medida_venta}`
+      }
+    }
+    if (editandoTotalManual && totalManual !== '') {
+      if (totalRedondeado <= 0) return 'El total debe ser mayor que cero'
+      if (totalRedondeado > totalCalculado) {
+        return `El total editado no puede ser mayor que el total de la venta ($${totalCalculado.toLocaleString('es-CO')})`
       }
     }
     if (descuentoAcumuladoPct > maxDescuentoPct + 0.001) {
       return `Descuento acumulado (${(descuentoAcumuladoPct * 100).toFixed(1)}%) supera el máximo permitido (${(maxDescuentoPct * 100).toFixed(0)}%). Mínimo a pagar: $${minPagoPermitido.toLocaleString('es-CO')}`
     }
+    // Una venta a crédito no se paga ahora: no hay pagos que validar
+    if (esCredito) return null
     if (esMixto && Math.abs(diferenciaPago) > 1) {
       return `La suma de pagos ($${sumaPagos.toLocaleString('es-CO')}) no coincide con el total ($${totalRedondeado.toLocaleString('es-CO')})`
     }
@@ -468,6 +489,8 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
         else if (descuentoTotalActivo) descuentoTipo = 'total'
         else descuentoTipo = 'por_producto'
       }
+      // Con el total editado a mano, la BD lo usa como total de la venta (y de la deuda, si es a crédito)
+      const totalManualPayload = descuentoTipo === 'manual' ? totalRedondeado : undefined
 
       // ── Venta a crédito ──
       if (esCredito) {
@@ -481,6 +504,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
           p_fecha_pago_programada: fechaPagoCredito || undefined,
           p_observaciones: observaciones || undefined,
           p_factura_electronica: facturaElectronica,
+          p_total_manual: totalManualPayload,
         })
         if (rpcError) throw rpcError
         toast.success('Venta a crédito registrada')
@@ -516,6 +540,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
         p_factura_electronica: facturaElectronica,
         p_observaciones: observaciones || undefined,
         p_servicios: serviciosPayload.length > 0 ? serviciosPayload : null,
+        p_total_manual: totalManualPayload,
       })
 
       if (rpcError) throw rpcError
