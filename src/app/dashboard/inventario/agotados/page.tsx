@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { traerTodo } from '@/lib/supabase/traer-todo'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
@@ -10,13 +11,17 @@ export default async function AgotadosPage() {
   if (!user) redirect('/login')
 
   const [{ data, error }, { data: todosProveedores }] = await Promise.all([
-    supabase
-      .from('productos')
-      .select(`
-        id, nombre, codigo, marca, unidad_medida, prioridad, stock_actual, stock_minimo, stock_bodega, stock_almacen,
-        producto_proveedores(precio_costo, proveedor_id, proveedores(id, nombre))
-      `)
-      .eq('activo', true),
+    traerTodo((filaDesde, filaHasta) =>
+      supabase
+        .from('productos')
+        .select(`
+          id, nombre, codigo, marca, unidad_medida, prioridad, stock_actual, stock_minimo, stock_bodega, stock_almacen,
+          producto_proveedores(precio_costo, proveedor_id, proveedores(id, nombre))
+        `)
+        .eq('activo', true)
+        .order('id')
+        .range(filaDesde, filaHasta)
+    ),
     supabase
       .from('proveedores')
       .select('id, nombre')

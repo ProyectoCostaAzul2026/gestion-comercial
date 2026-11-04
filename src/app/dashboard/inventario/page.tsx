@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { traerTodo } from '@/lib/supabase/traer-todo'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { InventarioTable } from '@/components/modulos/inventario-table'
@@ -9,11 +10,15 @@ export default async function InventarioPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: productos, error } = await supabase
-    .from('productos')
-    .select('id, codigo, nombre, marca, ubicacion, unidad_medida, precio_venta, stock_actual')
-    .eq('activo', true)
-    .order('nombre', { ascending: true })
+  const { data: productos, error } = await traerTodo((filaDesde, filaHasta) =>
+    supabase
+      .from('productos')
+      .select('id, codigo, nombre, marca, ubicacion, unidad_medida, precio_venta, stock_actual')
+      .eq('activo', true)
+      .order('nombre', { ascending: true })
+      .order('id', { ascending: true })
+      .range(filaDesde, filaHasta)
+  )
 
   return (
     <div className="space-y-4">

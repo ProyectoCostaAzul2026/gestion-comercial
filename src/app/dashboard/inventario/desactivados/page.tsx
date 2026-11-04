@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { traerTodo } from '@/lib/supabase/traer-todo'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
@@ -12,20 +13,28 @@ export default async function ProductosDesactivadosPage() {
   const { data: profile } = await supabase.from('profiles').select('rol').eq('id', user.id).single()
   if ((profile as any)?.rol !== 'administrador') redirect('/dashboard')
 
-  const { data: inactivos } = await supabase
-    .from('productos')
-    .select('id, codigo, nombre, unidad_medida, marca, updated_at')
-    .eq('activo', false)
-    .order('updated_at', { ascending: false })
+  const { data: inactivos } = await traerTodo((filaDesde, filaHasta) =>
+    supabase
+      .from('productos')
+      .select('id, codigo, nombre, unidad_medida, marca, updated_at')
+      .eq('activo', false)
+      .order('updated_at', { ascending: false })
+      .order('id', { ascending: true })
+      .range(filaDesde, filaHasta)
+  )
 
   const ids = (inactivos ?? []).map(p => p.id)
 
   const idsConVentas = new Set<string>()
   if (ids.length > 0) {
-    const { data: itemsVendidos } = await supabase
-      .from('venta_items')
-      .select('producto_id')
-      .in('producto_id', ids)
+    const { data: itemsVendidos } = await traerTodo((filaDesde, filaHasta) =>
+      supabase
+        .from('venta_items')
+        .select('producto_id')
+        .in('producto_id', ids)
+        .order('id')
+        .range(filaDesde, filaHasta)
+    )
     for (const row of itemsVendidos ?? []) {
       if (row.producto_id) idsConVentas.add(row.producto_id)
     }

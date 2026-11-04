@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { traerTodo } from '@/lib/supabase/traer-todo'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
@@ -64,13 +65,17 @@ export default async function PerfilEmpleadoPage({
       .eq('empleado_id', id)
       .eq('fecha', hoy)
       .in('estado', ['completada', 'modificada']),
-    supabase
-      .from('ventas')
-      .select('total')
-      .eq('empleado_id', id)
-      .gte('fecha', inicioMes)
-      .lte('fecha', hoy)
-      .in('estado', ['completada', 'modificada']),
+    traerTodo((filaDesde, filaHasta) =>
+      supabase
+        .from('ventas')
+        .select('total')
+        .eq('empleado_id', id)
+        .gte('fecha', inicioMes)
+        .lte('fecha', hoy)
+        .in('estado', ['completada', 'modificada'])
+        .order('id')
+        .range(filaDesde, filaHasta)
+    ),
   ])
 
   const totalVentasHoy = (ventasHoy ?? []).reduce((s, v) => s + Number(v.total), 0)
