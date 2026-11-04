@@ -1,0 +1,2 @@
+# Los scripts de shell se ejecutan en Linux (sesiones de Claude Code en la nube): siempre con finales LF
+*.sh text eol=lf

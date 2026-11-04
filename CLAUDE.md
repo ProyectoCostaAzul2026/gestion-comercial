@@ -3,7 +3,7 @@
 # Contexto del proyecto — Gestión Comercial Ferreléctricos Costa Azul
 
 > Claude Code carga este archivo en cada sesión. Mantenerlo al día cuando cambie algo importante
-> (esquema de la BD, convenciones, estado de los datos). Última revisión: 2026-10-29.
+> (esquema de la BD, convenciones, estado de los datos). Última revisión: 2026-10-31.
 
 ## Qué es
 
@@ -53,6 +53,21 @@ Roles: `administrador` (todo) y `empleado` (ventas, inventario, clientes, horari
 - No romper la lógica existente: proponer las mejoras primero y hacer los cambios grandes en una rama propia.
 - Responder en español.
 
+## Sesiones en la nube (Claude Code en la web)
+
+- El repositorio de GitHub es **público**: no subir secretos (claves, `.env*`), datos de clientes ni cifras o
+  identificadores del negocio (NIT, saldos, números de factura). Esos datos viven solo en la BD.
+- Las sesiones en la nube parten de un clon de GitHub (rama `main` salvo que se elija otra): lo que no esté subido no
+  lo ven. Cada sesión trabaja en su propia rama y abre un PR; nunca hace push a `main`.
+- `.claude/settings.json` tiene un hook `SessionStart` que corre `scripts/install_pkgs.sh`: instala las dependencias
+  con `npm ci` solo en la nube (`CLAUDE_CODE_REMOTE=true`) y se salta la instalación mientras `package.json` y
+  `package-lock.json` no cambien. En local no hace nada.
+- `npm run build` necesita `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` en las variables del entorno
+  de nube (son valores públicos; la clave de servicio nunca va ahí). Si faltan, verificar con `npm run lint` y
+  `npx tsc --noEmit`.
+- La BD solo se toca con el conector de Supabase de claude.ai y con las mismas reglas de arriba (producción: mostrar
+  el SQL y esperar confirmación). Si el conector no está disponible en la sesión, dejar el SQL en la descripción del PR.
+
 ## Estructura del código
 
 - `src/app/dashboard/<módulo>/`: páginas (Server Components que consultan Supabase y pasan datos a
@@ -64,7 +79,7 @@ Roles: `administrador` (todo) y `empleado` (ventas, inventario, clientes, horari
   `temas-ayuda.ts` (textos del panel Instrucciones), `festivos-colombia.ts`.
 - `src/proxy.ts`: exige sesión en `/dashboard`, cierra la sesión si el perfil está inactivo y manda a los
   empleados fuera de las rutas de administrador.
-- `DATABASE.md`: tablas, RPC, índices y políticas RLS (al día al 2026-10-29). Mantenerlo actualizado.
+- `DATABASE.md`: tablas, RPC, índices y políticas RLS (al día al 2026-10-31). Mantenerlo actualizado.
 
 ## Base de datos: piezas clave
 
@@ -115,23 +130,31 @@ Roles: `administrador` (todo) y `empleado` (ventas, inventario, clientes, horari
 - Precio sugerido (`precio-utils.ts`): `costo_neto × (1 + IVA) / (1 − margen)`. Por defecto IVA 19 % y el
   IVA no viene incluido en el costo.
 
-## Estado de los datos (2026-10-29)
+## Estado de los datos (2026-10-31)
 
-- Catálogo cargado desde el Excel del inventario (`Listado.xlsx`, 303 familias): **3064 productos en 303
-  familias**, 3062 activos (2 duplicados de ducha quedaron inactivos). Las familias de la J en adelante se crearon
-  desde el Excel; en las que ya existían (A–I) se respetó lo que se había cargado a mano y solo se corrigieron
-  errores (espacios, ortografía, marcas `AVE`→`Ave`, `Boccherinni`→`Boccherini`, `Uyusa`→`Uyustools`).
-- Las filas del Excel que solo traían el nombre quedaron como característica `Estandar`, `1 Unidad`, marca `Generica`.
-- **Todo es de prueba**: costo estimado por familia (modelo por medida, característica y marca, a precio de mercado
-  colombiano), precio de venta = costo × 1.19 / 0.60 redondeado a la centena (margen 40 %, IVA 19 % no incluido),
-  stock aleatorio (≈5 % agotado y ≈8 % bajo el mínimo para probar alertas) con su movimiento `carga_inicial`,
-  ubicación `Pasillo N, Estante X` y descripción automática. Los precios reales de Logística Ferretera están en su
-  portal de pedidos (ecommerce.logisticaferretera.com.co), que exige usuario.
-- Imágenes: una por familia, de Wikimedia Commons (licencia libre, URL de `thumb.wikimedia.org` /
-  `upload.wikimedia.org`). 127 productos (24 familias) quedaron sin imagen por no haber una adecuada.
-- Todos tienen categoría (las 21 de `categorias_producto`), código SKU de `generarSKU` (con sufijo `-2`, `-3`
-  si se repite) y el proveedor "Logística Ferretera SAS" con el costo.
-- Respaldo previo a la carga en el esquema privado `respaldo` (`*_20261029`).
+- **Catálogo real**, sacado de las facturas de proveedores (38 PDF de CamScanner en
+  `C:\Users\USUARIO\Desktop\Facturas Proveedores`, 240 documentos transcritos): **3115 productos activos en 369
+  familias** y 33 proveedores. Reemplazó al catálogo de prueba del 2026-10-29 (3064 productos), que quedó en
+  `respaldo.*_20261031` y en `Facturas Proveedores\Resultados\Catalogo anterior (respaldo 2026-10-30).xlsx`. Los
+  nombres siguen las convenciones de arriba y se reutilizó el nombre del catálogo anterior cuando la coincidencia era obvia.
+- Costo, referencia del proveedor y stock salen de la **compra más reciente** de cada producto (todo el stock en
+  `stock_almacen`, con su movimiento `carga_inicial`). Los empaques de artículos iguales se pasaron a unidad (161, con
+  nota en `producto_proveedores`); los kits cuentan como una unidad. 87 rollos y productos por peso (cable, manguera,
+  angeo, alambre, cadena, soldadura) se venden por fracción (metro o kg).
+- IVA según el documento: 19 % (2357 productos), 0 % cuando el documento no cobra IVA (743: régimen simplificado, POS,
+  manuscritos) y 5 % (15). Precio de venta = costo × (1 + IVA) / 0.60 redondeado hacia arriba a la centena (margen
+  40 %); 3 productos conservan el precio escrito a mano en la factura. `stock_minimo` y `prioridad` calculados por
+  producto (227 quedan en o bajo el mínimo porque se compraron 1 o 2 unidades).
+- SKU: el de `generarSKU()` más un sufijo de 5 caracteres (md5 de `nombre|marca|unidad_medida`) para que sea único.
+- 20 productos tienen dos proveedores: el de la compra más reciente es el principal y está marcado `es_costo_base_manual`.
+- Imágenes: 2445 productos (215 familias) heredaron la imagen de Wikimedia de la familia del mismo nombre del
+  catálogo anterior; 670 productos (154 familias) no tienen imagen.
+- `facturas_proveedor`: 233 documentos (facturas, remisiones, pedidos, cuentas de cobro y cotizaciones de dos
+  proveedores que fueron compras reales). Los vencidos al 2026-10-31 quedaron como pagados (215) sin filas en
+  `pagos_factura_proveedor` ni movimientos de caja; 17 pendientes y 1 parcial. No se registraron 7 documentos sin
+  fecha o sin total. Tres proveedores tienen nombre provisional (`Proveedor sin nombre - ...`).
+- NIT del negocio corregido en `configuracion_negocio`. Se borraron las 2 ventas de prueba y los saldos de medios de
+  pago están en 0.
 - Ventas, caja y demás tablas operativas están vacías. Hay 6 perfiles: 5 administradores y 1 empleado.
 - El `logo_url` de `configuracion_negocio` apunta a una URL temporal de Facebook que ya expiró (HTTP 403).
 
@@ -151,6 +174,12 @@ Roles: `administrador` (todo) y `empleado` (ventas, inventario, clientes, horari
 - `pg_trgm` sigue en el esquema `public` (moverla puede romper `buscar_productos`).
 - Plan gratuito de Supabase: el proyecto se pausa tras ~7 días sin uso y no hay copias de seguridad diarias.
 - Reemplazar el logo expirado por uno alojado en Supabase Storage.
-- Precios de prueba: reemplazar por los costos reales del proveedor.
+- Catálogo desde facturas: regenerar el Excel de revisión (`Resultados\Catalogo nuevo desde facturas (revision
+  2026-10-31).xlsx`) con los SKU y precios de la BD; buscar imágenes (154 familias sin imagen) y completar datos en las
+  webs de los proveedores; confirmar los nombres de los 3 proveedores provisionales.
+- Borrar las tablas del esquema `respaldo` cuando el catálogo nuevo esté validado.
+- El advisor de seguridad marca `is_admin()` y `rls_auto_enable()` como ejecutables por `anon`.
+- El repositorio de GitHub es público: valorar hacerlo privado. Si se hace, instalar la app de Claude en GitHub
+  (github.com/apps/claude) para que las sesiones en la nube puedan clonarlo.
 - La búsqueda del inventario filtra en el navegador (bien con ~3000 productos; pasar a búsqueda en el servidor si crece).
 - No hay tests ni CI.

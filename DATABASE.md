@@ -1,7 +1,7 @@
 # DATABASE.md — Ferreléctricos Costa Azul
 > Documentación de la base de datos en Supabase (PostgreSQL)
 > Proyecto: `qmeegynucijohagywdcr`
-> Última actualización: 2026-10-29
+> Última actualización: 2026-10-31
 
 ---
 
@@ -353,9 +353,9 @@ Productos enviados a garantía al proveedor (no regresan al inventario hasta con
 | numero_factura | varchar | YES | — | |
 | fecha_emision | date | NO | — | |
 | fecha_vencimiento | date | YES | — | |
-| monto_total | numeric | NO | — | |
-| monto_pagado | numeric | NO | 0 | |
-| saldo_pendiente | numeric | NO | — | |
+| monto_total | numeric(12,2) | NO | — | |
+| monto_pagado | numeric(12,2) | NO | 0 | |
+| saldo_pendiente | numeric(12,2) | NO | — | |
 | estado | varchar | NO | pendiente | pendiente/parcial/pagada |
 | notas | text | YES | — | |
 
@@ -818,11 +818,17 @@ servicios ─────────────────────── 
 1. **Timezone**: Todas las RPCs usan `America/Bogota` para fechas y horas.
 2. **Saldos medios de pago**: `efectivo` y `caja_menor` se normalizan a `efectivo` en `saldos_medios_pago`.
 3. **Stock**: `stock_actual = stock_bodega + stock_almacen` (calculado por trigger automáticamente).
-4. **Precio costo base**: Se actualiza automáticamente con el menor precio de `producto_proveedores`.
+4. **Precio costo base**: Se actualiza automáticamente con el costo del proveedor marcado `es_costo_base_manual` o, si
+   no hay, con el menor precio de `producto_proveedores`.
 5. **Descuentos**: Máximo 10% por ítem y 10% global (configurable en `configuracion_negocio.max_descuento_porcentaje`).
 6. **Ticket número**: Único por fecha, se reinicia cada día.
 7. **Garantías**: Un producto en garantía NO regresa al inventario hasta confirmar `recibir_garantia()`.
 8. **Arqueo**: Solo uno por día (`fecha` UNIQUE). Resetea saldo efectivo a 0 y transfiere sobrante a caja mayor.
-9. **Respaldo**: antes de la carga del catálogo (2026-10-29) se copiaron `productos`, `producto_proveedores`,
-   `producto_familias`, `unidades_medida` y `movimientos_inventario` al esquema privado `respaldo` (tablas `*_20261029`,
-   no expuestas por la API). Se pueden borrar cuando el catálogo nuevo esté validado.
+9. **Respaldo**: el esquema privado `respaldo` (no expuesto por la API) guarda copias tomadas antes de cada carga del
+   catálogo. `*_20261029`: `productos`, `producto_proveedores`, `producto_familias`, `unidades_medida` y
+   `movimientos_inventario`. `*_20261031` (antes de cargar el catálogo desde facturas): `productos`,
+   `producto_proveedores`, `producto_familias`, `movimientos_inventario`, `proveedores`, `ventas`, `venta_items`,
+   `venta_pagos`, `venta_servicios`, `movimientos_caja`, `saldos_medios_pago` y `configuracion_negocio`. Se pueden
+   borrar cuando el catálogo nuevo esté validado.
+10. **Facturas históricas**: las 233 facturas cargadas el 2026-10-31 desde los PDF de proveedores no tienen filas en
+    `pagos_factura_proveedor` ni movimientos de caja; las vencidas se registraron directamente como `pagada`.
