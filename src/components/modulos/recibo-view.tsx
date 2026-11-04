@@ -29,6 +29,8 @@ interface ReciboViewProps {
     id: string; nombre_producto: string; precio_unitario: number; cantidad: number
     descuento_linea: number; subtotal_linea: number
     es_fraccionado: boolean; cantidad_fraccion: number | null
+    /** Cantidad mínima del tramo de precio por cantidad con que se cobró (null: precio normal) */
+    precio_cantidad_desde?: number | null
   }[]
   servicios: { id: string; nombre_servicio: string; precio_aplicado: number }[]
   pagos: { id: string; metodo: string; monto: number }[]
@@ -108,7 +110,7 @@ export function ReciboView({ venta, items, servicios, pagos, config }: ReciboVie
     <div class="s">Atendió: ${venta.empleado?.nombre_completo ?? '—'}</div>
     <hr class="hr"/>
     ${items.map(i => `
-      <div class="item-name b">${i.nombre_producto}</div>
+      <div class="item-name b">${i.nombre_producto}${i.precio_cantidad_desde != null ? ' (precio por cantidad)' : ''}</div>
       <div class="row item-detail">
         <span class="s">${i.es_fraccionado ? `${i.cantidad_fraccion} und.` : `${i.cantidad} × ${fmt(i.precio_unitario)}`}</span>
         <span>${fmt(Number(i.subtotal_linea))}</span>
@@ -168,7 +170,7 @@ export function ReciboView({ venta, items, servicios, pagos, config }: ReciboVie
       <tbody>
         ${items.map(i => `
           <tr>
-            <td>${i.nombre_producto}</td>
+            <td>${i.nombre_producto}${i.precio_cantidad_desde != null ? ' <em>(precio por cantidad)</em>' : ''}</td>
             <td>${i.es_fraccionado ? i.cantidad_fraccion : i.cantidad}</td>
             <td>${fmt(Number(i.precio_unitario))}</td>
             <td class="green">${Number(i.descuento_linea) > 0 ? `-${fmt(Number(i.descuento_linea))}` : '—'}</td>
@@ -308,7 +310,10 @@ export function ReciboView({ venta, items, servicios, pagos, config }: ReciboVie
         <div className="mb-2 space-y-1">
           {items.map(i => (
             <div key={i.id}>
-              <p className="font-medium text-slate-900">{i.nombre_producto}</p>
+              <p className="font-medium text-slate-900">
+                {i.nombre_producto}
+                {i.precio_cantidad_desde != null && <span className="ml-1 text-xs font-normal text-slate-600">(precio por cantidad)</span>}
+              </p>
               <div className="flex justify-between pl-2 text-slate-700">
                 <span>{i.es_fraccionado ? `${i.cantidad_fraccion} und.` : `${i.cantidad} × ${fmt(Number(i.precio_unitario))}`}</span>
                 <span>{fmt(Number(i.subtotal_linea))}</span>

@@ -256,6 +256,40 @@ export const TEMAS_AYUDA: TemaAyuda[] = [
     ],
   },
   {
+    id: 'precios-por-cantidad',
+    categoria: 'Inventario',
+    titulo: 'Precios por cantidad: precio por paquete',
+    soloAdmin: false,
+    secciones: [
+      {
+        subtitulo: 'Cómo funcionan',
+        pasos: [
+          'Desde cierta cantidad de un mismo producto, cada unidad vale menos. Por ejemplo, un tornillo vale $300, pero desde 100 se cobran a $250 cada uno ($25.000 el paquete).',
+          'Desde esa cantidad, todas las unidades se cobran al precio del tramo: 150 tornillos son 150 × $250.',
+          'Un producto puede tener hasta 5 precios por cantidad. Cada uno debe ser más barato que el normal y que el anterior, y nunca bajo el costo.',
+          'No se combina con la venta por fracción.',
+        ],
+      },
+      {
+        subtitulo: 'Definirlos (administrador)',
+        pasos: [
+          'En "Editar producto", activa "Precios por cantidad", toca "Agregar precio por cantidad" y escribe desde cuántas unidades y el precio del paquete. El sistema muestra el precio por unidad y el margen.',
+          'Con "Sugerido con margen" escribes un margen menor que el normal y "Usar" pone el precio que sale del costo.',
+          'Cada cambio queda en "Últimos cambios de precio" del producto.',
+        ],
+      },
+      {
+        subtitulo: 'Al vender',
+        pasos: [
+          'Al llegar a la cantidad, el carrito cambia solo al precio por cantidad y avisa cuánto falta para el siguiente: "Lleve 100 y paga $250 c/u".',
+          'Esa línea no admite descuento. Una venta que tenga precio por cantidad no admite descuento sobre el total ni total editado; a los demás productos sí les puedes poner descuento en su línea.',
+          'También aplica en las ventas a crédito, en las cotizaciones y en lo que se agrega en un cambio (si la venta tenía descuento global, lo agregado va a precio normal).',
+          'Si se devuelve parte de una compra con precio por cantidad, se devuelve el precio que se pagó.',
+        ],
+      },
+    ],
+  },
+  {
     id: 'productos-agotados',
     categoria: 'Inventario',
     titulo: 'Consultar productos agotados',

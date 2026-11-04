@@ -11,11 +11,15 @@ import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Search, Plus, Trash2, Printer, MessageCircle, Package } from 'lucide-react'
+import { precioConCantidad, type TramoPrecio } from '@/lib/precios-cantidad'
+import { AvisoPrecioCantidad } from './precios-cantidad'
 
 interface ProductoSearch {
   id: string; nombre: string; codigo: string | null
   precio_venta: number; stock_almacen: number; tiene_iva: boolean
   iva_incluido: boolean; porcentaje_iva: number
+  /** Precios por cantidad (buscar_productos), de menor a mayor cantidad mínima */
+  precios_cantidad?: TramoPrecio[] | null
 }
 
 interface ServicioSearch { id: string; nombre: string; descripcion: string | null; precio: number }
@@ -25,6 +29,22 @@ interface ItemCotizacion {
   precio_unitario: number; cantidad: number
   descuento_habilitado: boolean; descuento_porcentaje: number
   agotado: boolean
+  /** Precio normal; con precios por cantidad, precio_unitario sigue al tramo que alcance la cantidad */
+  precio_base: number
+  tramos: TramoPrecio[]
+  /** Cantidad mínima del tramo que aplica (null: precio normal). Esa línea no admite descuento */
+  tramo_desde: number | null
+}
+
+// Cambia la cantidad de una línea. Si el producto tiene precios por cantidad, el precio pasa al del tramo que alcance
+// (o al normal), con la misma regla de la venta; si no, se conserva el precio escrito. Con tramo no lleva descuento.
+function conCantidad(item: ItemCotizacion, cantidad: number): ItemCotizacion {
+  if (item.tramos.length === 0) return { ...item, cantidad }
+  const { precio, tramo } = precioConCantidad(item.precio_base, item.tramos, cantidad)
+  return {
+    ...item, cantidad, precio_unitario: precio, tramo_desde: tramo ? tramo.cantidad_minima : null,
+    ...(tramo ? { descuento_habilitado: false, descuento_porcentaje: 0 } : {}),
+  }
 }
 
 interface ServicioCotizacion {
@@ -77,7 +97,7 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
     setResultadosProducto([]); setQueryProducto('')
     const idx = carrito.findIndex(i => i.producto_id === p.id)
     if (idx >= 0) {
-      setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, cantidad: it.cantidad + 1 } : it))
+      setCarrito(prev => prev.map((it, i) => i === idx ? conCantidad(it, it.cantidad + 1) : it))
       return
     }
     setCarrito(prev => [...prev, {
@@ -85,6 +105,7 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
       precio_unitario: p.precio_venta, cantidad: 1,
       descuento_habilitado: false, descuento_porcentaje: 0,
       agotado: p.stock_almacen <= 0,
+      precio_base: p.precio_venta, tramos: p.precios_cantidad ?? [], tramo_desde: null,
     }])
   }
 
@@ -108,10 +129,15 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
 
   const subtotalConItemDesc = subtotalBruto - descuentosPorItem
 
-  const descuentoTotal = descuentoHabilitado && descuentoTotalActivo
+  // Como en la venta: con precios por cantidad no hay descuento sobre el total ni total editado
+  const hayPrecioCantidad = carrito.some(i => i.tramo_desde != null)
+  const descuentoTotalVigente = descuentoTotalActivo && !hayPrecioCantidad
+  const totalManualVigente = editandoTotalManual && !hayPrecioCantidad
+
+  const descuentoTotal = descuentoHabilitado && descuentoTotalVigente
     ? subtotalConItemDesc * descuentoTotalPct / 100 : 0
 
-  const totalAntesRedondeo = editandoTotalManual && totalManual !== ''
+  const totalAntesRedondeo = totalManualVigente && totalManual !== ''
     ? parseFloat(totalManual) || 0
     : subtotalConItemDesc - descuentoTotal
 
@@ -131,8 +157,8 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
     const lineasItems = carrito.map(i => {
       const subtotal = i.precio_unitario * i.cantidad * (1 - (i.descuento_habilitado ? i.descuento_porcentaje / 100 : 0))
       return formato === 'carta'
-        ? `<tr><td>${i.nombre}${i.agotado ? ' <em>(agotado)</em>' : ''}</td><td>${i.cantidad}</td><td>${fmt(i.precio_unitario)}</td><td>${i.descuento_habilitado ? `${i.descuento_porcentaje}%` : '—'}</td><td><strong>${fmt(subtotal)}</strong></td></tr>`
-        : `<div class="item-name b">${i.nombre}${i.agotado ? ' (agotado)' : ''}</div><div class="row item-detail"><span>${i.cantidad} × ${fmt(i.precio_unitario)}${i.descuento_habilitado ? ` (-${i.descuento_porcentaje}%)` : ''}</span><span>${fmt(subtotal)}</span></div>`
+        ? `<tr><td>${i.nombre}${i.agotado ? ' <em>(agotado)</em>' : ''}${i.tramo_desde != null ? ' <em>(precio por cantidad)</em>' : ''}</td><td>${i.cantidad}</td><td>${fmt(i.precio_unitario)}</td><td>${i.descuento_habilitado ? `${i.descuento_porcentaje}%` : '—'}</td><td><strong>${fmt(subtotal)}</strong></td></tr>`
+        : `<div class="item-name b">${i.nombre}${i.agotado ? ' (agotado)' : ''}${i.tramo_desde != null ? ' (precio por cantidad)' : ''}</div><div class="row item-detail"><span>${i.cantidad} × ${fmt(i.precio_unitario)}${i.descuento_habilitado ? ` (-${i.descuento_porcentaje}%)` : ''}</span><span>${fmt(subtotal)}</span></div>`
     }).join('')
 
     const lineasServicios = serviciosCarrito.map(s => {
@@ -254,7 +280,7 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
       `*Productos y servicios:*`,
       ...carrito.map(i => {
         const sub = i.precio_unitario * i.cantidad * (1 - (i.descuento_habilitado ? i.descuento_porcentaje / 100 : 0))
-        return `  • ${i.nombre}${i.agotado ? ' _(agotado)_' : ''} × ${i.cantidad} = ${fmt(sub)}${i.descuento_habilitado ? ` (-${i.descuento_porcentaje}%)` : ''}`
+        return `  • ${i.nombre}${i.agotado ? ' _(agotado)_' : ''}${i.tramo_desde != null ? ' _(precio por cantidad)_' : ''} × ${i.cantidad} = ${fmt(sub)}${i.descuento_habilitado ? ` (-${i.descuento_porcentaje}%)` : ''}`
       }),
       ...serviciosCarrito.map(s => {
         const sub = s.precio_aplicado * (1 - (s.descuento_habilitado ? s.descuento_porcentaje / 100 : 0))
@@ -347,7 +373,7 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
                 <div>
                   <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Cantidad</label>
                   <Input type="number" min={1} value={item.cantidad} className="border-white/10 bg-[#111820] text-white"
-                    onChange={e => setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, cantidad: parseInt(e.target.value) || 1 } : it))} />
+                    onChange={e => setCarrito(prev => prev.map((it, i) => i === idx ? conCantidad(it, parseInt(e.target.value) || 1) : it))} />
                 </div>
                 <div>
                   <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Precio</label>
@@ -361,7 +387,8 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
                   </p>
                 </div>
               </div>
-              {descuentoHabilitado && (
+              <AvisoPrecioCantidad tramos={item.tramos} precioVenta={item.precio_base} cantidad={item.cantidad} />
+              {descuentoHabilitado && item.tramo_desde == null && (
                 <div className="flex items-center gap-2 border-t border-white/8 pt-2">
                   <Switch checked={item.descuento_habilitado}
                     onCheckedChange={v => setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, descuento_habilitado: v, descuento_porcentaje: v ? 5 : 0 } : it))} />
@@ -429,10 +456,17 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
           </div>
           {descuentoHabilitado && (
             <div className="space-y-2">
+              {hayPrecioCantidad && (
+                <p className="rounded-xl bg-brand-blue/10 p-2 text-xs text-steel-300">
+                  Hay productos con precio por cantidad: no admite descuento sobre el total ni total editado. A los demás
+                  productos sí les puedes poner descuento en su línea.
+                </p>
+              )}
               <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#1a2430] p-3">
-                <Switch checked={descuentoTotalActivo} onCheckedChange={v => { setDescuentoTotalActivo(v); if (v) setEditandoTotalManual(false) }} />
+                <Switch checked={descuentoTotalVigente} disabled={hayPrecioCantidad}
+                  onCheckedChange={v => { setDescuentoTotalActivo(v); if (v) setEditandoTotalManual(false) }} />
                 <span className="text-sm text-white">Descuento sobre el total</span>
-                {descuentoTotalActivo && (
+                {descuentoTotalVigente && (
                   <div className="ml-auto flex items-center gap-1">
                     <Input type="number" min={0} max={10} className="h-7 w-16 border-white/10 bg-[#111820] text-xs text-white" value={descuentoTotalPct}
                       onChange={e => setDescuentoTotalPct(validarDesc(parseFloat(e.target.value) || 0))} />
@@ -441,13 +475,13 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
                 )}
               </div>
               <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#1a2430] p-3">
-                <Switch checked={editandoTotalManual} onCheckedChange={v => {
+                <Switch checked={totalManualVigente} disabled={hayPrecioCantidad} onCheckedChange={v => {
                   setEditandoTotalManual(v)
                   if (v) { setDescuentoTotalActivo(false); setTotalManual(String(totalRedondeado)) }
                   else setTotalManual('')
                 }} />
                 <span className="text-sm text-white">Editar total manualmente</span>
-                {editandoTotalManual && (
+                {totalManualVigente && (
                   <div className="ml-auto flex items-center gap-1">
                     <span className="text-xs text-steel-300">$</span>
                     <Input type="number" className="h-7 w-32 border-white/10 bg-[#111820] text-xs text-white" value={totalManual}

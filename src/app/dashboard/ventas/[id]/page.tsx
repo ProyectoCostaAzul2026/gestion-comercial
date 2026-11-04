@@ -58,7 +58,7 @@ export default async function VentaDetallePage({
   ] = await Promise.all([
     supabase
       .from('venta_items')
-      .select('id, nombre_producto, precio_unitario, iva_unitario, cantidad, descuento_linea, subtotal_linea, es_fraccionado, cantidad_fraccion, descuento_porcentaje, producto_id, devolucion_items(cantidad, cantidad_fraccion), productos(producto_proveedores(proveedor_id, es_proveedor_principal, proveedores(id, nombre)))')
+      .select('id, nombre_producto, precio_unitario, iva_unitario, cantidad, descuento_linea, subtotal_linea, es_fraccionado, cantidad_fraccion, descuento_porcentaje, precio_cantidad_desde, producto_id, devolucion_items(cantidad, cantidad_fraccion), productos(producto_proveedores(proveedor_id, es_proveedor_principal, proveedores(id, nombre)))')
       .eq('venta_id', id),
     supabase
       .from('venta_servicios')
@@ -169,6 +169,9 @@ export default async function VentaDetallePage({
                   {item.es_fraccionado
                     ? `${item.cantidad_fraccion} (fraccionado)`
                     : `${item.cantidad} × $${Number(item.precio_unitario).toLocaleString('es-CO')}`}
+                  {item.precio_cantidad_desde != null && (
+                    <span className="ml-2 text-emerald-400">Precio por cantidad (desde {item.precio_cantidad_desde})</span>
+                  )}
                   {Number(item.descuento_linea) > 0 && (
                     <span className="ml-2 text-emerald-400">
                       Desc: -${Number(item.descuento_linea).toLocaleString('es-CO')}
@@ -313,6 +316,7 @@ export default async function VentaDetallePage({
           ventaTotal={Number(venta.total)}
           baseVenta={baseVenta}
           descuentoGlobalPorcentaje={venta.descuento_habilitado ? Number(venta.descuento_total_porcentaje) : 0}
+          conDescuentoGlobal={(venta.descuento_habilitado ? Number(venta.descuento_total_porcentaje ?? 0) : 0) > 0 || venta.descuento_tipo === 'manual'}
           tipoPago={venta.tipo_pago}
           tieneAjustes={(devoluciones ?? []).length > 0}
           tieneServicios={(servicios ?? []).length > 0}

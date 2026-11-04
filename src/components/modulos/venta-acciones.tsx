@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Search, Trash2 } from 'lucide-react'
+import { precioConCantidad, type TramoPrecio } from '@/lib/precios-cantidad'
+import { AvisoPrecioCantidad } from './precios-cantidad'
 import {
   MEDIOS_AJUSTE, MEDIO_AJUSTE_LABEL, calcularCambio, calcularMontoDevolucion, medioPorDefecto,
   repartirAjusteCredito, type MedioAjuste,
@@ -33,6 +35,8 @@ interface VentaItem {
 interface ProductoSearch {
   id: string; nombre: string; codigo: string | null
   precio_venta: number; stock_almacen: number
+  /** Precios por cantidad (buscar_productos), de menor a mayor cantidad mínima */
+  precios_cantidad?: TramoPrecio[] | null
 }
 
 interface ItemDevolucion {
@@ -54,7 +58,9 @@ interface ItemRetirar {
 
 interface ItemAgregar {
   key: string; producto_id: string; nombre: string
+  /** Precio normal; el que se cobra puede ser el de un tramo de precio por cantidad (precioAgregado) */
   precio_venta: number; cantidad: number; stock_almacen: number
+  tramos: TramoPrecio[]
 }
 
 interface GarantiaItem {
@@ -74,6 +80,8 @@ interface VentaAccionesProps {
   baseVenta: number
   /** Descuento global de la venta en porcentaje (0 si no tiene) */
   descuentoGlobalPorcentaje: number
+  /** La venta tiene descuento global (porcentaje o total editado): lo que se agrega va a precio normal */
+  conDescuentoGlobal: boolean
   tipoPago: string
   /** La venta ya tiene devoluciones o cambios: no se puede anular */
   tieneAjustes: boolean
@@ -115,7 +123,7 @@ const itemsRetirarIniciales = (items: VentaItem[]): ItemRetirar[] =>
 const selectMedioCls = 'rounded-lg border border-white/10 bg-[#111820] px-2 py-1 text-xs text-white'
 
 export function VentaAcciones({
-  ventaId, esAdmin, items, ventaTotal, baseVenta, descuentoGlobalPorcentaje, tipoPago, tieneAjustes,
+  ventaId, esAdmin, items, ventaTotal, baseVenta, descuentoGlobalPorcentaje, conDescuentoGlobal, tipoPago, tieneAjustes,
   tieneServicios, credito,
 }: VentaAccionesProps) {
   const router = useRouter()
@@ -260,10 +268,17 @@ export function VentaAcciones({
       if (idx >= 0) {
         const n = [...prev]; n[idx] = { ...n[idx], cantidad: n[idx].cantidad + 1 }; return n
       }
-      return [...prev, { key: `${p.id}-${Date.now()}`, producto_id: p.id, nombre: p.nombre, precio_venta: p.precio_venta, cantidad: 1, stock_almacen: p.stock_almacen }]
+      return [...prev, { key: `${p.id}-${Date.now()}`, producto_id: p.id, nombre: p.nombre, precio_venta: p.precio_venta, cantidad: 1, stock_almacen: p.stock_almacen, tramos: p.precios_cantidad ?? [] }]
     })
     setQueryProducto(''); setResultadosProducto([])
   }
+
+  // Precio de lo que se agrega, como cambiar_productos: el del tramo de precio por cantidad que alcance lo que se agrega
+  // de ese producto, salvo en una venta con descuento global (va a precio normal)
+  const cantidadAgregada = (productoId: string) =>
+    itemsAgregar.filter(i => i.producto_id === productoId).reduce((suma, i) => suma + i.cantidad, 0)
+  const precioAgregado = (item: ItemAgregar): number =>
+    conDescuentoGlobal ? item.precio_venta : precioConCantidad(item.precio_venta, item.tramos, cantidadAgregada(item.producto_id)).precio
 
   // Misma fórmula que cambiar_productos: se cobra (o devuelve) lo que cambia el valor de la venta con sus descuentos
   const seleccionadosCambio = itemsRetirar.filter(i => i.seleccionado)
@@ -274,7 +289,7 @@ export function VentaAcciones({
       precioUnitario: i.precio_unitario, cantidadLinea: i.cantidad_linea, descuentoLinea: i.descuento_linea,
       subtotalLinea: i.subtotal_linea, cantidadRetirada: i.cantidad,
     })),
-    agregados: itemsAgregar.map(i => ({ precioVenta: i.precio_venta, cantidad: i.cantidad })),
+    agregados: itemsAgregar.map(i => ({ precioVenta: precioAgregado(i), cantidad: i.cantidad })),
     descuentoGlobalPorcentaje,
   })
   // En una venta a crédito, la diferencia ajusta primero la deuda (cambiar_productos); cajaCambio es el dinero
@@ -289,7 +304,8 @@ export function VentaAcciones({
       const { data, error } = await supabase.rpc('cambiar_productos', {
         p_venta_id: ventaId,
         p_items_retirar: seleccionadosCambio.map(i => ({ venta_item_id: i.venta_item_id, cantidad: i.cantidad })),
-        p_items_agregar: itemsAgregar.map(i => ({ producto_id: i.producto_id, cantidad: i.cantidad })),
+        // precio_unitario: el de la vista previa; la BD lo compara con el que cobra y avisa si cambió
+        p_items_agregar: itemsAgregar.map(i => ({ producto_id: i.producto_id, cantidad: i.cantidad, precio_unitario: precioAgregado(i) })),
         p_observacion: observacionCambio,
         p_medio_pago: medioCambio,
       })
@@ -636,15 +652,19 @@ export function VentaAcciones({
               {itemsAgregar.length > 0 && (
                 <div className="space-y-1">
                   {itemsAgregar.map((item, idx) => (
-                    <div key={item.key} className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#1a2430] p-2">
-                      <span className="flex-1 text-sm text-white">{item.nombre}</span>
-                      <Input type="number" min={1} max={item.stock_almacen} value={item.cantidad}
-                        onChange={e => setItemsAgregar(prev => prev.map((it, i) => i === idx ? { ...it, cantidad: parseInt(e.target.value) || 1 } : it))}
-                        className="h-7 w-16 border-white/10 bg-[#111820] text-xs text-white" />
-                      <span className="text-xs text-steel-300">${(item.precio_venta * item.cantidad).toLocaleString('es-CO')}</span>
-                      <button type="button" onClick={() => setItemsAgregar(prev => prev.filter((_, i) => i !== idx))} className="text-steel-300 hover:text-brand-red">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                    <div key={item.key} className="space-y-1 rounded-xl border border-white/10 bg-[#1a2430] p-2">
+                      <div className="flex items-center gap-2">
+                        <span className="flex-1 text-sm text-white">{item.nombre}</span>
+                        <Input type="number" min={1} max={item.stock_almacen} value={item.cantidad}
+                          onChange={e => setItemsAgregar(prev => prev.map((it, i) => i === idx ? { ...it, cantidad: parseInt(e.target.value) || 1 } : it))}
+                          className="h-7 w-16 border-white/10 bg-[#111820] text-xs text-white" />
+                        <span className="text-xs text-steel-300">${(precioAgregado(item) * item.cantidad).toLocaleString('es-CO')}</span>
+                        <button type="button" onClick={() => setItemsAgregar(prev => prev.filter((_, i) => i !== idx))} className="text-steel-300 hover:text-brand-red">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <AvisoPrecioCantidad tramos={item.tramos} precioVenta={item.precio_venta} soloNormal={conDescuentoGlobal}
+                        cantidad={cantidadAgregada(item.producto_id)} />
                     </div>
                   ))}
                 </div>
