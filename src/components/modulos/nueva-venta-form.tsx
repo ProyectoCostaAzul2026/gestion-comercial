@@ -3,6 +3,8 @@
 import { useState, useMemo, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { calcularIvaUnitario } from '@/lib/precio-utils'
+import { precioConCantidad, type TramoPrecio } from '@/lib/precios-cantidad'
+import { AvisoPrecioCantidad } from './precios-cantidad'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -47,6 +49,8 @@ interface ProductoSearch {
   imagen_url: string | null
   /** Peso de una unidad en gramos, si el producto se cuenta por peso */
   peso_unitario_g?: number | null
+  /** Precios por cantidad (buscar_productos), de menor a mayor cantidad mínima */
+  precios_cantidad?: TramoPrecio[] | null
 }
 
 interface ServicioSearch {
@@ -77,6 +81,14 @@ interface ItemCarrito {
   imagen_url: string | null
   /** Peso de una unidad en gramos: la venta muestra cuánto pesar (solo en unidades completas) */
   peso_unitario_g: number | null
+  /** Precio normal por unidad; precio_unitario es este o el del tramo de precio por cantidad que aplique */
+  precio_base: number
+  /** IVA del producto en % (0 si no tiene), para el IVA contenido en el precio que se cobre */
+  porcentaje_iva: number
+  /** Precios por cantidad del producto (vacío si no tiene o es una fracción) */
+  tramos: TramoPrecio[]
+  /** Cantidad mínima del tramo que aplica (null: precio normal). Esa línea no admite descuento */
+  tramo_desde: number | null
 }
 
 interface ServicioCarrito {
@@ -131,6 +143,22 @@ function redondear100(valor: number): number {
   const centavos = Math.round(valor * 100) / 100
   if (centavos % 100 === 0) return centavos
   return Math.ceil(centavos / 100) * 100
+}
+
+// Cambia la cantidad de una línea por unidades y le pone su precio: el del tramo de precio por cantidad que alcance o el
+// normal, con el IVA contenido en ese precio. Una línea con precio por cantidad no lleva descuento. Es la misma regla de
+// registrar_venta y registrar_venta_credito (src/lib/precios-cantidad.ts).
+function conCantidad(item: ItemCarrito, cantidad: number): ItemCarrito {
+  if (item.es_fraccionado) return { ...item, cantidad }
+  const { precio, tramo } = precioConCantidad(item.precio_base, item.tramos, cantidad)
+  return {
+    ...item,
+    cantidad,
+    precio_unitario: precio,
+    iva_unitario: item.porcentaje_iva > 0 ? calcularIvaUnitario(precio, item.porcentaje_iva) : 0,
+    tramo_desde: tramo ? tramo.cantidad_minima : null,
+    ...(tramo ? { descuento_habilitado: false, descuento_porcentaje: 0 } : {}),
+  }
 }
 
 // Si cantidad es múltiplo de minimo, tolerando el error de coma flotante (0.3 / 0.1 da 2.9999999999999996)
@@ -220,15 +248,21 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
     subtotalProductosBruto - descuentosPorProducto + subtotalServicios - descuentosPorServicio,
     [subtotalProductosBruto, descuentosPorProducto, subtotalServicios, descuentosPorServicio])
 
+  // Una venta con precio por cantidad no admite descuento global ni total editado (la BD también lo exige): mientras
+  // haya una línea así, esas dos opciones quedan apagadas
+  const hayPrecioCantidad = carrito.some(i => !i.es_fraccionado && i.tramo_desde != null)
+  const descuentoTotalVigente = descuentoTotalActivo && !hayPrecioCantidad
+  const totalManualVigente = editandoTotalManual && !hayPrecioCantidad
+
   const descuentoTotalMonto = useMemo(() => {
-    if (!descuentoHabilitado || !descuentoTotalActivo) return 0
+    if (!descuentoHabilitado || !descuentoTotalVigente) return 0
     return subtotalTotal * descuentoTotalPct / 100
-  }, [descuentoHabilitado, descuentoTotalActivo, subtotalTotal, descuentoTotalPct])
+  }, [descuentoHabilitado, descuentoTotalVigente, subtotalTotal, descuentoTotalPct])
 
   const totalAntesRedondeo = useMemo(() => {
-    if (editandoTotalManual && totalManual !== '') return parseFloat(totalManual) || 0
+    if (totalManualVigente && totalManual !== '') return parseFloat(totalManual) || 0
     return subtotalTotal - descuentoTotalMonto
-  }, [subtotalTotal, descuentoTotalMonto, editandoTotalManual, totalManual])
+  }, [subtotalTotal, descuentoTotalMonto, totalManualVigente, totalManual])
 
   const totalRedondeado = useMemo(() => redondear100(totalAntesRedondeo), [totalAntesRedondeo])
 
@@ -300,7 +334,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
           }
           return
         }
-        setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, cantidad: nuevaCantidad } : it))
+        setCarrito(prev => prev.map((it, i) => i === idx ? conCantidad(it, nuevaCantidad) : it))
         return
       }
 
@@ -325,6 +359,8 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
         medida_venta: null, cantidad_minima_venta: null,
         remanente_fraccion: p.remanente_fraccion, cantidad_total_unidad: p.cantidad_total_unidad,
         imagen_url: p.imagen_url, peso_unitario_g: p.peso_unitario_g ?? null,
+        precio_base: p.precio_venta, porcentaje_iva: p.tiene_iva ? p.porcentaje_iva : 0,
+        tramos: p.precios_cantidad ?? [], tramo_desde: null,
       }])
       return
     }
@@ -344,6 +380,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
       medida_venta: p.medida_venta, cantidad_minima_venta: p.cantidad_minima_venta,
       remanente_fraccion: p.remanente_fraccion, cantidad_total_unidad: p.cantidad_total_unidad,
       imagen_url: p.imagen_url, peso_unitario_g: null,
+      precio_base: p.precio_por_unidad_medida ?? 0, porcentaje_iva: 0, tramos: [], tramo_desde: null,
     }])
   }
 
@@ -358,7 +395,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
       }
       return
     }
-    setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, cantidad: val } : it))
+    setCarrito(prev => prev.map((it, i) => i === idx ? conCantidad(it, val) : it))
   }
 
   const handleTransferirStock = async () => {
@@ -402,6 +439,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
       es_fraccionado: false, cantidad_fraccion: 0,
       medida_venta: null, cantidad_minima_venta: null, remanente_fraccion: 0, cantidad_total_unidad: null,
       imagen_url: null, peso_unitario_g: null,
+      precio_base: data.precio_venta, porcentaje_iva: data.tiene_iva ? data.porcentaje_iva : 0, tramos: [], tramo_desde: null,
     }])
     setMostrarAltaRapida(false)
     setAltaRapida({ nombre: '', precio: 0, margen: 30 })
@@ -458,7 +496,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
         return `La cantidad de "${item.nombre}" debe ser múltiplo de ${item.cantidad_minima_venta} ${item.medida_venta}`
       }
     }
-    if (editandoTotalManual && totalManual !== '') {
+    if (totalManualVigente && totalManual !== '') {
       if (totalRedondeado <= 0) return 'El total debe ser mayor que cero'
       if (totalRedondeado > totalCalculado) {
         return `El total editado no puede ser mayor que el total de la venta ($${totalCalculado.toLocaleString('es-CO')})`
@@ -494,6 +532,8 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
         cantidad_fraccion: item.es_fraccionado ? item.cantidad_fraccion : null,
         descuento_habilitado: item.descuento_habilitado,
         descuento_porcentaje: item.descuento_porcentaje,
+        // El precio que se ve en pantalla: la BD lo compara con el que cobra y avisa si cambió
+        ...(item.es_fraccionado ? {} : { precio_unitario: item.precio_unitario }),
       }))
 
       const serviciosPayload = serviciosCarrito.map(s => ({
@@ -504,8 +544,8 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
 
       let descuentoTipo: string | null = null
       if (descuentoHabilitado) {
-        if (editandoTotalManual && totalManual !== '') descuentoTipo = 'manual'
-        else if (descuentoTotalActivo) descuentoTipo = 'total'
+        if (totalManualVigente && totalManual !== '') descuentoTipo = 'manual'
+        else if (descuentoTotalVigente) descuentoTipo = 'total'
         else descuentoTipo = 'por_producto'
       }
       // Con el total editado a mano, la BD lo usa como total de la venta (y de la deuda, si es a crédito)
@@ -519,7 +559,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
           p_servicios: serviciosPayload.length > 0 ? serviciosPayload : null,
           p_descuento_habilitado: descuentoHabilitado,
           p_descuento_tipo: descuentoTipo || undefined,
-          p_descuento_total_porcentaje: descuentoHabilitado && descuentoTotalActivo ? descuentoTotalPct : 0,
+          p_descuento_total_porcentaje: descuentoHabilitado && descuentoTotalVigente ? descuentoTotalPct : 0,
           p_fecha_pago_programada: fechaPagoCredito || undefined,
           p_observaciones: observaciones || undefined,
           p_factura_electronica: facturaElectronica,
@@ -555,7 +595,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
         p_pagos: pagosPayload,
         p_descuento_habilitado: descuentoHabilitado,
         p_descuento_tipo: descuentoTipo || undefined,
-        p_descuento_total_porcentaje: descuentoHabilitado && descuentoTotalActivo ? descuentoTotalPct : 0,
+        p_descuento_total_porcentaje: descuentoHabilitado && descuentoTotalVigente ? descuentoTotalPct : 0,
         p_factura_electronica: facturaElectronica,
         p_observaciones: observaciones || undefined,
         p_servicios: serviciosPayload.length > 0 ? serviciosPayload : null,
@@ -735,6 +775,14 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                         </div>
                         <div className="ml-3 shrink-0 text-right">
                           <div className="text-xs font-medium text-white">${p.precio_venta.toLocaleString('es-CO')}</div>
+                          {(() => {
+                            const primero = (p.precios_cantidad ?? []).find(t => t.precio_unitario < p.precio_venta)
+                            return primero ? (
+                              <div className="text-[10px] text-emerald-400">
+                                Desde {primero.cantidad_minima}: ${primero.precio_unitario.toLocaleString('es-CO')} c/u
+                              </div>
+                            ) : null
+                          })()}
                           <div className={`text-xs ${p.stock_almacen <= 0 ? 'text-brand-red' : 'text-steel-300'}`}>
                             Almacén: {p.stock_almacen}
                             {p.stock_almacen <= 0 && p.stock_bodega > 0 && ` · Bodega: ${p.stock_bodega}`}
@@ -861,14 +909,14 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                           onFocus={e => e.target.select()}
                           onChange={e => {
                             const raw = e.target.value
-                            if (raw === '') { setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, cantidad: 0 } : it)); return }
+                            if (raw === '') { setCarrito(prev => prev.map((it, i) => i === idx ? conCantidad(it, 0) : it)); return }
                             const val = parseInt(raw)
                             if (isNaN(val) || val < 1) return
                             cambiarCantidad(idx, item, val)
                           }}
                           onBlur={e => {
                             if (!e.target.value || parseInt(e.target.value) < 1) {
-                              setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, cantidad: 1 } : it))
+                              setCarrito(prev => prev.map((it, i) => i === idx ? conCantidad(it, 1) : it))
                             }
                           }}
                         />
@@ -886,12 +934,16 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                     </div>
                   )}
 
+                  {!item.es_fraccionado && (
+                    <AvisoPrecioCantidad tramos={item.tramos} precioVenta={item.precio_base} cantidad={item.cantidad} />
+                  )}
+
                   {!item.es_fraccionado && item.peso_unitario_g != null && item.peso_unitario_g > 0 && (
                     <AyudaPesoVenta id={`peso-${item.key}`} pesoUnitario={item.peso_unitario_g} cantidad={item.cantidad}
                       onCantidad={n => cambiarCantidad(idx, item, n)} />
                   )}
 
-                  {descuentoHabilitado && !item.es_fraccionado && (
+                  {descuentoHabilitado && !item.es_fraccionado && item.tramo_desde == null && (
                     <div className="flex items-center gap-2 border-t border-white/8 pt-2">
                       <Switch checked={item.descuento_habilitado} onCheckedChange={v => setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, descuento_habilitado: v, descuento_porcentaje: v ? 5 : 0 } : it))} />
                       <span className="text-xs text-steel-300">Descuento</span>
@@ -1024,10 +1076,17 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
 
           {descuentoHabilitado && (
             <div className="space-y-2">
+              {hayPrecioCantidad && (
+                <p className="rounded-xl bg-brand-blue/10 p-2 text-xs text-steel-300">
+                  Esta venta tiene productos con precio por cantidad: no admite descuento sobre el total ni total editado. A los
+                  demás productos sí les puedes poner descuento en su línea.
+                </p>
+              )}
               <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#1a2430] p-3">
-                <Switch checked={descuentoTotalActivo} onCheckedChange={v => { setDescuentoTotalActivo(v); if (v) setEditandoTotalManual(false) }} />
+                <Switch checked={descuentoTotalVigente} disabled={hayPrecioCantidad}
+                  onCheckedChange={v => { setDescuentoTotalActivo(v); if (v) setEditandoTotalManual(false) }} />
                 <span className="text-sm text-white">Descuento sobre el total</span>
-                {descuentoTotalActivo && (
+                {descuentoTotalVigente && (
                   <div className="ml-auto flex items-center gap-1">
                     <Input type="number" min={0} max={10} className="h-8 w-16 border-white/10 bg-[#111820] text-xs text-white" value={descuentoTotalPct || ''}
                       onChange={e => setDescuentoTotalPct(validarDescuento(parseFloat(e.target.value) || 0))} />
@@ -1036,13 +1095,13 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                 )}
               </div>
               <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#1a2430] p-3">
-                <Switch checked={editandoTotalManual} onCheckedChange={v => {
+                <Switch checked={totalManualVigente} disabled={hayPrecioCantidad} onCheckedChange={v => {
                   setEditandoTotalManual(v)
                   if (v) { setDescuentoTotalActivo(false); setTotalManual(String(totalRedondeado)) }
                   else setTotalManual('')
                 }} />
                 <span className="text-sm text-white">Editar total manualmente</span>
-                {editandoTotalManual && (
+                {totalManualVigente && (
                   <div className="ml-auto flex items-center gap-1">
                     <span className="text-xs text-steel-300">$</span>
                     <Input type="number" className="h-8 w-32 border-white/10 bg-[#111820] text-xs text-white" value={totalManual}

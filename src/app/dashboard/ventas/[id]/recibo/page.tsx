@@ -37,7 +37,7 @@ export default async function ReciboPage({
   const [{ data: items }, { data: servicios }, { data: pagos }] = await Promise.all([
     supabase
       .from('venta_items')
-      .select('id, nombre_producto, precio_unitario, cantidad, descuento_linea, subtotal_linea, es_fraccionado, cantidad_fraccion')
+      .select('id, nombre_producto, precio_unitario, cantidad, descuento_linea, subtotal_linea, es_fraccionado, cantidad_fraccion, precio_cantidad_desde')
       .eq('venta_id', id),
     supabase
       .from('venta_servicios')

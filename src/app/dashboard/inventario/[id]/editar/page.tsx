@@ -38,10 +38,11 @@ producto_proveedores ( id, proveedor_id, precio_costo, referencia_proveedor, not
 
   if (error || !producto) notFound()
 
-  const [{ data: categorias }, { data: proveedores }, { data: unidades }] = await Promise.all([
+  const [{ data: categorias }, { data: proveedores }, { data: unidades }, { data: tramos }] = await Promise.all([
     supabase.from('categorias_producto').select('id, nombre').order('nombre'),
     supabase.from('proveedores').select('id, nombre').eq('activo', true).order('nombre'),
     supabase.from('unidades_medida').select('nombre').eq('activo', true).order('orden'),
+    supabase.from('precios_cantidad').select('cantidad_minima, precio_unitario').eq('producto_id', id).order('cantidad_minima'),
   ])
 
   return (
@@ -72,6 +73,7 @@ producto_proveedores ( id, proveedor_id, precio_costo, referencia_proveedor, not
           rol={(profile?.rol as 'empleado' | 'administrador') ?? 'empleado'}
           rutaVolver={rutaVolver}
           forzarActivacion={forzarActivacion}
+          preciosCantidad={(tramos ?? []).map(t => ({ cantidad_minima: t.cantidad_minima, precio_unitario: Number(t.precio_unitario) }))}
         />
       </div>
     </div>

@@ -3,8 +3,10 @@
 import { useState, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { calcularPrecioVentaSugerido, calcularMargenCalculado } from '@/lib/precio-utils'
-import { redondearPrecio } from '@/lib/escala-precios'
+import { margenResultante, redondearPrecio } from '@/lib/escala-precios'
+import { erroresTramos, ordenarTramos, type TramoPrecio } from '@/lib/precios-cantidad'
 import { CalculadoraPesoUnitario, ContarPorPeso } from './peso-por-unidad'
+import { EditorTramos, ListaPreciosCantidad } from './precios-cantidad'
 import { esAdmin, type Rol } from '@/lib/permissions'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -130,6 +132,8 @@ interface ProductoFormProps {
   margenDefault?: number
   rutaVolver?: string
   forzarActivacion?: boolean
+  /** Precios por cantidad que ya tiene el producto (solo un administrador los cambia) */
+  preciosCantidad?: TramoPrecio[]
 }
 
 export function parseUnidadMedida(value: string | null): { medida: string; unidad: string } {
@@ -240,11 +244,15 @@ export function generarSKU(nombre: string, categoria: string, marca: string, med
   return `${pNombre}-${pCat}-${pMarca}-${pMedida}${pUnidad}`
 }
 
-export function ProductoForm({ categorias, proveedores, unidades, empleadoId, rol, producto, onSuccess, isSheet, margenDefault = 40, rutaVolver = '/dashboard/inventario', forzarActivacion = false }: ProductoFormProps) {
+export function ProductoForm({ categorias, proveedores, unidades, empleadoId, rol, producto, onSuccess, isSheet, margenDefault = 40, rutaVolver = '/dashboard/inventario', forzarActivacion = false, preciosCantidad = [] }: ProductoFormProps) {
   const esEdicion = !!producto
   // Solo un administrador cambia precios de venta de un producto existente (la base de datos también lo exige);
   // al crear un producto, quien lo crea pone su precio
   const puedeCambiarPrecio = !esEdicion || esAdmin(rol)
+  // Los precios por cantidad solo los define un administrador (guardar_precios_cantidad también lo exige)
+  const puedeEditarTramos = esAdmin(rol)
+  const [usaCantidad, setUsaCantidad] = useState(preciosCantidad.length > 0)
+  const [tramos, setTramos] = useState<TramoPrecio[]>(preciosCantidad)
   const supabase = createClient()
   const router = useRouter()
   const [precioSugerido, setPrecioSugerido] = useState<number | null>(null)
@@ -393,6 +401,20 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
     toast.success('Stock movido (recuerda guardar los cambios)')
   }
 
+  // Datos para validar los precios por cantidad, con las mismas reglas que la base: el costo es el del proveedor marcado
+  // como costo base o, si no hay, el menor (como el trigger de precio_costo_base)
+  const costoManual = form.proveedores.find(p => p.esCostoBaseManual)
+  const costoBaseTramos = costoManual
+    ? costoManual.precio_costo
+    : form.proveedores.length > 0 ? Math.min(...form.proveedores.map(p => p.precio_costo)) : 0
+  const datosTramos = {
+    precioVenta: form.precio_venta, costo: costoBaseTramos, tieneIva: form.tiene_iva, ivaIncluido: form.iva_incluido,
+    porcentajeIva: form.porcentaje_iva, ventaPorFraccion: form.vender_por_fraccion,
+  }
+  const margenNormal = margenResultante(
+    { costo: costoBaseTramos, tieneIva: form.tiene_iva, ivaIncluido: form.iva_incluido, porcentajeIva: form.porcentaje_iva },
+    form.precio_venta) ?? margenDefault
+
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {}
     if (!form.nombre.trim()) newErrors.nombre = 'El nombre es obligatorio'
@@ -401,13 +423,31 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
       newErrors.medida = 'Escribe una sola medida, sin ";" (ej: 50, 3/4, 1-1/4, 2.5, 3/8x2)'
     }
     if (form.usa_peso && !(form.peso_unitario_g > 0)) newErrors.peso_unitario_g = 'Escribe el peso de una unidad, o desactiva el peso por unidad'
+    if (puedeEditarTramos && usaCantidad) {
+      const erroresCantidad = erroresTramos(tramos, datosTramos)
+      if (tramos.length === 0) newErrors.tramos = 'Agrega al menos un precio por cantidad, o desactiva los precios por cantidad'
+      else if (erroresCantidad.length > 0) newErrors.tramos = `Precios por cantidad: ${erroresCantidad[0]}`
+    }
     if (form.proveedores.length === 0) newErrors.proveedores = 'Debes agregar al menos un proveedor'
     form.proveedores.forEach((p, i) => {
       if (!p.proveedor_id) newErrors[`proveedor_${i}`] = 'Selecciona un proveedor'
       if (p.precio_costo <= 0) newErrors[`precio_${i}`] = 'El precio debe ser mayor a 0'
     })
     setErrors(newErrors)
+    if (newErrors.tramos) toast.error(newErrors.tramos)
     return Object.keys(newErrors).length === 0
+  }
+
+  // Guarda los precios por cantidad (después del producto, porque se validan contra su precio y costo ya guardados).
+  // Devuelve el error, si lo hubo; no hace nada si no cambiaron o quien guarda no es administrador.
+  const guardarPreciosCantidad = async (productoId: string): Promise<string | null> => {
+    const nuevos = usaCantidad ? ordenarTramos(tramos) : []
+    if (!puedeEditarTramos || JSON.stringify(nuevos) === JSON.stringify(ordenarTramos(preciosCantidad))) return null
+    const { error } = await supabase.rpc('guardar_precios_cantidad', {
+      p_productos: [{ producto_id: productoId, tramos: nuevos.map(t => ({ cantidad_minima: t.cantidad_minima, precio_unitario: t.precio_unitario })) }],
+      p_origen: 'producto',
+    })
+    return error ? error.message : null
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -481,12 +521,20 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
         })
         if (rpcError) throw rpcError
 
+        const errorTramos = await guardarPreciosCantidad(producto.id)
+        if (errorTramos) {
+          // El producto ya quedó guardado: se queda en el formulario para corregir los precios por cantidad
+          toast.error('El producto se guardó, pero los precios por cantidad no: ' + errorTramos)
+          router.refresh()
+          return
+        }
+
         toast.success('Producto actualizado')
         router.refresh()
         router.push(rutaVolver)
         onSuccess?.()
       } else {
-        const { error: rpcError } = await supabase.rpc('guardar_producto', {
+        const { data: nuevoId, error: rpcError } = await supabase.rpc('guardar_producto', {
           p_datos: datosProducto,
           p_activar: true,
           p_proveedores: proveedoresPayload,
@@ -494,6 +542,10 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
         })
         if (rpcError) throw rpcError
 
+        const errorTramos = nuevoId ? await guardarPreciosCantidad(nuevoId) : null
+        if (errorTramos) {
+          toast.error(`El producto se creó, pero los precios por cantidad no: ${errorTramos}. Edítalo para agregarlos.`)
+        }
         toast.success('Producto creado')
         router.refresh()
         if (!isSheet) router.push('/dashboard/inventario')
@@ -924,8 +976,9 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
             <Switch
               id="vender_por_fraccion"
               checked={form.vender_por_fraccion}
-              // Activarla exige poner un precio por fracción, que solo cambia un administrador; apagarla sí se puede
-              disabled={!puedeCambiarPrecio && !form.vender_por_fraccion}
+              // Activarla exige poner un precio por fracción, que solo cambia un administrador; apagarla sí se puede.
+              // Tampoco se activa si el producto tiene precios por cantidad (no se combinan).
+              disabled={!form.vender_por_fraccion && (!puedeCambiarPrecio || usaCantidad)}
               onCheckedChange={(v) => handleChange('vender_por_fraccion', v)}
             />
             <Label htmlFor="vender_por_fraccion" className={`text-sm font-semibold ${form.vender_por_fraccion ? 'text-brand-yellow' : 'text-steel-300'}`}>
@@ -995,7 +1048,61 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
             Al habilitar venta por fracción, este producto solo se podrá vender en fracciones. El precio de venta principal se ignora en las ventas; se usa el precio por unidad de medida.
           </p>
         )}
+        {usaCantidad && !form.vender_por_fraccion && (
+          <p className="text-xs text-steel-500">No se combina con los precios por cantidad: para venderlo por fracción, desactívalos primero.</p>
+        )}
       </div>
+
+      {(puedeEditarTramos || preciosCantidad.length > 0) && (
+        <div className="space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h3 className="font-display font-bold text-white">Precios por cantidad</h3>
+              <p className="text-xs text-steel-500">Desde cierta cantidad, cada unidad vale menos: un precio por paquete. Hasta 5.</p>
+            </div>
+            {puedeEditarTramos && (
+              <div className="flex shrink-0 items-center gap-2">
+                <Switch
+                  id="usa_cantidad"
+                  checked={usaCantidad}
+                  disabled={!usaCantidad && form.vender_por_fraccion}
+                  onCheckedChange={(v) => setUsaCantidad(v)}
+                />
+                <Label htmlFor="usa_cantidad" className={`text-sm font-semibold ${usaCantidad ? 'text-brand-yellow' : 'text-steel-300'}`}>
+                  {usaCantidad ? 'Habilitado' : 'Deshabilitado'}
+                </Label>
+              </div>
+            )}
+          </div>
+
+          {puedeEditarTramos ? (
+            <>
+              {!usaCantidad && form.vender_por_fraccion && (
+                <p className="text-xs text-steel-500">No se combina con la venta por fracción.</p>
+              )}
+              {usaCantidad && (
+                <EditorTramos id="tramos" inicial={tramos} datos={datosTramos} margenNormal={margenNormal}
+                  onChange={t => {
+                    setTramos(t)
+                    // El aviso del último intento de guardar deja de valer: el editor muestra los errores al día
+                    setErrors(prev => {
+                      if (!prev.tramos) return prev
+                      const resto = { ...prev }
+                      delete resto.tramos
+                      return resto
+                    })
+                  }} />
+              )}
+            </>
+          ) : (
+            <>
+              <ListaPreciosCantidad tramos={preciosCantidad} precioVenta={form.precio_venta} />
+              <p className="text-xs text-steel-500">Solo un administrador cambia los precios por cantidad.</p>
+            </>
+          )}
+          {errors.tramos && <p className="text-xs text-brand-red">{errors.tramos}</p>}
+        </div>
+      )}
 
       <div className="space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-4">
         <div className="flex items-center justify-between gap-3">

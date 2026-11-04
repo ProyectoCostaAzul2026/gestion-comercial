@@ -766,6 +766,7 @@ export type Database = {
       historial_precios: {
         Row: {
           campo: string
+          cantidad_minima: number | null
           created_at: string
           id: string
           origen: string
@@ -776,6 +777,7 @@ export type Database = {
         }
         Insert: {
           campo: string
+          cantidad_minima?: number | null
           created_at?: string
           id?: string
           origen?: string
@@ -786,6 +788,7 @@ export type Database = {
         }
         Update: {
           campo?: string
+          cantidad_minima?: number | null
           created_at?: string
           id?: string
           origen?: string
@@ -1138,6 +1141,38 @@ export type Database = {
             columns: ["factura_id"]
             isOneToOne: false
             referencedRelation: "facturas_proveedor"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      precios_cantidad: {
+        Row: {
+          cantidad_minima: number
+          created_at: string
+          id: string
+          precio_unitario: number
+          producto_id: string
+        }
+        Insert: {
+          cantidad_minima: number
+          created_at?: string
+          id?: string
+          precio_unitario: number
+          producto_id: string
+        }
+        Update: {
+          cantidad_minima?: number
+          created_at?: string
+          id?: string
+          precio_unitario?: number
+          producto_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "precios_cantidad_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
             referencedColumns: ["id"]
           },
         ]
@@ -1540,6 +1575,7 @@ export type Database = {
           id: string
           iva_unitario: number
           nombre_producto: string
+          precio_cantidad_desde: number | null
           precio_unitario: number
           producto_id: string
           subtotal_linea: number
@@ -1556,6 +1592,7 @@ export type Database = {
           id?: string
           iva_unitario?: number
           nombre_producto: string
+          precio_cantidad_desde?: number | null
           precio_unitario: number
           producto_id: string
           subtotal_linea: number
@@ -1572,6 +1609,7 @@ export type Database = {
           id?: string
           iva_unitario?: number
           nombre_producto?: string
+          precio_cantidad_desde?: number | null
           precio_unitario?: number
           producto_id?: string
           subtotal_linea?: number
@@ -1884,6 +1922,7 @@ export type Database = {
           porcentaje_iva: number
           precio_por_unidad_medida: number
           precio_venta: number
+          precios_cantidad: Json
           remanente_fraccion: number
           similitud: number
           stock_almacen: number
@@ -1949,6 +1988,10 @@ export type Database = {
         Returns: string
       }
       guardar_pesos_unitarios: { Args: { p_pesos: Json }; Returns: number }
+      guardar_precios_cantidad: {
+        Args: { p_origen?: string; p_productos: Json }
+        Returns: number
+      }
       guardar_producto: {
         Args: {
           p_activar?: boolean
