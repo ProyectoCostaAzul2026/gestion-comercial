@@ -3,6 +3,7 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { FamiliaMedidasPanel, type Miembro } from '@/components/modulos/familia-medidas-panel'
+import { esAdmin } from '@/lib/permissions'
 
 export default async function FamiliaMedidasPage({
   params,
@@ -18,9 +19,10 @@ export default async function FamiliaMedidasPage({
     .from('unidades_medida').select('nombre').eq('activo', true).order('orden')
   const unidades = (unidadesData ?? []).map(u => u.nombre)
 
-  const [{ data: categoriasData }, { data: proveedoresData }] = await Promise.all([
+  const [{ data: categoriasData }, { data: proveedoresData }, { data: perfil }] = await Promise.all([
     supabase.from('categorias_producto').select('id, nombre').order('nombre'),
     supabase.from('proveedores').select('id, nombre').eq('activo', true).order('nombre'),
+    supabase.from('profiles').select('rol').eq('id', user.id).single(),
   ])
 
   const { data: producto, error } = await supabase
@@ -112,6 +114,7 @@ export default async function FamiliaMedidasPage({
           unidades={unidades}
           categorias={categoriasData ?? []}
           proveedoresDisponibles={proveedoresData ?? []}
+          esAdmin={esAdmin(perfil?.rol)}
           producto={{
             id: producto.id,
             nombre: producto.nombre,

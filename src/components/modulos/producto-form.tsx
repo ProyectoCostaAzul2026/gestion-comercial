@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { calcularPrecioVentaSugerido, calcularMargenCalculado } from '@/lib/precio-utils'
+import { redondearPrecio } from '@/lib/escala-precios'
 import { esAdmin, type Rol } from '@/lib/permissions'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -231,6 +232,9 @@ export function generarSKU(nombre: string, categoria: string, marca: string, med
 
 export function ProductoForm({ categorias, proveedores, unidades, empleadoId, rol, producto, onSuccess, isSheet, margenDefault = 40, rutaVolver = '/dashboard/inventario', forzarActivacion = false }: ProductoFormProps) {
   const esEdicion = !!producto
+  // Solo un administrador cambia precios de venta de un producto existente (la base de datos también lo exige);
+  // al crear un producto, quien lo crea pone su precio
+  const puedeCambiarPrecio = !esEdicion || esAdmin(rol)
   const supabase = createClient()
   const router = useRouter()
   const [precioSugerido, setPrecioSugerido] = useState<number | null>(null)
@@ -305,13 +309,14 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
     if (form.proveedores.length === 0 || !form.margen_deseado) return
     const menorPrecio = Math.min(...form.proveedores.map((p) => p.precio_costo || Infinity))
     if (menorPrecio === Infinity || menorPrecio <= 0) return
-    const sugerido = calcularPrecioVentaSugerido(
+    // Redondeado como en la escala de precios: a $50 bajo $1.000 y a $100 desde $1.000
+    const sugerido = redondearPrecio(calcularPrecioVentaSugerido(
       menorPrecio,
       form.margen_deseado,
       form.tiene_iva,
       form.iva_incluido,
       form.porcentaje_iva
-    )
+    ))
     setPrecioSugerido(sugerido)
     handleChange('precio_venta', sugerido)
   }, [form])
@@ -755,6 +760,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
               type="number"
               step="0.1"
               className={INPUT_CLS}
+              disabled={!puedeCambiarPrecio}
               value={form.margen_deseado || ''}
               onChange={(e) => handleChange('margen_deseado', parseFloat(e.target.value) || 0)}
             />
@@ -766,17 +772,25 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
               type="number"
               step="0.01"
               className={INPUT_CLS}
+              disabled={!puedeCambiarPrecio}
               value={form.precio_venta || ''}
               onChange={(e) => handleChange('precio_venta', parseFloat(e.target.value) || 0)}
             />
             {errors.precio_venta && <p className="text-xs text-brand-red">{errors.precio_venta}</p>}
           </div>
         </div>
-        <Button type="button" variant="outline" onClick={handleCalcularPrecio} className="w-full border-white/10 bg-[#1a2430] text-white hover:bg-white/5 hover:text-white md:w-auto">
-          Calcular precio sugerido
-        </Button>
+        {puedeCambiarPrecio ? (
+          <Button type="button" variant="outline" onClick={handleCalcularPrecio} className="w-full border-white/10 bg-[#1a2430] text-white hover:bg-white/5 hover:text-white md:w-auto">
+            Calcular precio sugerido
+          </Button>
+        ) : (
+          <p className="text-xs text-steel-300">Solo un administrador puede cambiar el precio de venta.</p>
+        )}
         {precioSugerido !== null && (
-          <p className="text-xs text-steel-300">Precio sugerido: <span className="font-display font-bold text-brand-yellow">${precioSugerido.toLocaleString('es-CO')}</span></p>
+          <p className="text-xs text-steel-300">
+            Precio sugerido: <span className="font-display font-bold text-brand-yellow">${precioSugerido.toLocaleString('es-CO')}</span>
+            <span className="text-steel-500"> (redondeado a $50 bajo $1.000 y a $100 desde $1.000)</span>
+          </p>
         )}
       </div>
 
@@ -890,6 +904,8 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
             <Switch
               id="vender_por_fraccion"
               checked={form.vender_por_fraccion}
+              // Activarla exige poner un precio por fracción, que solo cambia un administrador; apagarla sí se puede
+              disabled={!puedeCambiarPrecio && !form.vender_por_fraccion}
               onCheckedChange={(v) => handleChange('vender_por_fraccion', v)}
             />
             <Label htmlFor="vender_por_fraccion" className={`text-sm font-semibold ${form.vender_por_fraccion ? 'text-brand-yellow' : 'text-steel-300'}`}>
@@ -943,6 +959,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
                 type="number"
                 step="0.01"
                 className={INPUT_CLS}
+                disabled={!puedeCambiarPrecio}
                 value={form.precio_por_unidad_medida || ''}
                 onFocus={e => e.target.select()}
                 onChange={(e) => handleChange('precio_por_unidad_medida', parseFloat(e.target.value) || 0)}

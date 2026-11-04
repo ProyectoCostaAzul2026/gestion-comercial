@@ -760,6 +760,54 @@ export type Database = {
           },
         ]
       }
+      historial_precios: {
+        Row: {
+          campo: string
+          created_at: string
+          id: string
+          origen: string
+          precio_anterior: number | null
+          precio_nuevo: number | null
+          producto_id: string
+          usuario_id: string | null
+        }
+        Insert: {
+          campo: string
+          created_at?: string
+          id?: string
+          origen?: string
+          precio_anterior?: number | null
+          precio_nuevo?: number | null
+          producto_id: string
+          usuario_id?: string | null
+        }
+        Update: {
+          campo?: string
+          created_at?: string
+          id?: string
+          origen?: string
+          precio_anterior?: number | null
+          precio_nuevo?: number | null
+          producto_id?: string
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historial_precios_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historial_precios_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       horario_laboral: {
         Row: {
           activo: boolean
@@ -1178,6 +1226,7 @@ export type Database = {
           margen_calculado: number | null
           medida_venta: string | null
           nombre: string
+          orden_medida: number | null
           porcentaje_iva: number
           precio_costo_base: number | null
           precio_por_unidad_medida: number | null
@@ -1211,6 +1260,7 @@ export type Database = {
           margen_calculado?: number | null
           medida_venta?: string | null
           nombre: string
+          orden_medida?: number | null
           porcentaje_iva?: number
           precio_costo_base?: number | null
           precio_por_unidad_medida?: number | null
@@ -1244,6 +1294,7 @@ export type Database = {
           margen_calculado?: number | null
           medida_venta?: string | null
           nombre?: string
+          orden_medida?: number | null
           porcentaje_iva?: number
           precio_costo_base?: number | null
           precio_por_unidad_medida?: number | null
@@ -1797,6 +1848,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      aplicar_escala_precios: { Args: { p_precios: Json }; Returns: number }
       buscar_clientes: {
         Args: { p_query: string }
         Returns: {
@@ -1903,6 +1955,10 @@ export type Database = {
       is_admin: { Args: never; Returns: boolean }
       mover_stock_bodega_almacen: {
         Args: { p_cantidad: number; p_producto_id: string }
+        Returns: undefined
+      }
+      ordenar_medidas: {
+        Args: { p_producto_ids: string[]; p_restablecer?: boolean }
         Returns: undefined
       }
       recibir_garantia: {

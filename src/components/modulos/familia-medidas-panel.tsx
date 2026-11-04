@@ -91,9 +91,18 @@ interface FamiliaMedidasPanelProps {
   unidades: string[]
   categorias: { id: string; nombre: string }[]
   proveedoresDisponibles: { id: string; nombre: string }[]
+  /** Solo un administrador puede poner el precio por fracción en "Editar Datos" */
+  esAdmin: boolean
 }
 
 const MARCA_GENERICA = 'Generica'
+
+// Etiquetas de los selectores "No cambiar / Activar / Desactivar" (Base UI las necesita para mostrar la opción elegida)
+const OPCIONES_CAMBIO = [
+  { value: 'sin_cambio', label: 'No cambiar' },
+  { value: 'si', label: 'Activar' },
+  { value: 'no', label: 'Desactivar' },
+]
 
 function construirArbolDesdeMiembros(miembros: Miembro[]): CaracteristicaFila[] {
   const porCaracteristica = new Map<string, Miembro[]>()
@@ -142,7 +151,7 @@ function construirArbolDesdeMiembros(miembros: Miembro[]): CaracteristicaFila[] 
   return resultado
 }
 
-export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, producto, miembrosIniciales, unidades, categorias, proveedoresDisponibles }: FamiliaMedidasPanelProps) {
+export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, producto, miembrosIniciales, unidades, categorias, proveedoresDisponibles, esAdmin }: FamiliaMedidasPanelProps) {
   const supabase = createClient()
   const router = useRouter()
 
@@ -216,7 +225,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
         if (datosCompartidos.medida_venta.trim()) payload.medida_venta = datosCompartidos.medida_venta.trim()
         if (datosCompartidos.cantidad_total_unidad) payload.cantidad_total_unidad = Number(datosCompartidos.cantidad_total_unidad)
         if (datosCompartidos.cantidad_minima_venta) payload.cantidad_minima_venta = Number(datosCompartidos.cantidad_minima_venta)
-        if (datosCompartidos.precio_por_unidad_medida) payload.precio_por_unidad_medida = Number(datosCompartidos.precio_por_unidad_medida)
+        if (esAdmin && datosCompartidos.precio_por_unidad_medida) payload.precio_por_unidad_medida = Number(datosCompartidos.precio_por_unidad_medida)
       }
     }
 
@@ -665,7 +674,8 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
           <div className="space-y-4 border-t border-white/10 pt-4">
             <div className="space-y-1">
               <Label className={LABEL_CLS}>Categoría</Label>
-              <Select value={datosCompartidos.categoria_id} onValueChange={v => v && setDatosCompartidos(prev => ({ ...prev, categoria_id: v }))}>
+              <Select value={datosCompartidos.categoria_id} onValueChange={v => v && setDatosCompartidos(prev => ({ ...prev, categoria_id: v }))}
+                items={categorias.map(c => ({ value: c.id, label: c.nombre }))}>
                 <SelectTrigger className="w-full border-white/10 bg-[#1a2430] text-white">
                   <SelectValue placeholder="Sin cambiar" />
                 </SelectTrigger>
@@ -689,7 +699,8 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
 
             <div className="space-y-1">
               <Label className={LABEL_CLS}>IVA incluido en el costo</Label>
-              <Select value={datosCompartidos.ivaIncluido} onValueChange={v => v && setDatosCompartidos(prev => ({ ...prev, ivaIncluido: v as any }))}>
+              <Select value={datosCompartidos.ivaIncluido} onValueChange={v => v && setDatosCompartidos(prev => ({ ...prev, ivaIncluido: v as any }))}
+                items={OPCIONES_CAMBIO}>
                 <SelectTrigger className="w-full border-white/10 bg-[#1a2430] text-white">
                   <SelectValue />
                 </SelectTrigger>
@@ -703,7 +714,8 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
 
             <div className="space-y-1">
               <Label className={LABEL_CLS}>Vender por fracción</Label>
-              <Select value={datosCompartidos.venderPorFraccion} onValueChange={v => v && setDatosCompartidos(prev => ({ ...prev, venderPorFraccion: v as any }))}>
+              <Select value={datosCompartidos.venderPorFraccion} onValueChange={v => v && setDatosCompartidos(prev => ({ ...prev, venderPorFraccion: v as any }))}
+                items={OPCIONES_CAMBIO}>
                 <SelectTrigger className="w-full border-white/10 bg-[#1a2430] text-white">
                   <SelectValue />
                 </SelectTrigger>
@@ -729,10 +741,14 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
                   <Label className={LABEL_CLS}>Cantidad mínima de venta</Label>
                   <Input type="number" value={datosCompartidos.cantidad_minima_venta} onChange={e => setDatosCompartidos(prev => ({ ...prev, cantidad_minima_venta: e.target.value }))} className={INPUT_CLS} />
                 </div>
-                <div className="col-span-2 space-y-1">
-                  <Label className={LABEL_CLS}>Precio por unidad de medida</Label>
-                  <Input type="number" value={datosCompartidos.precio_por_unidad_medida} onChange={e => setDatosCompartidos(prev => ({ ...prev, precio_por_unidad_medida: e.target.value }))} className={INPUT_CLS} />
-                </div>
+                {esAdmin ? (
+                  <div className="col-span-2 space-y-1">
+                    <Label className={LABEL_CLS}>Precio por unidad de medida</Label>
+                    <Input type="number" value={datosCompartidos.precio_por_unidad_medida} onChange={e => setDatosCompartidos(prev => ({ ...prev, precio_por_unidad_medida: e.target.value }))} className={INPUT_CLS} />
+                  </div>
+                ) : (
+                  <p className="col-span-2 text-[11px] text-steel-500">El precio por unidad de medida lo pone un administrador.</p>
+                )}
               </div>
             )}
 
@@ -741,7 +757,8 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
               {proveedoresAAsignar.map(p => (
                 <div key={p.key} className="flex items-end gap-2 rounded-lg border border-white/10 bg-[#1a2430] p-2">
                   <div className="flex-1 space-y-1">
-                    <Select value={p.proveedor_id} onValueChange={v => v && actualizarProveedorAAsignar(p.key, 'proveedor_id', v)}>
+                    <Select value={p.proveedor_id} onValueChange={v => v && actualizarProveedorAAsignar(p.key, 'proveedor_id', v)}
+                      items={proveedoresDisponibles.map(pr => ({ value: pr.id, label: pr.nombre }))}>
                       <SelectTrigger className="w-full border-white/10 bg-[#111820] text-white">
                         <SelectValue placeholder="Selecciona proveedor…" />
                       </SelectTrigger>

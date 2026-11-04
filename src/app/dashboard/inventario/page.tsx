@@ -13,7 +13,7 @@ export default async function InventarioPage() {
   const { data: productos, error } = await traerTodo((filaDesde, filaHasta) =>
     supabase
       .from('productos')
-      .select('id, codigo, nombre, marca, ubicacion, unidad_medida, precio_venta, stock_actual')
+      .select('id, codigo, nombre, marca, ubicacion, unidad_medida, precio_venta, stock_actual, familia_id, caracteristica, orden_medida')
       .eq('activo', true)
       .order('nombre', { ascending: true })
       .order('id', { ascending: true })
