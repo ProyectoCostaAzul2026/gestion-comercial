@@ -493,6 +493,7 @@ export type Database = {
       }
       devoluciones: {
         Row: {
+          ajuste_credito: number
           created_at: string
           id: string
           monto_cobrado: number
@@ -503,6 +504,7 @@ export type Database = {
           venta_id: string
         }
         Insert: {
+          ajuste_credito?: number
           created_at?: string
           id?: string
           monto_cobrado?: number
@@ -513,6 +515,7 @@ export type Database = {
           venta_id: string
         }
         Update: {
+          ajuste_credito?: number
           created_at?: string
           id?: string
           monto_cobrado?: number
