@@ -214,6 +214,39 @@ export const TEMAS_AYUDA: TemaAyuda[] = [
     ],
   },
   {
+    id: 'peso-por-unidad',
+    categoria: 'Inventario',
+    titulo: 'Peso por unidad: vender y contar pesando',
+    soloAdmin: false,
+    secciones: [
+      {
+        subtitulo: 'Activarlo en un producto',
+        pasos: [
+          'Sirve para productos pequeños que se venden por unidad pero es más fácil pesarlos que contarlos (tornillos, puntillas, arandelas). El precio sigue siendo por unidad.',
+          'En "Editar producto", activa "Peso por unidad" y escribe cuánto pesa una unidad, en gramos.',
+          'Para que sea preciso, usa "Pesa varias unidades": pesa por ejemplo 50 juntas, escribe cuántas son y cuánto pesaron, y toca "Usar este peso".',
+          'En un grupo de medidas, "Pesos por unidad" permite escribir el peso de todas las medidas en una sola pantalla.',
+        ],
+      },
+      {
+        subtitulo: 'Al vender',
+        pasos: [
+          'En el carrito, debajo de la cantidad aparece cuánto pesar y entre qué pesos la báscula marca exactamente esa cantidad.',
+          'También puedes pesar primero: escribe lo que marca la báscula y toca "Son N" para poner esa cantidad.',
+          'Pon la báscula en cero con la bolsa o el recipiente antes de pesar.',
+        ],
+      },
+      {
+        subtitulo: 'Contar el inventario por peso',
+        pasos: [
+          'En "Editar producto", debajo del stock de bodega y del de almacén, toca "Contar por peso".',
+          'Escribe el peso total y, si lo pesaste dentro de un recipiente, el peso del recipiente. El sistema calcula las unidades y muestra la diferencia con el stock actual.',
+          'Toca "Usar como stock" y guarda el producto para que quede el nuevo stock.',
+        ],
+      },
+    ],
+  },
+  {
     id: 'productos-agotados',
     categoria: 'Inventario',
     titulo: 'Consultar productos agotados',

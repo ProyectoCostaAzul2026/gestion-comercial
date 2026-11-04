@@ -1230,6 +1230,7 @@ export type Database = {
           medida_venta: string | null
           nombre: string
           orden_medida: number | null
+          peso_unitario_g: number | null
           porcentaje_iva: number
           precio_costo_base: number | null
           precio_por_unidad_medida: number | null
@@ -1264,6 +1265,7 @@ export type Database = {
           medida_venta?: string | null
           nombre: string
           orden_medida?: number | null
+          peso_unitario_g?: number | null
           porcentaje_iva?: number
           precio_costo_base?: number | null
           precio_por_unidad_medida?: number | null
@@ -1298,6 +1300,7 @@ export type Database = {
           medida_venta?: string | null
           nombre?: string
           orden_medida?: number | null
+          peso_unitario_g?: number | null
           porcentaje_iva?: number
           precio_costo_base?: number | null
           precio_por_unidad_medida?: number | null
@@ -1877,6 +1880,7 @@ export type Database = {
           marca: string
           medida_venta: string
           nombre: string
+          peso_unitario_g: number
           porcentaje_iva: number
           precio_por_unidad_medida: number
           precio_venta: number
@@ -1944,6 +1948,7 @@ export type Database = {
         }
         Returns: string
       }
+      guardar_pesos_unitarios: { Args: { p_pesos: Json }; Returns: number }
       guardar_producto: {
         Args: {
           p_activar?: boolean

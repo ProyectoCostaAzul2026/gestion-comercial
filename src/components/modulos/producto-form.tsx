@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { calcularPrecioVentaSugerido, calcularMargenCalculado } from '@/lib/precio-utils'
 import { redondearPrecio } from '@/lib/escala-precios'
+import { CalculadoraPesoUnitario, ContarPorPeso } from './peso-por-unidad'
 import { esAdmin, type Rol } from '@/lib/permissions'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -63,6 +64,10 @@ interface ProductoFormState {
   cantidad_total_unidad: number
   cantidad_minima_venta: number
   precio_por_unidad_medida: number
+  /** El producto se cuenta por peso (check "Peso por unidad") */
+  usa_peso: boolean
+  /** Peso de una unidad en gramos (solo cuenta si usa_peso) */
+  peso_unitario_g: number
   proveedores: ProveedorForm[]
 }
 
@@ -102,6 +107,7 @@ export interface ProductoExistente {
   cantidad_total_unidad: number | null
   cantidad_minima_venta: number | null
   precio_por_unidad_medida: number | null
+  peso_unitario_g: number | null
   proveedores: {
     id: string
     proveedor_id: string
@@ -164,6 +170,8 @@ function estadoInicial(producto: ProductoExistente | undefined, margenDefault = 
       cantidad_total_unidad: 0,
       cantidad_minima_venta: 0,
       precio_por_unidad_medida: 0,
+      usa_peso: false,
+      peso_unitario_g: 0,
       proveedores: [{ proveedor_id: proveedorPorDefecto, precio_costo: 0, referencia_proveedor: '', notas: '', esCostoBaseManual: false }],
     }
   }
@@ -198,6 +206,8 @@ function estadoInicial(producto: ProductoExistente | undefined, margenDefault = 
     cantidad_total_unidad: producto.cantidad_total_unidad ?? 0,
     cantidad_minima_venta: producto.cantidad_minima_venta ?? 0,
     precio_por_unidad_medida: producto.precio_por_unidad_medida ?? 0,
+    usa_peso: producto.peso_unitario_g != null,
+    peso_unitario_g: producto.peso_unitario_g ?? 0,
     proveedores: producto.proveedores.length > 0
       ? producto.proveedores.map((p) => ({
           id: p.id,
@@ -390,6 +400,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
     if (form.medida.trim() && !MEDIDA_REGEX.test(form.medida.trim())) {
       newErrors.medida = 'Escribe una sola medida, sin ";" (ej: 50, 3/4, 1-1/4, 2.5, 3/8x2)'
     }
+    if (form.usa_peso && !(form.peso_unitario_g > 0)) newErrors.peso_unitario_g = 'Escribe el peso de una unidad, o desactiva el peso por unidad'
     if (form.proveedores.length === 0) newErrors.proveedores = 'Debes agregar al menos un proveedor'
     form.proveedores.forEach((p, i) => {
       if (!p.proveedor_id) newErrors[`proveedor_${i}`] = 'Selecciona un proveedor'
@@ -439,6 +450,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
         cantidad_total_unidad: form.vender_por_fraccion ? form.cantidad_total_unidad : null,
         cantidad_minima_venta: form.vender_por_fraccion ? form.cantidad_minima_venta : null,
         precio_por_unidad_medida: form.vender_por_fraccion ? form.precio_por_unidad_medida : null,
+        peso_unitario_g: form.usa_peso && form.peso_unitario_g > 0 ? form.peso_unitario_g : null,
       }
 
       // Proveedores tal como quedan en el formulario: los que ya tienen id se actualizan y los demás se crean.
@@ -807,6 +819,10 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
               onFocus={e => e.target.select()}
               onChange={(e) => handleChange('stock_bodega', parseInt(e.target.value) || 0)}
             />
+            {form.usa_peso && form.peso_unitario_g > 0 && (
+              <ContarPorPeso id="contar-bodega" pesoUnitario={form.peso_unitario_g} stockActual={form.stock_bodega}
+                lugar="bodega" onUsar={(n) => handleChange('stock_bodega', n)} />
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="stock_almacen" className={LABEL_CLS}>Stock Almacén</Label>
@@ -818,6 +834,10 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
               onFocus={e => e.target.select()}
               onChange={(e) => handleChange('stock_almacen', parseInt(e.target.value) || 0)}
             />
+            {form.usa_peso && form.peso_unitario_g > 0 && (
+              <ContarPorPeso id="contar-almacen" pesoUnitario={form.peso_unitario_g} stockActual={form.stock_almacen}
+                lugar="almacén" onUsar={(n) => handleChange('stock_almacen', n)} />
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="stock_minimo" className={LABEL_CLS}>Stock mínimo *</Label>
@@ -974,6 +994,47 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
             <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             Al habilitar venta por fracción, este producto solo se podrá vender en fracciones. El precio de venta principal se ignora en las ventas; se usa el precio por unidad de medida.
           </p>
+        )}
+      </div>
+
+      <div className="space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h3 className="font-display font-bold text-white">Peso por unidad</h3>
+            <p className="text-xs text-steel-500">Para contar pesando: en la venta muestra cuánto pesar y en el stock permite contar por peso.</p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Switch
+              id="usa_peso"
+              checked={form.usa_peso}
+              onCheckedChange={(v) => handleChange('usa_peso', v)}
+            />
+            <Label htmlFor="usa_peso" className={`text-sm font-semibold ${form.usa_peso ? 'text-brand-yellow' : 'text-steel-300'}`}>
+              {form.usa_peso ? 'Habilitado' : 'Deshabilitado'}
+            </Label>
+          </div>
+        </div>
+
+        {form.usa_peso && (
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="peso_unitario_g" className={LABEL_CLS}>Peso de una unidad (g)</Label>
+              <Input
+                id="peso_unitario_g"
+                type="number"
+                inputMode="decimal"
+                step="0.001"
+                min={0}
+                className={INPUT_CLS}
+                value={form.peso_unitario_g || ''}
+                onFocus={e => e.target.select()}
+                onChange={(e) => handleChange('peso_unitario_g', parseFloat(e.target.value) || 0)}
+                placeholder="Ej: 2.35"
+              />
+              {errors.peso_unitario_g && <p className="text-xs text-brand-red">{errors.peso_unitario_g}</p>}
+            </div>
+            <CalculadoraPesoUnitario onUsar={(peso) => handleChange('peso_unitario_g', peso)} />
+          </div>
         )}
       </div>
 
