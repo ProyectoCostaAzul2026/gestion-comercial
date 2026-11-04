@@ -77,10 +77,11 @@ Roles: `administrador` (todo) y `empleado` (ventas, inventario, clientes, horari
 - `src/components/modulos/`: formularios y paneles cliente; aquí vive la lógica de negocio del front.
 - `src/lib/`: `permissions.ts` (permisos por rol y `RUTAS_SOLO_ADMIN`), `precio-utils.ts` (margen e IVA),
   `escala-precios.ts` (motor de precios por medida: orden de medidas, redondeo, sugeridos, costos estimados y alertas),
-  `peso.ts` (cuentas del peso por unidad), `temas-ayuda.ts` (textos del panel Instrucciones), `festivos-colombia.ts`.
+  `peso.ts` (cuentas del peso por unidad), `precios-cantidad.ts` (precios por cantidad: tramo que aplica, validación y
+  sugeridos), `temas-ayuda.ts` (textos del panel Instrucciones), `festivos-colombia.ts`.
 - `src/proxy.ts`: exige sesión en `/dashboard`, cierra la sesión si el perfil está inactivo y manda a los
   empleados fuera de las rutas de administrador.
-- `DATABASE.md`: tablas, RPC, índices y políticas RLS (al día al 2026-10-31). Mantenerlo actualizado.
+- `DATABASE.md`: tablas, RPC, índices y políticas RLS (al día al 2026-11-04). Mantenerlo actualizado.
 
 ## Base de datos: piezas clave
 
@@ -152,6 +153,13 @@ Roles: `administrador` (todo) y `empleado` (ventas, inventario, clientes, horari
   bodega y almacén: peso total menos el recipiente, dividido por el peso de una unidad) y por medida en el grupo
   (`guardar_pesos_unitarios`). Las cuentas están en `src/lib/peso.ts` y los componentes en `peso-por-unidad.tsx`.
   `guardar_producto` solo cambia el peso si la petición trae la clave `peso_unitario_g` (null lo quita).
+- **Precios por cantidad** (`precios_cantidad`, hasta 5 por producto): desde N unidades del mismo producto, cada unidad
+  vale menos. Solo un administrador los define, en Editar producto (escribe el precio del paquete y la app muestra el
+  unitario), y se guardan con `guardar_precios_cantidad`. Los aplican `registrar_venta`, `registrar_venta_credito` y
+  `cambiar_productos` (lo agregado, salvo en una venta con descuento global); esa línea no admite descuento y la venta no
+  admite descuento global ni total editado. No aplica a productos por fracción. La lógica del front está en
+  `src/lib/precios-cantidad.ts` y replica la de las RPC (si cambias una, cambia la otra); los componentes, en
+  `precios-cantidad.tsx`. Reglas completas en `DATABASE.md` (Notas importantes).
 - Para guardar un producto se exige al menos un proveedor con costo > 0 y un precio de venta > 0.
 - Precio sugerido (`precio-utils.ts`): `costo_neto × (1 + IVA) / (1 − margen)`. Por defecto IVA 19 % y el
   IVA no viene incluido en el costo.

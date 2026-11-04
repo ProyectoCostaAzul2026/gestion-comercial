@@ -145,19 +145,38 @@ Agrupa las variantes de un mismo producto (Característica + Medida + Marca).
 ---
 
 ### `historial_precios`
-Cada cambio de precio de venta de un producto: antes, después, quién y cuándo. Lo llena el trigger
-`trg_historial_precios`; solo lo leen los administradores (RLS) y nadie lo escribe directamente.
+Cada cambio de precio de venta de un producto: antes, después, quién y cuándo. Lo llenan el trigger
+`trg_historial_precios` (precio de venta y por unidad de medida) y `guardar_precios_cantidad` (precios por cantidad);
+solo lo leen los administradores (RLS) y nadie lo escribe directamente.
 
 | Columna | Tipo | Nullable | Default |
 |---|---|---|---|
 | id | uuid | NO | gen_random_uuid() |
 | producto_id | uuid | NO | — | FK → productos (on delete cascade) |
-| campo | varchar | NO | — | `precio_venta` o `precio_por_unidad_medida` |
-| precio_anterior | numeric | YES | — | |
-| precio_nuevo | numeric | YES | — | |
-| origen | varchar | NO | producto | `producto` (formulario o SQL) o `escala` (escala de precios del grupo) |
+| campo | varchar | NO | — | `precio_venta`, `precio_por_unidad_medida` o `precio_cantidad` |
+| precio_anterior | numeric | YES | — | En `precio_cantidad`, null si el tramo es nuevo |
+| precio_nuevo | numeric | YES | — | En `precio_cantidad`, null si el tramo se quitó |
+| origen | varchar | NO | producto | `producto` (formulario o SQL), `escala` (escala de precios del grupo) o `grupo` (precios por cantidad guardados desde un grupo; la app aún no lo usa) |
 | usuario_id | uuid | YES | — | FK → profiles (on delete set null); null si el cambio se hizo por SQL |
 | created_at | timestamptz | NO | now() | |
+| cantidad_minima | int4 | YES | — | Solo en `precio_cantidad`: la cantidad mínima del tramo que cambió |
+
+---
+
+### `precios_cantidad`
+Precios por cantidad de un producto: desde `cantidad_minima` unidades, cada unidad vale `precio_unitario` (ej. desde 100
+tornillos, $250 c/u). Hasta 5 por producto. La leen todos los usuarios con sesión y solo la escribe
+`guardar_precios_cantidad` (administrador). Reglas en Notas importantes (Precios por cantidad).
+
+| Columna | Tipo | Nullable | Default |
+|---|---|---|---|
+| id | uuid | NO | gen_random_uuid() |
+| producto_id | uuid | NO | — | FK → productos (on delete cascade) |
+| cantidad_minima | int4 | NO | — | Desde cuántas unidades aplica. CHECK ≥ 2 |
+| precio_unitario | numeric(12,2) | NO | — | Precio de cada unidad desde esa cantidad. CHECK > 0 |
+| created_at | timestamptz | NO | now() | |
+
+UNIQUE (`producto_id`, `cantidad_minima`): `precios_cantidad_producto_cantidad_key`.
 
 ---
 
@@ -241,6 +260,7 @@ Relación muchos-a-muchos entre productos y proveedores.
 | descuento_habilitado | boolean | NO | false | |
 | descuento_porcentaje | numeric | NO | 0 | |
 | costo_unitario | numeric | YES | — | Snapshot del costo al momento de venta |
+| precio_cantidad_desde | int4 | YES | — | Si la línea se cobró con precio por cantidad, la cantidad mínima del tramo aplicado; null = precio normal |
 
 ---
 
@@ -684,6 +704,7 @@ productos ─────────────────────── 
 productos ─────────────────────── devolucion_items (producto_id)
 productos ─────────────────────── garantias (producto_id)
 productos ─────────────────────── historial_precios (producto_id)
+productos ─────────────────────── precios_cantidad (producto_id)
 
 ventas ────────────────────────── venta_items (venta_id)
 ventas ────────────────────────── venta_pagos (venta_id)
@@ -713,16 +734,17 @@ servicios ─────────────────────── 
 ### Ventas
 | Función | Descripción |
 |---|---|
-| `registrar_venta(p_cliente_id, p_tipo_pago, p_items, p_pagos, p_descuento_habilitado, p_descuento_tipo, p_descuento_total_porcentaje, p_factura_electronica, p_observaciones, p_servicios, p_total_manual?)` | Registra venta completa, descuenta stock, actualiza saldos. `p_total_manual`: total editado a mano (ver Descuentos en Notas importantes) |
-| `registrar_venta_credito(p_cliente_id, p_items, p_servicios?, p_descuento_habilitado?, p_descuento_tipo?, p_descuento_total_porcentaje?, p_fecha_pago_programada?, p_observaciones?, p_factura_electronica?, p_total_manual?)` | Registra venta a crédito; la deuda (`ventas_credito.saldo_pendiente`) es el total de la venta. Valida descuentos y fracciones igual que `registrar_venta` |
+| `registrar_venta(p_cliente_id, p_tipo_pago, p_items, p_pagos, p_descuento_habilitado, p_descuento_tipo, p_descuento_total_porcentaje, p_factura_electronica, p_observaciones, p_servicios, p_total_manual?)` | Registra venta completa, descuenta stock, actualiza saldos. `p_total_manual`: total editado a mano (ver Descuentos en Notas importantes). Aplica los precios por cantidad; cada ítem puede traer `precio_unitario` (el que mostró la pantalla) y, si no coincide con el que calcula la base, rechaza la venta (ver Precios por cantidad en Notas importantes) |
+| `registrar_venta_credito(p_cliente_id, p_items, p_servicios?, p_descuento_habilitado?, p_descuento_tipo?, p_descuento_total_porcentaje?, p_fecha_pago_programada?, p_observaciones?, p_factura_electronica?, p_total_manual?)` | Registra venta a crédito; la deuda (`ventas_credito.saldo_pendiente`) es el total de la venta. Valida descuentos, fracciones y precios por cantidad igual que `registrar_venta` |
 | `registrar_abono_credito(p_venta_credito_id, p_monto, p_fuentes, p_observaciones)` | Abona a crédito, actualiza saldo. Rechaza créditos `pagado` o `anulado` |
 | `actualizar_fecha_pago_credito(...)` | Cambia fecha programada de pago |
 | `anular_venta(p_venta_id, p_motivo, p_medio_devolucion?)` | Solo administrador. Anula una venta sin devoluciones ni cambios: reintegra el stock y revierte cada pago por su medio (o todo el total por `p_medio_devolucion`). A crédito: cancela la deuda y devuelve lo abonado (ver abajo) |
 | `devolver_productos(p_venta_id, p_items_devolucion, p_observacion, p_medio_devolucion?)` | Solo administrador. Devolución parcial o total: reintegra stock y devuelve la parte pagada por el medio elegido (a crédito, baja primero la deuda). `p_items_devolucion`: `[{ venta_item_id, cantidad }]` o, en fraccionados, `[{ venta_item_id, cantidad_fraccion }]` |
-| `cambiar_productos(p_venta_id, p_items_retirar, p_items_agregar, p_observacion, p_medio_pago?)` | Solo administrador. Cambia unidades de líneas por unidades (no fraccionadas) por productos nuevos y cobra o devuelve la diferencia (a crédito, primero en la deuda). Devuelve `{ devolucion_id, diferencia, cobrar_al_cliente, devolver_al_cliente, ajuste_credito, saldo_credito, total_nuevo, medio }`: `cobrar_al_cliente` y `devolver_al_cliente` son dinero por el medio; `ajuste_credito`, lo que cambió la deuda; `saldo_credito`, la deuda que queda (null si no es a crédito) |
+| `cambiar_productos(p_venta_id, p_items_retirar, p_items_agregar, p_observacion, p_medio_pago?)` | Solo administrador. Cambia unidades de líneas por unidades (no fraccionadas) por productos nuevos y cobra o devuelve la diferencia (a crédito, primero en la deuda). Devuelve `{ devolucion_id, diferencia, cobrar_al_cliente, devolver_al_cliente, ajuste_credito, saldo_credito, total_nuevo, medio }`: `cobrar_al_cliente` y `devolver_al_cliente` son dinero por el medio; `ajuste_credito`, lo que cambió la deuda; `saldo_credito`, la deuda que queda (null si no es a crédito). Lo agregado toma el precio por cantidad, salvo en una venta con descuento global |
 
 > **IVA informativo:** `registrar_venta`, `registrar_venta_credito` y `cambiar_productos` guardan en
-> `venta_items.iva_unitario` el IVA contenido en el precio de venta, `precio_venta − precio_venta / (1 + porcentaje_iva / 100)`
+> `venta_items.iva_unitario` el IVA contenido en el precio cobrado (el de venta o, si aplica, el precio por cantidad),
+> `precio − precio / (1 + porcentaje_iva / 100)`
 > ($11.900 al 19 % → $1.900), sin importar `iva_incluido`. `ventas.total_iva` suma `iva_unitario × cantidad` de los ítems no
 > fraccionados (`cambiar_productos` lo recalcula). Se calcula sobre el precio antes de descuentos, no cuenta ventas
 > fraccionadas ni servicios y nunca se suma al total. El formulario de venta usa la misma fórmula (`calcularIvaUnitario`).
@@ -736,7 +758,8 @@ servicios ─────────────────────── 
 >   puede devolver más de lo que queda (se descuenta lo ya devuelto en `devolucion_items`). La venta queda `anulada` (tipo
 >   `total`) solo cuando no queda nada por devolver y no tiene servicios; si no, `modificada` (o sigue `credito`).
 > - **Cambio:** retirar parte de una línea la reduce (el descuento de línea se reparte por unidad); solo se borra si sale
->   completa. Los productos nuevos entran a precio de venta, sin descuento de línea, y guardan `costo_unitario`. El valor
+>   completa. Los productos nuevos entran a precio de venta (o al precio por cantidad si lo agregado de un producto
+>   alcanza un tramo y la venta no tiene descuento global), sin descuento de línea, y guardan `costo_unitario`. El valor
 >   calculado de la venta es líneas + servicios − descuento global, redondeado a la centena; se cobra o devuelve lo que
 >   cambia ese valor y `total` se ajusta en esa cantidad, así que un total editado a mano conserva su descuento.
 > - **Anulación:** se rechaza si la venta ya tiene devoluciones o cambios (devolvería otra vez lo ya devuelto); en ese
@@ -763,7 +786,7 @@ servicios ─────────────────────── 
 ### Inventario
 | Función | Descripción |
 |---|---|
-| `buscar_productos(p_query)` | Búsqueda fuzzy con pg_trgm (Ventas, Cotización y Cambios). Devuelve hasta 10 productos activos con sus datos de venta, `peso_unitario_g` y `similitud`. `SECURITY DEFINER` |
+| `buscar_productos(p_query)` | Búsqueda fuzzy con pg_trgm (Ventas, Cotización y Cambios). Devuelve hasta 10 productos activos con sus datos de venta, `peso_unitario_g`, `precios_cantidad` (jsonb `[{ cantidad_minima, precio_unitario }]`, de menor a mayor cantidad) y `similitud`. `SECURITY DEFINER` |
 | `mover_stock_bodega_almacen(p_producto_id, p_cantidad, p_direccion)` | Traslado entre bodega y almacén |
 | `calcular_rotacion_productos(...)` | KPIs de rotación por período |
 | `guardar_producto(p_datos, p_proveedores, p_producto_id?, p_activar?, p_proveedores_eliminados?, p_empleado_id?)` | Crea o edita un producto con sus proveedores (y el movimiento de stock inicial al crear) en una sola transacción. `SECURITY INVOKER`: aplica RLS del usuario. Guarda `peso_unitario_g` si `p_datos` trae la clave; al editar sin ella, conserva el que había |
@@ -771,6 +794,7 @@ servicios ─────────────────────── 
 | `aplicar_escala_precios(p_precios)` | Solo administrador. Guarda los precios de la escala de un grupo de medidas en una sola transacción: `p_precios` = `[{ producto_id, precio_venta }]`. Recalcula `margen_calculado` con `precio_costo_base` (igual que `calcularMargenCalculado`) y deja los cambios en `historial_precios` con origen `escala`. Devuelve cuántos productos actualizó |
 | `ordenar_medidas(p_producto_ids, p_restablecer?)` | Guarda el orden manual de las medidas de un grupo (`orden_medida` = posición en el arreglo) o lo quita con `p_restablecer`. `SECURITY INVOKER` |
 | `guardar_pesos_unitarios(p_pesos)` | Guarda el peso por unidad de varias medidas (panel del grupo) en una sola transacción: `p_pesos` = `[{ producto_id, peso_unitario_g }]`, null lo quita. Si un peso no es mayor que 0 o un producto no existe (o el usuario no lo ve por RLS, como un empleado con un inactivo), no guarda ninguno. `SECURITY INVOKER`. Devuelve cuántos productos actualizó |
+| `guardar_precios_cantidad(p_productos, p_origen?)` | Solo administrador. Reemplaza los precios por cantidad de uno o varios productos en una sola transacción: `p_productos` = `[{ producto_id, tramos: [{ cantidad_minima, precio_unitario }] }]` (una lista vacía los quita). Valida las reglas de Notas importantes (Precios por cantidad); si un producto no cumple, no guarda ninguno. Deja cada cambio en `historial_precios` (campo `precio_cantidad`, origen `p_origen`: `producto` por defecto o `grupo`). `SECURITY DEFINER`. Devuelve cuántos productos guardó |
 
 > **Permisos de las RPC:** ninguna función de negocio se puede ejecutar sin sesión (se revocó `EXECUTE` a `public` y `anon`).
 > Al crear una RPC nueva: `revoke execute on function ... from public, anon;` y `grant execute ... to authenticated, service_role;`.
@@ -833,6 +857,7 @@ servicios ─────────────────────── 
 | productos | idx_productos_familia_id | btree parcial | familia_id |
 | historial_precios | idx_historial_precios_producto | btree | producto_id, created_at desc |
 | historial_precios | idx_historial_precios_usuario_id | btree | usuario_id |
+| precios_cantidad | precios_cantidad_producto_cantidad_key | UNIQUE btree | producto_id, cantidad_minima |
 | producto_proveedores | idx_un_costo_base_manual_por_producto | UNIQUE btree parcial | producto_id |
 | (40 tablas) | idx_&lt;tabla&gt;_&lt;columna&gt; | btree | Una por cada clave foránea (agregados el 2026-10-29) |
 
@@ -856,6 +881,7 @@ servicios ─────────────────────── 
 - `conteo_billetes` — ALL
 - `categorias_gasto` — UPDATE
 - `proveedores` — UPDATE, INSERT
+- `historial_precios` — SELECT (lo escriben el trigger `trg_historial_precios` y `guardar_precios_cantidad`)
 
 ### Empleado + Administrador
 - `ventas` — SELECT (propio o admin), INSERT, UPDATE (admin)
@@ -882,7 +908,7 @@ servicios ─────────────────────── 
 - `movimiento_fuentes` — SELECT, INSERT
 - `garantias` — ALL
 - `categorias_gasto` — SELECT, INSERT
-- `historial_precios` — SELECT (solo lo escribe el trigger `trg_historial_precios`)
+- `precios_cantidad` — SELECT (solo la escribe `guardar_precios_cantidad`, administrador)
 - `horario_laboral` — SELECT (todos), ALL (admin)
 - `configuracion_negocio` — SELECT (todos), UPDATE (admin)
 - `profiles` — SELECT (con sesión), UPDATE (propio + admin), INSERT/DELETE (admin). El trigger
@@ -924,3 +950,18 @@ servicios ─────────────────────── 
     en Editar producto ("Contar por peso": peso total menos el recipiente, dividido por el peso de una unidad) y por medida
     en el grupo. No cambia precios, stock ni ventas; el conteo por peso solo llena el stock del formulario, que se guarda
     con `guardar_producto` como cualquier edición (sin movimiento en `movimientos_inventario`).
+13. **Precios por cantidad** (migración `precios_por_cantidad`, 2026-11-04): desde cierta cantidad de un mismo producto,
+    cada unidad vale menos (`precios_cantidad`). Las reglas son las mismas en la base y en `src/lib/precios-cantidad.ts`:
+    - Hasta 5 por producto y solo los define un administrador (`guardar_precios_cantidad`). La cantidad es un entero
+      desde 2, sin repetir; cada precio es menor que el precio normal y que el del tramo anterior, y nunca queda bajo el
+      costo con su IVA (`costo neto × (1 + porcentaje_iva / 100)`). Un producto que se vende por fracción no los admite.
+    - En la venta (`registrar_venta`, `registrar_venta_credito`) se suma lo que se lleva del mismo producto (líneas no
+      fraccionadas) y se cobra el tramo de mayor cantidad mínima que alcance: todas las unidades a ese precio, con el IVA
+      de ese precio. `venta_items.precio_cantidad_desde` guarda el tramo.
+    - Una línea con precio por cantidad no admite descuento, y la venta que la tenga no admite descuento global ni total
+      editado; los demás productos sí admiten descuento por línea.
+    - Si un ítem trae `precio_unitario` (el precio que mostró la pantalla) y no coincide con el que calcula la base, la
+      venta se rechaza con un aviso para volver a agregar el producto.
+    - En un cambio (`cambiar_productos`), lo agregado toma el precio por cantidad según lo que se agrega del mismo
+      producto, salvo en una venta con descuento global (porcentaje o total editado), donde va a precio normal.
+    - Devoluciones y anulaciones devuelven el precio pagado, como siempre. La cotización usa la misma regla.
