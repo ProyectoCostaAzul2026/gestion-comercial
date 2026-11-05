@@ -1064,7 +1064,15 @@ servicios ─────────────────────── 
     de su familia y un consecutivo (`COD-0012`). Lo asigna `trg_asignar_codigo_producto` cuando el producto llega sin
     código; un código escrito a mano se respeta y, al editar sin código, se conserva el anterior. El formulario de
     producto, el panel de familias y la recepción ya no arman el código largo de antes (`generarSKU`). Los productos del
-    catálogo pasan al código corto por lotes, al corregir su familia (arreglo del catálogo); mientras tanto, los demás
-    conservan el código largo. Antes del arreglo se copió el catálogo completo en `respaldo.productos_20261105`,
-    `respaldo.producto_proveedores_20261105` y `respaldo.producto_familias_20261105` (el esquema `respaldo` no está
-    expuesto a la app).
+    catálogo pasaron al código corto al corregir su familia (arreglo del catálogo, lotes 1 a 6, 2026-11-05); desde
+    entonces todos los productos activos tienen código corto. Antes del arreglo se copió el catálogo completo en
+    `respaldo.productos_20261105`, `respaldo.producto_proveedores_20261105` y `respaldo.producto_familias_20261105` (el
+    esquema `respaldo` no está expuesto a la app).
+16. **Arreglo del catálogo por lotes** (migración `catalogo_lotes_staging`, 2026-11-05): las tablas
+    `respaldo.catalogo_lote_grupos`, `catalogo_lote_medidas`, `catalogo_lote_descripciones`, `catalogo_lote_nuevos`,
+    `catalogo_lote_params` y `catalogo_lote_plantilla` guardan el mapa revisado de cada lote (nombre actual y marca →
+    familia, característica, categoría y marca nueva; cambios de medida; descripciones; medidas nuevas) y la plantilla SQL
+    que lo aplica. Solo las usan `postgres` y `service_role` (sin permisos para `anon` ni `authenticated`). La plantilla
+    comprueba conteos y huellas md5 del mapa, da un nombre temporal a los productos del lote antes de renombrarlos (el
+    índice único se revisa fila por fila) y verifica que no cambien stock, costos, precios, imágenes, proveedores,
+    movimientos ni historial. Se pueden borrar junto con el resto del esquema `respaldo`.

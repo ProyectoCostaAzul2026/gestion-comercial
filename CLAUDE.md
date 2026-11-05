@@ -192,13 +192,16 @@ nómina).
   manuscritos) y 5 % (15). Precio de venta = costo × (1 + IVA) / 0.60 redondeado hacia arriba a la centena (margen
   40 %); 3 productos conservan el precio escrito a mano en la factura. `stock_minimo` y `prioridad` calculados por
   producto (227 quedan en o bajo el mínimo porque se compraron 1 o 2 unidades).
-- Código: los productos que aún no pasan por el arreglo del catálogo conservan el código largo de la carga (el del
-  antiguo `generarSKU()` más un sufijo md5 de 5 caracteres); los corregidos ya tienen el código corto.
+- Código: todos los productos activos tienen el código corto desde el arreglo del catálogo (2026-11-05).
 - **Arreglo del catálogo por lotes** (desde el 2026-11-05): por cada lote se corrigen nombres, familias, grupos de
   medidas, categorías, medidas y descripciones, se agregan las medidas intermedias comunes (activas, stock 0, costo
   estimado entre vecinas y nota "Costo estimado" en `producto_proveedores`) y se asigna el código corto. Antes del
-  primero se copió el catálogo en `respaldo.*_20261105`. Lote 1 aplicado: Accesorios PVC y Tubería y Conduit (130
-  corregidos, 17 movidos a su categoría y 9 medidas nuevas). Reglas: familia = tipo de producto (Codo, Tee, Tubo);
+  primero se copió el catálogo en `respaldo.*_20261105`. **Lotes 1 a 6 aplicados** (todo el catálogo): quedan 3134
+  productos activos en 433 familias, con 19 medidas nuevas de costo estimado. Galvanizado es una familia propia (accesorios
+  de hierro galvanizado); Inafer es marca de cerraduras; canaletas y vidrios de careta conservan sus medidas. Los
+  productos repetidos quedaron con la característica terminada en "Duplicado" (39 productos en 25 grupos) para que el
+  administrador los revise y unifique. El mapa de cada lote está en `respaldo.catalogo_lote_*` (nota 16 de
+  `DATABASE.md`). Reglas: familia = tipo de producto (Codo, Tee, Tubo);
   característica = sistema y variante (PVC Presion, PVC Sanitario CxC, CPVC); la medida va en `unidad_medida`; la
   descripción dice función y características, sin datos del proveedor. Los duplicados se reportan, no se unen.
 - 20 productos tienen dos proveedores: el de la compra más reciente es el principal y está marcado `es_costo_base_manual`.
@@ -233,9 +236,10 @@ nómina).
   2026-10-31).xlsx`) con los SKU y precios de la BD; buscar imágenes (154 familias sin imagen) y completar datos en las
   webs de los proveedores; confirmar los nombres de los 3 proveedores provisionales.
 - Borrar las tablas del esquema `respaldo` cuando el catálogo nuevo esté validado.
-- Arreglo del catálogo: faltan los lotes siguientes al 1 y las imágenes correctas por grupo de medidas (la red de las
-  sesiones en la nube bloquea los sitios de fabricantes y tiendas; las fotos actuales son genéricas de Wikimedia).
-  Quedan por confirmar algunos términos del lote 1 que pueden ser marcas y la medida de dos piezas Kaudal.
+- Arreglo del catálogo: faltan las imágenes correctas por grupo de medidas y revisar las medidas de tornillería contra
+  Sumatec (la red de las sesiones en la nube bloquea los sitios de fabricantes y tiendas; las fotos actuales son genéricas
+  de Wikimedia). Revisar y unificar los productos marcados "Duplicado" y confirmar el costo de las 19 medidas nuevas con
+  la primera compra. Quedan por confirmar algunos términos del lote 1 que pueden ser marcas y la medida de dos piezas Kaudal.
 - El advisor de seguridad marca `is_admin()` y `rls_auto_enable()` como ejecutables por `anon`.
 - El repositorio de GitHub es público: valorar hacerlo privado. Si se hace, instalar la app de Claude en GitHub
   (github.com/apps/claude) para que las sesiones en la nube puedan clonarlo.
