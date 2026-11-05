@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
-import { parseUnidadMedida, generarSKU, SEPARADOR_FAMILIA, INPUT_CLS, LABEL_CLS } from './producto-form'
+import { parseUnidadMedida, SEPARADOR_FAMILIA, INPUT_CLS, LABEL_CLS } from './producto-form'
 import { TEMAS_AYUDA } from '@/lib/temas-ayuda'
 
 interface Proveedor {
@@ -485,8 +485,8 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
           idsGuardados.add(producto.id)
           padreAsignado = true
         } else {
-          const codigo = generarSKU(nombreFinal, producto.categoriaNombre ?? '', hoja.marca, hoja.medida, hoja.unidad) || null
-          operaciones.push({ tipo: 'insertar', codigo, ...datosHoja })
+          // Sin código: la base de datos le asigna el siguiente de la familia (ej. COD-0012)
+          operaciones.push({ tipo: 'insertar', codigo: null, ...datosHoja })
         }
       }
 

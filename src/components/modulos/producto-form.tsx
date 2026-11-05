@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { calcularPrecioVentaSugerido, calcularMargenCalculado } from '@/lib/precio-utils'
 import { margenResultante, redondearPrecio } from '@/lib/escala-precios'
@@ -248,22 +248,6 @@ function estadoInicial(producto: ProductoExistente | undefined, margenDefault = 
 // Separa el nombre base de la familia y la característica en el nombre de cada producto ("Codo - PVC Presion").
 export const SEPARADOR_FAMILIA = ' - '
 
-export function generarSKU(nombre: string, categoria: string, marca: string, medida: string, unidad: string): string {
-  const tomar3 = (s: string) => s.trim().replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 3)
-  // Si el nombre viene de una Familia de productos ("Base - Característica"), se toman 3 letras
-  // de CADA parte para que la Característica también distinga el código — si no, dos características
-  // distintas con la misma marca y medida generan el mismo código y chocan al guardar.
-  const partes = nombre.split(SEPARADOR_FAMILIA)
-  const pNombre = partes.length > 1 ? tomar3(partes[0]) + tomar3(partes[1]) : tomar3(partes[0])
-  const pCat = tomar3(categoria)
-  const pMarca = tomar3(marca)
-  if (!pNombre || !pCat || !pMarca) return ''
-  const pMedida = medida.trim().replace(' ', '')
-  const pUnidad = tomar3(unidad)
-  if (!pMedida || !pUnidad) return ''
-  return `${pNombre}-${pCat}-${pMarca}-${pMedida}${pUnidad}`
-}
-
 export function ProductoForm({ categorias, proveedores, unidades, empleadoId, rol, producto, onSuccess, isSheet, margenDefault = 40, rutaVolver = '/dashboard/inventario', forzarActivacion = false, preciosCantidad = [], nuevoInicial, alCrear }: ProductoFormProps) {
   const esEdicion = !!producto
   // Solo un administrador cambia precios de venta de un producto existente (la base de datos también lo exige);
@@ -292,12 +276,6 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
   const [proveedoresEliminados, setProveedoresEliminados] = useState<string[]>([])
   const [moverCantidad, setMoverCantidad] = useState(0)
   const [moverDireccion, setMoverDireccion] = useState<'bodega_a_almacen' | 'almacen_a_bodega'>('bodega_a_almacen')
-
-  // Auto-generar SKU (valor derivado del formulario, sin estado aparte)
-  const skuSugerido = useMemo(() => {
-    const cat = categoriasList.find(c => c.id === form.categoria_id)?.nombre ?? ''
-    return generarSKU(form.nombre, cat, form.marca, form.medida, form.unidad_medida_select)
-  }, [form.nombre, form.categoria_id, form.marca, form.medida, form.unidad_medida_select, categoriasList])
 
   const handleChange = (field: keyof ProductoFormState, value: any) => {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -490,7 +468,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
       const datosProducto = {
         nombre: form.nombre,
         descripcion: form.descripcion || null,
-        codigo: form.codigo || null,
+        codigo: form.codigo.trim() || null,
         categoria_id: form.categoria_id === 'none' ? null : form.categoria_id,
         marca: form.marca || null,
         ubicacion: form.ubicacion || null,
@@ -609,20 +587,16 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
           {errors.nombre && <p className="text-xs text-brand-red">{errors.nombre}</p>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="codigo" className={LABEL_CLS}>Código / SKU</Label>
+          <Label htmlFor="codigo" className={LABEL_CLS}>Código</Label>
           <Input
             id="codigo"
             className={INPUT_CLS}
             value={form.codigo}
             onChange={(e) => handleChange('codigo', e.target.value)}
-            placeholder="Ej: PRD-001"
+            placeholder="Automático"
           />
-          {skuSugerido && skuSugerido !== form.codigo && (
-            <div className="flex items-center gap-2">
-              <p className="text-xs text-steel-500">Sugerido: <span className="font-mono text-brand-yellow">{skuSugerido}</span></p>
-              <button type="button" onClick={() => handleChange('codigo', skuSugerido)}
-                className="text-xs text-brand-blue hover:underline">Usar</button>
-            </div>
+          {!esEdicion && !form.codigo.trim() && (
+            <p className="text-xs text-steel-500">Se asigna solo al guardar: 3 letras y un número (ej. COD-0012).</p>
           )}
         </div>
       </div>
