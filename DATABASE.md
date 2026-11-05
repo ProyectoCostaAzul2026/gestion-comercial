@@ -1,7 +1,7 @@
 # DATABASE.md — Ferreléctricos Costa Azul
 > Documentación de la base de datos en Supabase (PostgreSQL)
 > Proyecto: `qmeegynucijohagywdcr`
-> Última actualización: 2026-11-04
+> Última actualización: 2026-11-05
 
 ---
 
@@ -81,7 +81,7 @@ Extiende `auth.users` de Supabase. Un registro por usuario autenticado.
 | id | uuid | NO | gen_random_uuid() | |
 | nombre | varchar | NO | — | Índice GIN trgm |
 | descripcion | text | YES | — | Índice GIN trgm |
-| codigo | varchar | YES | — | UNIQUE |
+| codigo | varchar | YES | — | UNIQUE. Si llega vacío, lo asigna `trg_asignar_codigo_producto`: 3 letras y consecutivo (ej. COD-0012) |
 | categoria_id | uuid | YES | — | FK → categorias_producto |
 | marca | varchar | YES | — | Índice GIN trgm |
 | ubicacion | varchar | YES | — | |
@@ -125,6 +125,9 @@ cada lado) y `unidad_medida = "<medida> <Unidad>"` (la unidad es la última pala
   Crear un producto con su precio sigue permitido, y quitar el precio por fracción (al apagarla) no cuenta como cambio
 - `fn_registrar_historial_precios` (`trg_historial_precios`, AFTER UPDATE de los mismos campos) — guarda cada cambio de
   precio en `historial_precios`
+- `fn_asignar_codigo_producto` (`trg_asignar_codigo_producto`, BEFORE INSERT o UPDATE de `codigo`) — si el producto llega
+  sin código (null o en blanco), le asigna el siguiente de su prefijo; al editar sin código conserva el que tenía. Ver
+  Notas importantes (Código corto)
 
 ---
 
@@ -863,7 +866,7 @@ servicios ─────────────────────── 
 | `guardar_renglon_recepcion(p_recepcion_id, p_renglon)` | Cualquier usuario activo, recepción abierta. Agrega o edita un renglón: `{ id?, producto_id?, descripcion?, referencia?, cantidad_facturada, costo_unitario }`; sin producto queda pendiente. Si un renglón ya contado recibe su producto, su mercancía entra al inventario. Si cambian el producto o el costo, el precio del renglón se vuelve a aprobar |
 | `quitar_renglon_recepcion(p_renglon_id)` | Cualquier usuario activo, recepción abierta y renglón sin mercancía en el inventario |
 | `contar_renglon_recepcion(p_renglon_id, p_cantidad_contada, p_cantidad_averiada?, p_destino?)` | Cualquier usuario activo, recepción abierta o con reclamación. Guarda el conteo y quién contó; lo bueno (contadas − averiadas) entra al inventario y una corrección mueve la diferencia, sin dejar stock negativo. El destino solo se elige antes de que entre la mercancía. Devuelve las unidades movidas |
-| `crear_miembro_familia_renglon(p_renglon_id, p_producto_base_id, p_caracteristica, p_marca, p_unidad_medida, p_codigo?)` | Solo administrador. Crea el producto de un renglón pendiente en la familia del producto base (otra medida del grupo, u otra característica o marca) con `guardar_familia`: nace inactivo, con los datos del base y sus proveedores en costo 0. Lo asocia al renglón (si estaba contado, entra al inventario). `p_codigo` es el de `generarSKU()`; se le agrega el sufijo md5 del catálogo |
+| `crear_miembro_familia_renglon(p_renglon_id, p_producto_base_id, p_caracteristica, p_marca, p_unidad_medida, p_codigo?)` | Solo administrador. Crea el producto de un renglón pendiente en la familia del producto base (otra medida del grupo, u otra característica o marca) con `guardar_familia`: nace inactivo, con los datos del base y sus proveedores en costo 0. Lo asocia al renglón (si estaba contado, entra al inventario). La app ya no envía `p_codigo`: sin código, la base de datos asigna el código corto (si llega uno, se le agrega el sufijo md5 del catálogo anterior) |
 | `aprobar_precios_recepcion(p_recepcion_id, p_precios)` | Solo administrador, recepción abierta. `p_precios` = `[{ renglon_id, precio_venta }]`, uno por cada renglón con producto. El costo del renglón, pasado a la forma del producto (con o sin IVA), y su referencia quedan como los de ese proveedor (lo agrega si no lo tenía; un costo 0 no cambia el costo); si otro proveedor del producto tiene costo 0, este queda como costo base. Guarda el precio y el margen como `aplicar_escala_precios`, con origen `recepcion` en el historial, y activa el producto |
 | `cerrar_recepcion(p_recepcion_id, p_nota?)` | Solo administrador. Exige renglones con producto, contados y con precio aprobado. Con diferencias (contadas distintas de facturadas, o averiadas) exige la nota y queda `reclamacion`; si no, `cerrada` |
 | `resolver_reclamacion_recepcion(p_recepcion_id, p_nota)` | Solo administrador. Pasa una recepción en `reclamacion` a `cerrada` con la nota de cómo se resolvió |
@@ -903,6 +906,9 @@ servicios ─────────────────────── 
 | `fn_actualizar_precio_costo_base()` | Trigger: actualiza precio_costo_base |
 | `update_updated_at_column()` | Trigger: actualiza updated_at |
 | `proteger_campos_sensibles_profiles()` | Trigger en `profiles`: solo un admin cambia `rol`, `salario_base` o `activo` |
+| `fn_asignar_codigo_producto()` | Trigger en `productos`: asigna el código corto cuando llega vacío. `SECURITY DEFINER` (el consecutivo cuenta también los productos inactivos que un empleado no ve) |
+| `prefijo_codigo_producto(p_nombre)` | Prefijo del código: las 3 primeras letras o números del nombre base de la familia (lo que va antes de " - "), sin tildes y en mayúscula; si faltan, se completa con X. La app no la puede ejecutar |
+| `siguiente_codigo_producto(p_prefijo)` | Siguiente código del prefijo: el mayor número de los códigos `PRE-NNNN` más uno, con 4 cifras (desde 10000 sigue con 5). Usa un candado por prefijo para que dos productos creados a la vez no tomen el mismo número. `SECURITY DEFINER`; la app no la puede ejecutar |
 
 ---
 
@@ -1054,3 +1060,11 @@ servicios ─────────────────────── 
     - El administrador aprueba costos y precios (`aprobar_precios_recepcion`) y cierra (`cerrar_recepcion`). Con
       diferencias queda la reclamación pendiente: lo que llegue después se registra corrigiendo el conteo, y se cierra
       con `resolver_reclamacion_recepcion`.
+15. **Código corto** (migración `codigo_corto_productos`, 2026-11-05): el código de un producto es un prefijo de 3 letras
+    de su familia y un consecutivo (`COD-0012`). Lo asigna `trg_asignar_codigo_producto` cuando el producto llega sin
+    código; un código escrito a mano se respeta y, al editar sin código, se conserva el anterior. El formulario de
+    producto, el panel de familias y la recepción ya no arman el código largo de antes (`generarSKU`). Los productos del
+    catálogo pasan al código corto por lotes, al corregir su familia (arreglo del catálogo); mientras tanto, los demás
+    conservan el código largo. Antes del arreglo se copió el catálogo completo en `respaldo.productos_20261105`,
+    `respaldo.producto_proveedores_20261105` y `respaldo.producto_familias_20261105` (el esquema `respaldo` no está
+    expuesto a la app).

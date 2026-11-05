@@ -3,7 +3,7 @@
 # Contexto del proyecto — Gestión Comercial Ferreléctricos Costa Azul
 
 > Claude Code carga este archivo en cada sesión. Mantenerlo al día cuando cambie algo importante
-> (esquema de la BD, convenciones, estado de los datos). Última revisión: 2026-11-04.
+> (esquema de la BD, convenciones, estado de los datos). Última revisión: 2026-11-05.
 
 ## Qué es
 
@@ -145,8 +145,10 @@ nómina).
   Se activan solos la primera vez que se guardan en "Editar producto" (o con "Activar" en Desactivados).
 - Índice único `idx_productos_unicos_nombre_marca_medida`: no puede haber dos productos **activos** con el mismo
   `lower(trim(nombre))` + marca + unidad_medida.
-- `codigo` (SKU) es único incluso entre inactivos. `generarSKU()` arma `NOM+CAR-CAT-MAR-<medida><UNI>` (3
-  letras por parte) y devuelve vacío si falta categoría, marca, medida o unidad.
+- `codigo` es único incluso entre inactivos. Es corto: 3 letras de la familia (lo que va antes de " - ") y un
+  consecutivo, `COD-0012`. Si un producto llega sin código, lo asigna el trigger `trg_asignar_codigo_producto`
+  (funciones `prefijo_codigo_producto` y `siguiente_codigo_producto`); un código escrito a mano se respeta y al editar
+  sin código se conserva el anterior. El front ya no arma códigos (se quitó `generarSKU()`).
 - El formulario "Editar producto" acepta la medida en texto libre, igual que el panel de familias
   (`MEDIDA_REGEX` solo exige una medida, sin `;`). Antes era más estricto y bloqueaba decimales y rangos.
 - Un empleado no ve productos inactivos (RLS de SELECT), así que en el panel de familias solo ve los miembros activos.
@@ -190,7 +192,15 @@ nómina).
   manuscritos) y 5 % (15). Precio de venta = costo × (1 + IVA) / 0.60 redondeado hacia arriba a la centena (margen
   40 %); 3 productos conservan el precio escrito a mano en la factura. `stock_minimo` y `prioridad` calculados por
   producto (227 quedan en o bajo el mínimo porque se compraron 1 o 2 unidades).
-- SKU: el de `generarSKU()` más un sufijo de 5 caracteres (md5 de `nombre|marca|unidad_medida`) para que sea único.
+- Código: los productos que aún no pasan por el arreglo del catálogo conservan el código largo de la carga (el del
+  antiguo `generarSKU()` más un sufijo md5 de 5 caracteres); los corregidos ya tienen el código corto.
+- **Arreglo del catálogo por lotes** (desde el 2026-11-05): por cada lote se corrigen nombres, familias, grupos de
+  medidas, categorías, medidas y descripciones, se agregan las medidas intermedias comunes (activas, stock 0, costo
+  estimado entre vecinas y nota "Costo estimado" en `producto_proveedores`) y se asigna el código corto. Antes del
+  primero se copió el catálogo en `respaldo.*_20261105`. Lote 1 aplicado: Accesorios PVC y Tubería y Conduit (130
+  corregidos, 17 movidos a su categoría y 9 medidas nuevas). Reglas: familia = tipo de producto (Codo, Tee, Tubo);
+  característica = sistema y variante (PVC Presion, PVC Sanitario CxC, CPVC); la medida va en `unidad_medida`; la
+  descripción dice función y características, sin datos del proveedor. Los duplicados se reportan, no se unen.
 - 20 productos tienen dos proveedores: el de la compra más reciente es el principal y está marcado `es_costo_base_manual`.
 - Imágenes: 2445 productos (215 familias) heredaron la imagen de Wikimedia de la familia del mismo nombre del
   catálogo anterior; 670 productos (154 familias) no tienen imagen.
@@ -223,6 +233,9 @@ nómina).
   2026-10-31).xlsx`) con los SKU y precios de la BD; buscar imágenes (154 familias sin imagen) y completar datos en las
   webs de los proveedores; confirmar los nombres de los 3 proveedores provisionales.
 - Borrar las tablas del esquema `respaldo` cuando el catálogo nuevo esté validado.
+- Arreglo del catálogo: faltan los lotes siguientes al 1 y las imágenes correctas por grupo de medidas (la red de las
+  sesiones en la nube bloquea los sitios de fabricantes y tiendas; las fotos actuales son genéricas de Wikimedia).
+  Quedan por confirmar algunos términos del lote 1 que pueden ser marcas y la medida de dos piezas Kaudal.
 - El advisor de seguridad marca `is_admin()` y `rls_auto_enable()` como ejecutables por `anon`.
 - El repositorio de GitHub es público: valorar hacerlo privado. Si se hace, instalar la app de Claude en GitHub
   (github.com/apps/claude) para que las sesiones en la nube puedan clonarlo.

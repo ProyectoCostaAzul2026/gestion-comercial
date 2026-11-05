@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { INPUT_CLS, LABEL_CLS, MEDIDA_REGEX, SEPARADOR_FAMILIA, generarSKU, parseUnidadMedida } from './producto-form'
+import { INPUT_CLS, LABEL_CLS, MEDIDA_REGEX, SEPARADOR_FAMILIA, parseUnidadMedida } from './producto-form'
 import { BuscadorProducto, type ProductoElegido } from './recepcion-buscador'
 import type { ProductoDelProveedor } from './recepcion-tipos'
 
@@ -85,14 +85,12 @@ export function RecepcionFamiliaForm({ renglonId, descripcion, productosProveedo
     if (!unidad) { toast.error('Elige la unidad'); return }
     if (medidaLimpia && !MEDIDA_REGEX.test(medidaLimpia)) { toast.error('Escribe una sola medida, sin ";"'); return }
     setGuardando(true)
-    const codigo = generarSKU(nombreFinal, base.categoria ?? '', marca.trim() || 'Generica', medidaLimpia, unidad)
     const { error } = await supabase.rpc('crear_miembro_familia_renglon', {
       p_renglon_id: renglonId,
       p_producto_base_id: base.id,
       p_caracteristica: caracteristica.trim(),
       p_marca: marca.trim(),
       p_unidad_medida: unidadMedida,
-      p_codigo: codigo || undefined,
     })
     setGuardando(false)
     if (error) { toast.error(error.message); return }

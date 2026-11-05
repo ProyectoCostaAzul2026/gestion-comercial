@@ -435,7 +435,7 @@ export const TEMAS_AYUDA: TemaAyuda[] = [
           'Agrega al menos un proveedor con su precio de costo — es obligatorio; sin esto no se puede guardar.',
           'Si hay más de un proveedor, el costo base se toma automáticamente del más bajo, salvo que marques manualmente el check "Usar el precio de este proveedor como costo base" en otro.',
           'Configura IVA, stock por almacén/bodega, y si se vende por fracción (metro, kg, etc.), activa esa opción y define sus datos.',
-          'Guarda. El código (SKU) se genera solo si lo dejas vacío.',
+          'Guarda. Si dejas el código vacío, el sistema le asigna uno corto: 3 letras y un número (ej. COD-0012).',
         ],
       },
     ],
