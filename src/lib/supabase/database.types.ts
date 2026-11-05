@@ -2215,6 +2215,7 @@ export type Database = {
         Args: { p_producto_ids: string[]; p_restablecer?: boolean }
         Returns: undefined
       }
+      prefijo_codigo_producto: { Args: { p_nombre: string }; Returns: string }
       quitar_renglon_recepcion: {
         Args: { p_renglon_id: string }
         Returns: undefined
@@ -2309,6 +2310,10 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      siguiente_codigo_producto: {
+        Args: { p_prefijo: string }
+        Returns: string
+      }
       sincronizar_stock_renglon: {
         Args: { p_renglon_id: string; p_usuario_id: string }
         Returns: number
