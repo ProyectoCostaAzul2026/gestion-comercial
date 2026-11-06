@@ -2207,6 +2207,15 @@ export type Database = {
         Returns: string
       }
       is_admin: { Args: never; Returns: boolean }
+      mover_productos: {
+        Args: {
+          p_caracteristica?: string
+          p_categoria_id?: string
+          p_familia?: string
+          p_producto_ids: string[]
+        }
+        Returns: number
+      }
       mover_stock_bodega_almacen: {
         Args: { p_cantidad: number; p_producto_id: string }
         Returns: undefined

@@ -72,7 +72,7 @@ nómina).
 ## Estructura del código
 
 - `src/app/dashboard/<módulo>/`: páginas (Server Components que consultan Supabase y pasan datos a
-  componentes cliente). Módulos: `ventas` (nueva, cotización, servicios, recibo), `inventario` (nuevo, editar,
+  componentes cliente). Módulos: `ventas` (nueva, cotización, servicios, recibo), `inventario` (navegación por tarjetas: categoría, familia, grupo de medidas; nuevo, editar,
   familia, agotados, desactivados, garantías), `recepcion` (detalle y producto nuevo de un renglón), `clientes`,
   `proveedores` (facturas, pagos), `empleados`,
   `caja`, `contabilidad`, `nomina`, `horario`, `reportes`, `configuracion`, `instrucciones`, `mi-perfil`.
@@ -84,7 +84,7 @@ nómina).
   cerrar), `temas-ayuda.ts` (textos del panel Instrucciones), `festivos-colombia.ts`.
 - `src/proxy.ts`: exige sesión en `/dashboard`, cierra la sesión si el perfil está inactivo y manda a los
   empleados fuera de las rutas de administrador.
-- `DATABASE.md`: tablas, RPC, índices y políticas RLS (al día al 2026-11-04). Mantenerlo actualizado.
+- `DATABASE.md`: tablas, RPC, índices y políticas RLS (al día al 2026-11-06). Mantenerlo actualizado.
 
 ## Base de datos: piezas clave
 
@@ -101,6 +101,12 @@ nómina).
   En una venta a crédito ajustan primero la deuda (`ventas_credito.saldo_pendiente` y el saldo `credito`) y solo el resto
   pasa por caja; un crédito cuya venta se anula o se devuelve completa queda `anulado`. `devoluciones.ajuste_credito`
   guarda lo que cambió la deuda y `repartirAjusteCredito` replica el reparto en la vista previa.
+- **Inventario por tarjetas** (`inventario-navegador.tsx`, lógica en `src/lib/inventario-arbol.ts`): categorías →
+  familias → grupos de medidas → lista de medidas con la imagen del grupo; el nivel va en la dirección (`?cat=&fam=&g=`,
+  con `window.history.pushState`). Un producto nuevo **solo se crea dentro de una categoría, familia y grupo** (tarjetas
+  "Nueva categoría / familia / grupo" y "Agregar medida"); `inventario/nuevo` sin ese contexto manda al inventario. Mover,
+  sacar del grupo y desactivar están en `acciones-inventario.tsx` (menú de tres puntos y detalle del producto) y usan la
+  RPC `mover_productos` (`SECURITY DEFINER`, administrador y empleado; conserva código, stock y precios).
 - El guardado de productos y familias va por `guardar_producto` y `guardar_familia` (`SECURITY INVOKER`, una sola
   transacción). `producto-form.tsx` y `familia-medidas-panel.tsx` las llaman con `supabase.rpc`.
 - **Recepción de mercancía** (`recepciones`, `recepcion_items`): todo pasa por RPC (`crear_recepcion`,

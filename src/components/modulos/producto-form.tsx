@@ -8,6 +8,7 @@ import { erroresTramos, ordenarTramos, type TramoPrecio } from '@/lib/precios-ca
 import { CalculadoraPesoUnitario, ContarPorPeso } from './peso-por-unidad'
 import { EditorTramos, ListaPreciosCantidad } from './precios-cantidad'
 import { esAdmin, type Rol } from '@/lib/permissions'
+import { separarNombre } from '@/lib/inventario-arbol'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -138,6 +139,11 @@ interface ProductoFormProps {
   nuevoInicial?: NuevoInicial
   /** Al crear: se llama con el id del producto nuevo; devuelve un mensaje si algo falla (el producto ya quedó creado) */
   alCrear?: (productoId: string) => Promise<string | null>
+  /**
+   * Al crear desde el inventario: categoría, familia, grupo (característica) y marca ya elegidos. El nombre, la marca y
+   * la categoría quedan fijos (vienen en nuevoInicial) y solo se escriben la medida, los precios, el stock y lo demás.
+   */
+  contexto?: { categoria: string; familia: string; caracteristica: string; marca: string }
 }
 
 export interface NuevoInicial {
@@ -147,6 +153,14 @@ export interface NuevoInicial {
   referencia?: string
   /** El stock no se escribe aquí: entra con el conteo de la recepción de mercancía */
   stockDesdeRecepcion?: boolean
+  /** Datos que hereda al agregarse desde una categoría, una familia o un grupo de medidas del inventario */
+  categoriaId?: string
+  marca?: string
+  ubicacion?: string
+  imagenUrl?: string
+  tieneIva?: boolean
+  ivaIncluido?: boolean
+  porcentajeIva?: number
 }
 
 export function parseUnidadMedida(value: string | null): { medida: string; unidad: string } {
@@ -168,21 +182,21 @@ function estadoInicial(producto: ProductoExistente | undefined, margenDefault = 
       nombre: nuevoInicial?.nombre ?? '',
       descripcion: '',
       codigo: '',
-      categoria_id: 'none',
-      marca: '',
-      ubicacion: '',
+      categoria_id: nuevoInicial?.categoriaId ?? 'none',
+      marca: nuevoInicial?.marca ?? '',
+      ubicacion: nuevoInicial?.ubicacion ?? '',
       medida: '',
       unidad_medida_select: '',
       precio_venta: 0,
       margen_deseado: margenDefault,
-      tiene_iva: true,
-      iva_incluido: false,
-      porcentaje_iva: 19,
+      tiene_iva: nuevoInicial?.tieneIva ?? true,
+      iva_incluido: nuevoInicial?.ivaIncluido ?? false,
+      porcentaje_iva: nuevoInicial?.porcentajeIva ?? 19,
       stock_bodega: 0,
       stock_almacen: 0,
       stock_minimo: 0,
       prioridad: 3,
-      imagen_url: '',
+      imagen_url: nuevoInicial?.imagenUrl ?? '',
       vender_por_fraccion: false,
       medida_venta: '',
       cantidad_total_unidad: 0,
@@ -248,8 +262,10 @@ function estadoInicial(producto: ProductoExistente | undefined, margenDefault = 
 // Separa el nombre base de la familia y la característica en el nombre de cada producto ("Codo - PVC Presion").
 export const SEPARADOR_FAMILIA = ' - '
 
-export function ProductoForm({ categorias, proveedores, unidades, empleadoId, rol, producto, onSuccess, isSheet, margenDefault = 40, rutaVolver = '/dashboard/inventario', forzarActivacion = false, preciosCantidad = [], nuevoInicial, alCrear }: ProductoFormProps) {
+export function ProductoForm({ categorias, proveedores, unidades, empleadoId, rol, producto, onSuccess, isSheet, margenDefault = 40, rutaVolver = '/dashboard/inventario', forzarActivacion = false, preciosCantidad = [], nuevoInicial, alCrear, contexto }: ProductoFormProps) {
   const esEdicion = !!producto
+  // Producto nuevo creado desde una categoría, familia y grupo del inventario: nombre, marca y categoría fijos
+  const fijo = !esEdicion && !!contexto
   // Solo un administrador cambia precios de venta de un producto existente (la base de datos también lo exige);
   // al crear un producto, quien lo crea pone su precio
   const puedeCambiarPrecio = !esEdicion || esAdmin(rol)
@@ -544,6 +560,17 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
         if (errorTramos) {
           toast.error(`El producto se creó, pero los precios por cantidad no: ${errorTramos}. Edítalo para agregarlos.`)
         }
+        // El producto queda en su familia y grupo de medidas según el nombre ("Familia - Característica"); si la familia
+        // no existe, se crea. Sin " - " en el nombre queda en "Sin familia" y se puede mover desde el inventario.
+        const partes = separarNombre(form.nombre)
+        if (nuevoId && partes) {
+          const { error: errorFamilia } = await supabase.rpc('mover_productos', {
+            p_producto_ids: [nuevoId],
+            p_familia: partes.familia,
+            p_caracteristica: partes.caracteristica,
+          })
+          if (errorFamilia) toast.error(`El producto se creó, pero no quedó en su familia: ${errorFamilia.message}. Muévelo desde el inventario.`)
+        }
         const errorAlCrear = nuevoId && alCrear ? await alCrear(nuevoId) : null
         if (errorAlCrear) toast.error(errorAlCrear)
         toast.success('Producto creado')
@@ -580,11 +607,26 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {fijo && contexto && (
+        <div className="rounded-xl border border-brand-yellow/30 bg-brand-yellow/5 px-3 py-2 text-xs text-steel-300">
+          Se creará en <span className="font-semibold text-white">{contexto.categoria}</span> › familia{' '}
+          <span className="font-semibold text-white">{contexto.familia}</span> › grupo{' '}
+          <span className="font-semibold text-white">{contexto.caracteristica}</span> ({contexto.marca}). Escribe la medida y los
+          demás datos.
+        </div>
+      )}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="nombre" className={LABEL_CLS}>Nombre del producto *</Label>
-          <Input id="nombre" className={INPUT_CLS} value={form.nombre} onChange={(e) => handleChange('nombre', e.target.value)} />
+          <Input id="nombre" className={INPUT_CLS} value={form.nombre} readOnly={fijo} onChange={(e) => handleChange('nombre', e.target.value)} />
           {errors.nombre && <p className="text-xs text-brand-red">{errors.nombre}</p>}
+          {!esEdicion && !fijo && (
+            <p className="text-xs text-steel-500">
+              {separarNombre(form.nombre)
+                ? `Quedará en la familia "${separarNombre(form.nombre)!.familia}", grupo "${separarNombre(form.nombre)!.caracteristica}".`
+                : 'Escribe "Familia - Característica" (ej. Codo - PVC Presion) para que quede en su familia y grupo de medidas.'}
+            </p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="codigo" className={LABEL_CLS}>Código</Label>
@@ -604,7 +646,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="marca" className={LABEL_CLS}>Marca</Label>
-          <Input id="marca" className={INPUT_CLS} value={form.marca} onChange={(e) => handleChange('marca', e.target.value)} />
+          <Input id="marca" className={INPUT_CLS} value={form.marca} readOnly={fijo} onChange={(e) => handleChange('marca', e.target.value)} />
         </div>
         <div className="space-y-2">
           <Label htmlFor="ubicacion" className={LABEL_CLS}>Ubicación</Label>
@@ -621,12 +663,14 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label htmlFor="categoria_id" className={LABEL_CLS}>Categoría</Label>
-          <Button type="button" variant="ghost" size="sm" className="text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={() => setMostrarNuevaCategoria(!mostrarNuevaCategoria)}>
+          {!fijo && <Button type="button" variant="ghost" size="sm" className="text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={() => setMostrarNuevaCategoria(!mostrarNuevaCategoria)}>
             <Plus className="mr-1 h-4 w-4" />
             Nueva categoría
-          </Button>
+          </Button>}
         </div>
-        {mostrarNuevaCategoria ? (
+        {fijo ? (
+          <Input id="categoria_id" className={INPUT_CLS} value={contexto?.categoria ?? ""} readOnly />
+        ) : mostrarNuevaCategoria ? (
           <div className="flex gap-2">
             <Input
               placeholder="Nombre de la nueva categoría"
