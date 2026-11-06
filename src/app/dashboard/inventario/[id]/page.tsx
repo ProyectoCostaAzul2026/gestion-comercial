@@ -3,6 +3,9 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Package } from 'lucide-react'
 import { ListaPreciosCantidad } from '@/components/modulos/precios-cantidad'
+import { BotonAccionesProducto } from '@/components/modulos/acciones-inventario'
+import { traerTodo } from '@/lib/supabase/traer-todo'
+import { esAdmin } from '@/lib/permissions'
 
 export default async function DetalleProductoPage({
   params,
@@ -21,7 +24,7 @@ export default async function DetalleProductoPage({
       precio_venta, precio_costo_base, margen_calculado,
       tiene_iva, iva_incluido, porcentaje_iva,
       stock_bodega, stock_almacen, stock_actual, stock_minimo,
-      prioridad, unidad_medida, imagen_url,
+      prioridad, unidad_medida, imagen_url, familia_id, caracteristica, categoria_id,
       categorias_producto(nombre)
     `)
     .eq('id', id)
@@ -30,7 +33,7 @@ export default async function DetalleProductoPage({
   if (error || !producto) notFound()
 
   // Últimos cambios de precio: la tabla solo la pueden leer los administradores (RLS), así que a un empleado le llega vacía
-  const [{ data: cambiosPrecio }, { data: tramos }] = await Promise.all([
+  const [{ data: cambiosPrecio }, { data: tramos }, { data: categorias }, { data: familias }, { data: perfil }] = await Promise.all([
     supabase
       .from('historial_precios')
       .select('id, campo, cantidad_minima, precio_anterior, precio_nuevo, origen, created_at, usuario:profiles(nombre_completo)')
@@ -38,6 +41,9 @@ export default async function DetalleProductoPage({
       .order('created_at', { ascending: false })
       .limit(10),
     supabase.from('precios_cantidad').select('cantidad_minima, precio_unitario').eq('producto_id', id).order('cantidad_minima'),
+    supabase.from('categorias_producto').select('id, nombre').order('nombre'),
+    traerTodo((desde, hasta) => supabase.from('producto_familias').select('id, nombre_base').order('id').range(desde, hasta)),
+    supabase.from('profiles').select('rol').eq('id', user.id).single(),
   ])
   const preciosCantidad = (tramos ?? []).map(t => ({ cantidad_minima: t.cantidad_minima, precio_unitario: Number(t.precio_unitario) }))
   const ETIQUETA_CAMPO: Record<string, string> = { precio_venta: 'Precio de venta', precio_por_unidad_medida: 'Precio por fracción' }
@@ -125,6 +131,15 @@ export default async function DetalleProductoPage({
           >
             Grupo de medidas
           </Link>
+          <BotonAccionesProducto
+            producto={{
+              id: producto.id, nombre: producto.nombre, familia_id: producto.familia_id, caracteristica: producto.caracteristica,
+              marca: producto.marca, categoria_id: producto.categoria_id, unidad_medida: producto.unidad_medida,
+            }}
+            categorias={categorias ?? []}
+            familias={familias ?? []}
+            esAdmin={esAdmin(perfil?.rol)}
+          />
         </div>
 
         {(cambiosPrecio ?? []).length > 0 && (
