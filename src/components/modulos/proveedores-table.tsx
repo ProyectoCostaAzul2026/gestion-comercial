@@ -1,12 +1,11 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { AlertTriangle, Search } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import Link from 'next/link'
+import { AlertTriangle, Phone, Search, User } from 'lucide-react'
+import { AvatarIniciales, telefonoMarcable } from './avatar-iniciales'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 const hoy = new Date().toISOString().slice(0, 10)
 
@@ -63,7 +62,6 @@ export function ProveedoresTable({
   proveedores: ProveedorListItem[]
   eventosPago: EventoPago[]
 }) {
-  const router = useRouter()
   const [query, setQuery] = useState('')
   const [filtroEstado, setFiltroEstado] = useState('todos')
 
@@ -191,64 +189,65 @@ export function ProveedoresTable({
         </Select>
       </div>
 
-      {/* Tabla */}
-      <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-brand-blue/20 hover:bg-brand-blue/20 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-blue">
-                <TableHead>Nombre</TableHead>
-                <TableHead>Contacto</TableHead>
-                <TableHead>Teléfono</TableHead>
-                <TableHead className="text-right">Facturas activas</TableHead>
-                <TableHead className="text-right">Deuda total</TableHead>
-                <TableHead>Estado</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtrados.map(p => {
-                const cfg = ESTADO_CONFIG[p.estado]
-                const dias = p.diasProximoPago
-                const esProximoPago = p.estado === 'pago_programado_proximo' && dias !== null && dias <= 3
+      {/* Tarjetas */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {filtrados.map(p => {
+          const cfg = ESTADO_CONFIG[p.estado]
+          const dias = p.diasProximoPago
+          const esProximoPago = p.estado === 'pago_programado_proximo' && dias !== null && dias <= 3
+          const alerta = ['factura_vencida', 'factura_proxima', 'pago_programado_vencido', 'pago_programado_proximo'].includes(p.estado)
 
-                return (
-                  <TableRow
-                    key={p.id}
-                    className="cursor-pointer border-white/8 hover:bg-white/5"
-                    onClick={() => router.push(`/dashboard/proveedores/${p.id}`)}
-                  >
-                    <TableCell className="text-xs font-medium text-white">
-                      <div className="flex items-center gap-2">
-                        {['factura_vencida', 'factura_proxima', 'pago_programado_vencido', 'pago_programado_proximo'].includes(p.estado) && (
-                          <AlertTriangle className={`h-4 w-4 shrink-0 ${p.estado === 'factura_vencida' || p.estado === 'pago_programado_vencido' ? 'text-brand-red' : 'text-brand-yellow'}`} />
-                        )}
-                        {p.nombre}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-xs text-steel-300">{p.contacto ?? '—'}</TableCell>
-                    <TableCell className="text-xs text-steel-300">{p.telefono ?? '—'}</TableCell>
-                    <TableCell className="text-right text-xs text-white">{p.facturasActivas}</TableCell>
-                    <TableCell className="text-right font-display text-sm font-bold text-white">
-                      {p.deudaTotal > 0 ? `$${p.deudaTotal.toLocaleString('es-CO')}` : '—'}
-                    </TableCell>
-                    <TableCell>
-                      <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${cfg.className}`}>
-                        {cfg.label}
-                        {esProximoPago && dias !== null && ` (${dias} día${dias !== 1 ? 's' : ''})`}
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </div>
-        {filtrados.length === 0 && (
-          <p className="p-8 text-center text-sm text-steel-500">
-            {proveedores.length === 0 ? 'No hay proveedores registrados.' : 'Sin resultados para este filtro.'}
-          </p>
-        )}
+          return (
+            <div key={p.id}
+              className={`relative flex flex-col gap-3 rounded-2xl border bg-[#111820] p-4 transition hover:border-brand-yellow/50 ${p.estado === 'factura_vencida' ? 'border-brand-red/40' : 'border-white/10'}`}>
+              <div className="flex items-start gap-3">
+                <AvatarIniciales nombre={p.nombre} />
+                <div className="min-w-0 flex-1">
+                  {/* El enlace cubre toda la tarjeta; el teléfono queda encima para poder llamar */}
+                  <Link href={`/dashboard/proveedores/${p.id}`}
+                    className="line-clamp-2 text-sm font-bold text-white after:absolute after:inset-0 after:rounded-2xl">
+                    {p.nombre}
+                  </Link>
+                  <span className={`mt-1 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${cfg.className}`}>
+                    {alerta && <AlertTriangle className="h-3 w-3" aria-hidden />}
+                    {cfg.label}
+                    {esProximoPago && dias !== null && ` (${dias} día${dias !== 1 ? 's' : ''})`}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-1 text-xs text-steel-300">
+                {p.contacto && <p className="flex items-center gap-1.5"><User className="h-3.5 w-3.5 shrink-0" aria-hidden />{p.contacto}</p>}
+                {p.telefono && (
+                  <a href={`tel:${telefonoMarcable(p.telefono)}`}
+                    className="relative z-10 inline-flex items-center gap-1.5 text-brand-blue hover:underline">
+                    <Phone className="h-3.5 w-3.5 shrink-0" aria-hidden />{p.telefono}
+                  </a>
+                )}
+                {p.nit_ruc && <p>NIT {p.nit_ruc}</p>}
+              </div>
+
+              <div className="mt-auto grid grid-cols-2 gap-2 border-t border-white/10 pt-3">
+                <div>
+                  <p className="text-[10px] uppercase tracking-wide text-steel-500">Facturas activas</p>
+                  <p className="font-display text-lg font-bold text-white">{p.facturasActivas}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] uppercase tracking-wide text-steel-500">Deuda</p>
+                  <p className={`font-display text-lg font-bold ${p.deudaTotal > 0 ? 'text-brand-yellow' : 'text-steel-300'}`}>
+                    {p.deudaTotal > 0 ? `$${p.deudaTotal.toLocaleString('es-CO')}` : '—'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )
+        })}
       </div>
+      {filtrados.length === 0 && (
+        <p className="rounded-2xl border border-white/10 bg-[#111820] p-8 text-center text-sm text-steel-500">
+          {proveedores.length === 0 ? 'No hay proveedores registrados.' : 'Sin resultados para este filtro.'}
+        </p>
+      )}
     </div>
   )
 }
