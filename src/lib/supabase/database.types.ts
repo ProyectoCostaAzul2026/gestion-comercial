@@ -280,18 +280,21 @@ export type Database = {
       }
       categorias_producto: {
         Row: {
+          imagen_url: string | null
           created_at: string
           descripcion: string | null
           id: string
           nombre: string
         }
         Insert: {
+          imagen_url?: string | null
           created_at?: string
           descripcion?: string | null
           id?: string
           nombre: string
         }
         Update: {
+          imagen_url?: string | null
           created_at?: string
           descripcion?: string | null
           id?: string
@@ -1179,16 +1182,19 @@ export type Database = {
       }
       producto_familias: {
         Row: {
+          imagen_url: string | null
           created_at: string
           id: string
           nombre_base: string
         }
         Insert: {
+          imagen_url?: string | null
           created_at?: string
           id?: string
           nombre_base: string
         }
         Update: {
+          imagen_url?: string | null
           created_at?: string
           id?: string
           nombre_base?: string
@@ -1410,6 +1416,8 @@ export type Database = {
       }
       proveedores: {
         Row: {
+          logo_url: string | null
+          sitio_web: string | null
           activo: boolean
           contacto: string | null
           created_at: string
@@ -1423,6 +1431,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          logo_url?: string | null
+          sitio_web?: string | null
           activo?: boolean
           contacto?: string | null
           created_at?: string
@@ -1436,6 +1446,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          logo_url?: string | null
+          sitio_web?: string | null
           activo?: boolean
           contacto?: string | null
           created_at?: string

@@ -23,14 +23,17 @@ function colorDe(nombre: string): string {
   return COLORES[suma % COLORES.length]
 }
 
-export function AvatarIniciales({ nombre, foto, className = 'h-12 w-12 text-base' }: {
+export function AvatarIniciales({ nombre, foto, logo = false, className = 'h-12 w-12 text-base' }: {
   nombre: string
   foto?: string | null
+  /** La foto es un logo: se muestra completo sobre fondo blanco, sin recortarlo */
+  logo?: boolean
   className?: string
 }) {
   if (foto) {
+    const ajuste = logo ? 'rounded-xl bg-white object-contain p-1' : 'rounded-full object-cover'
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={foto} alt={nombre} className={`shrink-0 rounded-full object-cover ${className}`} />
+    return <img src={foto} alt={nombre} className={`shrink-0 ${ajuste} ${className}`} />
   }
   return (
     <span aria-hidden className={`inline-flex shrink-0 items-center justify-center rounded-full font-display font-bold ${colorDe(nombre)} ${className}`}>

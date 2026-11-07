@@ -27,6 +27,7 @@ export interface ProveedorListItem {
   contacto: string | null
   telefono: string | null
   nit_ruc: string | null
+  logo_url: string | null
   facturasActivas: number
   deudaTotal: number
   estado: 'al_dia' | 'con_deuda' | 'factura_vencida' | 'factura_proxima' | 'pago_programado_vencido' | 'pago_programado_proximo'
@@ -201,7 +202,7 @@ export function ProveedoresTable({
             <div key={p.id}
               className={`relative flex flex-col gap-3 rounded-2xl border bg-[#111820] p-4 transition hover:border-brand-yellow/50 ${p.estado === 'factura_vencida' ? 'border-brand-red/40' : 'border-white/10'}`}>
               <div className="flex items-start gap-3">
-                <AvatarIniciales nombre={p.nombre} />
+                <AvatarIniciales nombre={p.nombre} foto={p.logo_url} logo />
                 <div className="min-w-0 flex-1">
                   {/* El enlace cubre toda la tarjeta; el teléfono queda encima para poder llamar */}
                   <Link href={`/dashboard/proveedores/${p.id}`}
