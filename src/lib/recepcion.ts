@@ -1,21 +1,16 @@
 // Recepción de mercancía: cuentas del conteo, diferencias, costos con o sin IVA y precios propuestos.
-// Replica las reglas de las RPC de recepción (contar_renglon_recepcion, aprobar_precios_recepcion y cerrar_recepcion):
+// Flujo: transcribir → el administrador aprueba precios → contar (sabiendo el precio, repartiendo entre almacén y bodega)
+// → cerrar. Replica las reglas de las RPC de recepción (contar_renglon_recepcion, aprobar_precios_recepcion y cerrar_recepcion):
 // si cambias una, cambia la otra.
 
 import { margenResultante, precioSugerido, type ModoRedondeo } from './escala-precios'
 
 export type EstadoRecepcion = 'abierta' | 'reclamacion' | 'cerrada'
-export type DestinoRecepcion = 'bodega' | 'almacen'
 
 export const ETIQUETA_ESTADO_RECEPCION: Record<EstadoRecepcion, string> = {
   abierta: 'Abierta',
   reclamacion: 'Reclamación pendiente',
   cerrada: 'Cerrada',
-}
-
-export const ETIQUETA_DESTINO: Record<DestinoRecepcion, string> = {
-  bodega: 'Bodega',
-  almacen: 'Almacén',
 }
 
 /** Lo que se cuenta de un renglón */
@@ -29,6 +24,47 @@ export interface ConteoRenglon {
 export function unidadesBuenas(r: Pick<ConteoRenglon, 'cantidad_contada' | 'cantidad_averiada'>): number {
   if (r.cantidad_contada == null) return 0
   return Math.max(r.cantidad_contada - (r.cantidad_averiada ?? 0), 0)
+}
+
+/**
+ * Un renglón se cuenta sabiendo su precio: necesita el producto y el precio aprobado por el administrador. Misma regla
+ * que contar_renglon_recepcion. null si se puede contar; si no, el motivo.
+ */
+export function motivoNoContable(r: { producto_id: string | null; precio_aprobado: number | null }): string | null {
+  if (!r.producto_id) return 'Falta el producto: el administrador debe crearlo o asociarlo'
+  if (r.precio_aprobado == null) return 'Falta que el administrador apruebe el precio'
+  return null
+}
+
+/** Cómo se reparten las unidades buenas: `almacen` van al almacén y el resto a la bodega */
+export interface RepartoConteo {
+  almacen: number
+  bodega: number
+}
+
+/**
+ * Valida un conteo como contar_renglon_recepcion y devuelve el reparto entre almacén y bodega, o el mensaje de error.
+ * `almacen` es cuántas de las buenas (contadas − averiadas) van al almacén; el resto entra a la bodega.
+ */
+export function validarConteo(contadas: number, averiadas: number, almacen: number):
+  { ok: true; reparto: RepartoConteo } | { ok: false; error: string } {
+  if (!Number.isInteger(contadas) || contadas < 0) return { ok: false, error: 'Escribe cuántas unidades contaste' }
+  if (!Number.isInteger(averiadas) || averiadas < 0 || averiadas > contadas) {
+    return { ok: false, error: 'Las averiadas no pueden ser más que las contadas' }
+  }
+  const buenas = contadas - averiadas
+  if (!Number.isInteger(almacen) || almacen < 0 || almacen > buenas) {
+    return { ok: false, error: `Lo que va al almacén no puede ser más que las unidades buenas (${buenas})` }
+  }
+  return { ok: true, reparto: { almacen, bodega: buenas - almacen } }
+}
+
+/** Texto del reparto: "10 al almacén y 5 a la bodega" */
+export function textoReparto(r: RepartoConteo): string {
+  const partes: string[] = []
+  if (r.almacen > 0) partes.push(`${r.almacen} al almacén`)
+  if (r.bodega > 0) partes.push(`${r.bodega} a la bodega`)
+  return partes.length ? partes.join(' y ') : 'nada entra al inventario'
 }
 
 export interface DiferenciaRenglon {
@@ -120,7 +156,10 @@ export interface RenglonParaCerrar extends ConteoRenglon {
   precio_aprobado: number | null
 }
 
-/** Lo que falta para cerrar, con los mismos chequeos y en el mismo orden que cerrar_recepcion (vacío: se puede). */
+/**
+ * Lo que falta para cerrar, con los mismos chequeos y en el mismo orden que cerrar_recepcion (vacío: se puede). El orden
+ * sigue el flujo: producto, precio aprobado y conteo.
+ */
 export function pendientesParaCerrar(renglones: RenglonParaCerrar[]): string[] {
   if (renglones.length === 0) return ['La recepción no tiene renglones']
   const pendientes: string[] = []
@@ -128,8 +167,8 @@ export function pendientesParaCerrar(renglones: RenglonParaCerrar[]): string[] {
   const sinContar = renglones.filter(r => r.cantidad_contada == null).length
   const sinPrecio = renglones.filter(r => r.producto_id && r.precio_aprobado == null).length
   if (sinProducto > 0) pendientes.push(`Hay renglones sin producto (${sinProducto}): créalos o asócialos antes de cerrar`)
-  if (sinContar > 0) pendientes.push(`Hay renglones sin contar (${sinContar})`)
   if (sinPrecio > 0) pendientes.push('Aprueba los precios antes de cerrar')
+  if (sinContar > 0) pendientes.push(`Hay renglones sin contar (${sinContar})`)
   return pendientes
 }
 

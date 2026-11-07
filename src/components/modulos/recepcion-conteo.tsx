@@ -3,50 +3,49 @@
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { CheckCircle2, AlertTriangle } from 'lucide-react'
+import { CheckCircle2, AlertTriangle, Clock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ETIQUETA_DESTINO, diferenciaRenglon, unidadesBuenas, type DestinoRecepcion } from '@/lib/recepcion'
+import { diferenciaRenglon, motivoNoContable, textoReparto, unidadesBuenas, validarConteo } from '@/lib/recepcion'
 import { INPUT_CLS, LABEL_CLS } from './producto-form'
-import { nombreConMedida, type RecepcionVista, type RenglonVista } from './recepcion-tipos'
+import { nombreConMedida, pesos, type RecepcionVista, type RenglonVista } from './recepcion-tipos'
 
-const OPCIONES_DESTINO = [
-  { value: 'bodega', label: 'Bodega' },
-  { value: 'almacen', label: 'Almacén' },
-]
+const entero = (texto: string) => (texto.trim() === '' ? 0 : Number(texto))
 
-/** Conteo de un renglón: contadas, averiadas (de esas) y destino. Nunca muestra lo facturado (conteo ciego). */
+/**
+ * Conteo de un renglón: contadas, averiadas (de esas) y cuántas de las buenas van al almacén; el resto entra a la bodega.
+ * Nunca muestra lo facturado (conteo ciego).
+ */
 function FilaConteo({ renglon, onListo }: { renglon: RenglonVista; onListo: () => void }) {
   const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
   const [contadas, setContadas] = useState(renglon.cantidad_contada != null ? String(renglon.cantidad_contada) : '')
   const [averiadas, setAveriadas] = useState(renglon.cantidad_averiada > 0 ? String(renglon.cantidad_averiada) : '')
-  const [destino, setDestino] = useState<DestinoRecepcion>(renglon.destino)
+  const [almacen, setAlmacen] = useState(renglon.cantidad_almacen > 0 ? String(renglon.cantidad_almacen) : '')
   const [guardando, setGuardando] = useState(false)
-  const destinoFijo = renglon.stock_ingresado > 0
+
+  const nContadas = entero(contadas)
+  const nAveriadas = entero(averiadas)
+  const buenas = Number.isInteger(nContadas) && Number.isInteger(nAveriadas) ? Math.max(nContadas - nAveriadas, 0) : 0
+  const validacion = contadas.trim() === '' ? null : validarConteo(nContadas, nAveriadas, entero(almacen))
 
   const marcar = async () => {
-    const nContadas = Number(contadas)
-    const nAveriadas = averiadas.trim() === '' ? 0 : Number(averiadas)
-    if (contadas.trim() === '' || !Number.isInteger(nContadas) || nContadas < 0) { toast.error('Escribe cuántas unidades contaste'); return }
-    if (!Number.isInteger(nAveriadas) || nAveriadas < 0 || nAveriadas > nContadas) { toast.error('Las averiadas no pueden ser más que las contadas'); return }
+    if (!validacion) { toast.error('Escribe cuántas unidades contaste'); return }
+    if (!validacion.ok) { toast.error(validacion.error); return }
     setGuardando(true)
     const { data, error } = await supabase.rpc('contar_renglon_recepcion', {
       p_renglon_id: renglon.id,
       p_cantidad_contada: nContadas,
       p_cantidad_averiada: nAveriadas,
-      p_destino: destinoFijo ? undefined : destino,
+      p_cantidad_almacen: validacion.reparto.almacen,
     })
     setGuardando(false)
     if (error) { toast.error(error.message); return }
-    const lugar = ETIQUETA_DESTINO[destinoFijo ? renglon.destino : destino].toLowerCase()
     const movidas = Number(data ?? 0)
-    if (!renglon.producto_id) toast.success('Conteo guardado. Entra al inventario cuando se asocie el producto.')
-    else if (movidas > 0) toast.success(`Entraron ${movidas} a ${lugar}`)
-    else if (movidas < 0) toast.success(`Salieron ${-movidas} de ${lugar}`)
+    if (renglon.cantidad_contada == null) toast.success(`Contado: entran ${textoReparto(validacion.reparto)}`)
+    else if (movidas !== 0 || renglon.cantidad_almacen !== validacion.reparto.almacen) toast.success(`Conteo corregido: ${textoReparto(validacion.reparto)}`)
     else toast.success('Conteo guardado')
     onListo()
     router.refresh()
@@ -66,16 +65,22 @@ function FilaConteo({ renglon, onListo }: { renglon: RenglonVista; onListo: () =
             placeholder="0" className={`h-11 ${INPUT_CLS}`} />
         </div>
         <div className="space-y-1">
-          <Label className={LABEL_CLS}>Entra a</Label>
-          {destinoFijo ? (
-            <p className="flex h-11 items-center text-sm text-white">{ETIQUETA_DESTINO[renglon.destino]}</p>
-          ) : (
-            <Select value={destino} onValueChange={v => v && setDestino(v as DestinoRecepcion)} items={OPCIONES_DESTINO}>
-              <SelectTrigger className="h-11 w-full border-white/10 bg-[#1a2430] text-white"><SelectValue /></SelectTrigger>
-              <SelectContent>{OPCIONES_DESTINO.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
-            </Select>
-          )}
+          <Label htmlFor={`${id}-almacen`} className={LABEL_CLS}>Al almacén</Label>
+          <Input id={`${id}-almacen`} type="number" inputMode="numeric" min={0} max={buenas} step={1} value={almacen} onChange={e => setAlmacen(e.target.value)}
+            placeholder="0" className={`h-11 ${INPUT_CLS}`} />
         </div>
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+        <p className={validacion && !validacion.ok ? 'text-brand-red' : 'text-steel-300'}>
+          {validacion == null ? 'Lo que no vaya al almacén entra a la bodega.'
+            : validacion.ok ? `Entran ${textoReparto(validacion.reparto)}.` : validacion.error}
+        </p>
+        {buenas > 0 && (
+          <span className="flex gap-3">
+            <button type="button" onClick={() => setAlmacen(String(buenas))} className="font-semibold text-brand-blue hover:underline">Todo al almacén</button>
+            <button type="button" onClick={() => setAlmacen('')} className="font-semibold text-brand-blue hover:underline">Todo a bodega</button>
+          </span>
+        )}
       </div>
       <Button type="button" onClick={marcar} disabled={guardando}
         className="h-11 w-full bg-brand-yellow font-bold text-steel-900 hover:bg-brand-yellow hover:brightness-105">
@@ -95,13 +100,17 @@ function Encabezado({ renglon }: { renglon: RenglonVista }) {
       <p className="text-xs text-steel-300">
         {[renglon.producto?.marca, renglon.referencia ? `Ref. ${renglon.referencia}` : null].filter(Boolean).join(' · ')}
       </p>
+      {renglon.precio_aprobado != null && (
+        <p className="text-xs text-white">Precio de venta <span className="font-bold text-brand-yellow">{pesos(renglon.precio_aprobado)}</span></p>
+      )}
     </div>
   )
 }
 
 /**
- * Pestaña "Conteo": lo que falta contar, lo que no cuadra con la factura (para volver a contarlo) y lo ya contado.
- * Quien cuenta no ve lo facturado; el administrador ve las diferencias con sus números.
+ * Pestaña "Conteo": lo que espera el precio del administrador, lo que falta contar, lo que no cuadra con la factura
+ * (para volver a contarlo) y lo ya contado. Quien cuenta ve el precio aprobado pero no lo facturado; el administrador ve
+ * las diferencias con sus números.
  */
 export function RecepcionConteo({ recepcion, renglones, esAdmin }: {
   recepcion: RecepcionVista
@@ -110,7 +119,9 @@ export function RecepcionConteo({ recepcion, renglones, esAdmin }: {
 }) {
   const [corrigiendo, setCorrigiendo] = useState<string | null>(null)
   const editable = recepcion.estado !== 'cerrada'
-  const porContar = renglones.filter(r => r.cantidad_contada == null)
+  // Se cuenta sabiendo el precio: primero el administrador aprueba los precios (pestaña Precios)
+  const esperandoPrecio = renglones.filter(r => r.cantidad_contada == null && motivoNoContable(r) !== null)
+  const porContar = renglones.filter(r => r.cantidad_contada == null && motivoNoContable(r) === null)
   const conDiferencia = renglones.filter(r => diferenciaRenglon(r)?.cuadra === false)
   const contados = renglones.filter(r => diferenciaRenglon(r)?.cuadra === true)
 
@@ -118,11 +129,12 @@ export function RecepcionConteo({ recepcion, renglones, esAdmin }: {
     const buenas = unidadesBuenas(r)
     const partes = [`${r.cantidad_contada} contadas`]
     if (r.cantidad_averiada > 0) partes.push(`${r.cantidad_averiada} averiadas`)
-    partes.push(r.producto_id ? `${buenas} en ${ETIQUETA_DESTINO[r.destino].toLowerCase()}` : 'entra al asociar el producto')
+    if (buenas > 0) partes.push(`${r.ingresado_almacen} en almacén y ${r.ingresado_bodega} en bodega`)
     return partes.join(' · ')
   }
 
-  const botonCorregir = (r: RenglonVista) => editable && corrigiendo !== r.id && (
+  // Corregir un conteo también exige el precio aprobado (si cambió el costo del renglón, se vuelve a aprobar)
+  const botonCorregir = (r: RenglonVista) => editable && corrigiendo !== r.id && motivoNoContable(r) === null && (
     <button type="button" onClick={() => setCorrigiendo(r.id)} className="shrink-0 text-xs font-semibold text-brand-blue hover:underline">Corregir</button>
   )
 
@@ -172,7 +184,10 @@ export function RecepcionConteo({ recepcion, renglones, esAdmin }: {
       <section className="space-y-2">
         <h3 className="font-display text-sm font-bold uppercase tracking-wide text-brand-yellow">Por contar ({porContar.length})</h3>
         {porContar.length === 0 ? (
-          <p className="text-sm text-steel-500">{renglones.length === 0 ? 'Primero agrega los renglones de la factura.' : 'Todo está contado.'}</p>
+          <p className="text-sm text-steel-500">
+            {renglones.length === 0 ? 'Primero agrega los renglones de la factura.'
+              : esperandoPrecio.length > 0 ? 'Los renglones que faltan esperan el precio del administrador.' : 'Todo está contado.'}
+          </p>
         ) : (
           <ul className="space-y-2">
             {porContar.map(r => (
@@ -184,6 +199,25 @@ export function RecepcionConteo({ recepcion, renglones, esAdmin }: {
           </ul>
         )}
       </section>
+
+      {esperandoPrecio.length > 0 && (
+        <section className="space-y-2">
+          <h3 className="flex items-center gap-2 font-display text-sm font-bold uppercase tracking-wide text-steel-300">
+            <Clock className="h-4 w-4" />Esperando precio ({esperandoPrecio.length})
+          </h3>
+          <p className="text-xs text-steel-500">
+            {esAdmin ? 'Aprueba los precios en la pestaña Precios para que se puedan contar.' : 'Se cuentan cuando el administrador apruebe su precio.'}
+          </p>
+          <ul className="space-y-2">
+            {esperandoPrecio.map(r => (
+              <li key={r.id} className="space-y-1 rounded-2xl border border-white/10 bg-[#111820] p-3 opacity-80">
+                <Encabezado renglon={r} />
+                <p className="text-xs text-steel-500">{motivoNoContable(r)}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {contados.length > 0 && (
         <section className="space-y-2">

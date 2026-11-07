@@ -9,6 +9,7 @@ import { Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { esDomingoOFestivo } from '@/lib/festivos-colombia'
+import type { PermisoVista } from './permisos-empleados'
 
 const DIAS = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'] as const
 const DIAS_LABEL: Record<string, string> = {
@@ -39,6 +40,8 @@ interface HorarioSemanalProps {
   empleados: Empleado[]
   esAdmin: boolean
   fechaHoy: string
+  /** Permisos desde el lunes de esta semana: se marcan en el día que no asiste el empleado */
+  permisos?: PermisoVista[]
 }
 
 function calcularHoras(inicio: string, fin: string): number {
@@ -64,7 +67,7 @@ function esDomingoOFestivoNombre(diaNombre: string, fechaHoy: string): boolean {
   return esDomingoOFestivo(fecha)
 }
 
-export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy }: HorarioSemanalProps) {
+export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy, permisos = [] }: HorarioSemanalProps) {
   const supabase = createClient()
   const router = useRouter()
   const [vistaActiva, setVistaActiva] = useState<'semanal' | 'empleado'>('semanal')
@@ -78,6 +81,11 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy }: Horario
   const [eliminando, setEliminando] = useState<string | null>(null)
 
   const turnosPorDia = (dia: string) => turnos.filter(t => t.dia_semana === dia)
+  const permisosDelDia = (dia: string) => {
+    const fecha = fechaDelDia(fechaHoy, dia)
+    return permisos.filter(p => p.fecha === fecha)
+  }
+  const tienePermiso = (dia: string, empleadoId: string) => permisosDelDia(dia).some(p => p.empleado_id === empleadoId)
 
   const horasPorEmpleado = (empleadoId: string) => {
     return turnos.filter(t => t.empleado_id === empleadoId)
@@ -168,8 +176,14 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy }: Horario
                   )}
                 </div>
                 <div className="min-h-16 space-y-1 p-2">
+                  {permisosDelDia(dia).map(p => (
+                    <div key={p.id} className="rounded-xl border border-brand-red/30 bg-brand-red/10 px-2 py-1 text-xs text-brand-red">
+                      <p className="font-medium leading-tight">{p.nombre.split(' ')[0]}</p>
+                      <p>Permiso: no asiste</p>
+                    </div>
+                  ))}
                   {turnosPorDia(dia).map(t => (
-                    <div key={t.id} className="rounded-xl border border-white/10 bg-[#1a2430] px-2 py-1 text-xs">
+                    <div key={t.id} className={`rounded-xl border border-white/10 bg-[#1a2430] px-2 py-1 text-xs ${tienePermiso(dia, t.empleado_id) ? 'opacity-40 line-through' : ''}`}>
                       <div className="flex items-start justify-between gap-1">
                         <div>
                           <p className="font-medium leading-tight text-white">

@@ -97,7 +97,8 @@ export function RecepcionPrecios({ recepcion, renglones, margenDefault }: {
         <p className="text-xs text-steel-300">
           Se propone el mayor entre el precio actual y el sugerido, para no bajar precios sin querer; en un producto nuevo,
           el sugerido. Puedes cambiar cualquiera. Al aprobar se guardan el costo y la referencia de {recepcion.proveedor_nombre}
-          {' '}y el precio de venta, y los productos nuevos quedan activos.
+          {' '}y el precio de venta, y los productos nuevos quedan activos. Los empleados cuentan cada renglón cuando
+          su precio está aprobado: apruébalos antes del conteo (y otra vez si se agregan renglones o cambia un costo).
         </p>
       </div>
 

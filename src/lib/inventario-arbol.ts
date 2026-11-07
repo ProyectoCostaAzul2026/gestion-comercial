@@ -160,3 +160,15 @@ export function rangoPrecios(r: Resumen): string {
   if (r.productos === 0) return '—'
   return r.precioMin === r.precioMax ? pesos(r.precioMin) : `${pesos(r.precioMin)} a ${pesos(r.precioMax)}`
 }
+
+/** Quita espacios de más: "  Codo   PVC " → "Codo PVC" */
+export function limpiarTexto(texto: string): string {
+  return texto.trim().replace(/\s+/g, ' ')
+}
+
+/** null si la URL de una imagen sirve (vacía, o http/https); si no, el mensaje de error. Misma regla que la base. */
+export function validarImagenUrl(url: string): string | null {
+  const u = url.trim()
+  if (!u) return null
+  return /^https?:\/\//i.test(u) ? null : 'La imagen debe ser una dirección web (http:// o https://)'
+}

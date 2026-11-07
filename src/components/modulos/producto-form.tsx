@@ -290,6 +290,8 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
   const [isDesactivando, setIsDesactivando] = useState(false)
   const [form, setForm] = useState<ProductoFormState>(estadoInicial(producto, margenDefault, proveedores, nuevoInicial))
   const [proveedoresEliminados, setProveedoresEliminados] = useState<string[]>([])
+  // Lugares cuyo stock se llenó con "Contar por peso": el movimiento de ajuste lo dice en su nota
+  const [contadoPorPeso, setContadoPorPeso] = useState<{ bodega: boolean; almacen: boolean }>({ bodega: false, almacen: false })
   const [moverCantidad, setMoverCantidad] = useState(0)
   const [moverDireccion, setMoverDireccion] = useState<'bodega_a_almacen' | 'almacen_a_bodega'>('bodega_a_almacen')
 
@@ -505,6 +507,8 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
         cantidad_minima_venta: form.vender_por_fraccion ? form.cantidad_minima_venta : null,
         precio_por_unidad_medida: form.vender_por_fraccion ? form.precio_por_unidad_medida : null,
         peso_unitario_g: form.usa_peso && form.peso_unitario_g > 0 ? form.peso_unitario_g : null,
+        // Nota del movimiento de ajuste si el stock cambió al editar (guardar_producto)
+        ...(contadoPorPeso.bodega || contadoPorPeso.almacen ? { nota_stock: 'Conteo por peso' } : {}),
       }
 
       // Proveedores tal como quedan en el formulario: los que ya tienen id se actualizan y los demás se crean.
@@ -534,6 +538,18 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
           p_empleado_id: empleadoId,
         })
         if (rpcError) throw rpcError
+
+        // Un producto sin familia (por ejemplo, de alta rápida) queda en su familia y grupo al nombrarlo
+        // "Familia - Característica", igual que al crearlo
+        const partesEdicion = !producto.familia_id ? separarNombre(form.nombre) : null
+        if (partesEdicion) {
+          const { error: errorFamilia } = await supabase.rpc('mover_productos', {
+            p_producto_ids: [producto.id],
+            p_familia: partesEdicion.familia,
+            p_caracteristica: partesEdicion.caracteristica,
+          })
+          if (errorFamilia) toast.error(`El producto se guardó, pero no quedó en su familia: ${errorFamilia.message}. Muévelo desde el inventario.`)
+        }
 
         const errorTramos = await guardarPreciosCantidad(producto.id)
         if (errorTramos) {
@@ -620,7 +636,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
           <Label htmlFor="nombre" className={LABEL_CLS}>Nombre del producto *</Label>
           <Input id="nombre" className={INPUT_CLS} value={form.nombre} readOnly={fijo} onChange={(e) => handleChange('nombre', e.target.value)} />
           {errors.nombre && <p className="text-xs text-brand-red">{errors.nombre}</p>}
-          {!esEdicion && !fijo && (
+          {(!esEdicion || !producto?.familia_id) && !fijo && (
             <p className="text-xs text-steel-500">
               {separarNombre(form.nombre)
                 ? `Quedará en la familia "${separarNombre(form.nombre)!.familia}", grupo "${separarNombre(form.nombre)!.caracteristica}".`
@@ -918,7 +934,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
             />
             {form.usa_peso && form.peso_unitario_g > 0 && (
               <ContarPorPeso id="contar-bodega" pesoUnitario={form.peso_unitario_g} stockActual={form.stock_bodega}
-                lugar="bodega" onUsar={(n) => handleChange('stock_bodega', n)} />
+                lugar="bodega" onUsar={(n) => { handleChange('stock_bodega', n); setContadoPorPeso(c => ({ ...c, bodega: true })); toast.info(`Stock de bodega: ${n}. Guarda el producto para que quede en el inventario.`) }} />
             )}
           </div>
           <div className="space-y-2">
@@ -933,7 +949,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
             />
             {form.usa_peso && form.peso_unitario_g > 0 && (
               <ContarPorPeso id="contar-almacen" pesoUnitario={form.peso_unitario_g} stockActual={form.stock_almacen}
-                lugar="almacén" onUsar={(n) => handleChange('stock_almacen', n)} />
+                lugar="almacén" onUsar={(n) => { handleChange('stock_almacen', n); setContadoPorPeso(c => ({ ...c, almacen: true })); toast.info(`Stock de almacén: ${n}. Guarda el producto para que quede en el inventario.`) }} />
             )}
           </div>
           </>)}

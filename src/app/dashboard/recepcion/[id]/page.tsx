@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { traerTodo } from '@/lib/supabase/traer-todo'
 import { esAdmin } from '@/lib/permissions'
-import type { DestinoRecepcion, EstadoRecepcion } from '@/lib/recepcion'
+import type { EstadoRecepcion } from '@/lib/recepcion'
 import { RecepcionPanel } from '@/components/modulos/recepcion-panel'
 import type { DatosAdminRecepcion, ProductoDelProveedor, RecepcionVista, RenglonVista } from '@/components/modulos/recepcion-tipos'
 
@@ -22,7 +22,7 @@ export default async function RecepcionDetallePage({ params }: { params: Promise
   const [{ data: items, error: errorItems }, { data: catalogo }] = await Promise.all([
     traerTodo((desde, hasta) => supabase
       .from('recepcion_items')
-      .select('id, producto_id, descripcion, referencia, cantidad_facturada, costo_unitario, cantidad_contada, cantidad_averiada, destino, stock_ingresado, contado_at, precio_aprobado, productos(id, nombre, codigo, marca, unidad_medida, activo, precio_venta, tiene_iva, iva_incluido, porcentaje_iva, vender_por_fraccion, stock_bodega, stock_almacen), profiles(nombre_completo)')
+      .select('id, producto_id, descripcion, referencia, cantidad_facturada, costo_unitario, cantidad_contada, cantidad_averiada, cantidad_almacen, ingresado_bodega, ingresado_almacen, stock_ingresado, contado_at, precio_aprobado, productos(id, nombre, codigo, marca, unidad_medida, activo, precio_venta, tiene_iva, iva_incluido, porcentaje_iva, vender_por_fraccion, stock_bodega, stock_almacen), profiles(nombre_completo)')
       .eq('recepcion_id', id)
       .order('created_at')
       .order('id')
@@ -97,7 +97,9 @@ export default async function RecepcionDetallePage({ params }: { params: Promise
     costo_unitario: Number(i.costo_unitario),
     cantidad_contada: i.cantidad_contada,
     cantidad_averiada: i.cantidad_averiada,
-    destino: i.destino as DestinoRecepcion,
+    cantidad_almacen: i.cantidad_almacen,
+    ingresado_bodega: i.ingresado_bodega,
+    ingresado_almacen: i.ingresado_almacen,
     stock_ingresado: i.stock_ingresado,
     contado_por_nombre: i.profiles?.nombre_completo ?? null,
     contado_at: i.contado_at,

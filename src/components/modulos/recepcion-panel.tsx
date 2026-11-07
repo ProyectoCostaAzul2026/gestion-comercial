@@ -12,7 +12,7 @@ import { CLASE_ESTADO_RECEPCION, type DatosAdminRecepcion, type ProductoDelProve
 
 type Pestana = 'factura' | 'conteo' | 'precios' | 'cierre'
 
-/** Detalle de una recepción: Factura (renglones), Conteo y, para el administrador, Precios y Cierre */
+/** Detalle de una recepción: Factura (renglones), Precios (administrador, antes del conteo), Conteo y Cierre (administrador) */
 export function RecepcionPanel({ recepcion, renglones, productosProveedor, esAdmin, datosAdmin }: {
   recepcion: RecepcionVista
   renglones: RenglonVista[]
@@ -22,14 +22,19 @@ export function RecepcionPanel({ recepcion, renglones, productosProveedor, esAdm
 }) {
   const router = useRouter()
   const contados = renglones.filter(r => r.cantidad_contada != null).length
-  const inicial: Pestana = esAdmin && recepcion.estado !== 'abierta' ? 'cierre' : renglones.length === 0 ? 'factura' : 'conteo'
+  // Flujo: transcribir → aprobar precios (administrador) → contar → cerrar
+  const faltaPrecio = renglones.some(r => r.producto_id && r.precio_aprobado == null)
+  const inicial: Pestana = esAdmin && recepcion.estado !== 'abierta' ? 'cierre'
+    : renglones.length === 0 ? 'factura'
+    : esAdmin && datosAdmin && faltaPrecio ? 'precios' : 'conteo'
   const [pestana, setPestana] = useState<Pestana>(inicial)
   const [actualizando, setActualizando] = useState(false)
 
   const pestanas: { id: Pestana; etiqueta: string }[] = [
     { id: 'factura', etiqueta: `Factura (${renglones.length})` },
+    ...(esAdmin && datosAdmin ? [{ id: 'precios' as const, etiqueta: faltaPrecio ? 'Precios •' : 'Precios' }] : []),
     { id: 'conteo', etiqueta: `Conteo (${contados}/${renglones.length})` },
-    ...(esAdmin && datosAdmin ? [{ id: 'precios' as const, etiqueta: 'Precios' }, { id: 'cierre' as const, etiqueta: 'Cierre' }] : []),
+    ...(esAdmin && datosAdmin ? [{ id: 'cierre' as const, etiqueta: 'Cierre' }] : []),
   ]
 
   const actualizar = () => {
