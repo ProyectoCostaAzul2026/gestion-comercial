@@ -103,6 +103,38 @@ export const TEMAS_AYUDA: TemaAyuda[] = [
     ],
   },
   {
+    id: 'inventario-editar-tarjetas',
+    categoria: 'Inventario',
+    titulo: 'Cambiar el nombre o la imagen de una categoría, familia o grupo',
+    soloAdmin: false,
+    secciones: [
+      {
+        pasos: [
+          'En Inventario toca el lápiz de la tarjeta (o el botón "Editar" dentro de la categoría, la familia o el grupo).',
+          'Escribe el nombre nuevo y pega la dirección web (URL) de la imagen. La vista previa muestra cómo queda.',
+          'Categoría: cambian solo su nombre y su imagen. Familia: sus productos pasan a llamarse "Familia nueva - Característica"; la imagen es solo la de la tarjeta.',
+          'Grupo de medidas: su nombre es la característica, y sus productos pasan a llamarse "Familia - Característica nueva". La imagen nueva queda en todas las medidas del grupo.',
+          'Para cambiar la imagen de una sola medida, hazlo en "Editar producto": solo ese producto cambia.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'productos-por-completar',
+    categoria: 'Inventario',
+    titulo: 'Productos de alta rápida por completar',
+    soloAdmin: false,
+    secciones: [
+      {
+        pasos: [
+          'En Nueva venta, "Alta rápida" crea un producto solo con nombre y precio para venderlo de una vez. Queda marcado "por completar".',
+          'Esos productos aparecen en Inventario › "Por completar" y como alerta en el Inicio del administrador.',
+          'Toca "Completar": escribe el nombre como "Familia - Característica", elige la categoría y agrega el proveedor con su costo. Al guardar, sale de la lista.',
+        ],
+      },
+    ],
+  },
+  {
     id: 'buscar-producto',
     categoria: 'Inventario',
     titulo: 'Buscar un producto y ver su ficha',
@@ -215,7 +247,7 @@ export const TEMAS_AYUDA: TemaAyuda[] = [
           'Pon un margen y elige el redondeo. El sistema sugiere un precio por medida a partir de su costo; si una medida no tiene costo, lo estima con las medidas vecinas y lo marca como estimado.',
           'El redondeo automático lleva a $50 los precios menores de $1.000 y a $100 los demás.',
           'Puedes usar todos los sugeridos, tocar el sugerido de una medida para usarlo, o escribir tu propio precio. También puedes poner un margen distinto en una fila.',
-          'Las alertas avisan si una medida queda más barata que la anterior, con el mismo precio, con más del doble o por debajo del costo. La gráfica muestra la escala con una línea por calibre.',
+          'Las alertas avisan si una medida queda más barata que la anterior, con el mismo precio, con más del doble o por debajo del costo.',
           'Al guardar, los precios nuevos quedan como precios de venta. Cada cambio de precio queda registrado con quién y cuándo lo hizo; los últimos se ven en la ficha del producto.',
           'Solo un administrador puede cambiar precios de venta, aquí o en "Editar producto". Al crear un producto, quien lo crea pone su precio.',
         ],
@@ -250,7 +282,7 @@ export const TEMAS_AYUDA: TemaAyuda[] = [
         pasos: [
           'En "Editar producto", debajo del stock de bodega y del de almacén, toca "Contar por peso".',
           'Escribe el peso total y, si lo pesaste dentro de un recipiente, el peso del recipiente. El sistema calcula las unidades y muestra la diferencia con el stock actual.',
-          'Toca "Usar como stock" y guarda el producto para que quede el nuevo stock.',
+          'Toca "Usar como stock" y guarda el producto para que quede el nuevo stock. El cambio queda en los movimientos de inventario como "Conteo por peso".',
         ],
       },
     ],
@@ -307,7 +339,8 @@ export const TEMAS_AYUDA: TemaAyuda[] = [
       {
         subtitulo: 'Contar',
         pasos: [
-          'En la pestaña Conteo cuenta cada producto sin mirar la factura: escribe cuántas unidades llegaron, cuántas de esas vienen averiadas y si van a bodega o a almacén.',
+          'Cada producto se cuenta cuando el administrador ya aprobó su precio: en la pestaña Conteo ves el precio de venta de cada renglón. Los que esperan el precio aparecen aparte.',
+          'Cuenta cada producto sin mirar la factura: escribe cuántas unidades llegaron, cuántas de esas vienen averiadas y cuántas van al almacén. Las demás entran a la bodega (por ejemplo, 15 buenas con 10 al almacén: 5 van a la bodega).',
           'Al marcar el renglón, lo que llegó bueno entra de una vez al inventario y queda tu nombre. Las averiadas no entran.',
           'Si un renglón aparece en Diferencias, vuélvelo a contar y corrige el número: el inventario se ajusta solo.',
           'Varias personas pueden contar la misma factura a la vez; toca el botón de actualizar para ver lo que contaron los demás.',
@@ -401,6 +434,14 @@ export const TEMAS_AYUDA: TemaAyuda[] = [
         pasos: [
           'Entra a Horario para ver los turnos asignados de lunes a domingo.',
           'Solo un administrador puede crear o modificar turnos — como empleado, esta vista es de solo consulta.',
+        ],
+      },
+      {
+        subtitulo: 'Sacar un permiso',
+        pasos: [
+          'En Horario, en la sección Permisos, elige el día que no vas a asistir y, si quieres, el motivo. Toca "Sacar permiso".',
+          'Los administradores ven la alerta en el Inicio y el día queda marcado en la vista semanal.',
+          'Puedes quitar tu permiso mientras no haya pasado el día.',
         ],
       },
     ],
@@ -512,18 +553,19 @@ export const TEMAS_AYUDA: TemaAyuda[] = [
         ],
       },
       {
-        subtitulo: 'Aprobar costos y precios',
+        subtitulo: 'Aprobar costos y precios (antes del conteo)',
         pasos: [
+          'Aprueba los precios apenas estén transcritos los renglones: los empleados solo pueden contar un renglón cuando su precio está aprobado, para contar sabiendo el precio.',
           'En la pestaña Precios pon el margen y toca "Proponer precios con este margen". Se propone el mayor entre el precio actual y el sugerido, para no bajar precios sin querer; en un producto nuevo, el sugerido.',
           'Revisa cada precio, el costo nuevo y el margen que deja, y toca "Aprobar costos y precios". Se guardan el costo y la referencia del proveedor y el precio de venta, y el cambio queda en el historial de precios.',
-          'Si después cambias el costo o el producto de un renglón, vuelve a aprobar.',
+          'Si después se agregan renglones o cambias el costo o el producto de uno, vuelve a aprobar: hasta entonces ese renglón no se puede contar.',
         ],
       },
       {
         subtitulo: 'Cerrar',
         pasos: [
           'En la pestaña Cierre revisa que la suma de los renglones cuadre con el total de la factura.',
-          'Para cerrar, todos los renglones deben tener producto, estar contados y tener el precio aprobado.',
+          'Para cerrar, todos los renglones deben tener producto, tener el precio aprobado y estar contados.',
           'Si hubo faltantes, sobrantes o averiadas, escribe la nota de reclamación o devolución. La recepción queda con la reclamación pendiente: lo que llegue después se registra corrigiendo el conteo, y cuando el proveedor responda la marcas resuelta.',
         ],
       },

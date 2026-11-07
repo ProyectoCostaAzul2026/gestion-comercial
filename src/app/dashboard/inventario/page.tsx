@@ -5,14 +5,14 @@ import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
 import { InventarioNavegador } from '@/components/modulos/inventario-navegador'
 import { esAdmin } from '@/lib/permissions'
-import { AlertTriangle, ShieldCheck, PowerOff } from 'lucide-react'
+import { AlertTriangle, ClipboardList, ShieldCheck, PowerOff } from 'lucide-react'
 
 export default async function InventarioPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: productos, error }, { data: familias }, { data: categorias }, { data: perfil }] = await Promise.all([
+  const [{ data: productos, error }, { data: familias }, { data: categorias }, { data: perfil }, { count: porCompletar }] = await Promise.all([
     traerTodo((filaDesde, filaHasta) =>
       supabase
         .from('productos')
@@ -27,6 +27,7 @@ export default async function InventarioPage() {
     ),
     supabase.from('categorias_producto').select('id, nombre, imagen_url').order('nombre'),
     supabase.from('profiles').select('rol').eq('id', user.id).single(),
+    supabase.from('productos').select('id', { count: 'exact', head: true }).eq('por_completar', true).eq('activo', true),
   ])
 
   return (
@@ -61,6 +62,15 @@ export default async function InventarioPage() {
               Desactivados
             </Link>
           </div>
+          {(porCompletar ?? 0) > 0 && (
+            <Link
+              href="/dashboard/inventario/por-completar"
+              className="mt-2 flex h-10 items-center justify-center rounded-xl border border-brand-yellow/60 px-4 text-sm font-bold text-brand-yellow hover:bg-brand-yellow/10"
+            >
+              <ClipboardList className="mr-2 h-4 w-4" />
+              Por completar ({porCompletar}): productos de alta rápida
+            </Link>
+          )}
         </div>
         <div className="pointer-events-none absolute inset-y-0 right-0 w-28 overflow-hidden">
           <div className="absolute inset-y-0 right-0 w-20 -skew-x-12 translate-x-8 bg-brand-yellow/80" />

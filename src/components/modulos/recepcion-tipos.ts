@@ -1,5 +1,5 @@
 // Datos de una recepción de mercancía que la página del servidor les pasa a sus componentes
-import type { DestinoRecepcion, EstadoRecepcion } from '@/lib/recepcion'
+import type { EstadoRecepcion } from '@/lib/recepcion'
 
 export interface ProductoDelRenglon {
   id: string
@@ -26,7 +26,11 @@ export interface RenglonVista {
   costo_unitario: number
   cantidad_contada: number | null
   cantidad_averiada: number
-  destino: DestinoRecepcion
+  /** De las unidades buenas, cuántas van al almacén (el resto, a la bodega) */
+  cantidad_almacen: number
+  /** Lo que ya entró al inventario en cada lugar */
+  ingresado_bodega: number
+  ingresado_almacen: number
   stock_ingresado: number
   contado_por_nombre: string | null
   contado_at: string | null

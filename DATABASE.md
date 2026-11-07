@@ -1,7 +1,7 @@
 # DATABASE.md — Ferreléctricos Costa Azul
 > Documentación de la base de datos en Supabase (PostgreSQL)
 > Proyecto: `qmeegynucijohagywdcr`
-> Última actualización: 2026-11-05
+> Última actualización: 2026-11-07
 
 ---
 
@@ -118,6 +118,7 @@ producto).
 | caracteristica | text | YES | — | Característica dentro de la familia (ej: "PVC Presion") |
 | orden_medida | int4 | YES | — | Orden manual dentro de su grupo de medidas; null = orden automático por tamaño |
 | peso_unitario_g | numeric | YES | — | Peso de una unidad en gramos, solo informativo (vender y contar pesando); null = no se maneja por peso. CHECK: null o > 0 (`productos_peso_unitario_g_check`) |
+| por_completar | boolean | NO | false | Creado con el alta rápida de Nueva venta y le faltan datos. Lo apaga `trg_revisar_por_completar` cuando tiene categoría, familia y un proveedor con costo > 0 (ver nota 19) |
 | created_at / updated_at | timestamptz | NO | now() | |
 
 **Convención de nombres:** `nombre = "<producto_familias.nombre_base> - <caracteristica>"` (guion corto con un espacio a
@@ -134,6 +135,9 @@ cada lado) y `unidad_medida = "<medida> <Unidad>"` (la unidad es la última pala
   Crear un producto con su precio sigue permitido, y quitar el precio por fracción (al apagarla) no cuenta como cambio
 - `fn_registrar_historial_precios` (`trg_historial_precios`, AFTER UPDATE de los mismos campos) — guarda cada cambio de
   precio en `historial_precios`
+- `fn_revisar_por_completar` (`trg_revisar_por_completar`, BEFORE UPDATE cuando `por_completar`) — lo pasa a false
+  cuando el producto ya tiene `categoria_id`, `familia_id` y un proveedor con `precio_costo > 0`. Agregar el proveedor
+  también lo dispara, porque `fn_actualizar_precio_costo_base` actualiza el producto
 - `fn_asignar_codigo_producto` (`trg_asignar_codigo_producto`, BEFORE INSERT o UPDATE de `codigo`) — si el producto llega
   sin código (null o en blanco), le asigna el siguiente de su prefijo; al editar sin código conserva el que tenía. Ver
   Notas importantes (Código corto)
@@ -493,11 +497,13 @@ de la factura. La leen todos los usuarios con sesión y solo la escriben las RPC
 | costo_unitario | numeric(12,2) | NO | — | Como viene en la factura (con o sin IVA según `recepciones.costos_con_iva`); 0 = bonificación |
 | cantidad_contada | int4 | YES | — | null = sin contar |
 | cantidad_averiada | int4 | NO | 0 | De las contadas; no entran al inventario |
-| destino | varchar(10) | NO | bodega | `bodega` o `almacen` |
-| stock_ingresado | int4 | NO | 0 | Lo que ya entró al inventario (contadas menos averiadas) |
+| cantidad_almacen | int4 | NO | 0 | De las buenas (contadas − averiadas), cuántas van al almacén; el resto, a la bodega. CHECK >= 0 |
+| ingresado_bodega | int4 | NO | 0 | Lo que ya entró a la bodega. CHECK >= 0 |
+| ingresado_almacen | int4 | NO | 0 | Lo que ya entró al almacén. CHECK >= 0 |
+| stock_ingresado | int4 | NO | 0 | Lo que ya entró al inventario (contadas menos averiadas) = `ingresado_bodega + ingresado_almacen` |
 | contado_por | uuid | YES | — | FK → profiles (on delete set null); quien contó o corrigió por última vez |
 | contado_at | timestamptz | YES | — | |
-| precio_aprobado | numeric(12,2) | YES | — | Precio de venta aprobado; vuelve a null si cambian el producto o el costo del renglón |
+| precio_aprobado | numeric(12,2) | YES | — | Precio de venta aprobado; vuelve a null si cambian el producto o el costo del renglón. Sin él, el renglón no se puede contar |
 | created_at | timestamptz | NO | now() | |
 
 ---
@@ -557,6 +563,22 @@ de la factura. La leen todos los usuarios con sesión y solo la escriben las RPC
 | hora_inicio | time | NO | — | |
 | hora_fin | time | NO | — | |
 | activo | boolean | NO | true | |
+
+---
+
+### `permisos_empleado`
+Días que un empleado no asiste (permiso). El empleado lo saca para sí mismo desde hoy; el administrador lo registra para
+cualquiera. Los administradores ven la alerta en el Inicio (permisos de hoy a 7 días) y el día queda marcado en Horario.
+Migración `mejoras_inventario_recepcion_horario` (2026-11-07).
+
+| Columna | Tipo | Nullable | Default |
+|---|---|---|---|
+| id | uuid | NO | gen_random_uuid() |
+| empleado_id | uuid | NO | — | FK → profiles (on delete cascade) |
+| fecha | date | NO | — | Día que no asiste. UNIQUE (empleado_id, fecha) |
+| motivo | text | YES | — | Hasta 300 caracteres |
+| creado_por | uuid | YES | auth.uid() | FK → profiles (on delete set null); debe ser quien lo crea |
+| created_at | timestamptz | NO | now() | |
 
 ---
 
@@ -741,6 +763,7 @@ Singleton (un solo registro).
 profiles ──────────────────────── ventas (empleado_id, anulada_por)
 profiles ──────────────────────── nominas (empleado_id)
 profiles ──────────────────────── horario_laboral (empleado_id)
+profiles ──────────────────────── permisos_empleado (empleado_id, creado_por)
 profiles ──────────────────────── movimientos_caja (empleado_id)
 profiles ──────────────────────── movimientos_inventario (empleado_id)
 profiles ──────────────────────── devoluciones (registrado_por)
@@ -860,7 +883,9 @@ servicios ─────────────────────── 
 | `buscar_productos(p_query)` | Búsqueda fuzzy con pg_trgm (Ventas, Cotización y Cambios). Devuelve hasta 10 productos activos con sus datos de venta, `peso_unitario_g`, `precios_cantidad` (jsonb `[{ cantidad_minima, precio_unitario }]`, de menor a mayor cantidad) y `similitud`. `SECURITY DEFINER` |
 | `mover_stock_bodega_almacen(p_producto_id, p_cantidad, p_direccion)` | Traslado entre bodega y almacén |
 | `calcular_rotacion_productos(...)` | KPIs de rotación por período |
-| `guardar_producto(p_datos, p_proveedores, p_producto_id?, p_activar?, p_proveedores_eliminados?, p_empleado_id?)` | Crea o edita un producto con sus proveedores (y el movimiento de stock inicial al crear) en una sola transacción. `SECURITY INVOKER`: aplica RLS del usuario. Guarda `peso_unitario_g` si `p_datos` trae la clave; al editar sin ella, conserva el que había |
+| `guardar_producto(p_datos, p_proveedores, p_producto_id?, p_activar?, p_proveedores_eliminados?, p_empleado_id?)` | Crea o edita un producto con sus proveedores (y el movimiento de stock inicial al crear) en una sola transacción. `SECURITY INVOKER`: aplica RLS del usuario. Guarda `peso_unitario_g` si `p_datos` trae la clave; al editar sin ella, conserva el que había. Al editar, si cambia el stock de bodega o de almacén deja un movimiento `ajuste` por lugar (`referencia_tipo` = `producto_edicion`) con la nota `p_datos->>'nota_stock'` (el formulario manda "Conteo por peso" si se usó la báscula) o "Ajuste de stock al editar el producto" |
+| `editar_familia(p_familia_id, p_nombre_base, p_imagen_url?)` | Cambia el nombre y la imagen (`imagen_url`, null la quita) de la tarjeta de una familia y renombra todos sus productos (activos e inactivos) a `nombre_base - caracteristica`. Rechaza `" - "` en el nombre, una URL que no sea http(s), otra familia con el mismo nombre (sin importar mayúsculas: para juntarlas se usa `mover_productos`) y nombres que choquen con el índice único. Cualquier usuario activo. `SECURITY DEFINER`. Devuelve los productos renombrados |
+| `editar_grupo_medidas(p_familia_id, p_caracteristica, p_marca, p_caracteristica_nueva, p_cambiar_imagen?, p_imagen_url?)` | Edita la tarjeta de un grupo de medidas (familia + característica + marca, comparadas con `is not distinct from`): cambia la característica de todos sus productos (activos e inactivos) y su nombre a `familia - característica nueva`; con `p_cambiar_imagen`, pone `p_imagen_url` (null la quita) en todas sus medidas, y sin él cada medida conserva su imagen. Rechaza `" - "`, una URL que no sea http(s), otro grupo de la familia con esa característica y marca (para juntarlos se usa `mover_productos`) y nombres que choquen con el índice único. Cualquier usuario activo. `SECURITY DEFINER`. Devuelve los productos cambiados |
 | `guardar_familia(p_nombre_base, p_base, p_operaciones, p_familia_id?, p_desactivar?)` | Guarda el árbol de una familia (actualizar / asignar padre / insertar miembros, desactivar los que salen) en una sola transacción. `SECURITY INVOKER` |
 | `aplicar_escala_precios(p_precios)` | Solo administrador. Guarda los precios de la escala de un grupo de medidas en una sola transacción: `p_precios` = `[{ producto_id, precio_venta }]`. Recalcula `margen_calculado` con `precio_costo_base` (igual que `calcularMargenCalculado`) y deja los cambios en `historial_precios` con origen `escala`. Devuelve cuántos productos actualizó |
 | `mover_productos(p_producto_ids, p_categoria_id?, p_familia?, p_caracteristica?)` | Mueve uno o varios productos (o un grupo de medidas completo) a otra categoría, familia o grupo. Solo categoría: no cambia el nombre. Con familia o característica: busca la familia por nombre sin importar mayúsculas (o la crea), deja `nombre = familia - característica` y borra las familias que quedan vacías. Rechaza nombres que choquen con el índice único y `" - "` dentro de la familia o la característica. No cambia código, stock, precios ni marca. Administrador y empleado (un empleado no mueve inactivos). `SECURITY DEFINER` (borra familias vacías, que no tienen política de DELETE). Ver nota 17 |
@@ -878,12 +903,12 @@ servicios ─────────────────────── 
 | `crear_recepcion(p_proveedor_id, p_fecha_emision, p_monto_total, p_costos_con_iva, p_numero_factura?, p_fecha_vencimiento?, p_notas?)` | Solo administrador. Crea la factura del proveedor (pendiente, saldo = total) y su recepción abierta. Rechaza un número de factura que ese proveedor ya tenga. Devuelve el id de la recepción |
 | `guardar_renglon_recepcion(p_recepcion_id, p_renglon)` | Cualquier usuario activo, recepción abierta. Agrega o edita un renglón: `{ id?, producto_id?, descripcion?, referencia?, cantidad_facturada, costo_unitario }`; sin producto queda pendiente. Si un renglón ya contado recibe su producto, su mercancía entra al inventario. Si cambian el producto o el costo, el precio del renglón se vuelve a aprobar |
 | `quitar_renglon_recepcion(p_renglon_id)` | Cualquier usuario activo, recepción abierta y renglón sin mercancía en el inventario |
-| `contar_renglon_recepcion(p_renglon_id, p_cantidad_contada, p_cantidad_averiada?, p_destino?)` | Cualquier usuario activo, recepción abierta o con reclamación. Guarda el conteo y quién contó; lo bueno (contadas − averiadas) entra al inventario y una corrección mueve la diferencia, sin dejar stock negativo. El destino solo se elige antes de que entre la mercancía. Devuelve las unidades movidas |
+| `contar_renglon_recepcion(p_renglon_id, p_cantidad_contada, p_cantidad_averiada?, p_cantidad_almacen?)` | Cualquier usuario activo, recepción abierta o con reclamación. Exige que el renglón tenga producto y precio aprobado (se cuenta sabiendo el precio). Guarda el conteo y quién contó; de lo bueno (contadas − averiadas), `p_cantidad_almacen` entra al almacén y el resto a la bodega (sin el parámetro conserva el reparto anterior, hasta las buenas). Una corrección mueve la diferencia en cada lugar, sin dejar stock negativo. Devuelve las unidades movidas en total |
 | `crear_miembro_familia_renglon(p_renglon_id, p_producto_base_id, p_caracteristica, p_marca, p_unidad_medida, p_codigo?)` | Solo administrador. Crea el producto de un renglón pendiente en la familia del producto base (otra medida del grupo, u otra característica o marca) con `guardar_familia`: nace inactivo, con los datos del base y sus proveedores en costo 0. Lo asocia al renglón (si estaba contado, entra al inventario). La app ya no envía `p_codigo`: sin código, la base de datos asigna el código corto (si llega uno, se le agrega el sufijo md5 del catálogo anterior) |
 | `aprobar_precios_recepcion(p_recepcion_id, p_precios)` | Solo administrador, recepción abierta. `p_precios` = `[{ renglon_id, precio_venta }]`, uno por cada renglón con producto. El costo del renglón, pasado a la forma del producto (con o sin IVA), y su referencia quedan como los de ese proveedor (lo agrega si no lo tenía; un costo 0 no cambia el costo); si otro proveedor del producto tiene costo 0, este queda como costo base. Guarda el precio y el margen como `aplicar_escala_precios`, con origen `recepcion` en el historial, y activa el producto |
-| `cerrar_recepcion(p_recepcion_id, p_nota?)` | Solo administrador. Exige renglones con producto, contados y con precio aprobado. Con diferencias (contadas distintas de facturadas, o averiadas) exige la nota y queda `reclamacion`; si no, `cerrada` |
+| `cerrar_recepcion(p_recepcion_id, p_nota?)` | Solo administrador. Exige renglones con producto, con precio aprobado y contados (en ese orden). Con diferencias (contadas distintas de facturadas, o averiadas) exige la nota y queda `reclamacion`; si no, `cerrada` |
 | `resolver_reclamacion_recepcion(p_recepcion_id, p_nota)` | Solo administrador. Pasa una recepción en `reclamacion` a `cerrada` con la nota de cómo se resolvió |
-| `sincronizar_stock_renglon(p_renglon_id, p_usuario_id)` | Interna: no la puede ejecutar la app. Pone el inventario de un renglón al día con su conteo y deja el movimiento |
+| `sincronizar_stock_renglon(p_renglon_id, p_usuario_id)` | Interna: no la puede ejecutar la app. Pone el inventario de un renglón al día con su conteo y su reparto (bodega y almacén por separado: `entrada`, o `ajuste` si baja) y deja un movimiento por cada lugar que cambia |
 
 > Las reglas que usa la app (costo con o sin IVA, diferencias del conteo, lo que falta para cerrar) están en
 > `src/lib/recepcion.ts`: si cambias una RPC de recepción, cambia también esa librería.
@@ -953,6 +978,9 @@ servicios ─────────────────────── 
 | recepciones | recepciones_factura_key | UNIQUE btree | factura_id |
 | recepcion_items | recepcion_items_producto_key | UNIQUE btree parcial (producto_id no nulo) | recepcion_id, producto_id |
 | recepciones, recepcion_items | idx_recepciones_&lt;columna&gt;, idx_recepcion_items_&lt;columna&gt; | btree | Una por cada clave foránea |
+| productos | idx_productos_por_completar | btree parcial (por_completar) | id |
+| permisos_empleado | permisos_empleado_unico | UNIQUE btree | empleado_id, fecha |
+| permisos_empleado | idx_permisos_empleado_fecha, idx_permisos_empleado_creado_por | btree | fecha; creado_por |
 | (40 tablas) | idx_&lt;tabla&gt;_&lt;columna&gt; | btree | Una por cada clave foránea (agregados el 2026-10-29) |
 
 ---
@@ -990,7 +1018,7 @@ servicios ─────────────────────── 
 - `productos` — SELECT (activos o admin), INSERT, UPDATE. Los precios de venta solo los cambia un administrador
   (trigger `trg_proteger_precios_productos`)
 - `producto_proveedores` — SELECT, INSERT, UPDATE, DELETE
-- `categorias_producto` — SELECT, INSERT, UPDATE
+- `categorias_producto` — SELECT, INSERT, UPDATE (la tarjeta de Inventario edita `nombre` e `imagen_url` directo)
 - `servicios` — SELECT, INSERT, UPDATE
 - `venta_pagos` — SELECT, INSERT
 - `venta_servicios` — SELECT, INSERT
@@ -1006,6 +1034,8 @@ servicios ─────────────────────── 
 - `recepciones`, `recepcion_items` — SELECT (solo las escriben las RPC de recepción; los totales y pagos de la factura
   siguen en `facturas_proveedor`, que solo ve el administrador)
 - `horario_laboral` — SELECT (todos), ALL (admin)
+- `permisos_empleado` — SELECT (con sesión); INSERT del propio empleado desde hoy o del admin para cualquiera y cualquier
+  día (`creado_por` = quien lo crea); DELETE del propio empleado mientras no pase el día, o del admin. Sin UPDATE
 - `configuracion_negocio` — SELECT (todos), UPDATE (admin)
 - `profiles` — SELECT (con sesión), UPDATE (propio + admin), INSERT/DELETE (admin). El trigger
   `trg_proteger_campos_sensibles_profiles` impide que alguien que no es admin cambie `rol`, `salario_base` o `activo`.
@@ -1044,8 +1074,9 @@ servicios ─────────────────────── 
 12. **Peso por unidad** (migración `peso_por_unidad`, 2026-11-04): `productos.peso_unitario_g` es solo informativo. Con
     él la app calcula cuánto deben pesar N unidades y cuántas unidades hay en un peso: en Nueva venta, al contar inventario
     en Editar producto ("Contar por peso": peso total menos el recipiente, dividido por el peso de una unidad) y por medida
-    en el grupo. No cambia precios, stock ni ventas; el conteo por peso solo llena el stock del formulario, que se guarda
-    con `guardar_producto` como cualquier edición (sin movimiento en `movimientos_inventario`).
+    en el grupo. No cambia precios ni ventas; el conteo por peso llena el stock del formulario y, al guardar,
+    `guardar_producto` deja el movimiento `ajuste` con la nota "Conteo por peso" (desde el 2026-11-07; antes no dejaba
+    movimiento).
 13. **Precios por cantidad** (migración `precios_por_cantidad`, 2026-11-04): desde cierta cantidad de un mismo producto,
     cada unidad vale menos (`precios_cantidad`). Las reglas son las mismas en la base y en `src/lib/precios-cantidad.ts`:
     - Hasta 5 por producto y solo los define un administrador (`guardar_precios_cantidad`). La cantidad es un entero
@@ -1064,9 +1095,11 @@ servicios ─────────────────────── 
 14. **Recepción de mercancía** (migración `recepcion_mercancia`, 2026-11-04):
     - El administrador abre la recepción de una factura (`crear_recepcion`, que también crea la factura del proveedor;
       los pagos siguen por Proveedores y se pueden hacer antes de cerrar).
-    - Los empleados transcriben los renglones y cuentan a ciegas: la app no les muestra lo facturado al contar. Al marcar
-      un renglón, lo bueno entra al inventario en bodega o almacén con su movimiento; las averiadas no entran. Una
-      corrección del conteo mueve la diferencia.
+    - Los empleados transcriben los renglones; el administrador aprueba los precios y después se cuenta (desde el
+      2026-11-07: un renglón sin precio aprobado no se puede contar). Se cuenta a ciegas: la app muestra el precio
+      aprobado pero no lo facturado. Al marcar un renglón, lo bueno entra al inventario repartido entre almacén y bodega
+      (por ejemplo, 10 al almacén y 5 a la bodega) con un movimiento por lugar; las averiadas no entran. Una corrección
+      del conteo o del reparto mueve la diferencia en cada lugar.
     - Un producto que no existe queda como renglón pendiente hasta asociarlo a uno existente, o hasta que el
       administrador lo cree (formulario de producto prellenado, que lo asocia al guardar) o lo agregue a una familia o
       grupo de medidas (`crear_miembro_familia_renglon`).
@@ -1105,3 +1138,15 @@ servicios ─────────────────────── 
     `respaldo.web_nuevos_20261106`, y el catálogo previo en `respaldo.productos_20261106` y
     `respaldo.producto_proveedores_20261106`. Los productos repetidos se unieron: el stock pasó al que queda con un
     movimiento `ajuste`, el proveedor del repetido quedó como proveedor adicional y el repetido quedó inactivo.
+19. **Tarjetas, permisos, recepción y alta rápida** (migración `mejoras_inventario_recepcion_horario`, 2026-11-07):
+    - Las tarjetas de Inventario se editan (nombre e imagen): la categoría directo, la familia con `editar_familia` y el
+      grupo de medidas con `editar_grupo_medidas`. La imagen de la familia y la categoría es solo de la tarjeta; la del
+      grupo se copia a todas sus medidas. Cambiar la imagen de un producto en "Editar producto" solo cambia ese producto.
+    - `permisos_empleado`: el día que un empleado no asiste. Alerta para administradores en el Inicio.
+    - Recepción: transcribir → aprobar precios → contar (repartiendo entre almacén y bodega) → cerrar. La columna
+      `recepcion_items.destino` se reemplazó por `cantidad_almacen`, `ingresado_bodega` e `ingresado_almacen`
+      (`contar_renglon_recepcion` cambió `p_destino` por `p_cantidad_almacen`; se borró la firma vieja).
+    - Alta rápida (Nueva venta): el producto nace con `por_completar` y aparece en Inventario › Por completar y en las
+      alertas del Inicio hasta que tenga categoría, familia y proveedor con costo. "Editar producto" pone en su familia a
+      un producto sin familia cuyo nombre sigue "Familia - Característica" (con `mover_productos`).
+    - `guardar_producto` deja movimiento `ajuste` cuando un cambio de stock se guarda al editar.

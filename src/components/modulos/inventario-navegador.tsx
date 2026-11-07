@@ -4,13 +4,14 @@ import { useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
-import { ChevronRight, EllipsisVertical, Package, Plus, Search, SlidersHorizontal, X } from 'lucide-react'
+import { ChevronRight, EllipsisVertical, Package, Pencil, Plus, Search, SlidersHorizontal, X } from 'lucide-react'
 import {
   buscarProductos, claveCategoria, claveFamilia, claveGrupo, nivelCategorias, nivelFamilias, nivelGrupos, pesos,
-  rangoPrecios, SIN, type ProductoInventario, type Resumen,
+  rangoPrecios, SIN, type NivelGrupo, type ProductoInventario, type Resumen,
 } from '@/lib/inventario-arbol'
 import { AccionesInventario, type ObjetivoAcciones } from './acciones-inventario'
 import { CrearNivelInventario, type TipoNivel } from './crear-nivel-inventario'
+import { EditarTarjetaInventario, type TarjetaEditable } from './editar-tarjeta-inventario'
 
 interface Props {
   productos: ProductoInventario[]
@@ -60,12 +61,14 @@ function TarjetaNueva({ texto, onClick }: { texto: string; onClick: () => void }
   )
 }
 
-function Tarjeta({ titulo, imagen, children, onAbrir, onMenu }: {
+function Tarjeta({ titulo, imagen, children, onAbrir, onMenu, onEditar }: {
   titulo: string
   imagen: string | null
   children: React.ReactNode
   onAbrir: () => void
   onMenu?: () => void
+  /** Editar el nombre y la imagen de la tarjeta (categoría, familia o grupo) */
+  onEditar?: () => void
 }) {
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#111820] transition hover:border-brand-yellow/50">
@@ -76,6 +79,12 @@ function Tarjeta({ titulo, imagen, children, onAbrir, onMenu }: {
           {children}
         </div>
       </button>
+      {onEditar && (
+        <button type="button" onClick={onEditar} aria-label={`Editar nombre e imagen de ${titulo}`}
+          className="absolute right-2 top-2 rounded-lg bg-[#111820]/80 p-1.5 text-steel-300 shadow hover:bg-[#111820] hover:text-brand-yellow">
+          <Pencil className="h-4 w-4" />
+        </button>
+      )}
       {onMenu && (
         <button type="button" onClick={onMenu} aria-label={`Acciones de ${titulo}`}
           className="absolute bottom-2 right-1 rounded-lg p-1.5 text-steel-300 hover:bg-white/10 hover:text-white">
@@ -97,6 +106,7 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
   const [limite, setLimite] = useState(PAGINA_BUSQUEDA)
   const [acciones, setAcciones] = useState<{ clave: string; objetivo: ObjetivoAcciones } | null>(null)
   const [crear, setCrear] = useState<TipoNivel | null>(null)
+  const [editar, setEditar] = useState<TarjetaEditable | null>(null)
   // Cada apertura del menú monta el panel de nuevo, con los datos del producto o grupo elegido
   const aperturas = useRef(0)
   const marcas = useMemo(
@@ -154,7 +164,12 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
   if (grupo) migas.push({ texto: [grupo.caracteristica, grupo.marca].filter(Boolean).join(' · ') || grupo.nombre, nivel: { cat, fam, g } })
 
   const BOTON_AGREGAR = 'inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-brand-yellow/60 px-3 text-sm font-bold text-brand-yellow hover:bg-brand-yellow/10'
+  const BOTON_EDITAR = 'inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-white/15 px-3 text-sm font-bold text-white hover:bg-white/5'
   const volver = `volver=${encodeURIComponent(rutaActual)}`
+  const tarjetaGrupo = (familiaId: string, x: NivelGrupo): TarjetaEditable => ({
+    tipo: 'grupo', familiaId, familia: nombreFamilia(familiaId), caracteristica: x.caracteristica, marca: x.marca,
+    imagen: x.resumen.imagen, medidas: x.items.length,
+  })
 
   return (
     <div className="space-y-4">
@@ -217,7 +232,8 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
           {!cat && (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {listaCategorias.map(c => (
-                <Tarjeta key={c.id} titulo={c.nombre} imagen={imagenCategoria(c.id) ?? c.resumen.imagen} onAbrir={() => ir({ cat: c.id })}>
+                <Tarjeta key={c.id} titulo={c.nombre} imagen={imagenCategoria(c.id) ?? c.resumen.imagen} onAbrir={() => ir({ cat: c.id })}
+                  onEditar={c.id === SIN ? undefined : () => setEditar({ tipo: 'categoria', id: c.id, nombre: c.nombre, imagen: imagenCategoria(c.id) })}>
                   <Estadisticas resumen={c.resumen} detalle={`${c.familias} familia${c.familias === 1 ? '' : 's'} · ${c.resumen.productos} productos`} />
                 </Tarjeta>
               ))}
@@ -230,10 +246,15 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
             <section className="space-y-3">
               <div className="flex items-center justify-between gap-2">
                 <h2 className="font-display text-xl font-bold text-white">{nombreCategoria(cat)}</h2>
+                {cat !== SIN && (
+                  <button type="button" onClick={() => setEditar({ tipo: 'categoria', id: cat, nombre: nombreCategoria(cat), imagen: imagenCategoria(cat) })}
+                    className={BOTON_EDITAR}><Pencil className="h-4 w-4" /> Editar</button>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                 {listaFamilias.map(f => (
-                  <Tarjeta key={f.id} titulo={f.nombre} imagen={imagenFamilia(f.id) ?? f.resumen.imagen} onAbrir={() => ir({ cat, fam: f.id })}>
+                  <Tarjeta key={f.id} titulo={f.nombre} imagen={imagenFamilia(f.id) ?? f.resumen.imagen} onAbrir={() => ir({ cat, fam: f.id })}
+                    onEditar={f.id === SIN ? undefined : () => setEditar({ tipo: 'familia', id: f.id, nombre: f.nombre, imagen: imagenFamilia(f.id) })}>
                     <Estadisticas resumen={f.resumen} detalle={`${f.grupos} grupo${f.grupos === 1 ? '' : 's'} · ${f.resumen.productos} productos`} />
                   </Tarjeta>
                 ))}
@@ -250,11 +271,16 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
             <section className="space-y-3">
               <div className="flex items-center justify-between gap-2">
                 <h2 className="font-display text-xl font-bold text-white">{nombreFamilia(fam)}</h2>
+                {fam !== SIN && (
+                  <button type="button" onClick={() => setEditar({ tipo: 'familia', id: fam, nombre: nombreFamilia(fam), imagen: imagenFamilia(fam) })}
+                    className={BOTON_EDITAR}><Pencil className="h-4 w-4" /> Editar</button>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                 {listaGrupos.map(x => (
                   <Tarjeta key={x.clave} titulo={fam === SIN ? x.nombre : (x.caracteristica ?? x.nombre)} imagen={x.resumen.imagen}
                     onAbrir={() => ir({ cat, fam, g: x.clave })}
+                    onEditar={fam === SIN ? undefined : () => setEditar(tarjetaGrupo(fam, x))}
                     onMenu={() => abrirAcciones(x.items.length === 1
                       ? { tipo: 'producto', producto: x.items[0] }
                       : { tipo: 'grupo', nombre: x.nombre, productos: x.items })}>
@@ -285,6 +311,11 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
                     <Link href={`${RUTA}/nuevo?desde=${grupo.items[0].id}&${volver}`} className={BOTON_AGREGAR}>
                       <Plus className="h-4 w-4" /> Agregar medida
                     </Link>
+                    {fam !== SIN && (
+                      <button type="button" onClick={() => setEditar(tarjetaGrupo(fam, grupo))} className={BOTON_EDITAR}>
+                        <Pencil className="h-4 w-4" /> Editar
+                      </button>
+                    )}
                     {fam !== SIN && (
                       <Link href={`${RUTA}/${grupo.items[0].id}/grupo`}
                         className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-white/15 px-3 text-sm font-bold text-white hover:bg-white/5">
@@ -344,6 +375,15 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
           rutaVolver={rutaActual}
           onCategoriaCreada={id => { router.refresh(); ir({ cat: id }) }}
           onIrGrupo={clave => ir({ cat, fam, g: clave })}
+        />
+      )}
+
+      {editar && (
+        <EditarTarjetaInventario
+          tarjeta={editar}
+          categorias={categorias}
+          onCerrar={() => setEditar(null)}
+          onGrupoRenombrado={clave => { if (g) ir({ cat, fam, g: clave }) }}
         />
       )}
 

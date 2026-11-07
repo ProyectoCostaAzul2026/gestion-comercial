@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { HorarioSemanal } from '@/components/modulos/horario-semanal'
+import { PermisosEmpleados, type PermisoVista } from '@/components/modulos/permisos-empleados'
 
 export default async function HorarioPage() {
   const supabase = await createClient()
@@ -26,6 +27,26 @@ export default async function HorarioPage() {
     .select('id, empleado_id, dia_semana, hora_inicio, hora_fin, activo, profiles(nombre_completo)')
     .eq('activo', true)
 
+  // Permisos desde el lunes de esta semana (para marcarlos en la vista semanal) en adelante
+  const fechaHoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' })
+  const lunes = new Date(fechaHoy + 'T12:00:00')
+  lunes.setDate(lunes.getDate() - ((lunes.getDay() + 6) % 7))
+  const { data: permisos } = await supabase
+    .from('permisos_empleado')
+    .select('id, empleado_id, fecha, motivo, profiles!permisos_empleado_empleado_id_fkey(nombre_completo)')
+    .gte('fecha', lunes.toISOString().slice(0, 10))
+    .order('fecha')
+    .order('id')
+    .limit(500)
+
+  const listaPermisos: PermisoVista[] = (permisos ?? []).map(p => ({
+    id: p.id,
+    empleado_id: p.empleado_id,
+    fecha: p.fecha,
+    motivo: p.motivo,
+    nombre: p.profiles?.nombre_completo ?? 'Empleado',
+  }))
+
   return (
     <div className="space-y-4">
       <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] px-4 pt-5 pb-4">
@@ -42,7 +63,15 @@ export default async function HorarioPage() {
         turnos={(turnos as any) ?? []}
         empleados={empleados ?? []}
         esAdmin={esAdmin}
-        fechaHoy={new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' })}
+        fechaHoy={fechaHoy}
+        permisos={listaPermisos}
+      />
+      <PermisosEmpleados
+        permisos={listaPermisos}
+        empleados={empleados ?? []}
+        esAdmin={esAdmin}
+        usuarioId={user.id}
+        fechaHoy={fechaHoy}
       />
     </div>
   )

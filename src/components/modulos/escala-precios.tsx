@@ -11,9 +11,8 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   MODOS_REDONDEO, TEXTO_ALERTA, alertasEscala, estimarCostos, leerMedida, margenResultante, precioSugerido, serieDe,
-  type AlertaEscala, type DatosPrecio, type MedidaLeida, type ModoRedondeo,
+  type AlertaEscala, type DatosPrecio, type ModoRedondeo,
 } from '@/lib/escala-precios'
-import { EscalaPreciosGrafica, type PuntoEscala } from './escala-precios-grafica'
 import type { MiembroGrupo } from './grupo-medidas-panel'
 import { INPUT_CLS, LABEL_CLS } from './producto-form'
 
@@ -36,13 +35,6 @@ const ESTILO_ALERTA: Record<AlertaEscala, { clase: string; Icono: typeof AlertTr
   baja: { clase: 'border-amber-500/30 bg-amber-500/10 text-amber-400', Icono: ArrowDownRight },
   igual: { clase: 'border-white/15 bg-white/5 text-steel-300', Icono: Equal },
   salto: { clase: 'border-amber-500/30 bg-amber-500/10 text-amber-400', Icono: TrendingUp },
-}
-
-/** "6x1-1/2 Pulgada" → "1-1/2": la última dimensión, para el eje de la gráfica */
-function ultimaParte(m: MedidaLeida): string {
-  const corte = m.texto.lastIndexOf(' ')
-  const medida = corte >= 0 ? m.texto.slice(0, corte) : m.texto
-  return medida.split(/x/i).at(-1) ?? medida
 }
 
 function Dato({ etiqueta, valor, nota }: { etiqueta: string; valor: string; nota?: string }) {
@@ -114,18 +106,6 @@ export function EscalaPrecios({ miembros, margenDefault, onGuardado }: {
       anterior.set(f.serie, f.nuevo)
       return previo ? ((f.nuevo - previo) / previo) * 100 : null
     })
-  }, [filas])
-
-  const puntos = useMemo<PuntoEscala[]>(() => {
-    const numericas = filas.every(f => f.medida.valores)
-    return filas.map((f, i) => ({
-      serie: numericas ? f.serie : 'todas',
-      etiquetaSerie: numericas ? f.etiquetaSerie : 'Medidas',
-      x: numericas ? f.medida.valores![f.medida.valores!.length - 1] : i,
-      etiquetaX: numericas ? ultimaParte(f.medida) : f.medida.texto,
-      medida: f.medida.texto,
-      precio: f.nuevo,
-    }))
   }, [filas])
 
   const variasSeries = new Set(filas.map(f => f.serie)).size > 1
@@ -209,8 +189,6 @@ export function EscalaPrecios({ miembros, margenDefault, onGuardado }: {
           Volver a los precios actuales
         </Button>
       </div>
-
-      <EscalaPreciosGrafica puntos={puntos} />
 
       <div className="overflow-hidden rounded-xl border border-white/10">
         {filas.map((f, i) => (

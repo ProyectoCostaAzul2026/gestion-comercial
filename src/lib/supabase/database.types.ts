@@ -280,24 +280,24 @@ export type Database = {
       }
       categorias_producto: {
         Row: {
-          imagen_url: string | null
           created_at: string
           descripcion: string | null
           id: string
+          imagen_url: string | null
           nombre: string
         }
         Insert: {
-          imagen_url?: string | null
           created_at?: string
           descripcion?: string | null
           id?: string
+          imagen_url?: string | null
           nombre: string
         }
         Update: {
-          imagen_url?: string | null
           created_at?: string
           descripcion?: string | null
           id?: string
+          imagen_url?: string | null
           nombre?: string
         }
         Relationships: []
@@ -1148,6 +1148,48 @@ export type Database = {
           },
         ]
       }
+      permisos_empleado: {
+        Row: {
+          creado_por: string | null
+          created_at: string
+          empleado_id: string
+          fecha: string
+          id: string
+          motivo: string | null
+        }
+        Insert: {
+          creado_por?: string | null
+          created_at?: string
+          empleado_id: string
+          fecha: string
+          id?: string
+          motivo?: string | null
+        }
+        Update: {
+          creado_por?: string | null
+          created_at?: string
+          empleado_id?: string
+          fecha?: string
+          id?: string
+          motivo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "permisos_empleado_creado_por_fkey"
+            columns: ["creado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "permisos_empleado_empleado_id_fkey"
+            columns: ["empleado_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       precios_cantidad: {
         Row: {
           cantidad_minima: number
@@ -1182,21 +1224,21 @@ export type Database = {
       }
       producto_familias: {
         Row: {
-          imagen_url: string | null
           created_at: string
           id: string
+          imagen_url: string | null
           nombre_base: string
         }
         Insert: {
-          imagen_url?: string | null
           created_at?: string
           id?: string
+          imagen_url?: string | null
           nombre_base: string
         }
         Update: {
-          imagen_url?: string | null
           created_at?: string
           id?: string
+          imagen_url?: string | null
           nombre_base?: string
         }
         Relationships: []
@@ -1272,6 +1314,7 @@ export type Database = {
           nombre: string
           orden_medida: number | null
           peso_unitario_g: number | null
+          por_completar: boolean
           porcentaje_iva: number
           precio_costo_base: number | null
           precio_por_unidad_medida: number | null
@@ -1307,6 +1350,7 @@ export type Database = {
           nombre: string
           orden_medida?: number | null
           peso_unitario_g?: number | null
+          por_completar?: boolean
           porcentaje_iva?: number
           precio_costo_base?: number | null
           precio_por_unidad_medida?: number | null
@@ -1342,6 +1386,7 @@ export type Database = {
           nombre?: string
           orden_medida?: number | null
           peso_unitario_g?: number | null
+          por_completar?: boolean
           porcentaje_iva?: number
           precio_costo_base?: number | null
           precio_por_unidad_medida?: number | null
@@ -1416,47 +1461,47 @@ export type Database = {
       }
       proveedores: {
         Row: {
-          logo_url: string | null
-          sitio_web: string | null
           activo: boolean
           contacto: string | null
           created_at: string
           direccion: string | null
           email: string | null
           id: string
+          logo_url: string | null
           nit_ruc: string | null
           nombre: string
           notas: string | null
+          sitio_web: string | null
           telefono: string | null
           updated_at: string
         }
         Insert: {
-          logo_url?: string | null
-          sitio_web?: string | null
           activo?: boolean
           contacto?: string | null
           created_at?: string
           direccion?: string | null
           email?: string | null
           id?: string
+          logo_url?: string | null
           nit_ruc?: string | null
           nombre: string
           notas?: string | null
+          sitio_web?: string | null
           telefono?: string | null
           updated_at?: string
         }
         Update: {
-          logo_url?: string | null
-          sitio_web?: string | null
           activo?: boolean
           contacto?: string | null
           created_at?: string
           direccion?: string | null
           email?: string | null
           id?: string
+          logo_url?: string | null
           nit_ruc?: string | null
           nombre?: string
           notas?: string | null
+          sitio_web?: string | null
           telefono?: string | null
           updated_at?: string
         }
@@ -1464,6 +1509,7 @@ export type Database = {
       }
       recepcion_items: {
         Row: {
+          cantidad_almacen: number
           cantidad_averiada: number
           cantidad_contada: number | null
           cantidad_facturada: number
@@ -1472,8 +1518,9 @@ export type Database = {
           costo_unitario: number
           created_at: string
           descripcion: string
-          destino: string
           id: string
+          ingresado_almacen: number
+          ingresado_bodega: number
           precio_aprobado: number | null
           producto_id: string | null
           recepcion_id: string
@@ -1481,6 +1528,7 @@ export type Database = {
           stock_ingresado: number
         }
         Insert: {
+          cantidad_almacen?: number
           cantidad_averiada?: number
           cantidad_contada?: number | null
           cantidad_facturada: number
@@ -1489,8 +1537,9 @@ export type Database = {
           costo_unitario: number
           created_at?: string
           descripcion: string
-          destino?: string
           id?: string
+          ingresado_almacen?: number
+          ingresado_bodega?: number
           precio_aprobado?: number | null
           producto_id?: string | null
           recepcion_id: string
@@ -1498,6 +1547,7 @@ export type Database = {
           stock_ingresado?: number
         }
         Update: {
+          cantidad_almacen?: number
           cantidad_averiada?: number
           cantidad_contada?: number | null
           cantidad_facturada?: number
@@ -1506,8 +1556,9 @@ export type Database = {
           costo_unitario?: number
           created_at?: string
           descripcion?: string
-          destino?: string
           id?: string
+          ingresado_almacen?: number
+          ingresado_bodega?: number
           precio_aprobado?: number | null
           producto_id?: string | null
           recepcion_id?: string
@@ -2149,9 +2200,9 @@ export type Database = {
       }
       contar_renglon_recepcion: {
         Args: {
+          p_cantidad_almacen?: number
           p_cantidad_averiada?: number
           p_cantidad_contada: number
-          p_destino?: string
           p_renglon_id: string
         }
         Returns: number
@@ -2187,6 +2238,25 @@ export type Database = {
           p_venta_id: string
         }
         Returns: undefined
+      }
+      editar_familia: {
+        Args: {
+          p_familia_id: string
+          p_imagen_url?: string
+          p_nombre_base: string
+        }
+        Returns: number
+      }
+      editar_grupo_medidas: {
+        Args: {
+          p_cambiar_imagen?: boolean
+          p_caracteristica: string
+          p_caracteristica_nueva: string
+          p_familia_id: string
+          p_imagen_url?: string
+          p_marca: string
+        }
+        Returns: number
       }
       guardar_familia: {
         Args: {

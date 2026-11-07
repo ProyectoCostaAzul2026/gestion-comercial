@@ -427,6 +427,8 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
       stock_actual: 0, stock_bodega: 0, stock_almacen: 0, stock_minimo: 0,
       prioridad: 3, tiene_iva: true, iva_incluido: false, porcentaje_iva: 19,
       activo: true, vender_por_fraccion: false, remanente_fraccion: 0,
+      // Queda en Inventario › Por completar hasta que tenga categoría, familia y proveedor con costo
+      por_completar: true,
     }).select('id, nombre, precio_venta, tiene_iva, iva_incluido, porcentaje_iva').single()
     setGuardandoAltaRapida(false)
     if (error) { toast.error('Error: ' + error.message); return }
@@ -443,7 +445,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
     }])
     setMostrarAltaRapida(false)
     setAltaRapida({ nombre: '', precio: 0, margen: 30 })
-    toast.success('Producto creado y agregado al carrito')
+    toast.success('Producto creado y agregado al carrito. Queda en Inventario › Por completar.')
   }
 
   const agregarServicio = (s: ServicioSearch) => {
@@ -798,7 +800,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
 
           {mostrarAltaRapida && (
             <div className="space-y-2 rounded-xl border border-white/10 bg-[#1a2430] p-3">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Alta rápida — el producto quedará en Inventario para completar después</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Alta rápida — el producto quedará en Inventario › Por completar hasta que alguien complete sus datos</p>
               <Input placeholder="Nombre del producto *" className="border-white/10 bg-[#111820] text-white placeholder:text-steel-500" value={altaRapida.nombre} onChange={e => setAltaRapida(p => ({ ...p, nombre: e.target.value }))} />
               <div className="grid grid-cols-2 gap-2">
                 <div>

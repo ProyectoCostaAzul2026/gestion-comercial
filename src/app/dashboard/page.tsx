@@ -2,6 +2,7 @@
 import { redirect } from 'next/navigation'
 import { DashboardAdmin } from '@/components/modulos/dashboard-admin'
 import { DashboardEmpleado } from '@/components/modulos/dashboard-empleado'
+import { sumarDias } from '@/lib/permisos'
 
 export default async function DashboardPage({
   searchParams,
@@ -40,6 +41,8 @@ export default async function DashboardPage({
     .maybeSingle()
 
   if (esAdmin) {
+    // Permisos de hoy a 7 días: el empleado no asiste ese día
+    const hoyBogota = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' })
     const [
       { data: ventasHoy },
       { data: pagosHoy },
@@ -50,6 +53,8 @@ export default async function DashboardPage({
       { data: facturasPendientes },
       { data: pagosProgramados },
       { data: cajaMayor },
+      { data: permisosProximos },
+      { data: porCompletar },
     ] = await Promise.all([
       supabase.from('ventas').select('id, total, estado')
         .eq('fecha', hoy).in('estado', ['completada', 'modificada']),
@@ -76,6 +81,13 @@ export default async function DashboardPage({
         .lte('fecha_programada', new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10))
         .order('fecha_programada'),
       supabase.from('caja_mayor').select('saldo_actual').maybeSingle(),
+      supabase.from('permisos_empleado')
+        .select('id, fecha, motivo, profiles!permisos_empleado_empleado_id_fkey(nombre_completo)')
+        .gte('fecha', hoyBogota)
+        .lte('fecha', sumarDias(hoyBogota, 7))
+        .order('fecha'),
+      supabase.from('productos').select('id, nombre')
+        .eq('por_completar', true).eq('activo', true).order('created_at', { ascending: false }).limit(50),
     ])
 
     const totalVentasHoy = (ventasHoy ?? []).reduce((s: number, v: any) => s + Number(v.total), 0)
@@ -105,7 +117,12 @@ export default async function DashboardPage({
           productosAgotados: (productosAgotados as any) ?? [],
           facturasPendientes: (facturasPendientes as any) ?? [],
           pagosProgramados: (pagosProgramados as any) ?? [],
+          permisos: (permisosProximos ?? []).map(p => ({
+            id: p.id, fecha: p.fecha, motivo: p.motivo, nombre: p.profiles?.nombre_completo ?? 'Empleado',
+          })),
+          porCompletar: porCompletar ?? [],
         }}
+        fechaHoyBogota={hoyBogota}
       />
     )
   }

@@ -4,8 +4,9 @@ import Link from 'next/link'
 import {
   AlertTriangle, ShoppingCart, Package, Wallet, BarChart3, Truck, BookOpen,
   TrendingUp, Receipt, Users, PackageX, CalendarClock,
-  Banknote, Smartphone, CreditCard, ArrowLeftRight, AlertCircle,
+  Banknote, Smartphone, CreditCard, ArrowLeftRight, AlertCircle, CalendarOff, ClipboardList,
 } from 'lucide-react'
+import { fechaLarga } from '@/lib/permisos'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 const PAGO_UI: Record<string, { label: string; Icon: React.ElementType; ring: string; color: string }> = {
@@ -32,10 +33,16 @@ interface Props {
     productosAgotados: any[]
     facturasPendientes: any[]
     pagosProgramados: any[]
+    /** Permisos de hoy a 7 días: el empleado no asiste ese día */
+    permisos: { id: string; fecha: string; motivo: string | null; nombre: string }[]
+    /** Productos de alta rápida que faltan por completar (hasta 50) */
+    porCompletar: { id: string; nombre: string }[]
   }
+  /** Fecha de hoy en Bogotá, para marcar los permisos de hoy */
+  fechaHoyBogota: string
 }
 
-export function DashboardAdmin({ profile, config, fechaHoy, kpisHoy, ultimasVentas, alertas }: Props) {
+export function DashboardAdmin({ profile, config, fechaHoy, kpisHoy, ultimasVentas, alertas, fechaHoyBogota }: Props) {
   if (!profile) {
     return (
       <div className="rounded-2xl border border-white/10 bg-[#111820] p-6 text-center text-sm text-steel-300">
@@ -45,6 +52,7 @@ export function DashboardAdmin({ profile, config, fechaHoy, kpisHoy, ultimasVent
   }
   const nominaAlDia = kpisHoy.nominasPagadas >= kpisHoy.empleadosActivos
   const totalAlertas = alertas.productosAgotados.length + alertas.facturasPendientes.length + alertas.pagosProgramados.length
+    + alertas.permisos.length + alertas.porCompletar.length
   const esAdmin = profile.rol === 'administrador'
 
   return (
@@ -158,6 +166,44 @@ export function DashboardAdmin({ profile, config, fechaHoy, kpisHoy, ultimasVent
             <AlertTriangle className="size-5 text-brand-yellow" />
             Alertas ({totalAlertas})
           </h2>
+
+          {alertas.permisos.length > 0 && (
+            <div className="space-y-2 rounded-2xl border border-brand-red/30 bg-brand-red/10 p-3">
+              <div className="flex items-center justify-between">
+                <p className="flex items-center gap-2 text-sm font-bold text-brand-red">
+                  <CalendarOff className="size-4" />
+                  {alertas.permisos.length} permiso{alertas.permisos.length !== 1 ? 's' : ''} esta semana
+                </p>
+                <Link href="/dashboard/horario" className="text-xs font-medium text-brand-red hover:underline">
+                  Ver horario →
+                </Link>
+              </div>
+              {alertas.permisos.map(p => (
+                <div key={p.id} className="flex items-center justify-between gap-2 rounded-lg bg-white/5 px-2.5 py-1.5 text-xs">
+                  <span className="text-steel-300"><span className="font-semibold text-white">{p.nombre}</span> no asiste{p.motivo ? ` · ${p.motivo}` : ''}</span>
+                  <span className="shrink-0 font-bold text-brand-red">{p.fecha === fechaHoyBogota ? 'Hoy' : fechaLarga(p.fecha)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {alertas.porCompletar.length > 0 && (
+            <div className="space-y-2 rounded-2xl border border-brand-yellow/30 bg-brand-yellow/10 p-3">
+              <div className="flex items-center justify-between">
+                <p className="flex items-center gap-2 text-sm font-bold text-brand-yellow">
+                  <ClipboardList className="size-4" />
+                  {alertas.porCompletar.length}{alertas.porCompletar.length === 50 ? '+' : ''} producto{alertas.porCompletar.length !== 1 ? 's' : ''} de alta rápida por completar
+                </p>
+                <Link href="/dashboard/inventario/por-completar" className="text-xs font-medium text-brand-yellow hover:underline">
+                  Completar →
+                </Link>
+              </div>
+              {alertas.porCompletar.slice(0, 3).map(p => (
+                <div key={p.id} className="rounded-lg bg-white/5 px-2.5 py-1.5 text-sm text-steel-300">{p.nombre}</div>
+              ))}
+              {alertas.porCompletar.length > 3 && <p className="text-xs text-brand-yellow">+{alertas.porCompletar.length - 3} más</p>}
+            </div>
+          )}
 
           {alertas.productosAgotados.length > 0 && (
             <div className="space-y-2 rounded-2xl border border-brand-red/30 bg-brand-red/10 p-3">

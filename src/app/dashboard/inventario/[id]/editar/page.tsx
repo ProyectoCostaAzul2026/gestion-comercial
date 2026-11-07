@@ -15,7 +15,9 @@ export default async function EditarProductoPage({
   const sp = await searchParams
   const rutaVolver = sp.volver === 'familia' && sp.origen
     ? `/dashboard/inventario/${sp.origen}/familia`
-    : `/dashboard/inventario/${id}`
+    : sp.volver === 'por-completar'
+      ? '/dashboard/inventario/por-completar'
+      : `/dashboard/inventario/${id}`
   const forzarActivacion = sp.activar === '1'
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

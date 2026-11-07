@@ -3,7 +3,7 @@
 # Contexto del proyecto — Gestión Comercial Ferreléctricos Costa Azul
 
 > Claude Code carga este archivo en cada sesión. Mantenerlo al día cuando cambie algo importante
-> (esquema de la BD, convenciones, estado de los datos). Última revisión: 2026-11-05.
+> (esquema de la BD, convenciones, estado de los datos). Última revisión: 2026-11-07.
 
 ## Qué es
 
@@ -84,7 +84,7 @@ nómina).
   cerrar), `temas-ayuda.ts` (textos del panel Instrucciones), `festivos-colombia.ts`.
 - `src/proxy.ts`: exige sesión en `/dashboard`, cierra la sesión si el perfil está inactivo y manda a los
   empleados fuera de las rutas de administrador.
-- `DATABASE.md`: tablas, RPC, índices y políticas RLS (al día al 2026-11-06). Mantenerlo actualizado.
+- `DATABASE.md`: tablas, RPC, índices y políticas RLS (al día al 2026-11-07). Mantenerlo actualizado.
 
 ## Base de datos: piezas clave
 
@@ -107,13 +107,28 @@ nómina).
   "Nueva categoría / familia / grupo" y "Agregar medida"); `inventario/nuevo` sin ese contexto manda al inventario. Mover,
   sacar del grupo y desactivar están en `acciones-inventario.tsx` (menú de tres puntos y detalle del producto) y usan la
   RPC `mover_productos` (`SECURITY DEFINER`, administrador y empleado; conserva código, stock y precios).
+- **Editar tarjetas** (`editar-tarjeta-inventario.tsx`, lápiz de la tarjeta o botón "Editar" del nivel): nombre e imagen
+  (URL). Categoría: update directo. Familia: RPC `editar_familia` (renombra sus productos a `familia - característica`;
+  la imagen es solo de la tarjeta). Grupo: RPC `editar_grupo_medidas` (cambia la característica y, si se cambió la
+  imagen, la pone en **todas** sus medidas). La imagen de un solo producto se cambia en "Editar producto" y solo afecta a
+  ese producto.
 - El guardado de productos y familias va por `guardar_producto` y `guardar_familia` (`SECURITY INVOKER`, una sola
   transacción). `producto-form.tsx` y `familia-medidas-panel.tsx` las llaman con `supabase.rpc`.
 - **Recepción de mercancía** (`recepciones`, `recepcion_items`): todo pasa por RPC (`crear_recepcion`,
   `guardar_renglon_recepcion`, `quitar_renglon_recepcion`, `contar_renglon_recepcion`, `crear_miembro_familia_renglon`,
-  `aprobar_precios_recepcion`, `cerrar_recepcion`, `resolver_reclamacion_recepcion`). Los empleados transcriben y cuentan
-  (conteo ciego: el stock entra al marcar cada renglón); abrir, crear productos, aprobar precios y cerrar son del
-  administrador. `src/lib/recepcion.ts` replica sus reglas (si cambias una, cambia la otra). Reglas en `DATABASE.md` (nota 14).
+  `aprobar_precios_recepcion`, `cerrar_recepcion`, `resolver_reclamacion_recepcion`). Flujo: los empleados transcriben →
+  el administrador aprueba precios → se cuenta (un renglón sin producto o sin precio aprobado no se puede contar; conteo
+  ciego que sí muestra el precio) repartiendo las buenas entre almacén (`cantidad_almacen`) y bodega → el administrador
+  cierra. El stock entra al marcar cada renglón, con un movimiento por lugar. Abrir, crear productos, aprobar precios y
+  cerrar son del administrador. `src/lib/recepcion.ts` replica sus reglas (si cambias una, cambia la otra). Reglas en
+  `DATABASE.md` (notas 14 y 19).
+- **Permisos** (`permisos_empleado`, `permisos-empleados.tsx` en Horario): el empleado saca el día que no asiste (desde
+  hoy); el administrador lo registra para cualquiera. Alerta en el Inicio del administrador (hoy a 7 días) y marca en la
+  vista semanal.
+- **Alta rápida** (Nueva venta): el producto nace con `productos.por_completar = true` y sale en Inventario › Por
+  completar y en las alertas del Inicio. El trigger `trg_revisar_por_completar` lo apaga cuando tiene categoría, familia y
+  proveedor con costo (`src/lib/por-completar.ts` replica la regla). "Editar producto" pone en su familia a un producto sin
+  familia cuyo nombre sigue "Familia - Característica".
 - **Solo un administrador cambia precios de venta** (`precio_venta`, `precio_por_unidad_medida`) de un producto existente:
   lo exige el trigger `trg_proteger_precios_productos` y el formulario bloquea esos campos a los empleados; crear un
   producto con su precio sigue permitido. Cada cambio queda en `historial_precios` (trigger, solo lo leen los admin).
@@ -163,10 +178,11 @@ nómina).
   "por grupos" en Inventario). Las medidas se ordenan por tamaño (calibre o diámetro y luego largo) o por
   `productos.orden_medida` (orden manual, RPC `ordenar_medidas`). La escala de precios del grupo (solo admin) sugiere
   precios con un margen y el redondeo de `escala-precios.ts` ($50 bajo $1.000, $100 desde $1.000) y guarda con
-  `aplicar_escala_precios`.
+  `aplicar_escala_precios`. Es una tabla con alertas (se quitó la gráfica el 2026-11-07).
 - **Peso por unidad** (`productos.peso_unitario_g`, gramos, opcional y solo informativo): con él la app calcula cuánto
   deben pesar N unidades y cuántas unidades hay en un peso, en Nueva venta, en Editar producto ("Contar por peso" en
-  bodega y almacén: peso total menos el recipiente, dividido por el peso de una unidad) y por medida en el grupo
+  bodega y almacén: peso total menos el recipiente, dividido por el peso de una unidad; al guardar, ese stock queda y
+  `guardar_producto` deja el movimiento `ajuste` "Conteo por peso") y por medida en el grupo
   (`guardar_pesos_unitarios`). Las cuentas están en `src/lib/peso.ts` y los componentes en `peso-por-unidad.tsx`.
   `guardar_producto` solo cambia el peso si la petición trae la clave `peso_unitario_g` (null lo quita).
 - **Precios por cantidad** (`precios_cantidad`, hasta 5 por producto): desde N unidades del mismo producto, cada unidad
@@ -234,6 +250,9 @@ nómina).
 - NIT del negocio corregido en `configuracion_negocio`. Se borraron las 2 ventas de prueba y los saldos de medios de
   pago están en 0.
 - Ventas, caja y demás tablas operativas están vacías. Hay 6 perfiles: 5 administradores y 1 empleado.
+- 2026-11-07 (migración `mejoras_inventario_recepcion_horario`): tablas y columnas nuevas `permisos_empleado`,
+  `productos.por_completar` y `recepcion_items.cantidad_almacen` / `ingresado_bodega` / `ingresado_almacen` (reemplazan a
+  `destino`).
 - El `logo_url` de `configuracion_negocio` apunta a una URL temporal de Facebook que ya expiró (HTTP 403).
 
 ## Corregido el 2026-10-29
