@@ -214,13 +214,18 @@ nómina).
   desde la web del proveedor cuando la referencia coincide: Sumatec (GraphQL de Magento en sumatec.co/graphql),
   Importadora Superior, Ferremakros y Normaplas (Store API de WooCommerce, `/wp-json/wc/store/v1/products`, con
   `type=variation` para el SKU de cada medida) y Boccherini (VTEX, `/api/catalog_system/pub/products/search`). 1005
-  productos (229 grupos) tienen foto del proveedor; el resto conserva la de Wikimedia por familia o no tiene imagen. Se
+  productos (229 grupos) tienen foto del proveedor. En una segunda fase se buscó por nombre en Easy Colombia (VTEX,
+  `easy.com.co/api/catalog_system/pub/products/search?ft=`) y en esos catálogos, con revisión foto por foto: 282 grupos
+  más (carga en `respaldo.web_img2_20261106`), 175 de una tercera tanda (`respaldo.web_img3_20261106`) y 12 de Uyustools
+  por código. Después, 39 grupos de Plastgrifos e Induma tomaron la foto de la web del fabricante (WooCommerce), en lugar
+  de la de Easy o Wikimedia. Quedan 1840 productos con foto específica (572 de ellos con foto de Easy), 1027 con la de
+  Wikimedia por familia y 458 sin imagen. Se
   agregaron 236 medidas intermedias que esos proveedores venden dentro del rango de cada grupo (activas, stock 0, costo
   estimado entre vecinas con nota en `producto_proveedores`). Se unieron los 39 "Duplicado" y los grupos equivalentes
   "Drywall Negro" → "Drywall" y "Hexagonal Grado 2 Zincado UNC" → "Hexagonal Grado 2 Zincado": el stock pasó al producto
   que queda (movimiento `ajuste`), el proveedor del repetido quedó como adicional y el repetido está inactivo. Quedan
   3325 productos activos; 46 tienen dos proveedores. Respaldo en `respaldo.*_20261106`.
-- Categorías (19 de 21) y familias (302 de 433) tienen `imagen_url` propia para su tarjeta en Inventario; 13
+- Categorías (20 de 21; "Tanques y Recipientes" no tiene productos activos) y familias (329 de 433) tienen `imagen_url` propia para su tarjeta en Inventario; 13
   proveedores tienen `logo_url` y `sitio_web`.
 - `facturas_proveedor`: 233 documentos (facturas, remisiones, pedidos, cuentas de cobro y cotizaciones de dos
   proveedores que fueron compras reales). Los vencidos al 2026-10-31 quedaron como pagados (215) sin filas en
@@ -251,9 +256,10 @@ nómina).
   2026-10-31).xlsx`) con los SKU y precios de la BD; buscar imágenes (154 familias sin imagen) y completar datos en las
   webs de los proveedores; confirmar los nombres de los 3 proveedores provisionales.
 - Borrar las tablas del esquema `respaldo` cuando el catálogo nuevo esté validado.
-- Imágenes por grupo, fase 2: faltan fotos de proveedor para los grupos sin referencia cruzable (Logística Ferretera,
-  con 947 productos y solo catálogos PDF; Distribuciones J&L; Naty's) y para las marcas con web propia (Truper, Abracol,
-  Mercury, Lexmana…). Las imágenes enlazadas pueden romperse si el proveedor cambia su web; algunas de Ferremakros pesan
+- Imágenes por grupo: unos 1190 grupos siguen sin foto específica (sobre todo de Logística Ferretera, J&L y Naty's, y
+  marcas como Plastgrifos, Grival, Pavco, Mercury, Induma y Kaudal); las fotos de Easy
+  se pueden cambiar por las del fabricante cuando su web tenga catálogo (Truper solo publica miniaturas; Ecoled limita las
+  consultas). Las fotos de Easy son de productos equivalentes de la tienda, no siempre de la misma marca. Las imágenes enlazadas pueden romperse si el proveedor cambia su web; algunas de Ferremakros pesan
   más de 1 MB. Confirmar con la primera compra el costo de las medidas nuevas (19 del 2026-11-05 y 236 del 2026-11-06). Quedan por confirmar algunos términos del lote 1 que pueden ser marcas y la medida de dos piezas Kaudal.
 - El advisor de seguridad marca `is_admin()` y `rls_auto_enable()` como ejecutables por `anon`.
 - El repositorio de GitHub es público: valorar hacerlo privado. Si se hace, instalar la app de Claude en GitHub
