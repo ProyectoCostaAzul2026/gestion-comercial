@@ -14,8 +14,8 @@ import { CrearNivelInventario, type TipoNivel } from './crear-nivel-inventario'
 
 interface Props {
   productos: ProductoInventario[]
-  categorias: { id: string; nombre: string }[]
-  familias: { id: string; nombre_base: string }[]
+  categorias: { id: string; nombre: string; imagen_url?: string | null }[]
+  familias: { id: string; nombre_base: string; imagen_url?: string | null }[]
   esAdmin: boolean
 }
 
@@ -121,6 +121,9 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
   const rutaActual = consulta({ cat, fam, g })
 
   const nombreCategoria = (id: string) => id === SIN ? 'Sin categoría' : (categorias.find(c => c.id === id)?.nombre ?? 'Categoría')
+  // Imagen propia de la categoría o familia (acorde a su nombre); si no tiene, la tarjeta usa la de un producto
+  const imagenCategoria = (id: string) => categorias.find(c => c.id === id)?.imagen_url || null
+  const imagenFamilia = (id: string) => familias.find(f => f.id === id)?.imagen_url || null
   const nombreFamilia = (id: string) => id === SIN ? 'Sin familia' : (familias.find(f => f.id === id)?.nombre_base ?? 'Familia')
 
   const resultados = useMemo(() => buscarProductos(productos, query), [productos, query])
@@ -214,7 +217,7 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
           {!cat && (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {listaCategorias.map(c => (
-                <Tarjeta key={c.id} titulo={c.nombre} imagen={c.resumen.imagen} onAbrir={() => ir({ cat: c.id })}>
+                <Tarjeta key={c.id} titulo={c.nombre} imagen={imagenCategoria(c.id) ?? c.resumen.imagen} onAbrir={() => ir({ cat: c.id })}>
                   <Estadisticas resumen={c.resumen} detalle={`${c.familias} familia${c.familias === 1 ? '' : 's'} · ${c.resumen.productos} productos`} />
                 </Tarjeta>
               ))}
@@ -230,7 +233,7 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
               </div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                 {listaFamilias.map(f => (
-                  <Tarjeta key={f.id} titulo={f.nombre} imagen={f.resumen.imagen} onAbrir={() => ir({ cat, fam: f.id })}>
+                  <Tarjeta key={f.id} titulo={f.nombre} imagen={imagenFamilia(f.id) ?? f.resumen.imagen} onAbrir={() => ir({ cat, fam: f.id })}>
                     <Estadisticas resumen={f.resumen} detalle={`${f.grupos} grupo${f.grupos === 1 ? '' : 's'} · ${f.resumen.productos} productos`} />
                   </Tarjeta>
                 ))}

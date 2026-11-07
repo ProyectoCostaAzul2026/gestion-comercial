@@ -20,7 +20,7 @@ export default async function ProveedoresPage() {
   const { data: proveedores } = await supabase
     .from('proveedores')
     .select(`
-      id, nombre, contacto, telefono, nit_ruc, activo,
+      id, nombre, contacto, telefono, nit_ruc, logo_url, activo,
       facturas_proveedor(
         id, numero_factura, estado, saldo_pendiente, fecha_vencimiento,
         pagos_programados_proveedor(id, fecha_programada, monto, pagado)
@@ -109,6 +109,7 @@ export default async function ProveedoresPage() {
       contacto: p.contacto,
       telefono: p.telefono,
       nit_ruc: p.nit_ruc,
+      logo_url: p.logo_url,
       facturasActivas: facturasActivas.length,
       deudaTotal,
       estado,

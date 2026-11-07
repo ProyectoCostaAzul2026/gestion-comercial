@@ -17,6 +17,8 @@ interface ProveedorFormState {
   direccion: string
   nit_ruc: string
   notas: string
+  logo_url: string
+  sitio_web: string
 }
 
 export interface ProveedorExistente {
@@ -28,6 +30,8 @@ export interface ProveedorExistente {
   direccion: string | null
   nit_ruc: string | null
   notas: string | null
+  logo_url: string | null
+  sitio_web: string | null
 }
 
 interface ProveedorFormProps {
@@ -35,7 +39,7 @@ interface ProveedorFormProps {
 }
 
 function estadoInicial(proveedor?: ProveedorExistente): ProveedorFormState {
-  if (!proveedor) return { nombre: '', contacto: '', telefono: '', email: '', direccion: '', nit_ruc: '', notas: '' }
+  if (!proveedor) return { nombre: '', contacto: '', telefono: '', email: '', direccion: '', nit_ruc: '', notas: '', logo_url: '', sitio_web: '' }
   return {
     nombre: proveedor.nombre,
     contacto: proveedor.contacto ?? '',
@@ -44,6 +48,8 @@ function estadoInicial(proveedor?: ProveedorExistente): ProveedorFormState {
     direccion: proveedor.direccion ?? '',
     nit_ruc: proveedor.nit_ruc ?? '',
     notas: proveedor.notas ?? '',
+    logo_url: proveedor.logo_url ?? '',
+    sitio_web: proveedor.sitio_web ?? '',
   }
 }
 
@@ -72,6 +78,8 @@ export function ProveedorForm({ proveedor }: ProveedorFormProps) {
         direccion: form.direccion || null,
         nit_ruc: form.nit_ruc || null,
         notas: form.notas || null,
+        logo_url: form.logo_url.trim() || null,
+        sitio_web: form.sitio_web.trim() || null,
       }
       if (esEdicion) {
         const { error } = await supabase.from('proveedores').update(datos).eq('id', proveedor.id)
@@ -136,6 +144,16 @@ export function ProveedorForm({ proveedor }: ProveedorFormProps) {
       <div className="space-y-2">
         <Label htmlFor="direccion" className={labelCls}>Dirección</Label>
         <Input id="direccion" className={inputCls} value={form.direccion} onChange={e => handleChange('direccion', e.target.value)} />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="sitio_web" className={labelCls}>Sitio web</Label>
+          <Input id="sitio_web" className={inputCls} value={form.sitio_web} placeholder="www.proveedor.com" onChange={e => handleChange('sitio_web', e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="logo_url" className={labelCls}>Logo (URL)</Label>
+          <Input id="logo_url" className={inputCls} value={form.logo_url} placeholder="https://…/logo.png" onChange={e => handleChange('logo_url', e.target.value)} />
+        </div>
       </div>
       <div className="space-y-2">
         <Label htmlFor="notas" className={labelCls}>Notas</Label>

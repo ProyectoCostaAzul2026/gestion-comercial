@@ -23,9 +23,9 @@ export default async function InventarioPage() {
         .range(filaDesde, filaHasta)
     ),
     traerTodo((filaDesde, filaHasta) =>
-      supabase.from('producto_familias').select('id, nombre_base').order('id').range(filaDesde, filaHasta)
+      supabase.from('producto_familias').select('id, nombre_base, imagen_url').order('id').range(filaDesde, filaHasta)
     ),
-    supabase.from('categorias_producto').select('id, nombre').order('nombre'),
+    supabase.from('categorias_producto').select('id, nombre, imagen_url').order('nombre'),
     supabase.from('profiles').select('rol').eq('id', user.id).single(),
   ])
 

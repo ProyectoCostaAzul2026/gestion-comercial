@@ -62,6 +62,11 @@ Extiende `auth.users` de Supabase. Un registro por usuario autenticado.
 | nit_ruc | varchar | YES | — |
 | notas | text | YES | — |
 | activo | boolean | NO | true |
+| logo_url | text | YES | — |
+| sitio_web | text | YES | — |
+
+`logo_url` es el logo de la marca del proveedor, enlazado desde su web (se muestra completo sobre fondo blanco en la
+tarjeta y el detalle); `sitio_web`, su página. Migración `imagenes_categorias_familias_logos_proveedores` (2026-11-06).
 
 ---
 
@@ -72,6 +77,10 @@ Extiende `auth.users` de Supabase. Un registro por usuario autenticado.
 | nombre | varchar | NO | — | UNIQUE |
 | descripcion | text | YES | — |
 | created_at | timestamptz | NO | CURRENT_TIMESTAMP |
+| imagen_url | text | YES | — |
+
+`imagen_url`: imagen de la tarjeta de la categoría en Inventario, acorde a su nombre (si falta, la tarjeta usa la de un
+producto).
 
 ---
 
@@ -139,6 +148,9 @@ Agrupa las variantes de un mismo producto (Característica + Medida + Marca).
 | id | uuid | NO | gen_random_uuid() |
 | nombre_base | text | NO | — |
 | created_at | timestamptz | NO | now() |
+| imagen_url | text | YES | — |
+
+`imagen_url`: imagen de la tarjeta de la familia en Inventario (si falta, la tarjeta usa la de un producto).
 
 **Grupo de medidas:** los productos de una familia con la misma `caracteristica` y `marca`, que solo cambian de
 `unidad_medida` (ej. todas las medidas de "Tornillo - Drywall Negro"). No tiene tabla propia: la app lo arma con
@@ -1084,3 +1096,12 @@ servicios ─────────────────────── 
     `producto-form.tsx` llama a `mover_productos` con la familia y la característica del nombre para asignar `familia_id`
     (`guardar_producto` no la guarda). Las acciones de mover, sacar del grupo (misma familia, otra característica) y
     desactivar están en `acciones-inventario.tsx`.
+18. **Imágenes y medidas desde las webs de los proveedores** (2026-11-06): la imagen de un producto es la de su grupo de
+    medidas (familia + característica + marca), enlazada desde la web del proveedor cuando su referencia coincide
+    (Sumatec por GraphQL de Magento; Importadora Superior, Ferremakros, Normaplas y Uyustools por la Store API de
+    WooCommerce; Boccherini por la API de catálogo de VTEX). Las medidas intermedias que el proveedor vende dentro del
+    rango del grupo se crearon activas, con stock 0 y costo estimado entre vecinas (nota "Costo estimado desde … (catálogo
+    web del proveedor 2026-11-06)" en `producto_proveedores`). Las cargas quedaron en `respaldo.web_img_20261106` y
+    `respaldo.web_nuevos_20261106`, y el catálogo previo en `respaldo.productos_20261106` y
+    `respaldo.producto_proveedores_20261106`. Los productos repetidos se unieron: el stock pasó al que queda con un
+    movimiento `ajuste`, el proveedor del repetido quedó como proveedor adicional y el repetido quedó inactivo.
