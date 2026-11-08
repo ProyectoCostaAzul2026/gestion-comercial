@@ -234,14 +234,17 @@ nómina).
   `easy.com.co/api/catalog_system/pub/products/search?ft=`) y en esos catálogos, con revisión foto por foto: 282 grupos
   más (carga en `respaldo.web_img2_20261106`), 175 de una tercera tanda (`respaldo.web_img3_20261106`) y 12 de Uyustools
   por código. Después, 39 grupos de Plastgrifos e Induma tomaron la foto de la web del fabricante (WooCommerce), en lugar
-  de la de Easy o Wikimedia. Quedan 1840 productos con foto específica (572 de ellos con foto de Easy), 1027 con la de
-  Wikimedia por familia y 458 sin imagen. Se
+  de la de Easy o Wikimedia. El 2026-11-07 se buscó por nombre en Homecenter (página de búsqueda
+  `homecenter.com.co/homecenter-co/search?Ntt=`, datos en `__NEXT_DATA__`, fotos en `media.falabella.com/sodimacCO/<id>/public`):
+  204 grupos más revisados foto por foto (`respaldo.web_img4_20261107`) y 220 de una segunda tanda con menos coincidencia
+  de nombre (`respaldo.web_img5_20261107`). Quedan 2483 productos con foto específica (572 de Easy y 643 de Homecenter),
+  556 con la de Wikimedia por familia y 286 sin imagen. Se
   agregaron 236 medidas intermedias que esos proveedores venden dentro del rango de cada grupo (activas, stock 0, costo
   estimado entre vecinas con nota en `producto_proveedores`). Se unieron los 39 "Duplicado" y los grupos equivalentes
   "Drywall Negro" → "Drywall" y "Hexagonal Grado 2 Zincado UNC" → "Hexagonal Grado 2 Zincado": el stock pasó al producto
   que queda (movimiento `ajuste`), el proveedor del repetido quedó como adicional y el repetido está inactivo. Quedan
   3325 productos activos; 46 tienen dos proveedores. Respaldo en `respaldo.*_20261106`.
-- Categorías (20 de 21; "Tanques y Recipientes" no tiene productos activos) y familias (329 de 433) tienen `imagen_url` propia para su tarjeta en Inventario; 13
+- Categorías (20 de 21; "Tanques y Recipientes" no tiene productos activos) y familias (381 de 433) tienen `imagen_url` propia para su tarjeta en Inventario; 13
   proveedores tienen `logo_url` y `sitio_web`.
 - `facturas_proveedor`: 233 documentos (facturas, remisiones, pedidos, cuentas de cobro y cotizaciones de dos
   proveedores que fueron compras reales). Los vencidos al 2026-10-31 quedaron como pagados (215) sin filas en
@@ -275,7 +278,7 @@ nómina).
   2026-10-31).xlsx`) con los SKU y precios de la BD; buscar imágenes (154 familias sin imagen) y completar datos en las
   webs de los proveedores; confirmar los nombres de los 3 proveedores provisionales.
 - Borrar las tablas del esquema `respaldo` cuando el catálogo nuevo esté validado.
-- Imágenes por grupo: unos 1190 grupos siguen sin foto específica (sobre todo de Logística Ferretera, J&L y Naty's, y
+- Imágenes por grupo: 560 grupos siguen sin foto específica (ya revisados en Easy y Homecenter sin una foto que corresponda) (sobre todo de Logística Ferretera, J&L y Naty's, y
   marcas como Plastgrifos, Grival, Pavco, Mercury, Induma y Kaudal); las fotos de Easy
   se pueden cambiar por las del fabricante cuando su web tenga catálogo (Truper solo publica miniaturas; Ecoled limita las
   consultas). Las fotos de Easy son de productos equivalentes de la tienda, no siempre de la misma marca. Las imágenes enlazadas pueden romperse si el proveedor cambia su web; algunas de Ferremakros pesan
