@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Plus, TrendingUp, Receipt, Calculator, CreditCard, FileText } from 'lucide-react'
+import { traerTodo } from '@/lib/supabase/traer-todo'
 import { VentasFiltros } from '@/components/modulos/ventas-filtros'
 import { VentasTable } from '@/components/modulos/ventas-table'
 
@@ -67,25 +68,27 @@ export default async function VentasPage({
   const numTicketsHoy = new Set([...(pagosHoy ?? []), ...creditosPropios].map((p: any) => p.ventas?.id).filter(Boolean)).size
   const ventaPromedioHoy = numTicketsHoy > 0 ? totalVentasHoy / numTicketsHoy : 0
 
-  // Ventas filtradas para la tabla
-  let query = supabase
-    .from('ventas')
-    .select(`
-      id, numero_ticket, hora, total, tipo_pago, estado,
-      clientes(nombre),
-      empleado:profiles!empleado_id(nombre_completo)
-    `)
-    .gte('fecha', fechaInicio)
-    .lte('fecha', fechaFin)
-    .order('fecha', { ascending: false })
-    .order('hora', { ascending: false })
-
-  if (!esAdmin) query = query.eq('empleado_id', user.id)
-  if (esAdmin && sp.empleado_id) query = query.eq('empleado_id', sp.empleado_id)
-  if (sp.tipo_pago) query = query.eq('tipo_pago', sp.tipo_pago)
-  if (sp.estado) query = query.eq('estado', sp.estado)
-
-  const { data: ventas, error } = await query
+  // Ventas filtradas para la tabla. Se traen por páginas: la API corta en 1000 filas sin avisar.
+  const { data: ventas, error } = await traerTodo((filaDesde, filaHasta) => {
+    let query = supabase
+      .from('ventas')
+      .select(`
+        id, numero_ticket, hora, total, tipo_pago, estado,
+        clientes(nombre),
+        empleado:profiles!empleado_id(nombre_completo)
+      `)
+      .gte('fecha', fechaInicio)
+      .lte('fecha', fechaFin)
+    if (!esAdmin) query = query.eq('empleado_id', user.id)
+    if (esAdmin && sp.empleado_id) query = query.eq('empleado_id', sp.empleado_id)
+    if (sp.tipo_pago) query = query.eq('tipo_pago', sp.tipo_pago)
+    if (sp.estado) query = query.eq('estado', sp.estado)
+    return query
+      .order('fecha', { ascending: false })
+      .order('hora', { ascending: false })
+      .order('id')
+      .range(filaDesde, filaHasta)
+  })
 
   const { data: empleados } = esAdmin
     ? await supabase.from('profiles').select('id, nombre_completo').eq('activo', true).order('nombre_completo')

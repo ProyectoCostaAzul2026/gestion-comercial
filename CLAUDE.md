@@ -333,15 +333,14 @@ nómina).
 - Garantías desde una devolución o un cambio: en `venta-acciones.tsx` no se puede elegir el proveedor (la lista no se
   carga), la cantidad va fija en 1 y no se guarda `devolucion_id`; además la RPC reintegra el stock y `recibir_garantia`
   lo vuelve a sumar.
-- Las líneas vendidas por fracción guardan `iva_unitario` = 0 aunque el producto tenga IVA (lo dejan así
-  `registrar_venta` y `registrar_venta_credito`), así que `ventas.total_iva` queda corto en esas ventas.
+- **SQL pendiente de confirmar** (`sql/pendiente_iva_fraccion_y_editar_factura.sql`): IVA informativo de las líneas
+  por fracción en `registrar_venta` y `registrar_venta_credito` (hoy guardan 0; el front ya lo muestra) y la RPC
+  `editar_factura_proveedor`, que el formulario de editar factura ya llama (sin ella avisa que falta la migración).
 - Reportes y Contabilidad restan el costo sin IVA a ventas con IVA incluido: la utilidad sale más alta de lo real si
   el negocio declara IVA. Falta decidir el tratamiento (ver con el dueño si es responsable de IVA).
 - El total de una venta incluye sus servicios (`venta_servicios`): no sumarlos aparte a los ingresos.
 - Devolver o anular una línea fraccionada no deja movimiento en `movimientos_inventario`, y `anular_venta` suma la
   fracción al remanente sin pasarla a unidades.
-- Editar una factura de proveedor no guarda: `facturas_proveedor` no tiene política de UPDATE (la app dice "Factura
-  actualizada" sin cambiar nada) y el formulario pondría el saldo igual al total aunque haya pagos.
 - Recepción de mercancía: quedan para después adjuntar la foto o el PDF de la factura y repartir fletes y descuentos en
   el costo de los renglones.
 - `DATABASE.md` y `database.types.ts` no incluyen todavía lo del 2026-11-13 (`bitacora`, `bitacora_borrados`,

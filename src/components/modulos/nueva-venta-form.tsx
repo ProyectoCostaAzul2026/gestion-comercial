@@ -270,7 +270,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
   const totalCalculado = useMemo(() => redondear100(subtotalTotal - descuentoTotalMonto), [subtotalTotal, descuentoTotalMonto])
 
   const ivaInformativo = useMemo(() =>
-    carrito.reduce((sum, item) => item.es_fraccionado ? sum : sum + item.iva_unitario * item.cantidad, 0),
+    carrito.reduce((sum, item) => sum + item.iva_unitario * (item.es_fraccionado ? item.cantidad_fraccion : item.cantidad), 0),
     [carrito])
 
   const valorBruto = subtotalProductosBruto + subtotalServicios
@@ -373,7 +373,9 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
     setCarrito(prev => [...prev, {
       key: `${p.id}-fraccion-${Date.now()}`,
       producto_id: p.id, nombre: `${p.nombre} (fracción)`,
-      precio_unitario: p.precio_por_unidad_medida ?? 0, iva_unitario: 0,
+      // IVA contenido en el precio de cada metro o kilo
+      precio_unitario: p.precio_por_unidad_medida ?? 0,
+      iva_unitario: p.tiene_iva ? calcularIvaUnitario(p.precio_por_unidad_medida ?? 0, p.porcentaje_iva) : 0,
       cantidad: 1, stock_almacen: p.stock_almacen, stock_bodega: p.stock_bodega, ubicacion: p.ubicacion,
       descuento_habilitado: false, descuento_porcentaje: 0,
       es_fraccionado: true, cantidad_fraccion: p.cantidad_minima_venta ?? 1,
