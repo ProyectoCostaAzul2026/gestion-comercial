@@ -172,3 +172,51 @@
   -webkit-user-select: none;
   user-select: none;
 }
+
+/* Tablas en celular: cada fila es una tarjeta de dos columnas y cada celda lleva encima el nombre de su columna.
+   Las etiquetas (data-etiqueta) las pone el componente Table de src/components/ui/table.tsx. */
+@media (max-width: 767px) {
+  table[data-apilar],
+  table[data-apilar] tbody,
+  table[data-apilar] tfoot {
+    display: block;
+  }
+  table[data-apilar] thead {
+    display: none;
+  }
+  table[data-apilar] tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem 1rem;
+    padding: 0.75rem 0.875rem;
+  }
+  table[data-apilar] td {
+    display: block;
+    min-width: 0;
+    padding: 0;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  table[data-apilar] td[data-etiqueta]::before {
+    content: attr(data-etiqueta);
+    display: block;
+    margin-bottom: 0.125rem;
+    color: var(--color-steel-500);
+    font-family: var(--font-sans);
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+  /* La primera celda nombra la fila: ocupa todo el ancho, igual que las celdas sin título (acciones) */
+  table[data-apilar] td:first-child,
+  table[data-apilar] td:not([data-etiqueta]) {
+    grid-column: 1 / -1;
+  }
+  /* Fila de "sin datos" que ocupa todas las columnas */
+  table[data-apilar] td[colspan] {
+    text-align: center;
+  }
+}

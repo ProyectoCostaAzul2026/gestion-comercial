@@ -515,10 +515,10 @@ export function CajaPanel({
     <div className="space-y-4 md:space-y-6">
 
       {/* Header diagonal */}
-      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] px-4 pt-5 pb-4">
-        <div className="relative z-10 flex items-center justify-between gap-3">
+      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] py-3 pl-4 pr-14 md:py-4 md:pr-28">
+        <div className="relative z-10 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
           <div>
-            <h1 className="font-display text-3xl font-bold text-brand-yellow">Caja</h1>
+            <h1 className="font-display text-2xl font-bold text-brand-yellow md:text-3xl">Caja</h1>
             <p className="mt-0.5 text-xs text-steel-300">{fechaHoy}{esFestivoHoy ? ' · Domingo/Festivo' : ''}</p>
           </div>
           {!arqueoHoy ? (
@@ -530,9 +530,9 @@ export function CajaPanel({
             <span className="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-400">Caja cerrada hoy</span>
           )}
         </div>
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-28 overflow-hidden">
-          <div className="absolute inset-y-0 right-0 w-20 -skew-x-12 translate-x-8 bg-brand-yellow/80" />
-          <div className="absolute inset-y-0 right-0 w-7 -skew-x-12 translate-x-1 bg-brand-blue" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-12 overflow-hidden md:w-24">
+          <div className="absolute inset-y-0 right-0 w-9 -skew-x-12 translate-x-4 bg-brand-yellow/80 md:w-20 md:translate-x-8" />
+          <div className="absolute inset-y-0 right-0 w-3 -skew-x-12 translate-x-1 bg-brand-blue md:w-7" />
         </div>
       </div>
 

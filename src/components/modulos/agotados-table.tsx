@@ -167,7 +167,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-3">
+        <div className="grid w-full grid-cols-2 gap-2 md:flex md:w-auto md:flex-wrap md:gap-3">
           <Select
             items={[
               { value: 'todos', label: 'Todos los estados' },
@@ -177,7 +177,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
             onValueChange={(v) => v && setFiltroEstado(v)}
             value={filtroEstado}
           >
-            <SelectTrigger className="w-44 border-white/10 bg-[#1a2430] text-white"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-11 w-full border-white/10 bg-[#1a2430] text-white md:w-44"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos los estados</SelectItem>
               <SelectItem value="agotado">Agotado</SelectItem>
@@ -193,7 +193,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
             onValueChange={(v) => v && setFiltroPrioridad(v)}
             value={filtroPrioridad}
           >
-            <SelectTrigger className="w-48 border-white/10 bg-[#1a2430] text-white"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-11 w-full border-white/10 bg-[#1a2430] text-white md:w-48"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todas">Todas las prioridades</SelectItem>
               {[1, 2, 3, 4, 5].map((n) => (
@@ -210,7 +210,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
             onValueChange={(v) => v && setFiltroProveedor(v)}
             value={filtroProveedor}
           >
-            <SelectTrigger className="w-52 border-white/10 bg-[#1a2430] text-white"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-11 w-full border-white/10 bg-[#1a2430] text-white md:w-52"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos los proveedores</SelectItem>
               {proveedores.map((p) => (

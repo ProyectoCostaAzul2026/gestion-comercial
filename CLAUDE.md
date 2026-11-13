@@ -89,6 +89,9 @@ nómina).
   menú completo en un panel que sube desde abajo, y menú lateral fijo desde `lg`. El menú sale de `navItems` en
   `permissions.ts` (con `grupo`); `rutaActiva` marca el módulo también en sus subpáginas. Las subpáginas con encabezado
   fijo usan `-m-4 md:-m-6` y `sticky top-[calc(3.5rem+env(safe-area-inset-top))] lg:top-0` (quedan bajo la barra superior).
+- **Tablas en celular**: el componente `Table` de `src/components/ui/table.tsx` apila cada fila como tarjeta de dos
+  columnas con el título de su columna encima (`table[data-apilar]` en `globals.css`); `apilar={false}` lo desactiva.
+  Los encabezados de página son compactos en celular y reservan espacio a la derecha para las franjas.
 - La app **solo tiene tema oscuro** (`<html className="dark">`): no volver a depender del tema del sistema.
 - **Fechas**: "hoy" siempre con `hoyBogota()` / `bogotaEnDias()` de `src/lib/fechas.ts`. Nunca
   `new Date().toISOString().slice(0, 10)` (es UTC: desde las 7 p. m. de Bogotá ya es mañana).
@@ -146,8 +149,8 @@ nómina).
   mismas horas y deja por fuera a quien tiene permiso.
 - **Conteo de inventario** (`inventario/conteo`, `conteo-inventario.tsx`): se filtra por ubicación, categoría o búsqueda, se
   escribe lo contado en almacén y bodega (o se pesa con `ContarPorPeso` si el producto tiene peso por unidad) y se guarda
-  todo junto con la RPC `registrar_conteo_inventario`. **Esa RPC aún no existe en la base**: el SQL está en
-  `sql/pendiente_registrar_conteo_inventario.sql` (revisarlo contra `guardar_producto` y aplicarlo con confirmación). Lo
+  todo junto con la RPC `registrar_conteo_inventario` (migración del 2026-11-13, SQL en `sql/`; deja el movimiento
+  `ajuste` con la misma forma que `guardar_producto` y `referencia_tipo` = `conteo_inventario`). Lo
   contado queda como borrador en el navegador (`localStorage`) hasta guardar o descartar.
 - **Pedido sugerido** (Agotados y página del proveedor): `cantidadSugerida` toma la rotación de 90 días y, como mínimo,
   repone hasta el doble del stock mínimo (sin ventas la rotación es 0). Se descarga en PDF o se envía por WhatsApp.
@@ -156,11 +159,13 @@ nómina).
   manuales de stock, retiros, arqueos, devoluciones y cualquier borrado o vaciado de las tablas del negocio). La escriben
   solo triggers; la app solo lee. Cada registro dice si vino del sistema, directo de la base o de una tarea automática.
   Borrar la bitácora solo se puede en la base y deja una fila en `bitacora_borrados`, que rechaza UPDATE, DELETE y
-  TRUNCATE. **Aún no existe en la base**: SQL en `sql/pendiente_bitacora_y_borrado_productos.sql`.
-- **Borrado de productos desactivados** (mismo SQL pendiente): `eliminar_producto_desactivado` (administrador) borra solo
-  los que no tienen registros (ventas, devoluciones, garantías, recepciones, ni movimientos distintos de carga inicial y
-  ajustes) y están sin stock; `purgar_productos_desactivados` los borra solos a los 3 meses de desactivados
-  (`productos.desactivado_en`, tarea diaria de `pg_cron`). Los que ya estén inactivos al aplicar empiezan a contar ese día.
+  TRUNCATE. Migración `bitacora_y_borrado_productos` (2026-11-13), SQL en `sql/bitacora_y_borrado_productos.sql`. También
+  registra gastos y pagos a proveedores.
+- **Borrado de productos desactivados** (misma migración): `eliminar_producto_desactivado` (administrador) borra solo
+  los que no tienen registros (ventas, devoluciones, garantías, recepciones, ni movimientos distintos de la carga inicial, que es tipo `entrada` con
+  `referencia_tipo` = `carga_inicial`, y de los ajustes) y están sin stock; `purgar_productos_desactivados` los borra solos a los 3 meses de desactivados
+  (`productos.desactivado_en`, tarea diaria de `pg_cron` a las 8:15 UTC). Los 45 inactivos que había al aplicar no tienen
+  registros y empezaron a contar el 2026-11-13: se borran en febrero de 2027 si no se reactivan.
 - **Permisos** (`permisos_empleado`, `permisos-empleados.tsx` en Horario): el empleado saca el día que no asiste (desde
   hoy); el administrador lo registra para cualquiera. Alerta en el Inicio del administrador (hoy a 7 días) y marca en la
   vista semanal.
@@ -332,11 +337,9 @@ nómina).
   actualizada" sin cambiar nada) y el formulario pondría el saldo igual al total aunque haya pagos.
 - Recepción de mercancía: quedan para después adjuntar la foto o el PDF de la factura y repartir fletes y descuentos en
   el costo de los renglones.
-- SQL pendiente de aplicar en `sql/`: conteo de inventario, y bitácora con borrado de productos desactivados. Hasta
-  aplicarlos, esas tres funciones avisan en pantalla que falta la migración. Se escribieron sin acceso a la base:
-  confirmar tablas y columnas antes de aplicar.
-- Listas que en celular siguen siendo tablas con desplazamiento lateral (Ventas y Clientes ya tienen tarjetas): nómina,
-  servicios, agotados, desactivados, garantías, productos por proveedor, caja, contabilidad y reportes.
+- `DATABASE.md` y `database.types.ts` no incluyen todavía lo del 2026-11-13 (`bitacora`, `bitacora_borrados`,
+  `productos.desactivado_en` y las RPC nuevas): la app las llama con `as never`. Regenerar los tipos y completar la
+  documentación.
 - El lint tiene unos 315 errores heredados (casi todos `any`); no bloquean el build.
 - Verificación visual sin tocar producción: un servidor local que imita a Supabase (auth y pocas tablas) con
   `NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321` y la cookie `sb-localhost-auth-token`; el host real de Supabase no

@@ -1150,3 +1150,12 @@ servicios ─────────────────────── 
       alertas del Inicio hasta que tenga categoría, familia y proveedor con costo. "Editar producto" pone en su familia a
       un producto sin familia cuyo nombre sigue "Familia - Característica" (con `mover_productos`).
     - `guardar_producto` deja movimiento `ajuste` cuando un cambio de stock se guarda al editar.
+20. **Conteo, bitácora y borrado de desactivados** (migraciones `registrar_conteo_inventario` y
+    `bitacora_y_borrado_productos`, 2026-11-13; SQL completo en `sql/`):
+    - `registrar_conteo_inventario(p_conteos jsonb)`: ajusta almacén y bodega de varios productos en una transacción.
+      Rechaza el conteo si el stock cambió desde que se cargó la pantalla. Administrador y empleado. `SECURITY DEFINER`.
+    - `bitacora` (solo SELECT para administradores; la escriben triggers `trg_bitacora_*` en 26 tablas) y
+      `bitacora_borrados` (rastro de borrados de la bitácora; rechaza UPDATE, DELETE y TRUNCATE).
+    - `productos.desactivado_en` (trigger `trg_marcar_desactivado`), `producto_tiene_registros(uuid)`,
+      `eliminar_producto_desactivado(uuid)` (administrador) y `purgar_productos_desactivados()` (tarea `pg_cron`
+      `purgar-productos-desactivados`, diaria a las 8:15 UTC; solo la ejecuta la base).

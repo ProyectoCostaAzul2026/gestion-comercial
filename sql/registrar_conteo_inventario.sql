@@ -1,7 +1,5 @@
--- PENDIENTE DE APLICAR (no se ha ejecutado en la base). Aplicar con apply_migration, nombre: registrar_conteo_inventario.
--- Antes de aplicar: comparar con guardar_producto la forma del movimiento `ajuste` (signo de `cantidad` y si
--- stock_anterior / stock_nuevo van por lugar o por el total) y dejarla igual. Después: get_advisors, DATABASE.md y
--- database.types.ts.
+-- Migración registrar_conteo_inventario (aplicada el 2026-11-13). El movimiento de ajuste tiene la misma forma que el
+-- de guardar_producto.
 --
 -- Conteo de inventario (Inventario › Conteo): recibe lo contado en almacén y bodega de varios productos y deja el
 -- ajuste de stock con su movimiento, todo en una sola transacción. Reglas (las replica src/lib/conteo.ts):
@@ -23,6 +21,8 @@ declare
   v_prod public.productos%rowtype;
   v_ajustados integer := 0;
   v_nota text;
+  v_bodega integer;
+  v_almacen integer;
 begin
   if v_uid is null or not exists (select 1 from public.profiles where id = v_uid and activo) then
     raise exception 'Tu sesión no es válida o tu usuario está inactivo';
@@ -60,30 +60,31 @@ begin
         v_prod.nombre, coalesce(v_prod.unidad_medida, '');
     end if;
 
-    v_nota := case when v_fila.por_peso then 'Conteo de inventario (por peso)' else 'Conteo de inventario' end;
+    v_nota := case when v_fila.por_peso then 'Conteo de inventario por peso' else 'Conteo de inventario' end;
+    v_bodega := coalesce(v_fila.bodega, v_prod.stock_bodega);
+    v_almacen := coalesce(v_fila.almacen, v_prod.stock_almacen);
 
-    if v_fila.almacen is not null and v_fila.almacen <> v_prod.stock_almacen then
+    -- Misma forma que el ajuste de guardar_producto: cantidad en positivo y stock total (bodega + almacén) antes y después
+    if v_bodega <> v_prod.stock_bodega then
       insert into public.movimientos_inventario
-        (producto_id, tipo, cantidad, stock_anterior, stock_nuevo, referencia_tipo, empleado_id, notas)
+        (producto_id, tipo, cantidad, stock_anterior, stock_nuevo, notas, empleado_id, referencia_tipo)
       values
-        (v_prod.id, 'ajuste', v_fila.almacen - v_prod.stock_almacen, v_prod.stock_almacen, v_fila.almacen,
-         'conteo_inventario', v_uid, v_nota || ' · almacén');
+        (v_prod.id, 'ajuste', abs(v_bodega - v_prod.stock_bodega),
+         v_prod.stock_bodega + v_prod.stock_almacen, v_bodega + v_prod.stock_almacen,
+         v_nota || ' (bodega)', v_uid, 'conteo_inventario');
     end if;
-    if v_fila.bodega is not null and v_fila.bodega <> v_prod.stock_bodega then
+    if v_almacen <> v_prod.stock_almacen then
       insert into public.movimientos_inventario
-        (producto_id, tipo, cantidad, stock_anterior, stock_nuevo, referencia_tipo, empleado_id, notas)
+        (producto_id, tipo, cantidad, stock_anterior, stock_nuevo, notas, empleado_id, referencia_tipo)
       values
-        (v_prod.id, 'ajuste', v_fila.bodega - v_prod.stock_bodega, v_prod.stock_bodega, v_fila.bodega,
-         'conteo_inventario', v_uid, v_nota || ' · bodega');
+        (v_prod.id, 'ajuste', abs(v_almacen - v_prod.stock_almacen),
+         v_bodega + v_prod.stock_almacen, v_bodega + v_almacen,
+         v_nota || ' (almacén)', v_uid, 'conteo_inventario');
     end if;
 
-    if (v_fila.almacen is not null and v_fila.almacen <> v_prod.stock_almacen)
-       or (v_fila.bodega is not null and v_fila.bodega <> v_prod.stock_bodega) then
+    if v_bodega <> v_prod.stock_bodega or v_almacen <> v_prod.stock_almacen then
       -- stock_actual lo recalcula el trigger (bodega + almacén)
-      update public.productos
-         set stock_almacen = coalesce(v_fila.almacen, stock_almacen),
-             stock_bodega  = coalesce(v_fila.bodega, stock_bodega)
-       where id = v_prod.id;
+      update public.productos set stock_almacen = v_almacen, stock_bodega = v_bodega where id = v_prod.id;
       v_ajustados := v_ajustados + 1;
     end if;
   end loop;

@@ -1,6 +1,4 @@
--- PENDIENTE DE APLICAR (no se ha ejecutado en la base). Aplicar con apply_migration, nombre: bitacora_y_borrado_productos.
--- Antes de aplicar: confirmar con list_tables que existen las tablas y columnas nombradas aquí (se escribió con
--- DATABASE.md y database.types.ts, sin acceso a la base). Después: get_advisors, DATABASE.md y database.types.ts.
+-- Migración bitacora_y_borrado_productos (aplicada el 2026-11-13). Tablas y columnas verificadas contra la base.
 --
 -- 1. BITÁCORA: registro de los cambios importantes, que no se puede cambiar ni borrar desde el sistema.
 --    - La escriben solo los triggers. La app no tiene permiso de INSERT, UPDATE ni DELETE; los administradores solo leen.
@@ -180,13 +178,17 @@ create trigger trg_bitacora_cambio after update on public.clientes
 create trigger trg_bitacora_cambio after update on public.proveedores
   for each row execute function public.fn_bitacora_cambio('nombre,nit_ruc,activo', 'nombre');
 create trigger trg_bitacora_cambio after update on public.facturas_proveedor
-  for each row execute function public.fn_bitacora_cambio('total,saldo_pendiente,estado,fecha_vencimiento', 'numero_factura');
+  for each row execute function public.fn_bitacora_cambio('monto_total,monto_pagado,saldo_pendiente,estado,fecha_vencimiento', 'numero_factura');
 
 -- Altas importantes
 create trigger trg_bitacora_alta after insert on public.devoluciones
   for each row execute function public.fn_bitacora_alta('Devolución, cambio o anulación de una venta');
 create trigger trg_bitacora_alta after insert on public.retiros
   for each row execute function public.fn_bitacora_alta('Retiro de dinero');
+create trigger trg_bitacora_alta after insert on public.gastos
+  for each row execute function public.fn_bitacora_alta('Gasto');
+create trigger trg_bitacora_alta after insert on public.pagos_factura_proveedor
+  for each row execute function public.fn_bitacora_alta('Pago a proveedor');
 create trigger trg_bitacora_alta after insert on public.arqueo_caja
   for each row execute function public.fn_bitacora_alta('Arqueo y cierre de caja');
 create trigger trg_bitacora_alta after insert on public.movimientos_inventario
@@ -274,7 +276,8 @@ create trigger trg_marcar_desactivado before insert or update of activo on publi
   for each row execute function public.fn_marcar_desactivado();
 
 -- Un producto "tiene registros" si aparece en una venta, una devolución o cambio, una garantía, una recepción de
--- mercancía, o tiene movimientos de inventario distintos de la carga inicial y los ajustes.
+-- mercancía, o tiene movimientos de inventario distintos de la carga inicial (tipo entrada, referencia carga_inicial)
+-- y de los ajustes.
 create or replace function public.producto_tiene_registros(p_producto_id uuid) returns boolean
 language sql stable security definer set search_path = public as $$
   select exists (select 1 from public.venta_items where producto_id = p_producto_id)
@@ -282,7 +285,8 @@ language sql stable security definer set search_path = public as $$
       or exists (select 1 from public.garantias where producto_id = p_producto_id)
       or exists (select 1 from public.recepcion_items where producto_id = p_producto_id)
       or exists (select 1 from public.movimientos_inventario
-                 where producto_id = p_producto_id and tipo not in ('carga_inicial', 'ajuste'));
+                 where producto_id = p_producto_id and tipo <> 'ajuste'
+                   and coalesce(referencia_tipo, '') <> 'carga_inicial');
 $$;
 
 -- Borra un producto y lo que depende solo de él. Uso interno: las dos funciones de abajo validan antes.

@@ -88,9 +88,9 @@ export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, 
             </div>
           </div>
         </div>
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-28 overflow-hidden">
-          <div className="absolute inset-y-0 right-0 w-20 -skew-x-12 translate-x-8 bg-brand-yellow/80" />
-          <div className="absolute inset-y-0 right-0 w-7 -skew-x-12 translate-x-1 bg-brand-blue" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-12 overflow-hidden md:w-24">
+          <div className="absolute inset-y-0 right-0 w-9 -skew-x-12 translate-x-4 bg-brand-yellow/80 md:w-20 md:translate-x-8" />
+          <div className="absolute inset-y-0 right-0 w-3 -skew-x-12 translate-x-1 bg-brand-blue md:w-7" />
         </div>
       </div>
 
@@ -126,7 +126,7 @@ export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, 
       </div>
 
       {/* ── Accesos rápidos ── */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
         <Link href="/dashboard/ventas/nueva"
           className="flex h-16 items-center gap-3 rounded-2xl bg-brand-yellow px-4 text-sm font-bold text-steel-900 transition hover:brightness-105">
           <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-steel-900/10">

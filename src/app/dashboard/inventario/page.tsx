@@ -32,10 +32,10 @@ export default async function InventarioPage() {
 
   return (
     <div className="space-y-4">
-      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] px-4 pt-5 pb-4">
+      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] py-3 pl-4 pr-14 md:py-4 md:pr-28">
         <div className="relative z-10">
           <div>
-            <h1 className="font-display text-3xl font-bold text-brand-yellow">Inventario</h1>
+            <h1 className="font-display text-2xl font-bold text-brand-yellow md:text-3xl">Inventario</h1>
             <p className="mt-0.5 text-xs text-steel-300">{productos?.length ?? 0} productos registrados</p>
           </div>
 
@@ -79,9 +79,9 @@ export default async function InventarioPage() {
             </Link>
           )}
         </div>
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-28 overflow-hidden">
-          <div className="absolute inset-y-0 right-0 w-20 -skew-x-12 translate-x-8 bg-brand-yellow/80" />
-          <div className="absolute inset-y-0 right-0 w-7 -skew-x-12 translate-x-1 bg-brand-blue" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-12 overflow-hidden md:w-24">
+          <div className="absolute inset-y-0 right-0 w-9 -skew-x-12 translate-x-4 bg-brand-yellow/80 md:w-20 md:translate-x-8" />
+          <div className="absolute inset-y-0 right-0 w-3 -skew-x-12 translate-x-1 bg-brand-blue md:w-7" />
         </div>
       </div>
 

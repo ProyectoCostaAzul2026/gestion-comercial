@@ -647,16 +647,6 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
     <div className="flex flex-col gap-6 lg:flex-row">
       <div className="min-w-0 flex-1 space-y-4">
 
-        {/* HEADER DIAGONAL */}
-        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] px-4 pt-5 pb-4">
-          <h1 className="font-display text-3xl font-bold text-white">Nueva <span className="text-brand-yellow">Venta</span></h1>
-          <p className="mt-0.5 text-xs text-steel-300">Registra productos, servicios y cobro</p>
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-28 overflow-hidden">
-            <div className="absolute inset-y-0 right-0 w-20 -skew-x-12 translate-x-8 bg-brand-yellow/80" />
-            <div className="absolute inset-y-0 right-0 w-7 -skew-x-12 translate-x-1 bg-brand-blue" />
-          </div>
-        </div>
-
         {/* CLIENTE */}
         <section className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
           <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow">
