@@ -88,6 +88,7 @@ export const navItems: NavItem[] = [
   { label: 'Caja', href: '/dashboard/caja', icon: 'Wallet', grupo: 'Administración', soloAdmin: true },
   { label: 'Contabilidad', href: '/dashboard/contabilidad', icon: 'BookOpen', grupo: 'Administración', soloAdmin: true },
   { label: 'Reportes', href: '/dashboard/reportes', icon: 'BarChart3', grupo: 'Administración', soloAdmin: true },
+  { label: 'Bitácora', href: '/dashboard/bitacora', icon: 'ShieldCheck', grupo: 'Sistema', soloAdmin: true },
   { label: 'Instrucciones', href: '/dashboard/instrucciones', icon: 'HelpCircle', grupo: 'Sistema' },
   { label: 'Configuración', href: '/dashboard/configuracion', icon: 'Settings', grupo: 'Sistema', soloAdmin: true },
 ]
@@ -111,4 +112,5 @@ export const RUTAS_SOLO_ADMIN = [
   '/dashboard/contabilidad',
   '/dashboard/reportes',
   '/dashboard/configuracion',
+  '/dashboard/bitacora',
 ]

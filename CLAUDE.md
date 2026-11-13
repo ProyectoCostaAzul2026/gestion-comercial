@@ -151,6 +151,16 @@ nómina).
   contado queda como borrador en el navegador (`localStorage`) hasta guardar o descartar.
 - **Pedido sugerido** (Agotados y página del proveedor): `cantidadSugerida` toma la rotación de 90 días y, como mínimo,
   repone hasta el doble del stock mínimo (sin ventas la rotación es 0). Se descarga en PDF o se envía por WhatsApp.
+- **Bitácora** (`/dashboard/bitacora`, solo administrador; `bitacora-panel.tsx`, `src/lib/bitacora.ts`): registro de cambios
+  importantes (precios, activar o desactivar productos, roles y salarios, configuración, estados de ventas, ajustes
+  manuales de stock, retiros, arqueos, devoluciones y cualquier borrado o vaciado de las tablas del negocio). La escriben
+  solo triggers; la app solo lee. Cada registro dice si vino del sistema, directo de la base o de una tarea automática.
+  Borrar la bitácora solo se puede en la base y deja una fila en `bitacora_borrados`, que rechaza UPDATE, DELETE y
+  TRUNCATE. **Aún no existe en la base**: SQL en `sql/pendiente_bitacora_y_borrado_productos.sql`.
+- **Borrado de productos desactivados** (mismo SQL pendiente): `eliminar_producto_desactivado` (administrador) borra solo
+  los que no tienen registros (ventas, devoluciones, garantías, recepciones, ni movimientos distintos de carga inicial y
+  ajustes) y están sin stock; `purgar_productos_desactivados` los borra solos a los 3 meses de desactivados
+  (`productos.desactivado_en`, tarea diaria de `pg_cron`). Los que ya estén inactivos al aplicar empiezan a contar ese día.
 - **Permisos** (`permisos_empleado`, `permisos-empleados.tsx` en Horario): el empleado saca el día que no asiste (desde
   hoy); el administrador lo registra para cualquiera. Alerta en el Inicio del administrador (hoy a 7 días) y marca en la
   vista semanal.
@@ -322,8 +332,9 @@ nómina).
   actualizada" sin cambiar nada) y el formulario pondría el saldo igual al total aunque haya pagos.
 - Recepción de mercancía: quedan para después adjuntar la foto o el PDF de la factura y repartir fletes y descuentos en
   el costo de los renglones.
-- "Eliminar definitivamente" un producto desactivado no borra nada (no hay política de DELETE en `productos` ni en
-  `movimientos_inventario`); la app ahora lo avisa en lugar de decir que lo eliminó. Hace falta una RPC si se quiere borrar.
+- SQL pendiente de aplicar en `sql/`: conteo de inventario, y bitácora con borrado de productos desactivados. Hasta
+  aplicarlos, esas tres funciones avisan en pantalla que falta la migración. Se escribieron sin acceso a la base:
+  confirmar tablas y columnas antes de aplicar.
 - Listas que en celular siguen siendo tablas con desplazamiento lateral (Ventas y Clientes ya tienen tarjetas): nómina,
   servicios, agotados, desactivados, garantías, productos por proveedor, caja, contabilidad y reportes.
 - El lint tiene unos 315 errores heredados (casi todos `any`); no bloquean el build.
