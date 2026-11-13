@@ -84,7 +84,9 @@ nómina).
   cerrar), `temas-ayuda.ts` (textos del panel Instrucciones), `festivos-colombia.ts` (festivos calculados para cualquier año con
   su nombre, jornada de festivo 9:00 a 17:00 y `turnoEnFecha`), `turnos.ts` (quién trabaja hoy: turno del día y sin
   permiso; lo usan Inicio, Caja y Nómina), `whatsapp.ts` (enlace wa.me con indicativo 57 y textos de recordatorio de
-  crédito y de pedido), `pedido.ts` (cantidad sugerida), `conteo.ts` (conteo de inventario).
+  crédito y de pedido), `pedido.ts` (cantidad sugerida), `conteo.ts` (conteo de inventario), `costo-venta.ts` (costo de una línea de venta:
+  en las líneas por fracción `venta_items.costo_unitario` es el costo del rollo completo y hay que dividirlo entre
+  `productos.cantidad_total_unidad`; lo usan Reportes y Contabilidad).
 - `src/components/layout/NavigationShell.tsx`: barra inferior en celular (Inicio, Ventas, Vender, Inventario, Más) con el
   menú completo en un panel que sube desde abajo, y menú lateral fijo desde `lg`. El menú sale de `navItems` en
   `permissions.ts` (con `grupo`); `rutaActiva` marca el módulo también en sus subpáginas. Las subpáginas con encabezado
@@ -331,6 +333,11 @@ nómina).
 - Garantías desde una devolución o un cambio: en `venta-acciones.tsx` no se puede elegir el proveedor (la lista no se
   carga), la cantidad va fija en 1 y no se guarda `devolucion_id`; además la RPC reintegra el stock y `recibir_garantia`
   lo vuelve a sumar.
+- Las líneas vendidas por fracción guardan `iva_unitario` = 0 aunque el producto tenga IVA (lo dejan así
+  `registrar_venta` y `registrar_venta_credito`), así que `ventas.total_iva` queda corto en esas ventas.
+- Reportes y Contabilidad restan el costo sin IVA a ventas con IVA incluido: la utilidad sale más alta de lo real si
+  el negocio declara IVA. Falta decidir el tratamiento (ver con el dueño si es responsable de IVA).
+- El total de una venta incluye sus servicios (`venta_servicios`): no sumarlos aparte a los ingresos.
 - Devolver o anular una línea fraccionada no deja movimiento en `movimientos_inventario`, y `anular_venta` suma la
   fracción al remanente sin pasarla a unidades.
 - Editar una factura de proveedor no guarda: `facturas_proveedor` no tiene política de UPDATE (la app dice "Factura

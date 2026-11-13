@@ -3,6 +3,7 @@ import { traerTodo } from '@/lib/supabase/traer-todo'
 import { redirect } from 'next/navigation'
 import { hoyBogota } from '@/lib/fechas'
 import { ContabilidadPanel } from '@/components/modulos/contabilidad-panel'
+import { costoLineaVenta } from '@/lib/costo-venta'
 
 function getPeriodo(periodo: string, desde?: string, hasta?: string) {
   // Mediodía UTC del día de Bogotá: las cuentas de días no se corren por la zona horaria del servidor
@@ -80,7 +81,7 @@ export default async function ContabilidadPage({
         .select(`
           id, nombre_producto, cantidad, costo_unitario, subtotal_linea,
           es_fraccionado, cantidad_fraccion,
-          productos(id, nombre, producto_proveedores(proveedor_id, proveedores(nombre))),
+          productos(id, nombre, cantidad_total_unidad, producto_proveedores(proveedor_id, proveedores(nombre))),
           ventas!inner(fecha, estado)
         `)
         .gte('ventas.fecha', desde)
@@ -150,14 +151,10 @@ export default async function ContabilidadPage({
     clientes: { nombre: clientesMap[c.cliente_id] ?? '—' },
   }))
 
-  // ✅ Ingresos = ventas + servicios (los créditos ya están en ventas con estado 'credito')
+  // El total de cada venta ya incluye sus servicios: no se suman aparte (antes se contaban dos veces)
   const totalIngresos = (ventas ?? []).reduce((s: number, v: any) => s + Number(v.total), 0)
   const totalServicios = (ventaServicios ?? []).reduce((s: number, vs: any) => s + Number(vs.precio_aplicado), 0)
-  const totalIngresosReal = totalIngresos + totalServicios
-  const totalCMV = (ventaItems ?? []).reduce((s: number, i: any) => {
-    const cant = i.es_fraccionado ? Number(i.cantidad_fraccion ?? 1) : Number(i.cantidad)
-    return s + cant * Number(i.costo_unitario ?? 0)
-  }, 0)
+  const totalCMV = (ventaItems ?? []).reduce((s: number, i: any) => s + costoLineaVenta(i), 0)
   const totalGastos = (gastos ?? []).reduce((s: number, g: any) => s + Number(g.monto), 0)
   const totalNominas = (nominas ?? []).reduce((s: number, n: any) => s + Number(n.total_pago), 0)
   const resultado = totalIngresos - totalCMV - totalGastos - totalNominas
@@ -180,7 +177,7 @@ export default async function ContabilidadPage({
       desde={desde}
       hasta={hasta}
       periodo={periodo}
-      balance={{ totalIngresos: totalIngresosReal, totalServicios, totalCMV, totalGastos, totalNominas, resultado: totalIngresosReal - totalCMV - totalGastos - totalNominas, totalCobrar, totalPagar }}
+      balance={{ totalIngresos, totalServicios, totalCMV, totalGastos, totalNominas, resultado, totalCobrar, totalPagar }}
 
     />
   )

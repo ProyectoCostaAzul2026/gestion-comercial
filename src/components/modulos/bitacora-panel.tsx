@@ -1,10 +1,10 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { ChevronDown, ChevronUp, Database, ShieldAlert, Timer, User } from 'lucide-react'
 import {
-  ACCION_BITACORA, ORIGEN_BITACORA, TABLA_BITACORA, cambiosDeDetalle, huecosDeNumeracion, textoValor,
+  ACCION_BITACORA, ORIGEN_BITACORA, TABLA_BITACORA, cambiosDeDetalle, textoValor,
   type BorradoBitacora, type RegistroBitacora,
 } from '@/lib/bitacora'
 
@@ -85,19 +85,12 @@ export function BitacoraPanel({ registros, borrados, filtros, hayMas }: Props) {
   }
   const sinFiltro = !filtros.tabla && !filtros.origen && !filtros.desde && !filtros.hasta
   // Solo tiene sentido buscar saltos cuando se ve la lista completa, sin filtros
-  // Un salto que ya explica un borrado registrado no se repite; uno sin explicación sí se muestra
-  const huecos = useMemo(() => {
-    if (!sinFiltro) return []
-    return huecosDeNumeracion(registros.map(r => r.numero)).filter(h =>
-      !borrados.some(b => b.numero_desde !== null && b.numero_hasta !== null && b.numero_desde <= h.desde && b.numero_hasta >= h.hasta))
-  }, [registros, borrados, sinFiltro])
-
   const SELECT = 'h-11 w-full rounded-lg border border-white/10 bg-[#1a2430] px-3 text-[16px] text-white'
   const ETIQUETA = 'text-[10px] font-bold uppercase tracking-widest text-steel-300'
 
   return (
     <div className="space-y-4">
-      {(borrados.length > 0 || huecos.length > 0) && (
+      {borrados.length > 0 && (
         <section className="space-y-2 rounded-2xl border border-brand-red/40 bg-brand-red/10 p-4">
           <h2 className="flex items-center gap-2 font-display text-base font-bold text-white">
             <ShieldAlert className="h-5 w-5 text-brand-red" aria-hidden />Se borraron registros de la bitácora
@@ -113,11 +106,6 @@ export function BitacoraPanel({ registros, borrados, filtros, hayMas }: Props) {
                 <p className="text-xs text-steel-300">
                   {b.fecha_desde && b.fecha_hasta ? `Cubrían del ${fechaHora(b.fecha_desde)} al ${fechaHora(b.fecha_hasta)} · ` : ''}usuario de la base: {b.rol_bd}
                 </p>
-              </li>
-            ))}
-            {huecos.map(h => (
-              <li key={h.desde} className="rounded-xl border border-white/10 bg-[#111820] px-3 py-2 text-sm">
-                Faltan los registros {h.desde === h.hasta ? `#${h.desde}` : `#${h.desde} a #${h.hasta}`} en la numeración.
               </li>
             ))}
           </ul>

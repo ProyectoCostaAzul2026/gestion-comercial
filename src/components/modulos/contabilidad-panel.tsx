@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge'
 import { Download, ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { hoyBogota } from '@/lib/fechas'
+import { cantidadVendida, costoLineaVenta, costoPorUnidadVendida } from '@/lib/costo-venta'
 
 const PERIODOS = [
   { value: 'hoy', label: 'Hoy' },
@@ -53,7 +54,7 @@ function exportarCSVCompleto(data: {
   data.ventas.forEach(v => filas.push([`#${v.numero_ticket}`, v.fecha, v.clientes?.nombre ?? 'General', String(v.total), v.tipo_pago]))
   filas.push(['', '', 'TOTAL', String(data.ventas.reduce((s: number, v: any) => s + Number(v.total), 0)), ''])
   filas.push([])
-  filas.push(['=== INGRESOS — SERVICIOS ==='])
+  filas.push(['=== SERVICIOS (ya incluidos en el total de las ventas) ==='])
   filas.push(['Servicio', 'Fecha', 'Ticket', 'Monto'])
   data.ventaServicios.forEach(s => filas.push([s.nombre_servicio, s.ventas?.fecha ?? '', `#${s.ventas?.numero_ticket ?? ''}`, String(s.precio_aplicado)]))
   filas.push(['', '', 'TOTAL', String(data.ventaServicios.reduce((s: number, v: any) => s + Number(v.precio_aplicado), 0))])
@@ -61,8 +62,8 @@ function exportarCSVCompleto(data: {
   filas.push(['=== COSTOS DE MERCANCÍA ==='])
   filas.push(['Producto', 'Cantidad', 'Costo unitario', 'Total costo', 'Proveedor'])
   data.ventaItems.forEach(i => {
-    const cant = i.es_fraccionado ? Number(i.cantidad_fraccion ?? 1) : Number(i.cantidad)
-    filas.push([i.nombre_producto, String(cant), String(i.costo_unitario), String(cant * Number(i.costo_unitario)), i.productos?.producto_proveedores?.[0]?.proveedores?.nombre ?? '—'])
+    const cant = cantidadVendida(i)
+    filas.push([i.nombre_producto, String(cant), String(Math.round(costoPorUnidadVendida(i) * 100) / 100), String(Math.round(costoLineaVenta(i))), i.productos?.producto_proveedores?.[0]?.proveedores?.nombre ?? '—'])
   })
   filas.push([])
   filas.push(['=== GASTOS ==='])
@@ -174,9 +175,11 @@ export function ContabilidadPanel({
   const ventasFiltradas = useMemo(() => filtroTipoIngreso === 'servicios' ? [] : ventas, [ventas, filtroTipoIngreso])
   const serviciosFiltrados = useMemo(() => filtroTipoIngreso === 'ventas' ? [] : ventaServicios, [ventaServicios, filtroTipoIngreso])
   const totalIngresosTabla = useMemo(() =>
-    ventasFiltradas.reduce((s, v) => s + Number(v.total), 0) +
-    serviciosFiltrados.reduce((s, vs) => s + Number(vs.precio_aplicado), 0),
-    [ventasFiltradas, serviciosFiltrados])
+    // El total de la venta ya incluye sus servicios: con "Todos" solo se suman las ventas
+    filtroTipoIngreso === 'servicios'
+      ? serviciosFiltrados.reduce((s, vs) => s + Number(vs.precio_aplicado), 0)
+      : ventasFiltradas.reduce((s, v) => s + Number(v.total), 0),
+    [ventasFiltradas, serviciosFiltrados, filtroTipoIngreso])
 
   const costosFiltrados = useMemo(() =>
     filtroProveedorCosto === 'todos' ? ventaItems :
@@ -184,10 +187,7 @@ export function ContabilidadPanel({
     [ventaItems, filtroProveedorCosto])
 
   const totalCMVTabla = useMemo(() =>
-    costosFiltrados.reduce((s, i) => {
-      const cant = i.es_fraccionado ? Number(i.cantidad_fraccion ?? 1) : Number(i.cantidad)
-      return s + cant * Number(i.costo_unitario ?? 0)
-    }, 0), [costosFiltrados])
+    costosFiltrados.reduce((s, i) => s + costoLineaVenta(i), 0), [costosFiltrados])
 
   const gastosFiltrados = useMemo(() =>
     filtroCategoriaGasto === 'todas' ? gastos : gastos.filter(g => g.categoria_gasto === filtroCategoriaGasto),
@@ -367,7 +367,10 @@ export function ContabilidadPanel({
                 <TableCell><span className="inline-flex items-center rounded-full bg-brand-yellow/20 px-2 py-0.5 text-xs font-semibold text-brand-yellow">Servicio</span></TableCell>
                 <TableCell className="text-xs text-white">{s.nombre_servicio}</TableCell>
                 <TableCell className="text-xs text-steel-300">Ticket #{s.ventas?.numero_ticket}</TableCell>
-                <TableCell className="text-right font-display font-bold text-emerald-400">${Number(s.precio_aplicado).toLocaleString('es-CO')}</TableCell>
+                <TableCell className={`text-right font-display font-bold ${filtroTipoIngreso === 'servicios' ? 'text-emerald-400' : 'text-steel-300'}`}>
+                  ${Number(s.precio_aplicado).toLocaleString('es-CO')}
+                  {filtroTipoIngreso !== 'servicios' && <span className="block text-[10px] font-normal text-steel-500">incluido en el ticket</span>}
+                </TableCell>
               </TableRow>
             ))}
             {ventasFiltradas.length === 0 && serviciosFiltrados.length === 0 && (
@@ -403,15 +406,15 @@ export function ContabilidadPanel({
           </TableHeader>
           <TableBody>
             {costosFiltrados.map(i => {
-              const cant = i.es_fraccionado ? Number(i.cantidad_fraccion ?? 1) : Number(i.cantidad)
-              const totalCosto = cant * Number(i.costo_unitario ?? 0)
+              const cant = cantidadVendida(i)
+              const totalCosto = Math.round(costoLineaVenta(i))
               const proveedor = i.productos?.producto_proveedores?.[0]?.proveedores?.nombre ?? '—'
               return (
                 <TableRow key={i.id} className="border-white/8 hover:bg-white/5">
                   <TableCell className="text-xs font-medium text-white">{i.nombre_producto}</TableCell>
                   <TableCell className="text-xs text-steel-300">{proveedor}</TableCell>
                   <TableCell className="text-right text-xs text-white">{cant}</TableCell>
-                  <TableCell className="text-right text-xs text-white">${Number(i.costo_unitario ?? 0).toLocaleString('es-CO')}</TableCell>
+                  <TableCell className="text-right text-xs text-white">${costoPorUnidadVendida(i).toLocaleString('es-CO', { maximumFractionDigits: 2 })}</TableCell>
                   <TableCell className="text-right font-display font-bold text-brand-red">${totalCosto.toLocaleString('es-CO')}</TableCell>
                 </TableRow>
               )

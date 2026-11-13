@@ -69,15 +69,8 @@ export const TABLA_BITACORA: Record<string, string> = {
   configuracion_negocio: 'Configuración',
 }
 
-/** Saltos en la numeración: registros que ya no están (se borraron directamente en la base) */
-export function huecosDeNumeracion(numeros: number[]): { desde: number; hasta: number }[] {
-  const orden = [...numeros].sort((a, b) => a - b)
-  const huecos: { desde: number; hasta: number }[] = []
-  for (let i = 1; i < orden.length; i++) {
-    if (orden[i] - orden[i - 1] > 1) huecos.push({ desde: orden[i - 1] + 1, hasta: orden[i] - 1 })
-  }
-  return huecos
-}
+// La numeración puede saltar sin que se haya borrado nada (una operación que falla a medias consume números): el
+// rastro fiable de un borrado es la tabla bitacora_borrados.
 
 /** "antes → después" de un cambio, en texto corto */
 export function textoValor(v: unknown): string {
