@@ -9,9 +9,10 @@ import { ProductosProveedorTable } from '@/components/modulos/productos-proveedo
 import { GarantiasPanel } from '@/components/modulos/garantias-panel'
 import { ETIQUETA_ESTADO_RECEPCION, type EstadoRecepcion } from '@/lib/recepcion'
 import { CLASE_ESTADO_RECEPCION } from '@/components/modulos/recepcion-tipos'
+import { bogotaEnDias, hoyBogota } from '@/lib/fechas'
 
-const hoy = new Date().toISOString().slice(0, 10)
-const en7Dias = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+const hoy = hoyBogota()
+const en7Dias = bogotaEnDias(7)
 
 const ESTADO_FACTURA: Record<string, { label: string; className: string }> = {
   pendiente: { label: 'Pendiente', className: 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow' },
@@ -133,6 +134,7 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
 
       {/* Productos asociados */}
       <ProductosProveedorTable
+        proveedorTelefono={proveedor.telefono}
         proveedorNombre={proveedor.nombre}
         productos={(productos ?? []).map((pp: any) => ({
           id: pp.id,

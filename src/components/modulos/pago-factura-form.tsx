@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import { hoyBogota } from '@/lib/fechas'
 
 interface PagoFacturaFormProps {
   facturaId: string
@@ -19,7 +20,7 @@ interface PagoFacturaFormProps {
 export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId }: PagoFacturaFormProps) {
   const supabase = createClient()
   const router = useRouter()
-  const hoy = new Date().toISOString().slice(0, 10)
+  const hoy = hoyBogota()
   const [monto, setMonto] = useState(saldoPendiente)
   const [metodoPago, setMetodoPago] = useState('efectivo')
   const [origenCaja, setOrigenCaja] = useState('caja_menor')

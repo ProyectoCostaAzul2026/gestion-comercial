@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { CajaPanel } from '@/components/modulos/caja-panel'
+import { empleadosEnTurno } from '@/lib/turnos'
 
 export default async function CajaPage() {
   const supabase = await createClient()
@@ -39,7 +40,7 @@ export default async function CajaPage() {
       .maybeSingle(),
     supabase.from('proveedores').select('id, nombre').eq('activo', true).order('nombre'),
     supabase.from('nominas').select('id, empleado_id').eq('periodo_inicio', hoy).eq('estado', 'pagada'),
-    supabase.from('profiles').select('id').eq('activo', true),
+    empleadosEnTurno(supabase, hoy).then(ids => ({ data: ids })),
     supabase.from('arqueo_caja').select('id').eq('fecha', hoy).maybeSingle(),
     supabase.from('saldos_medios_pago').select('medio, saldo_acumulado'),
     supabase.from('categorias_gasto').select('id, nombre').eq('activo', true).order('nombre'),
@@ -84,6 +85,8 @@ export default async function CajaPage() {
     .reduce((s: number, m: any) => s + Number(m.monto), 0)
 
   const empleadosPagadosHoy = new Set((nominasHoy ?? []).map((n: any) => n.empleado_id))
+  // Nómina del día: quienes trabajan hoy (turno y sin permiso) y quien ya recibió pago
+  const enNominaHoy = new Set<string>([...(empleadosActivos ?? []), ...empleadosPagadosHoy])
 
   return (
     <CajaPanel
@@ -103,10 +106,10 @@ export default async function CajaPage() {
       proveedores={proveedores ?? []}
       fechaHoy={hoy}
       nominasPagadasHoy={nominasHoy?.length ?? 0}
-      empleadosActivos={empleadosActivos?.length ?? 0}
+      empleadosActivos={enNominaHoy.size}
       arqueoHoy={arqueoHoy}
       categoriasGasto={categoriasGasto ?? []}
-      empleados={(empleados as any) ?? []}
+      empleados={((empleados as any) ?? []).filter((e: { id: string }) => enNominaHoy.has(e.id))}
       empleadosPagadosHoy={[...empleadosPagadosHoy]}
     />
   )

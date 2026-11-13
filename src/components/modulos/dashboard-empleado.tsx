@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import {
   ShoppingCart, Package, TrendingUp, Receipt, BarChart3,
-  Phone, Mail, Banknote, Calendar, AlertCircle,
+  Phone, Mail, Banknote, Calendar, AlertCircle, ClipboardCheck, Users,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -88,9 +88,9 @@ export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, 
             </div>
           </div>
         </div>
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-28 overflow-hidden">
-          <div className="absolute inset-y-0 right-0 w-20 -skew-x-12 translate-x-8 bg-brand-yellow/80" />
-          <div className="absolute inset-y-0 right-0 w-7 -skew-x-12 translate-x-1 bg-brand-blue" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-12 overflow-hidden md:w-24">
+          <div className="absolute inset-y-0 right-0 w-9 -skew-x-12 translate-x-4 bg-brand-yellow/80 md:w-20 md:translate-x-8" />
+          <div className="absolute inset-y-0 right-0 w-3 -skew-x-12 translate-x-1 bg-brand-blue md:w-7" />
         </div>
       </div>
 
@@ -126,7 +126,7 @@ export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, 
       </div>
 
       {/* ── Accesos rápidos ── */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
         <Link href="/dashboard/ventas/nueva"
           className="flex h-16 items-center gap-3 rounded-2xl bg-brand-yellow px-4 text-sm font-bold text-steel-900 transition hover:brightness-105">
           <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-steel-900/10">
@@ -141,6 +141,20 @@ export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, 
           </span>
           Inventario
         </Link>
+        {[
+          { href: '/dashboard/recepcion', icon: ClipboardCheck, label: 'Recepción' },
+          { href: '/dashboard/clientes', icon: Users, label: 'Clientes' },
+          { href: '/dashboard/horario', icon: Calendar, label: 'Horario y permisos' },
+          { href: '/dashboard/ventas', icon: Receipt, label: 'Mis ventas' },
+        ].map(({ href, icon: Icon, label }) => (
+          <Link key={href} href={href}
+            className="flex h-16 items-center gap-3 rounded-2xl border border-white/10 bg-[#111820] px-4 text-sm font-bold leading-tight text-white transition hover:border-brand-blue/40">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-blue/15 text-brand-blue">
+              <Icon className="size-6" />
+            </span>
+            {label}
+          </Link>
+        ))}
       </div>
 
       {/* ── Mis ventas con filtro ── */}

@@ -10,6 +10,9 @@ import { Trash2, ShoppingCart, FileDown, Search, X } from 'lucide-react'
 import { jsPDF } from 'jspdf'
 import { autoTable } from 'jspdf-autotable'
 import { toast } from 'sonner'
+import { cantidadSugerida } from '@/lib/pedido'
+import { hoyBogota } from '@/lib/fechas'
+import { enlaceWhatsApp, textoPedido } from '@/lib/whatsapp'
 
 interface ProductoProveedor {
   id: string
@@ -50,9 +53,11 @@ interface ItemPedido {
 export function ProductosProveedorTable({
   productos,
   proveedorNombre,
+  proveedorTelefono,
 }: {
   productos: ProductoProveedor[]
   proveedorNombre: string
+  proveedorTelefono?: string | null
 }) {
   const supabase = createClient()
   const [modoPedido, setModoPedido] = useState(false)
@@ -118,7 +123,7 @@ export function ProductosProveedorTable({
         .map((pp, idx) => {
           const rotacion = rotacionMap[pp.producto.id] ?? 0
           const stockTotal = pp.producto.stock_actual ?? 0
-          const sugerida = Math.max(0, Math.ceil(rotacion * diasPedido) - stockTotal)
+          const sugerida = cantidadSugerida({ rotacionDiaria: rotacion, dias: diasPedido, stock: stockTotal, stockMinimo: pp.producto.stock_minimo ?? 0 })
           return {
             id: pp.id,
             referencia_proveedor: pp.referencia_proveedor,
@@ -141,6 +146,16 @@ export function ProductosProveedorTable({
     } finally {
       setCalculando(false)
     }
+  }
+
+  const enviarWhatsApp = () => {
+    if (!pedido.some(p => p.cantidad_pedir > 0)) { toast.error('No hay cantidades por pedir'); return }
+    const texto = textoPedido('Ferreléctricos Costa Azul', pedido.map(p => ({
+      codigo: p.referencia_proveedor ?? '', nombre: p.nombre, medida: p.unidad_medida, marca: p.marca, cantidad: p.cantidad_pedir,
+    })))
+    const enlace = enlaceWhatsApp(proveedorTelefono, texto)
+    if (!enlace) { toast.error('Este proveedor no tiene un teléfono válido: agrégalo en "Editar"'); return }
+    window.open(enlace, '_blank')
   }
 
   const generarPDF = () => {
@@ -173,7 +188,7 @@ export function ProductosProveedorTable({
       },
     })
 
-    doc.save(`pedido-${proveedorNombre.toLowerCase().replace(/ /g, '-')}-${new Date().toISOString().slice(0, 10)}.pdf`)
+    doc.save(`pedido-${proveedorNombre.toLowerCase().replace(/ /g, '-')}-${hoyBogota()}.pdf`)
   }
 
   return (
@@ -396,11 +411,16 @@ export function ProductosProveedorTable({
             </div>
           )}
 
-          <div className="flex gap-2 pt-2">
+          <div className="flex flex-wrap gap-2 pt-2">
             {calculado && pedido.some(p => p.cantidad_pedir > 0) && (
               <Button type="button" size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={generarPDF}>
                 <FileDown className="mr-1 h-4 w-4" />
                 Descargar PDF
+              </Button>
+            )}
+            {calculado && pedido.some(p => p.cantidad_pedir > 0) && (
+              <Button type="button" size="sm" variant="outline" className="border-emerald-500/40 bg-transparent font-bold text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-400" onClick={enviarWhatsApp}>
+                Enviar por WhatsApp
               </Button>
             )}
             <Button

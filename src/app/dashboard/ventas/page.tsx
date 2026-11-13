@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Plus, TrendingUp, Receipt, Calculator, CreditCard, FileText } from 'lucide-react'
+import { traerTodo } from '@/lib/supabase/traer-todo'
 import { VentasFiltros } from '@/components/modulos/ventas-filtros'
 import { VentasTable } from '@/components/modulos/ventas-table'
 
@@ -37,7 +38,7 @@ export default async function VentasPage({
   // KPIs — pagos reales del día por fuente
   let pagosQuery = supabase
     .from('venta_pagos')
-    .select('metodo, monto, ventas!inner(fecha, estado, empleado_id)')
+    .select('metodo, monto, ventas!inner(id, fecha, estado, empleado_id)')
     .eq('ventas.fecha', hoy)
     .neq('ventas.estado', 'anulada')
   if (!esAdmin) pagosQuery = pagosQuery.eq('ventas.empleado_id', user.id)
@@ -46,9 +47,12 @@ export default async function VentasPage({
   // Créditos del día
   const { data: creditosHoy } = await supabase
     .from('ventas_credito')
-    .select('monto_original, ventas!inner(fecha, estado)')
+    .select('monto_original, ventas!inner(id, fecha, estado, empleado_id)')
     .eq('ventas.fecha', hoy)
     .neq('ventas.estado', 'anulada')
+
+  // Un empleado solo ve lo suyo, igual que en los pagos
+  const creditosPropios = (creditosHoy ?? []).filter((c: any) => esAdmin || c.ventas?.empleado_id === user.id)
 
   // KPIs
   const desgloseMedios: Record<string, number> = {}
@@ -57,31 +61,34 @@ export default async function VentasPage({
     if (metodo === 'mixto') continue
     desgloseMedios[metodo] = (desgloseMedios[metodo] ?? 0) + Number((p as any).monto)
   }
-  desgloseMedios['credito'] = (creditosHoy ?? []).reduce((s, c) => s + Number((c as any).monto_original), 0)
+  desgloseMedios['credito'] = creditosPropios.reduce((s, c) => s + Number((c as any).monto_original), 0)
 
   const totalVentasHoy = Object.values(desgloseMedios).reduce((s, v) => s + v, 0)
-  const numTicketsHoy = new Set((pagosHoy ?? []).map((p: any) => p.ventas?.id)).size + (creditosHoy?.length ?? 0)
+  // Un ticket puede tener varios pagos (mixto) o un abono inicial además del crédito: se cuenta una sola vez
+  const numTicketsHoy = new Set([...(pagosHoy ?? []), ...creditosPropios].map((p: any) => p.ventas?.id).filter(Boolean)).size
   const ventaPromedioHoy = numTicketsHoy > 0 ? totalVentasHoy / numTicketsHoy : 0
 
-  // Ventas filtradas para la tabla
-  let query = supabase
-    .from('ventas')
-    .select(`
-      id, numero_ticket, hora, total, tipo_pago, estado,
-      clientes(nombre),
-      empleado:profiles!empleado_id(nombre_completo)
-    `)
-    .gte('fecha', fechaInicio)
-    .lte('fecha', fechaFin)
-    .order('fecha', { ascending: false })
-    .order('hora', { ascending: false })
-
-  if (!esAdmin) query = query.eq('empleado_id', user.id)
-  if (esAdmin && sp.empleado_id) query = query.eq('empleado_id', sp.empleado_id)
-  if (sp.tipo_pago) query = query.eq('tipo_pago', sp.tipo_pago)
-  if (sp.estado) query = query.eq('estado', sp.estado)
-
-  const { data: ventas, error } = await query
+  // Ventas filtradas para la tabla. Se traen por páginas: la API corta en 1000 filas sin avisar.
+  const { data: ventas, error } = await traerTodo((filaDesde, filaHasta) => {
+    let query = supabase
+      .from('ventas')
+      .select(`
+        id, numero_ticket, hora, total, tipo_pago, estado,
+        clientes(nombre),
+        empleado:profiles!empleado_id(nombre_completo)
+      `)
+      .gte('fecha', fechaInicio)
+      .lte('fecha', fechaFin)
+    if (!esAdmin) query = query.eq('empleado_id', user.id)
+    if (esAdmin && sp.empleado_id) query = query.eq('empleado_id', sp.empleado_id)
+    if (sp.tipo_pago) query = query.eq('tipo_pago', sp.tipo_pago)
+    if (sp.estado) query = query.eq('estado', sp.estado)
+    return query
+      .order('fecha', { ascending: false })
+      .order('hora', { ascending: false })
+      .order('id')
+      .range(filaDesde, filaHasta)
+  })
 
   const { data: empleados } = esAdmin
     ? await supabase.from('profiles').select('id, nombre_completo').eq('activo', true).order('nombre_completo')
@@ -89,10 +96,10 @@ export default async function VentasPage({
 
   return (
     <div className="space-y-4">
-      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] px-4 pt-5 pb-4">
-        <div className="relative z-10 flex items-center justify-between gap-3">
+      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] py-3 pl-4 pr-14 md:py-4 md:pr-28">
+        <div className="relative z-10 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="font-display text-3xl font-bold text-brand-yellow">Ventas</h1>
+            <h1 className="font-display text-2xl font-bold text-brand-yellow md:text-3xl">Ventas</h1>
             <p className="mt-0.5 text-xs text-steel-300">
               {fechaInicio === hoy && fechaFin === hoy ? 'Hoy' : `${fechaInicio} a ${fechaFin}`}
             </p>
@@ -108,14 +115,14 @@ export default async function VentasPage({
             </Link>
           </div>
         </div>
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-28 overflow-hidden">
-          <div className="absolute inset-y-0 right-0 w-20 -skew-x-12 translate-x-8 bg-brand-yellow/80" />
-          <div className="absolute inset-y-0 right-0 w-7 -skew-x-12 translate-x-1 bg-brand-blue" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-12 overflow-hidden md:w-24">
+          <div className="absolute inset-y-0 right-0 w-9 -skew-x-12 translate-x-4 bg-brand-yellow/80 md:w-20 md:translate-x-8" />
+          <div className="absolute inset-y-0 right-0 w-3 -skew-x-12 translate-x-1 bg-brand-blue md:w-7" />
         </div>
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
         <div className="rounded-2xl border border-white/10 border-l-4 border-l-brand-yellow bg-[#111820] p-4">
           <div className="flex items-start justify-between">
             <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Total ventas (hoy)</p>

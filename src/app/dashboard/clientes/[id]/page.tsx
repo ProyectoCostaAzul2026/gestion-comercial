@@ -26,6 +26,7 @@ export default async function PerfilClientePage({
   const [
     { data: ventas },
     { data: creditos },
+    { data: negocio },
   ] = await Promise.all([
     supabase
       .from('ventas')
@@ -42,6 +43,7 @@ export default async function PerfilClientePage({
       `)
       .eq('cliente_id', id)
       .order('created_at', { ascending: false }),
+    supabase.from('configuracion_negocio').select('nombre').maybeSingle(),
   ])
 
   const totalDeuda = (creditos ?? [])
@@ -49,8 +51,8 @@ export default async function PerfilClientePage({
     .reduce((s: number, c: any) => s + Number(c.saldo_pendiente), 0)
 
   return (
-    <div className="min-h-screen bg-[#0a0e14]">
-      <div className="sticky top-0 z-10 border-b border-white/10 bg-[#0a0e14] px-4 py-3">
+    <div className="-m-4 md:-m-6">
+      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 border-b lg:top-0 border-white/10 bg-[#0a0e14] px-4 py-3">
         <div className="flex items-center gap-3">
           <Link href="/dashboard/clientes" className="rounded-xl border border-white/20 p-2 hover:bg-white/5">
             <ArrowLeft className="h-4 w-4 text-white" />
@@ -104,7 +106,7 @@ export default async function PerfilClientePage({
 
         {/* Créditos pendientes con abonos */}
         {(creditos ?? []).length > 0 && (
-          <PerfilClienteCreditos creditos={creditos as any} />
+          <PerfilClienteCreditos creditos={creditos as any} cliente={{ nombre: cliente.nombre, telefono: cliente.telefono }} negocio={negocio?.nombre ?? undefined} />
         )}
 
         {/* Historial de compras */}

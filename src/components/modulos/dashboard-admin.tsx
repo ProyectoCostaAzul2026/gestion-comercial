@@ -4,7 +4,7 @@ import Link from 'next/link'
 import {
   AlertTriangle, ShoppingCart, Package, Wallet, BarChart3, Truck, BookOpen,
   TrendingUp, Receipt, Users, PackageX, CalendarClock,
-  Banknote, Smartphone, CreditCard, ArrowLeftRight, AlertCircle, CalendarOff, ClipboardList,
+  Banknote, Smartphone, CreditCard, ArrowLeftRight, AlertCircle, CalendarOff, ClipboardList, ClipboardCheck, DollarSign,
 } from 'lucide-react'
 import { fechaLarga } from '@/lib/permisos'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -76,9 +76,9 @@ export function DashboardAdmin({ profile, config, fechaHoy, kpisHoy, ultimasVent
             <p className="mt-1 truncate text-xs text-steel-300">{fechaHoy}{config?.nombre ? ` · ${config.nombre}` : ''}</p>
           </div>
         </div>
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-28 overflow-hidden">
-          <div className="absolute inset-y-0 right-0 w-20 -skew-x-12 translate-x-8 bg-brand-yellow/80" />
-          <div className="absolute inset-y-0 right-0 w-7 -skew-x-12 translate-x-1 bg-brand-blue" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-12 overflow-hidden md:w-24">
+          <div className="absolute inset-y-0 right-0 w-9 -skew-x-12 translate-x-4 bg-brand-yellow/80 md:w-20 md:translate-x-8" />
+          <div className="absolute inset-y-0 right-0 w-3 -skew-x-12 translate-x-1 bg-brand-blue md:w-7" />
         </div>
       </div>
 
@@ -280,7 +280,7 @@ export function DashboardAdmin({ profile, config, fechaHoy, kpisHoy, ultimasVent
         <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
           Accesos rápidos
         </h2>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
           {[
             { href: '/dashboard/ventas/nueva', icon: ShoppingCart, label: 'Nueva Venta', primary: true },
             { href: '/dashboard/caja', icon: Wallet, label: 'Caja', primary: false },
@@ -288,6 +288,8 @@ export function DashboardAdmin({ profile, config, fechaHoy, kpisHoy, ultimasVent
             { href: '/dashboard/contabilidad', icon: BookOpen, label: 'Contabilidad', primary: false },
             { href: '/dashboard/proveedores', icon: Truck, label: 'Proveedores', primary: false },
             { href: '/dashboard/inventario', icon: Package, label: 'Inventario', primary: false },
+            { href: '/dashboard/recepcion', icon: ClipboardCheck, label: 'Recepción', primary: false },
+            { href: '/dashboard/nomina', icon: DollarSign, label: 'Nómina', primary: false },
           ].map(({ href, icon: Icon, label, primary }) => (
             <Link key={href} href={href}
               className={`flex h-16 items-center gap-3 rounded-2xl px-4 text-sm font-bold transition ${

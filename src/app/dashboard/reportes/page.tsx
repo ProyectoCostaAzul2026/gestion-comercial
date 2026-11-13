@@ -2,10 +2,13 @@ import { createClient } from '@/lib/supabase/server'
 import { traerTodo } from '@/lib/supabase/traer-todo'
 import { redirect } from 'next/navigation'
 import { ReportesPanel } from '@/components/modulos/reportes-panel'
+import { hoyBogota } from '@/lib/fechas'
+import { costoLineaVenta } from '@/lib/costo-venta'
 
 function getPeriodo(periodo: string, desde?: string, hasta?: string) {
   const fmt = (d: Date) => d.toLocaleDateString('en-CA', { timeZone: 'America/Bogota' })
-  const hoy = new Date()
+  // Mediodía UTC del día de Bogotá: las cuentas de días no se corren por la zona horaria del servidor
+  const hoy = new Date(hoyBogota() + 'T12:00:00Z')
   switch (periodo) {
     case 'hoy': return { desde: fmt(hoy), hasta: fmt(hoy) }
     case 'semana': {
@@ -43,7 +46,7 @@ export default async function ReportesPage({
     .from('profiles').select('rol').eq('id', user.id).single()
   if ((profile as any)?.rol !== 'administrador') redirect('/dashboard')
 
-  const hoy = new Date().toISOString().slice(0, 10)
+  const hoy = hoyBogota()
   const periodo = sp.periodo ?? 'mes_anterior'
   const { desde, hasta } = getPeriodo(periodo, sp.desde, sp.hasta)
 
@@ -91,7 +94,7 @@ export default async function ReportesPage({
         .select(`
           id, nombre_producto, cantidad, precio_unitario, subtotal_linea,
           costo_unitario, es_fraccionado, cantidad_fraccion, venta_id, producto_id,
-          productos(id, codigo, nombre, marca, unidad_medida, precio_costo_base),
+          productos(id, codigo, nombre, marca, unidad_medida, precio_costo_base, cantidad_total_unidad),
           ventas!inner(fecha, estado)
         `)
         .gte('ventas.fecha', desde)
@@ -169,10 +172,7 @@ export default async function ReportesPage({
   const totalIngresos = (ventas ?? []).reduce((s: number, v: any) => s + Number(v.total), 0)
   const numVentasPeriodo = ventas?.length ?? 0
 
-  const totalCMV = (ventaItems ?? []).reduce((s: number, i: any) => {
-    const cant = i.es_fraccionado ? Number(i.cantidad_fraccion ?? 1) : Number(i.cantidad)
-    return s + cant * Number(i.costo_unitario ?? 0)
-  }, 0)
+  const totalCMV = (ventaItems ?? []).reduce((s: number, i: any) => s + costoLineaVenta(i), 0)
   const totalGastos = (gastos ?? []).reduce((s: number, g: any) => s + Number(g.monto), 0)
   const totalNominas = (nominas ?? []).reduce((s: number, n: any) => s + Number(n.total_pago), 0)
   const gananciaBruta = totalIngresos - totalCMV
@@ -300,7 +300,7 @@ export default async function ReportesPage({
     productoStats[pid].cantidad += cant
     productoStats[pid].ingresos += Number((i as any).subtotal_linea)
     productoStats[pid].tickets.add((i as any).venta_id)
-    productoStats[pid].costo += cant * Number((i as any).costo_unitario ?? 0)
+    productoStats[pid].costo += costoLineaVenta(i as any)
   }
   const topProductosData = Object.values(productoStats).map(p => ({
     ...p,

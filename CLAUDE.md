@@ -3,7 +3,7 @@
 # Contexto del proyecto — Gestión Comercial Ferreléctricos Costa Azul
 
 > Claude Code carga este archivo en cada sesión. Mantenerlo al día cuando cambie algo importante
-> (esquema de la BD, convenciones, estado de los datos). Última revisión: 2026-11-07.
+> (esquema de la BD, convenciones, estado de los datos). Última revisión: 2026-11-13.
 
 ## Qué es
 
@@ -81,7 +81,23 @@ nómina).
   `escala-precios.ts` (motor de precios por medida: orden de medidas, redondeo, sugeridos, costos estimados y alertas),
   `peso.ts` (cuentas del peso por unidad), `precios-cantidad.ts` (precios por cantidad: tramo que aplica, validación y
   sugeridos), `recepcion.ts` (recepción de mercancía: costo con o sin IVA, diferencias del conteo y lo que falta para
-  cerrar), `temas-ayuda.ts` (textos del panel Instrucciones), `festivos-colombia.ts`.
+  cerrar), `temas-ayuda.ts` (textos del panel Instrucciones), `festivos-colombia.ts` (festivos calculados para cualquier año con
+  su nombre, jornada de festivo 9:00 a 17:00 y `turnoEnFecha`), `turnos.ts` (quién trabaja hoy: turno del día y sin
+  permiso; lo usan Inicio, Caja y Nómina), `whatsapp.ts` (enlace wa.me con indicativo 57 y textos de recordatorio de
+  crédito y de pedido), `pedido.ts` (cantidad sugerida), `conteo.ts` (conteo de inventario), `costo-venta.ts` (costo de una línea de venta:
+  en las líneas por fracción `venta_items.costo_unitario` es el costo del rollo completo y hay que dividirlo entre
+  `productos.cantidad_total_unidad`; lo usan Reportes y Contabilidad).
+- `src/components/layout/NavigationShell.tsx`: barra inferior en celular (Inicio, Ventas, Vender, Inventario, Más) con el
+  menú completo en un panel que sube desde abajo, y menú lateral fijo desde `lg`. El menú sale de `navItems` en
+  `permissions.ts` (con `grupo`); `rutaActiva` marca el módulo también en sus subpáginas. Las subpáginas con encabezado
+  fijo usan `-m-4 md:-m-6` y `sticky top-[calc(3.5rem+env(safe-area-inset-top))] lg:top-0` (quedan bajo la barra superior).
+- **Tablas en celular**: el componente `Table` de `src/components/ui/table.tsx` apila cada fila como tarjeta de dos
+  columnas con el título de su columna encima (`table[data-apilar]` en `globals.css`); `apilar={false}` lo desactiva.
+  Los encabezados de página son compactos en celular y reservan espacio a la derecha para las franjas.
+- La app **solo tiene tema oscuro** (`<html className="dark">`): no volver a depender del tema del sistema.
+- **Fechas**: "hoy" siempre con `hoyBogota()` / `bogotaEnDias()` de `src/lib/fechas.ts`. Nunca
+  `new Date().toISOString().slice(0, 10)` (es UTC: desde las 7 p. m. de Bogotá ya es mañana).
+- `src/app/manifest.ts` e íconos `public/icono-*.png`: la app se puede instalar en la pantalla de inicio del celular.
 - `src/proxy.ts`: exige sesión en `/dashboard`, cierra la sesión si el perfil está inactivo y manda a los
   empleados fuera de las rutas de administrador.
 - `DATABASE.md`: tablas, RPC, índices y políticas RLS (al día al 2026-11-07). Mantenerlo actualizado.
@@ -107,6 +123,13 @@ nómina).
   "Nueva categoría / familia / grupo" y "Agregar medida"); `inventario/nuevo` sin ese contexto manda al inventario. Mover,
   sacar del grupo y desactivar están en `acciones-inventario.tsx` (menú de tres puntos y detalle del producto) y usan la
   RPC `mover_productos` (`SECURITY DEFINER`, administrador y empleado; conserva código, stock y precios).
+- **Unir grupos arrastrando** (`src/lib/usar-arrastre.ts`, `src/lib/unir-grupos.ts`, `unir-grupos-medidas.tsx`): en la lista
+  de grupos de una familia, mantener presionada una tarjeta (400 ms con el dedo; con el ratón, arrastrar) y soltarla sobre
+  otra abre una confirmación. Las medidas del origen toman la característica (con `mover_productos`) y la marca (update
+  directo) del destino. `planearUnion` valida antes de guardar: medidas repetidas (se quedan en su grupo; si todas se
+  repiten, no deja unir), marcas distintas (avisa) y el orden de los dos pasos para no chocar con un tercer grupo. Si el
+  segundo paso falla se devuelve el primero, y el aviso de éxito trae "Deshacer". Los botones de la tarjeta llevan
+  `data-sin-arrastre`. Pendiente: una RPC `unir_grupos_medidas` que haga los dos pasos en una sola transacción.
 - **Editar tarjetas** (`editar-tarjeta-inventario.tsx`, lápiz de la tarjeta o botón "Editar" del nivel): nombre e imagen
   (URL). Categoría: update directo. Familia: RPC `editar_familia` (renombra sus productos a `familia - característica`;
   la imagen es solo de la tarjeta). Grupo: RPC `editar_grupo_medidas` (cambia la característica y, si se cambió la
@@ -122,6 +145,29 @@ nómina).
   cierra. El stock entra al marcar cada renglón, con un movimiento por lugar. Abrir, crear productos, aprobar precios y
   cerrar son del administrador. `src/lib/recepcion.ts` replica sus reglas (si cambias una, cambia la otra). Reglas en
   `DATABASE.md` (notas 14 y 19).
+- **Horario** (`horario-semanal.tsx`): los turnos (`horario_laboral`) son una plantilla por día de la semana que se repite.
+  La vista muestra la semana real (lunes a domingo, con flechas hasta 12 semanas adelante), reconoce los festivos y ese
+  día muestra el turno recortado a la jornada de festivo (el turno guardado no cambia). La nómina del día usa esas
+  mismas horas y deja por fuera a quien tiene permiso.
+- **Conteo de inventario** (`inventario/conteo`, `conteo-inventario.tsx`): se filtra por ubicación, categoría o búsqueda, se
+  escribe lo contado en almacén y bodega (o se pesa con `ContarPorPeso` si el producto tiene peso por unidad) y se guarda
+  todo junto con la RPC `registrar_conteo_inventario` (migración del 2026-11-13, SQL en `sql/`; deja el movimiento
+  `ajuste` con la misma forma que `guardar_producto` y `referencia_tipo` = `conteo_inventario`). Lo
+  contado queda como borrador en el navegador (`localStorage`) hasta guardar o descartar.
+- **Pedido sugerido** (Agotados y página del proveedor): `cantidadSugerida` toma la rotación de 90 días y, como mínimo,
+  repone hasta el doble del stock mínimo (sin ventas la rotación es 0). Se descarga en PDF o se envía por WhatsApp.
+- **Bitácora** (`/dashboard/bitacora`, solo administrador; `bitacora-panel.tsx`, `src/lib/bitacora.ts`): registro de cambios
+  importantes (precios, activar o desactivar productos, roles y salarios, configuración, estados de ventas, ajustes
+  manuales de stock, retiros, arqueos, devoluciones y cualquier borrado o vaciado de las tablas del negocio). La escriben
+  solo triggers; la app solo lee. Cada registro dice si vino del sistema, directo de la base o de una tarea automática.
+  Borrar la bitácora solo se puede en la base y deja una fila en `bitacora_borrados`, que rechaza UPDATE, DELETE y
+  TRUNCATE. Migración `bitacora_y_borrado_productos` (2026-11-13), SQL en `sql/bitacora_y_borrado_productos.sql`. También
+  registra gastos y pagos a proveedores.
+- **Borrado de productos desactivados** (misma migración): `eliminar_producto_desactivado` (administrador) borra solo
+  los que no tienen registros (ventas, devoluciones, garantías, recepciones, ni movimientos distintos de la carga inicial, que es tipo `entrada` con
+  `referencia_tipo` = `carga_inicial`, y de los ajustes) y están sin stock; `purgar_productos_desactivados` los borra solos a los 3 meses de desactivados
+  (`productos.desactivado_en`, tarea diaria de `pg_cron` a las 8:15 UTC). Los 45 inactivos que había al aplicar no tienen
+  registros y empezaron a contar el 2026-11-13: se borran en febrero de 2027 si no se reactivan.
 - **Permisos** (`permisos_empleado`, `permisos-empleados.tsx` en Horario): el empleado saca el día que no asiste (desde
   hoy); el administrador lo registra para cualquiera. Alerta en el Inicio del administrador (hoy a 7 días) y marca en la
   vista semanal.
@@ -287,10 +333,21 @@ nómina).
 - Garantías desde una devolución o un cambio: en `venta-acciones.tsx` no se puede elegir el proveedor (la lista no se
   carga), la cantidad va fija en 1 y no se guarda `devolucion_id`; además la RPC reintegra el stock y `recibir_garantia`
   lo vuelve a sumar.
+- **SQL pendiente de confirmar** (`sql/pendiente_iva_fraccion_y_editar_factura.sql`): IVA informativo de las líneas
+  por fracción en `registrar_venta` y `registrar_venta_credito` (hoy guardan 0; el front ya lo muestra) y la RPC
+  `editar_factura_proveedor`, que el formulario de editar factura ya llama (sin ella avisa que falta la migración).
+- Reportes y Contabilidad restan el costo sin IVA a ventas con IVA incluido: la utilidad sale más alta de lo real si
+  el negocio declara IVA. Falta decidir el tratamiento (ver con el dueño si es responsable de IVA).
+- El total de una venta incluye sus servicios (`venta_servicios`): no sumarlos aparte a los ingresos.
 - Devolver o anular una línea fraccionada no deja movimiento en `movimientos_inventario`, y `anular_venta` suma la
   fracción al remanente sin pasarla a unidades.
-- Editar una factura de proveedor no guarda: `facturas_proveedor` no tiene política de UPDATE (la app dice "Factura
-  actualizada" sin cambiar nada) y el formulario pondría el saldo igual al total aunque haya pagos.
 - Recepción de mercancía: quedan para después adjuntar la foto o el PDF de la factura y repartir fletes y descuentos en
   el costo de los renglones.
+- `DATABASE.md` y `database.types.ts` no incluyen todavía lo del 2026-11-13 (`bitacora`, `bitacora_borrados`,
+  `productos.desactivado_en` y las RPC nuevas): la app las llama con `as never`. Regenerar los tipos y completar la
+  documentación.
+- El lint tiene unos 315 errores heredados (casi todos `any`); no bloquean el build.
+- Verificación visual sin tocar producción: un servidor local que imita a Supabase (auth y pocas tablas) con
+  `NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321` y la cookie `sb-localhost-auth-token`; el host real de Supabase no
+  está en la lista de red del entorno de nube.
 - No hay tests ni CI.

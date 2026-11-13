@@ -1,4 +1,4 @@
-﻿// /lib/permissions.ts
+// /lib/permissions.ts
 // Mapa de permisos por rol — fuente de verdad para el frontend.
 // Debe reflejar exactamente la tabla 0.3 del documento de especificaciones
 // y mantenerse sincronizado con las políticas RLS en Supabase (sección 4.3).
@@ -63,27 +63,41 @@ export function usePermission(accion: Accion) {
   return (rol: Rol | string | null | undefined) => tienePermiso(rol, accion)
 }
 
+export type GrupoNav = 'Operación' | 'Equipo' | 'Administración' | 'Sistema'
+
 export interface NavItem {
   label: string
   href: string
   icon: string
+  grupo: GrupoNav
   soloAdmin?: boolean
 }
 
+export const GRUPOS_NAV: GrupoNav[] = ['Operación', 'Equipo', 'Administración', 'Sistema']
+
 export const navItems: NavItem[] = [
-  { label: 'Inicio', href: '/dashboard', icon: 'Home' },
-  { label: 'Ventas', href: '/dashboard/ventas', icon: 'ShoppingCart' },
-  { label: 'Inventario', href: '/dashboard/inventario', icon: 'Package' },
-  { label: 'Recepción', href: '/dashboard/recepcion', icon: 'ClipboardCheck' },
-  { label: 'Proveedores', href: '/dashboard/proveedores', icon: 'Truck', soloAdmin: true },
-  { label: 'Clientes', href: '/dashboard/clientes', icon: 'Users' },
-  { label: 'Empleados', href: '/dashboard/empleados', icon: 'UserCog', soloAdmin: true },
-  { label: 'Caja', href: '/dashboard/caja', icon: 'Wallet', soloAdmin: true },
-  { label: 'Contabilidad', href: '/dashboard/contabilidad', icon: 'BookOpen', soloAdmin: true },
-  { label: 'Reportes', href: '/dashboard/reportes', icon: 'BarChart3', soloAdmin: true },
-  { label: 'Instrucciones', href: '/dashboard/instrucciones', icon: 'HelpCircle' },
-  { label: 'Configuración', href: '/dashboard/configuracion', icon: 'Settings', soloAdmin: true },
+  { label: 'Inicio', href: '/dashboard', icon: 'Home', grupo: 'Operación' },
+  { label: 'Ventas', href: '/dashboard/ventas', icon: 'ShoppingCart', grupo: 'Operación' },
+  { label: 'Inventario', href: '/dashboard/inventario', icon: 'Package', grupo: 'Operación' },
+  { label: 'Recepción', href: '/dashboard/recepcion', icon: 'ClipboardCheck', grupo: 'Operación' },
+  { label: 'Clientes', href: '/dashboard/clientes', icon: 'Users', grupo: 'Operación' },
+  { label: 'Horario y permisos', href: '/dashboard/horario', icon: 'Calendar', grupo: 'Equipo' },
+  { label: 'Empleados', href: '/dashboard/empleados', icon: 'UserCog', grupo: 'Equipo', soloAdmin: true },
+  { label: 'Nómina', href: '/dashboard/nomina', icon: 'DollarSign', grupo: 'Equipo', soloAdmin: true },
+  { label: 'Proveedores', href: '/dashboard/proveedores', icon: 'Truck', grupo: 'Administración', soloAdmin: true },
+  { label: 'Caja', href: '/dashboard/caja', icon: 'Wallet', grupo: 'Administración', soloAdmin: true },
+  { label: 'Contabilidad', href: '/dashboard/contabilidad', icon: 'BookOpen', grupo: 'Administración', soloAdmin: true },
+  { label: 'Reportes', href: '/dashboard/reportes', icon: 'BarChart3', grupo: 'Administración', soloAdmin: true },
+  { label: 'Bitácora', href: '/dashboard/bitacora', icon: 'ShieldCheck', grupo: 'Sistema', soloAdmin: true },
+  { label: 'Instrucciones', href: '/dashboard/instrucciones', icon: 'HelpCircle', grupo: 'Sistema' },
+  { label: 'Configuración', href: '/dashboard/configuracion', icon: 'Settings', grupo: 'Sistema', soloAdmin: true },
 ]
+
+/** true si la ruta actual pertenece al módulo (también en sus subpáginas) */
+export function rutaActiva(pathname: string, href: string): boolean {
+  if (href === '/dashboard') return pathname === href
+  return pathname === href || pathname.startsWith(href + '/')
+}
 
 // Rutas que el middleware protege exclusivamente para Administrador.
 // Cuando construyas Nómina/Horario/Contabilidad: Nómina y Contabilidad son
@@ -98,7 +112,5 @@ export const RUTAS_SOLO_ADMIN = [
   '/dashboard/contabilidad',
   '/dashboard/reportes',
   '/dashboard/configuracion',
-  '/dashboard/nomina',
-  '/dashboard/contabilidad',
-  
+  '/dashboard/bitacora',
 ]
