@@ -1,51 +1,82 @@
-// Festivos oficiales Colombia 2025–2030
-// Fuente: proximofestivo.co (Ley Emiliani + Código Sustantivo del Trabajo)
-// Actualizar este archivo cuando se acerque 2031
+// Festivos oficiales de Colombia, calculados para cualquier año (Ley 51 de 1983, "Ley Emiliani").
+// Antes era una lista escrita a mano de 2025 a 2030; ahora no hay que actualizarla.
 
-const FESTIVOS_CO = new Set([
-  // 2025
-  '2025-01-01', '2025-01-06', '2025-03-24', '2025-04-17', '2025-04-18',
-  '2025-05-01', '2025-06-02', '2025-06-23', '2025-06-30',
-  '2025-07-20', '2025-08-07', '2025-08-18', '2025-10-13',
-  '2025-11-03', '2025-11-17', '2025-12-08', '2025-12-25',
+/** Jornada de domingo o festivo: de 9:00 a 17:00 (7 horas pagadas, con 1 hora de almuerzo) */
+export const JORNADA_FESTIVO = { inicio: '09:00', fin: '17:00', horas: 7 } as const
+/** Jornada de lunes a sábado: de 8:00 a 19:00 (10 horas pagadas, con 1 hora de almuerzo) */
+export const JORNADA_NORMAL = { inicio: '08:00', fin: '19:00', horas: 10 } as const
 
-  // 2026
-  '2026-01-01', '2026-01-12', '2026-03-23', '2026-04-02', '2026-04-03',
-  '2026-05-01', '2026-05-18', '2026-06-08', '2026-06-15', '2026-06-29',
-  '2026-07-20', '2026-08-07', '2026-08-17', '2026-10-12',
-  '2026-11-02', '2026-11-16', '2026-12-08', '2026-12-25',
+const iso = (d: Date) => d.toISOString().slice(0, 10)
+const fechaUTC = (año: number, mes: number, dia: number) => new Date(Date.UTC(año, mes - 1, dia))
+const masDias = (d: Date, dias: number) => new Date(d.getTime() + dias * 86400000)
+/** Los festivos "trasladables" pasan al lunes siguiente si no caen en lunes */
+const alLunes = (d: Date) => masDias(d, (8 - d.getUTCDay()) % 7)
 
-  // 2027
-  '2027-01-01', '2027-01-11', '2027-03-22', '2027-03-25', '2027-03-26',
-  '2027-05-01', '2027-05-10', '2027-05-31', '2027-06-07', '2027-07-05',
-  '2027-07-20', '2027-08-07', '2027-08-16', '2027-10-18',
-  '2027-11-01', '2027-11-15', '2027-12-08', '2027-12-25',
+/** Domingo de Pascua (algoritmo gregoriano anónimo) */
+function pascua(año: number): Date {
+  const a = año % 19, b = Math.floor(año / 100), c = año % 100
+  const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25)
+  const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30
+  const i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7
+  const m = Math.floor((a + 11 * h + 22 * l) / 451)
+  const mes = Math.floor((h + l - 7 * m + 114) / 31)
+  const dia = ((h + l - 7 * m + 114) % 31) + 1
+  return fechaUTC(año, mes, dia)
+}
 
-  // 2028
-  '2028-01-01', '2028-01-10', '2028-03-20', '2028-04-13', '2028-04-14',
-  '2028-05-01', '2028-05-29', '2028-06-19', '2028-06-26', '2028-07-03',
-  '2028-07-20', '2028-08-07', '2028-08-21', '2028-10-16',
-  '2028-11-06', '2028-11-13', '2028-12-08', '2028-12-25',
+const porAño = new Map<number, Map<string, string>>()
 
-  // 2029
-  '2029-01-01', '2029-01-08', '2029-03-19', '2029-03-29', '2029-03-30',
-  '2029-05-01', '2029-05-14', '2029-06-04', '2029-06-11', '2029-07-02',
-  '2029-07-20', '2029-08-07', '2029-08-20', '2029-10-15',
-  '2029-11-05', '2029-11-12', '2029-12-08', '2029-12-25',
+/** Festivos de un año: fecha AAAA-MM-DD → nombre */
+export function festivosDelAño(año: number): Map<string, string> {
+  const listo = porAño.get(año)
+  if (listo) return listo
+  const p = pascua(año)
+  const lista: [Date, string][] = [
+    // Fijos
+    [fechaUTC(año, 1, 1), 'Año Nuevo'],
+    [fechaUTC(año, 5, 1), 'Día del Trabajo'],
+    [fechaUTC(año, 7, 20), 'Independencia de Colombia'],
+    [fechaUTC(año, 8, 7), 'Batalla de Boyacá'],
+    [fechaUTC(año, 12, 8), 'Inmaculada Concepción'],
+    [fechaUTC(año, 12, 25), 'Navidad'],
+    // Se trasladan al lunes
+    [alLunes(fechaUTC(año, 1, 6)), 'Reyes Magos'],
+    [alLunes(fechaUTC(año, 3, 19)), 'San José'],
+    [alLunes(fechaUTC(año, 6, 29)), 'San Pedro y San Pablo'],
+    [alLunes(fechaUTC(año, 8, 15)), 'Asunción de la Virgen'],
+    [alLunes(fechaUTC(año, 10, 12)), 'Día de la Raza'],
+    [alLunes(fechaUTC(año, 11, 1)), 'Todos los Santos'],
+    [alLunes(fechaUTC(año, 11, 11)), 'Independencia de Cartagena'],
+    // Según la Pascua
+    [masDias(p, -3), 'Jueves Santo'],
+    [masDias(p, -2), 'Viernes Santo'],
+    [masDias(p, 43), 'Ascensión del Señor'],
+    [masDias(p, 64), 'Corpus Christi'],
+    [masDias(p, 71), 'Sagrado Corazón'],
+  ]
+  const mapa = new Map<string, string>()
+  for (const [fecha, nombre] of lista) {
+    const k = iso(fecha)
+    // Dos festivos pueden caer el mismo lunes
+    mapa.set(k, mapa.has(k) ? `${mapa.get(k)} y ${nombre}` : nombre)
+  }
+  porAño.set(año, mapa)
+  return mapa
+}
 
-  // 2030
-  '2030-01-01', '2030-01-07', '2030-03-25', '2030-04-18', '2030-04-19',
-  '2030-05-01', '2030-06-03', '2030-06-24', '2030-07-01',
-  '2030-07-20', '2030-08-07', '2030-08-19', '2030-10-14',
-  '2030-11-04', '2030-11-11', '2030-12-08', '2030-12-25',
-])
+/** Nombre del festivo de una fecha 'YYYY-MM-DD', o null si no es festivo */
+export function nombreFestivo(fecha: string): string | null {
+  const año = Number(fecha.slice(0, 4))
+  if (!año) return null
+  return festivosDelAño(año).get(fecha) ?? null
+}
 
 /**
  * Devuelve true si la fecha dada es festivo oficial en Colombia.
  * @param fecha string en formato 'YYYY-MM-DD'
  */
 export function esFestivoCol(fecha: string): boolean {
-  return FESTIVOS_CO.has(fecha)
+  return nombreFestivo(fecha) !== null
 }
 
 /**
@@ -53,8 +84,8 @@ export function esFestivoCol(fecha: string): boolean {
  * Para efectos de liquidación con jornada reducida (9am-5pm, 7h pagadas).
  */
 export function esDomingoOFestivo(fecha: string): boolean {
-  const d = new Date(fecha + 'T12:00:00')
-  return d.getDay() === 0 || esFestivoCol(fecha)
+  const [a, m, d] = fecha.split('-').map(Number)
+  return fechaUTC(a, m, d).getUTCDay() === 0 || esFestivoCol(fecha)
 }
 
 /**
@@ -63,7 +94,23 @@ export function esDomingoOFestivo(fecha: string): boolean {
  * - Domingo o Festivo: 7 horas (9am-5pm menos 1h almuerzo)
  */
 export function horasPagarPorFecha(fecha: string): number {
-  return esDomingoOFestivo(fecha) ? 7 : 10
+  return esDomingoOFestivo(fecha) ? JORNADA_FESTIVO.horas : JORNADA_NORMAL.horas
+}
+
+/**
+ * Turno que aplica en una fecha: en un festivo que cae entre semana, el turno habitual se recorta a la jornada de
+ * festivo (9:00 a 17:00). El turno de domingo ya se asigna con su propio horario y no se toca.
+ * Las horas llegan como 'HH:MM' o 'HH:MM:SS'.
+ */
+export function turnoEnFecha(fecha: string, horaInicio: string, horaFin: string): { inicio: string; fin: string; ajustado: boolean } {
+  const inicio = horaInicio.slice(0, 5)
+  const fin = horaFin.slice(0, 5)
+  if (!esFestivoCol(fecha)) return { inicio, fin, ajustado: false }
+  const i = inicio < JORNADA_FESTIVO.inicio ? JORNADA_FESTIVO.inicio : inicio
+  const f = fin > JORNADA_FESTIVO.fin ? JORNADA_FESTIVO.fin : fin
+  // Un turno que queda por fuera de la jornada de festivo (por ejemplo solo de 17:00 a 19:00) se deja como está
+  if (i >= f) return { inicio, fin, ajustado: false }
+  return { inicio: i, fin: f, ajustado: i !== inicio || f !== fin }
 }
 
 /**

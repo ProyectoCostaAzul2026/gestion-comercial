@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
 import { InventarioNavegador } from '@/components/modulos/inventario-navegador'
 import { esAdmin } from '@/lib/permissions'
-import { AlertTriangle, ClipboardList, ShieldCheck, PowerOff } from 'lucide-react'
+import { AlertTriangle, ClipboardCheck, ClipboardList, ShieldCheck, PowerOff } from 'lucide-react'
 
 export default async function InventarioPage() {
   const supabase = await createClient()
@@ -62,6 +62,13 @@ export default async function InventarioPage() {
               Desactivados
             </Link>
           </div>
+          <Link
+            href="/dashboard/inventario/conteo"
+            className="mt-2 flex h-11 items-center justify-center rounded-xl border border-white/20 px-4 text-sm font-bold text-white hover:bg-white/5"
+          >
+            <ClipboardCheck className="mr-2 h-4 w-4 text-brand-yellow" />
+            Conteo de inventario (también por peso)
+          </Link>
           {(porCompletar ?? 0) > 0 && (
             <Link
               href="/dashboard/inventario/por-completar"

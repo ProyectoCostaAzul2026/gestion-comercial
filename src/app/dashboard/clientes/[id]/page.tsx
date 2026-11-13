@@ -26,6 +26,7 @@ export default async function PerfilClientePage({
   const [
     { data: ventas },
     { data: creditos },
+    { data: negocio },
   ] = await Promise.all([
     supabase
       .from('ventas')
@@ -42,6 +43,7 @@ export default async function PerfilClientePage({
       `)
       .eq('cliente_id', id)
       .order('created_at', { ascending: false }),
+    supabase.from('configuracion_negocio').select('nombre').maybeSingle(),
   ])
 
   const totalDeuda = (creditos ?? [])
@@ -104,7 +106,7 @@ export default async function PerfilClientePage({
 
         {/* Créditos pendientes con abonos */}
         {(creditos ?? []).length > 0 && (
-          <PerfilClienteCreditos creditos={creditos as any} />
+          <PerfilClienteCreditos creditos={creditos as any} cliente={{ nombre: cliente.nombre, telefono: cliente.telefono }} negocio={negocio?.nombre ?? undefined} />
         )}
 
         {/* Historial de compras */}

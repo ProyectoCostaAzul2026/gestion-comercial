@@ -23,6 +23,7 @@ export default async function EmpleadosPage() {
     { data: nominasHoy },
     { data: historial },
     { data: turnos },
+    { data: permisosHoy },
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -49,6 +50,8 @@ export default async function EmpleadosPage() {
       .from('horario_laboral')
       .select('id, empleado_id, dia_semana, hora_inicio, hora_fin, activo, profiles(nombre_completo)')
       .eq('activo', true),
+
+    supabase.from('permisos_empleado').select('empleado_id').eq('fecha', hoy),
   ])
 
   const empleadosActivos = (empleados ?? []).filter((e: any) => e.activo)
@@ -171,6 +174,7 @@ export default async function EmpleadosPage() {
         empleadosParaHorario={empleadosParaHorario}
         fechaHoy={hoy}
         esAdmin={esAdmin}
+        permisosHoy={(permisosHoy ?? []).map(p => p.empleado_id)}
       />
     </div>
   )

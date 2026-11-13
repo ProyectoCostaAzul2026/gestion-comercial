@@ -4,7 +4,7 @@ import { useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
-import { ChevronRight, EllipsisVertical, Hand, Merge, Package, Pencil, Plus, Search, SlidersHorizontal, X } from 'lucide-react'
+import { ChevronRight, ClipboardCheck, EllipsisVertical, Hand, Merge, Package, Pencil, Plus, Search, SlidersHorizontal, X } from 'lucide-react'
 import {
   buscarProductos, claveCategoria, claveFamilia, claveGrupo, nivelCategorias, nivelFamilias, nivelGrupos, pesos,
   rangoPrecios, SIN, type NivelGrupo, type ProductoInventario, type Resumen,
@@ -354,6 +354,9 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
                         <SlidersHorizontal className="h-4 w-4" /> Precios y orden
                       </Link>
                     )}
+                    <Link href={`${RUTA}/conteo?q=${encodeURIComponent(grupo.nombre)}`} className={BOTON_EDITAR}>
+                      <ClipboardCheck className="h-4 w-4" /> Contar
+                    </Link>
                     <button type="button"
                       onClick={() => abrirAcciones(grupo.items.length === 1
                         ? { tipo: 'producto', producto: grupo.items[0] }

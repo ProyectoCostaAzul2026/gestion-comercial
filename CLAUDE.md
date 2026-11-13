@@ -81,7 +81,10 @@ nómina).
   `escala-precios.ts` (motor de precios por medida: orden de medidas, redondeo, sugeridos, costos estimados y alertas),
   `peso.ts` (cuentas del peso por unidad), `precios-cantidad.ts` (precios por cantidad: tramo que aplica, validación y
   sugeridos), `recepcion.ts` (recepción de mercancía: costo con o sin IVA, diferencias del conteo y lo que falta para
-  cerrar), `temas-ayuda.ts` (textos del panel Instrucciones), `festivos-colombia.ts`.
+  cerrar), `temas-ayuda.ts` (textos del panel Instrucciones), `festivos-colombia.ts` (festivos calculados para cualquier año con
+  su nombre, jornada de festivo 9:00 a 17:00 y `turnoEnFecha`), `turnos.ts` (quién trabaja hoy: turno del día y sin
+  permiso; lo usan Inicio, Caja y Nómina), `whatsapp.ts` (enlace wa.me con indicativo 57 y textos de recordatorio de
+  crédito y de pedido), `pedido.ts` (cantidad sugerida), `conteo.ts` (conteo de inventario).
 - `src/components/layout/NavigationShell.tsx`: barra inferior en celular (Inicio, Ventas, Vender, Inventario, Más) con el
   menú completo en un panel que sube desde abajo, y menú lateral fijo desde `lg`. El menú sale de `navItems` en
   `permissions.ts` (con `grupo`); `rutaActiva` marca el módulo también en sus subpáginas. Las subpáginas con encabezado
@@ -137,6 +140,17 @@ nómina).
   cierra. El stock entra al marcar cada renglón, con un movimiento por lugar. Abrir, crear productos, aprobar precios y
   cerrar son del administrador. `src/lib/recepcion.ts` replica sus reglas (si cambias una, cambia la otra). Reglas en
   `DATABASE.md` (notas 14 y 19).
+- **Horario** (`horario-semanal.tsx`): los turnos (`horario_laboral`) son una plantilla por día de la semana que se repite.
+  La vista muestra la semana real (lunes a domingo, con flechas hasta 12 semanas adelante), reconoce los festivos y ese
+  día muestra el turno recortado a la jornada de festivo (el turno guardado no cambia). La nómina del día usa esas
+  mismas horas y deja por fuera a quien tiene permiso.
+- **Conteo de inventario** (`inventario/conteo`, `conteo-inventario.tsx`): se filtra por ubicación, categoría o búsqueda, se
+  escribe lo contado en almacén y bodega (o se pesa con `ContarPorPeso` si el producto tiene peso por unidad) y se guarda
+  todo junto con la RPC `registrar_conteo_inventario`. **Esa RPC aún no existe en la base**: el SQL está en
+  `sql/pendiente_registrar_conteo_inventario.sql` (revisarlo contra `guardar_producto` y aplicarlo con confirmación). Lo
+  contado queda como borrador en el navegador (`localStorage`) hasta guardar o descartar.
+- **Pedido sugerido** (Agotados y página del proveedor): `cantidadSugerida` toma la rotación de 90 días y, como mínimo,
+  repone hasta el doble del stock mínimo (sin ventas la rotación es 0). Se descarga en PDF o se envía por WhatsApp.
 - **Permisos** (`permisos_empleado`, `permisos-empleados.tsx` en Horario): el empleado saca el día que no asiste (desde
   hoy); el administrador lo registra para cualquiera. Alerta en el Inicio del administrador (hoy a 7 días) y marca en la
   vista semanal.
@@ -308,6 +322,8 @@ nómina).
   actualizada" sin cambiar nada) y el formulario pondría el saldo igual al total aunque haya pagos.
 - Recepción de mercancía: quedan para después adjuntar la foto o el PDF de la factura y repartir fletes y descuentos en
   el costo de los renglones.
+- "Eliminar definitivamente" un producto desactivado no borra nada (no hay política de DELETE en `productos` ni en
+  `movimientos_inventario`); la app ahora lo avisa en lugar de decir que lo eliminó. Hace falta una RPC si se quiere borrar.
 - Listas que en celular siguen siendo tablas con desplazamiento lateral (Ventas y Clientes ya tienen tarjetas): nómina,
   servicios, agotados, desactivados, garantías, productos por proveedor, caja, contabilidad y reportes.
 - El lint tiene unos 315 errores heredados (casi todos `any`); no bloquean el build.

@@ -225,6 +225,26 @@ export function CajaPanel({
       .reduce((s, medio) => s + (saldosPorMedio[medio] ?? 0), 0),
     [saldosPorMedio])
 
+  /** Resumen del día en texto: WhatsApp deja elegir a quién enviarlo */
+  const compartirResumen = () => {
+    const p = (n: number) => `$${Math.round(n).toLocaleString('es-CO')}`
+    const texto = [
+      `*Cierre del día ${fechaHoy}*`,
+      `Ventas: ${p(granTotalEntradasDia)}`,
+      `• Efectivo: ${p(ventasEfectivo)}`,
+      `• Nequi: ${p(ventasNequi)}`,
+      `• Daviplata: ${p(ventasDaviplata)}`,
+      `• Tarjeta: ${p(ventasTarjeta)}`,
+      `• A crédito: ${p(ventasCredito)}`,
+      `Otros ingresos de caja: ${p(totalIngresos)}`,
+      `Egresos (gastos, retiros, proveedores, nómina): ${p(totalEgresos)}`,
+      `Efectivo que debe haber sobre la base: ${p(ventasEfectivo - egresosEfectivo)}`,
+      `Nómina pagada: ${nominasPagadasHoy} de ${empleadosActivos}`,
+      arqueoHoy ? 'Caja cerrada con arqueo.' : 'La caja aún no se ha cerrado.',
+    ].join('\n')
+    window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank')
+  }
+
   // ── Helpers ──
   const abrirPanel = (panel: typeof panelActivo) => {
     if (panel === 'nomina' && panelActivo !== 'nomina') {
@@ -515,6 +535,12 @@ export function CajaPanel({
           <div className="absolute inset-y-0 right-0 w-7 -skew-x-12 translate-x-1 bg-brand-blue" />
         </div>
       </div>
+
+      {/* Resumen del día para enviarlo al dueño o guardarlo */}
+      <button type="button" onClick={compartirResumen}
+        className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/40 text-sm font-bold text-emerald-400 hover:bg-emerald-500/10">
+        Compartir el resumen del día por WhatsApp
+      </button>
 
       {/* Advertencia nómina */}
       {!nominaAlDia && (

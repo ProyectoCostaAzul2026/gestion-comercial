@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Search, Plus, Trash2, Printer, MessageCircle, Package } from 'lucide-react'
 import { precioConCantidad, type TramoPrecio } from '@/lib/precios-cantidad'
 import { AvisoPrecioCantidad } from './precios-cantidad'
+import { enlaceWhatsApp } from '@/lib/whatsapp'
 
 interface ProductoSearch {
   id: string; nombre: string; codigo: string | null
@@ -271,7 +272,6 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
   const handleWhatsApp = () => {
     if (!telefonoCotizante) { toast.error('Ingresa el teléfono del cliente'); return }
     if (carrito.length === 0 && serviciosCarrito.length === 0) { toast.error('Agrega al menos un producto o servicio'); return }
-    const tel = telefonoCotizante.replace(/\D/g, '')
     const lineas = [
       `📋 *COTIZACIÓN — ${config?.nombre ?? 'Mi Negocio'}*`,
       `📅 Fecha: ${fmtFecha(fechaHoy)} · Válida hasta: ${fmtFecha(fechaVencimiento)}`,
@@ -292,7 +292,9 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
       observaciones ? `\n📝 ${observaciones}` : '',
       config?.mensaje_pie ? `\n_${config.mensaje_pie}_` : '',
     ].filter(Boolean).join('\n')
-    window.open(`https://wa.me/${tel}?text=${encodeURIComponent(lineas)}`, '_blank')
+    const enlace = enlaceWhatsApp(telefonoCotizante, lineas)
+    if (!enlace) { toast.error('El teléfono no es válido'); return }
+    window.open(enlace, '_blank')
   }
 
   const validarDesc = (v: number) => Math.min(Math.max(0, v), 10)
@@ -323,7 +325,7 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
             </div>
             <div className="space-y-1">
               <Label className={LABEL_CLS}>Celular (WhatsApp)</Label>
-              <Input value={telefonoCotizante} className={INPUT_CLS} onChange={e => setTelefonoCotizante(e.target.value)} placeholder="573101234567" />
+              <Input value={telefonoCotizante} className={INPUT_CLS} onChange={e => setTelefonoCotizante(e.target.value)} placeholder="310 123 4567" />
             </div>
           </div>
           <div className="space-y-1">

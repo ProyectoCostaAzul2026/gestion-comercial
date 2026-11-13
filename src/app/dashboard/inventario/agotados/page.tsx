@@ -24,7 +24,7 @@ export default async function AgotadosPage() {
     ),
     supabase
       .from('proveedores')
-      .select('id, nombre')
+      .select('id, nombre, telefono')
       .eq('activo', true)
       .order('nombre'),
   ])
@@ -41,6 +41,7 @@ export default async function AgotadosPage() {
         unidad_medida: p.unidad_medida,
         prioridad: p.prioridad,
         stock_actual: p.stock_actual,
+        stock_minimo: p.stock_minimo ?? 0,
         stock_bodega: p.stock_bodega ?? 0,
         stock_almacen: p.stock_almacen ?? 0,
         proveedor1: ordenados[0]?.proveedores?.nombre ?? null,

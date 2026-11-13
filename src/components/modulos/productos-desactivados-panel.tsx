@@ -148,8 +148,12 @@ export function ProductosDesactivadosPanel({
       const { error: movError } = await supabase.from('movimientos_inventario').delete().eq('producto_id', p.id)
       if (movError) throw movError
 
-      const { error: delError } = await supabase.from('productos').delete().eq('id', p.id)
+      const { data: borrados, error: delError } = await supabase.from('productos').delete().eq('id', p.id).select('id')
       if (delError) throw delError
+      // Sin permiso de borrado la base no da error: simplemente no borra nada
+      if (!borrados || borrados.length === 0) {
+        throw new Error('la base de datos no permite borrar productos todavía. El producto sigue desactivado y no aparece en ventas ni en el inventario.')
+      }
 
       toast.success('Producto eliminado')
       setListaSinRegistros(prev => prev.filter(x => x.id !== p.id))

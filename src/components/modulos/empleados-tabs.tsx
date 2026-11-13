@@ -11,11 +11,12 @@ interface EmpleadosTabsProps {
   empleadosParaHorario: { id: string; nombre_completo: string }[]
   fechaHoy: string
   esAdmin: boolean
+  permisosHoy?: string[]
 }
 
 export function EmpleadosTabs({
   listaCompleta, empleadosParaNomina, historial,
-  turnos, empleadosParaHorario, fechaHoy, esAdmin,
+  turnos, empleadosParaHorario, fechaHoy, esAdmin, permisosHoy = [],
 }: EmpleadosTabsProps) {
   return (
     <div className="space-y-8">
@@ -34,6 +35,7 @@ export function EmpleadosTabs({
           empleados={empleadosParaNomina}
           historial={historial}
           fechaHoy={fechaHoy}
+          permisosHoy={permisosHoy}
         />
       </section>
 

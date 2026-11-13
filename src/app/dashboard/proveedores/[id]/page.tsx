@@ -134,6 +134,7 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
 
       {/* Productos asociados */}
       <ProductosProveedorTable
+        proveedorTelefono={proveedor.telefono}
         proveedorNombre={proveedor.nombre}
         productos={(productos ?? []).map((pp: any) => ({
           id: pp.id,

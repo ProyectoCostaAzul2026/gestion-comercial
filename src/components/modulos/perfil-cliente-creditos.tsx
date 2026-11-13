@@ -10,8 +10,9 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Plus, Trash2, ChevronDown, ChevronUp, MessageCircle } from 'lucide-react'
 import { hoyBogota } from '@/lib/fechas'
+import { enlaceWhatsApp, textoRecordatorioCredito } from '@/lib/whatsapp'
 
 interface Abono {
   id: string
@@ -296,8 +297,25 @@ function CreditoCard({ credito }: { credito: Credito }) {
   )
 }
 
-export function PerfilClienteCreditos({ creditos }: { creditos: Credito[] }) {
+export function PerfilClienteCreditos({ creditos, cliente, negocio }: {
+  creditos: Credito[]
+  /** Para el recordatorio por WhatsApp */
+  cliente?: { nombre: string; telefono: string | null }
+  negocio?: string
+}) {
   const activos = creditos.filter(c => !esCerrado(c.estado))
+  const recordar = () => {
+    if (!cliente) return
+    const texto = textoRecordatorioCredito(
+      negocio || 'Ferreléctricos Costa Azul',
+      cliente.nombre,
+      activos.map(c => ({ ticket: c.ventas?.numero_ticket ?? null, saldo: Number(c.saldo_pendiente), vence: c.fecha_pago_programada })),
+      hoyBogota(),
+    )
+    const enlace = enlaceWhatsApp(cliente.telefono, texto)
+    if (!enlace) { toast.error('Este cliente no tiene un teléfono válido: agrégalo en "Editar"'); return }
+    window.open(enlace, '_blank')
+  }
   const pagados = creditos.filter(c => esCerrado(c.estado))
   const [mostrarPagados, setMostrarPagados] = useState(false)
 
@@ -309,6 +327,19 @@ export function PerfilClienteCreditos({ creditos }: { creditos: Credito[] }) {
 
       {activos.length === 0 && (
         <p className="text-sm text-steel-500">Sin créditos pendientes.</p>
+      )}
+
+      {activos.length > 0 && cliente && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-white/10 bg-[#111820] px-4 py-3">
+          <div>
+            <p className="text-xs text-steel-300">Debe en total</p>
+            <p className="font-display text-xl font-bold text-brand-red">{fmt(activos.reduce((s, c) => s + Number(c.saldo_pendiente), 0))}</p>
+          </div>
+          <button type="button" onClick={recordar}
+            className="inline-flex h-11 items-center gap-2 rounded-xl border border-emerald-500/40 px-4 text-sm font-bold text-emerald-400 hover:bg-emerald-500/10">
+            <MessageCircle className="h-4 w-4" /> Recordar por WhatsApp
+          </button>
+        </div>
       )}
 
       {activos.map(c => <CreditoCard key={c.id} credito={c} />)}

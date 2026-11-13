@@ -33,6 +33,9 @@ export default async function NominaPage() {
     .order('periodo_inicio', { ascending: false })
     .limit(50)
 
+  // Quién tiene permiso hoy: no asiste y no entra en el pago del día
+  const { data: permisosHoy } = await supabase.from('permisos_empleado').select('empleado_id').eq('fecha', hoy)
+
   const { data: turnos } = await supabase
     .from('horario_laboral')
     .select('empleado_id, dia_semana, hora_inicio, hora_fin')
@@ -69,6 +72,7 @@ export default async function NominaPage() {
         }))}
         historial={(historial as any) ?? []}
         fechaHoy={hoy}
+        permisosHoy={(permisosHoy ?? []).map(p => p.empleado_id)}
       />
     </div>
   )

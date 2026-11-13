@@ -4,6 +4,7 @@ import { DashboardAdmin } from '@/components/modulos/dashboard-admin'
 import { DashboardEmpleado } from '@/components/modulos/dashboard-empleado'
 import { sumarDias } from '@/lib/permisos'
 import { bogotaEnDias, hoyBogota } from '@/lib/fechas'
+import { empleadosEnTurno } from '@/lib/turnos'
 
 export default async function DashboardPage({
   searchParams,
@@ -62,7 +63,7 @@ export default async function DashboardPage({
         .eq('ventas.fecha', hoy).neq('ventas.estado', 'anulada'),
       supabase.from('nominas').select('id, empleado_id')
         .eq('periodo_inicio', hoy).eq('estado', 'pagada'),
-      supabase.from('profiles').select('id').eq('activo', true),
+      empleadosEnTurno(supabase, hoy).then(ids => ({ data: ids })),
       supabase.from('ventas').select(`
         id, numero_ticket, hora, total, tipo_pago, estado,
         clientes(nombre), profiles!empleado_id(nombre_completo)
@@ -109,7 +110,8 @@ export default async function DashboardPage({
           ticketPromedio,
           desglosePago,
           nominasPagadas: nominasHoy?.length ?? 0,
-          empleadosActivos: empleadosActivos?.length ?? 0,
+          // Los que trabajan hoy (turno y sin permiso), más quien ya recibió pago sin tener turno
+          empleadosActivos: new Set([...(empleadosActivos ?? []), ...(nominasHoy ?? []).map(n => n.empleado_id)]).size,
           cajaMayor: Number((cajaMayor as any)?.saldo_actual ?? 0),
         }}
         ultimasVentas={(ultimasVentas as any) ?? []}
