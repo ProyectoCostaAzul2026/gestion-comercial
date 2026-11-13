@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { ServiciosTable } from '@/components/modulos/servicios-table'
+import { bogotaEnDias, hoyBogota } from '@/lib/fechas'
 
 export default async function ServiciosPage({
   searchParams,
@@ -14,8 +15,8 @@ export default async function ServiciosPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const hoy = new Date().toISOString().slice(0, 10)
-  const hace30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+  const hoy = hoyBogota()
+  const hace30 = bogotaEnDias(-30)
   const desde = sp.desde || hace30
   const hasta = sp.hasta || hoy
 

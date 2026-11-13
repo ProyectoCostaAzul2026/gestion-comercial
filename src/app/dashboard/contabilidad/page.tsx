@@ -1,10 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { traerTodo } from '@/lib/supabase/traer-todo'
 import { redirect } from 'next/navigation'
+import { hoyBogota } from '@/lib/fechas'
 import { ContabilidadPanel } from '@/components/modulos/contabilidad-panel'
 
 function getPeriodo(periodo: string, desde?: string, hasta?: string) {
-  const hoy = new Date()
+  // Mediodía UTC del día de Bogotá: las cuentas de días no se corren por la zona horaria del servidor
+  const hoy = new Date(hoyBogota() + 'T12:00:00Z')
   const fmt = (d: Date) => d.toISOString().slice(0, 10)
   switch (periodo) {
     case 'hoy': return { desde: fmt(hoy), hasta: fmt(hoy) }

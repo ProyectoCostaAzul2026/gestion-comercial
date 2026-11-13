@@ -27,14 +27,14 @@ export function VentasFiltros({ fechaInicio, fechaFin, tipoPago, estado, emplead
   const triggerCls = 'border-white/10 bg-[#1a2430] text-white'
 
   return (
-    <div className="mb-4 flex flex-wrap items-end gap-3">
+    <div className="mb-4 grid grid-cols-2 items-end gap-3 sm:flex sm:flex-wrap">
       <div className="space-y-1">
         <label className={labelCls}>Desde</label>
-        <Input type="date" value={fechaInicio} max={fechaFin} onChange={e => actualizar('fecha_inicio', e.target.value)} className="w-40 border-white/10 bg-[#1a2430] text-white" />
+        <Input type="date" value={fechaInicio} max={fechaFin} onChange={e => actualizar('fecha_inicio', e.target.value)} className="w-full border-white/10 bg-[#1a2430] text-white sm:w-40" />
       </div>
       <div className="space-y-1">
         <label className={labelCls}>Hasta</label>
-        <Input type="date" value={fechaFin} min={fechaInicio} onChange={e => actualizar('fecha_fin', e.target.value)} className="w-40 border-white/10 bg-[#1a2430] text-white" />
+        <Input type="date" value={fechaFin} min={fechaInicio} onChange={e => actualizar('fecha_fin', e.target.value)} className="w-full border-white/10 bg-[#1a2430] text-white sm:w-40" />
       </div>
 
       {esAdmin && (
@@ -42,7 +42,7 @@ export function VentasFiltros({ fechaInicio, fechaFin, tipoPago, estado, emplead
           <label className={labelCls}>Empleado</label>
           <Select items={[{ value: 'todos', label: 'Todos' }, ...empleados.map(e => ({ value: e.id, label: e.nombre_completo }))]}
             onValueChange={v => v && actualizar('empleado_id', v)} value={empleadoId || 'todos'}>
-            <SelectTrigger className={`w-48 ${triggerCls}`}><SelectValue /></SelectTrigger>
+            <SelectTrigger className={`w-full sm:w-48 ${triggerCls}`}><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos</SelectItem>
               {empleados.map(e => <SelectItem key={e.id} value={e.id}>{e.nombre_completo}</SelectItem>)}
@@ -62,7 +62,7 @@ export function VentasFiltros({ fechaInicio, fechaFin, tipoPago, estado, emplead
           { value: 'mixto', label: 'Mixto' },
           { value: 'credito', label: 'Crédito' },
         ]} onValueChange={v => v && actualizar('tipo_pago', v)} value={tipoPago || 'todos'}>
-          <SelectTrigger className={`w-40 ${triggerCls}`}><SelectValue /></SelectTrigger>
+          <SelectTrigger className={`w-full sm:w-40 ${triggerCls}`}><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos</SelectItem>
             <SelectItem value="efectivo">Efectivo</SelectItem>
@@ -84,7 +84,7 @@ export function VentasFiltros({ fechaInicio, fechaFin, tipoPago, estado, emplead
           { value: 'anulada', label: 'Anulada' },
           { value: 'credito', label: 'Crédito' },
         ]} onValueChange={v => v && actualizar('estado', v)} value={estado || 'todos'}>
-          <SelectTrigger className={`w-40 ${triggerCls}`}><SelectValue /></SelectTrigger>
+          <SelectTrigger className={`w-full sm:w-40 ${triggerCls}`}><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos</SelectItem>
             <SelectItem value="completada">Completada</SelectItem>

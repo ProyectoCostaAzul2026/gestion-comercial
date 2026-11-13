@@ -2,10 +2,12 @@ import { createClient } from '@/lib/supabase/server'
 import { traerTodo } from '@/lib/supabase/traer-todo'
 import { redirect } from 'next/navigation'
 import { ReportesPanel } from '@/components/modulos/reportes-panel'
+import { hoyBogota } from '@/lib/fechas'
 
 function getPeriodo(periodo: string, desde?: string, hasta?: string) {
   const fmt = (d: Date) => d.toLocaleDateString('en-CA', { timeZone: 'America/Bogota' })
-  const hoy = new Date()
+  // Mediodía UTC del día de Bogotá: las cuentas de días no se corren por la zona horaria del servidor
+  const hoy = new Date(hoyBogota() + 'T12:00:00Z')
   switch (periodo) {
     case 'hoy': return { desde: fmt(hoy), hasta: fmt(hoy) }
     case 'semana': {
@@ -43,7 +45,7 @@ export default async function ReportesPage({
     .from('profiles').select('rol').eq('id', user.id).single()
   if ((profile as any)?.rol !== 'administrador') redirect('/dashboard')
 
-  const hoy = new Date().toISOString().slice(0, 10)
+  const hoy = hoyBogota()
   const periodo = sp.periodo ?? 'mes_anterior'
   const { desde, hasta } = getPeriodo(periodo, sp.desde, sp.hasta)
 

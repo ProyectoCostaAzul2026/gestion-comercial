@@ -1,11 +1,12 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Search } from 'lucide-react'
+import { ChevronRight, Phone, Search } from 'lucide-react'
 
 interface ClienteListItem {
   id: string
@@ -39,7 +40,7 @@ export function ClienteTable({ clientes }: { clientes: ClienteListItem[] }) {
 
   return (
     <div>
-      <div className="relative mb-4 max-w-md">
+      <div className="relative mb-4 sm:max-w-md">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-500" />
         <Input
           value={query}
@@ -49,7 +50,47 @@ export function ClienteTable({ clientes }: { clientes: ClienteListItem[] }) {
         />
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
+      {/* Celular: una tarjeta por cliente */}
+      <ul className="space-y-2 md:hidden">
+        {filtrados.map((cliente) => (
+          <li key={cliente.id} className="flex items-stretch overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
+            <Link href={`/dashboard/clientes/${cliente.id}`} className="flex min-w-0 flex-1 items-center gap-2 px-3 py-3 active:bg-white/5">
+              <div className="min-w-0 flex-1">
+                <p className="flex items-center gap-2 text-sm font-bold text-white">
+                  <span className="truncate">{cliente.nombre}</span>
+                  {cliente.es_cliente_generico && (
+                    <Badge variant="outline" className="shrink-0 rounded-full border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow">General</Badge>
+                  )}
+                </p>
+                <p className="truncate text-xs text-steel-300">
+                  {[cliente.telefono, cliente.nit_cc].filter(Boolean).join(' · ') || 'Sin teléfono ni documento'}
+                </p>
+                {!!cliente.numCompras && (
+                  <p className="text-[11px] text-steel-500">
+                    {cliente.numCompras} compra{cliente.numCompras === 1 ? '' : 's'}
+                    {cliente.totalCompras ? ` · $${cliente.totalCompras.toLocaleString('es-CO')}` : ''}
+                    {cliente.ultimaCompra ? ` · última ${cliente.ultimaCompra}` : ''}
+                  </p>
+                )}
+              </div>
+              <ChevronRight className="h-4 w-4 shrink-0 text-steel-500" aria-hidden />
+            </Link>
+            {cliente.telefono && (
+              <a href={`tel:${cliente.telefono.replace(/[^0-9+]/g, '')}`} aria-label={`Llamar a ${cliente.nombre}`}
+                className="flex w-12 shrink-0 items-center justify-center border-l border-white/10 text-brand-blue active:bg-white/5">
+                <Phone className="h-4 w-4" />
+              </a>
+            )}
+          </li>
+        ))}
+      </ul>
+      {filtrados.length === 0 && (
+        <p className="rounded-2xl border border-white/10 bg-[#111820] p-8 text-center text-sm text-steel-500 md:hidden">
+          {clientes.length === 0 ? 'No hay clientes registrados todavía.' : 'No se encontraron clientes con esa búsqueda.'}
+        </p>
+      )}
+
+      <div className="hidden overflow-hidden rounded-2xl border border-white/10 bg-[#111820] md:block">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>

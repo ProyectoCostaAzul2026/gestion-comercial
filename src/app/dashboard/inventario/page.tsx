@@ -42,23 +42,23 @@ export default async function InventarioPage() {
           <div className="mt-4 grid grid-cols-3 gap-2">
             <Link
               href="/dashboard/inventario/garantias"
-              className="inline-flex h-10 items-center justify-center rounded-xl bg-brand-blue px-4 text-sm font-bold text-steel-900 hover:brightness-105"
+              className="inline-flex h-11 items-center justify-center rounded-xl bg-brand-blue px-2 text-xs font-bold sm:text-sm text-steel-900 hover:brightness-105"
             >
-              <ShieldCheck className="mr-2 h-4 w-4" />
+              <ShieldCheck className="mr-1.5 h-4 w-4 shrink-0" />
               Garantías
             </Link>
             <Link
               href="/dashboard/inventario/agotados"
-              className="inline-flex h-10 items-center justify-center rounded-xl bg-brand-red px-4 text-sm font-bold text-steel-900 hover:brightness-105"
+              className="inline-flex h-11 items-center justify-center rounded-xl bg-brand-red px-2 text-xs font-bold sm:text-sm text-steel-900 hover:brightness-105"
             >
-              <AlertTriangle className="mr-2 h-4 w-4" />
-              Ver agotados
+              <AlertTriangle className="mr-1.5 h-4 w-4 shrink-0" />
+              Agotados
             </Link>
             <Link
               href="/dashboard/inventario/desactivados"
-              className="inline-flex h-10 items-center justify-center rounded-xl bg-steel-700 px-4 text-sm font-bold text-white hover:brightness-110"
+              className="inline-flex h-11 items-center justify-center rounded-xl bg-steel-700 px-2 text-xs font-bold sm:text-sm text-white hover:brightness-110"
             >
-              <PowerOff className="mr-2 h-4 w-4" />
+              <PowerOff className="mr-1.5 h-4 w-4 shrink-0" />
               Desactivados
             </Link>
           </div>

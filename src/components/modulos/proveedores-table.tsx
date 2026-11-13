@@ -6,8 +6,9 @@ import { AlertTriangle, Phone, Search, User } from 'lucide-react'
 import { AvatarIniciales, telefonoMarcable } from './avatar-iniciales'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { bogotaEnDias, hoyBogota } from '@/lib/fechas'
 
-const hoy = new Date().toISOString().slice(0, 10)
+const hoy = hoyBogota()
 
 function diasRestantes(fecha: string): number {
   const ms = new Date(fecha).getTime() - new Date(hoy).getTime()
@@ -67,7 +68,7 @@ export function ProveedoresTable({
   const [filtroEstado, setFiltroEstado] = useState('todos')
 
   // Panel de pagos próximos
-  const hoy7 = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+  const hoy7 = bogotaEnDias(7)
 
   const eventosHoy = eventosPago.filter(e => e.fecha === hoy)
   const eventos7Dias = eventosPago.filter(e => e.fecha > hoy && e.fecha <= hoy7)

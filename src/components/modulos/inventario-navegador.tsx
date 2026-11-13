@@ -4,7 +4,7 @@ import { useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
-import { ChevronRight, EllipsisVertical, Package, Pencil, Plus, Search, SlidersHorizontal, X } from 'lucide-react'
+import { ChevronRight, EllipsisVertical, Hand, Merge, Package, Pencil, Plus, Search, SlidersHorizontal, X } from 'lucide-react'
 import {
   buscarProductos, claveCategoria, claveFamilia, claveGrupo, nivelCategorias, nivelFamilias, nivelGrupos, pesos,
   rangoPrecios, SIN, type NivelGrupo, type ProductoInventario, type Resumen,
@@ -12,6 +12,8 @@ import {
 import { AccionesInventario, type ObjetivoAcciones } from './acciones-inventario'
 import { CrearNivelInventario, type TipoNivel } from './crear-nivel-inventario'
 import { EditarTarjetaInventario, type TarjetaEditable } from './editar-tarjeta-inventario'
+import { UnirGruposMedidas } from './unir-grupos-medidas'
+import { useArrastre } from '@/lib/usar-arrastre'
 
 interface Props {
   productos: ProductoInventario[]
@@ -34,7 +36,7 @@ function Imagen({ src, alt, className = '' }: { src: string | null; alt: string;
     )
   }
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt={alt} loading="lazy" className={`bg-white object-contain ${className}`} />
+  return <img src={src} alt={alt} loading="lazy" draggable={false} className={`bg-white object-contain ${className}`} />
 }
 
 function Estadisticas({ resumen, detalle }: { resumen: Resumen; detalle: string }) {
@@ -61,7 +63,7 @@ function TarjetaNueva({ texto, onClick }: { texto: string; onClick: () => void }
   )
 }
 
-function Tarjeta({ titulo, imagen, children, onAbrir, onMenu, onEditar }: {
+function Tarjeta({ titulo, imagen, children, onAbrir, onMenu, onEditar, arrastre, estado }: {
   titulo: string
   imagen: string | null
   children: React.ReactNode
@@ -69,9 +71,18 @@ function Tarjeta({ titulo, imagen, children, onAbrir, onMenu, onEditar }: {
   onMenu?: () => void
   /** Editar el nombre y la imagen de la tarjeta (categoría, familia o grupo) */
   onEditar?: () => void
+  /** Propiedades de useArrastre: la tarjeta se puede arrastrar sobre otra manteniéndola presionada */
+  arrastre?: React.HTMLAttributes<HTMLDivElement>
+  /** Mientras se arrastra: la tarjeta que se mueve o la que va a recibirla */
+  estado?: 'origen' | 'destino'
 }) {
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#111820] transition hover:border-brand-yellow/50">
+    <div {...arrastre}
+      className={`group relative flex flex-col overflow-hidden rounded-2xl border bg-[#111820] transition ${arrastre ? 'arrastrable' : ''} ${
+        estado === 'destino' ? 'scale-[1.03] border-brand-yellow ring-2 ring-brand-yellow'
+          : estado === 'origen' ? 'border-white/10 opacity-40'
+            : 'border-white/10 hover:border-brand-yellow/50'
+      }`}>
       <button type="button" onClick={onAbrir} className="flex flex-1 flex-col text-left">
         <Imagen src={imagen} alt={titulo} className="aspect-[4/3] w-full" />
         <div className="flex flex-1 flex-col gap-1 p-3">
@@ -79,15 +90,20 @@ function Tarjeta({ titulo, imagen, children, onAbrir, onMenu, onEditar }: {
           {children}
         </div>
       </button>
-      {onEditar && (
-        <button type="button" onClick={onEditar} aria-label={`Editar nombre e imagen de ${titulo}`}
-          className="absolute right-2 top-2 rounded-lg bg-[#111820]/80 p-1.5 text-steel-300 shadow hover:bg-[#111820] hover:text-brand-yellow">
+      {estado === 'destino' && (
+        <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-center gap-1.5 bg-brand-yellow py-1.5 text-xs font-bold text-steel-900">
+          <Merge className="h-3.5 w-3.5" aria-hidden /> Soltar para unir aquí
+        </div>
+      )}
+      {onEditar && !estado && (
+        <button type="button" onClick={onEditar} data-sin-arrastre aria-label={`Editar nombre e imagen de ${titulo}`}
+          className="absolute right-1.5 top-1.5 flex h-10 w-10 items-center justify-center rounded-xl bg-[#111820]/85 text-steel-300 shadow hover:bg-[#111820] hover:text-brand-yellow">
           <Pencil className="h-4 w-4" />
         </button>
       )}
       {onMenu && (
-        <button type="button" onClick={onMenu} aria-label={`Acciones de ${titulo}`}
-          className="absolute bottom-2 right-1 rounded-lg p-1.5 text-steel-300 hover:bg-white/10 hover:text-white">
+        <button type="button" onClick={onMenu} data-sin-arrastre aria-label={`Acciones de ${titulo}`}
+          className="absolute bottom-1 right-0.5 flex h-10 w-9 items-center justify-center rounded-lg text-steel-300 hover:bg-white/10 hover:text-white">
           <EllipsisVertical className="h-4 w-4" />
         </button>
       )}
@@ -107,6 +123,7 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
   const [acciones, setAcciones] = useState<{ clave: string; objetivo: ObjetivoAcciones } | null>(null)
   const [crear, setCrear] = useState<TipoNivel | null>(null)
   const [editar, setEditar] = useState<TarjetaEditable | null>(null)
+  const [unir, setUnir] = useState<{ origen: string; destino: string } | null>(null)
   // Cada apertura del menú monta el panel de nuevo, con los datos del producto o grupo elegido
   const aperturas = useRef(0)
   const marcas = useMemo(
@@ -142,6 +159,13 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
   const listaFamilias = cat ? nivelFamilias(productos, cat, familias) : []
   const listaGrupos = cat && fam ? nivelGrupos(productos, cat, fam) : []
   const grupo = g ? listaGrupos.find(x => x.clave === g) ?? null : null
+
+  // Arrastrar un grupo sobre otro (manteniéndolo presionado) los une. Solo dentro de una familia y sin paneles abiertos.
+  const puedeArrastrar = !!cat && !!fam && !g && fam !== SIN && listaGrupos.length > 1 && query.trim() === '' && !acciones && !crear && !editar && !unir
+  const arrastre = useArrastre({ activo: puedeArrastrar, onSoltar: (origen, destino) => setUnir({ origen, destino }) })
+  const grupoArrastrado = arrastre.estado ? listaGrupos.find(x => x.clave === arrastre.estado?.origen) ?? null : null
+  const unirOrigen = unir ? listaGrupos.find(x => x.clave === unir.origen) ?? null : null
+  const unirDestino = unir ? listaGrupos.find(x => x.clave === unir.destino) ?? null : null
 
   const abrirAcciones = (objetivo: ObjetivoAcciones) => {
     const clave = objetivo.tipo === 'producto' ? objetivo.producto.id : objetivo.productos.map(p => p.id).join(',')
@@ -276,9 +300,17 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
                     className={BOTON_EDITAR}><Pencil className="h-4 w-4" /> Editar</button>
                 )}
               </div>
+              {fam !== SIN && listaGrupos.length > 1 && (
+                <p className="flex items-center gap-1.5 text-[11px] text-steel-500">
+                  <Hand className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                  Mantén presionado un grupo y arrástralo sobre otro para unirlos.
+                </p>
+              )}
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                 {listaGrupos.map(x => (
                   <Tarjeta key={x.clave} titulo={fam === SIN ? x.nombre : (x.caracteristica ?? x.nombre)} imagen={x.resumen.imagen}
+                    arrastre={arrastre.propsTarjeta(x.clave)}
+                    estado={arrastre.estado?.origen === x.clave ? 'origen' : arrastre.estado?.destino === x.clave ? 'destino' : undefined}
                     onAbrir={() => ir({ cat, fam, g: x.clave })}
                     onEditar={fam === SIN ? undefined : () => setEditar(tarjetaGrupo(fam, x))}
                     onMenu={() => abrirAcciones(x.items.length === 1
@@ -384,6 +416,28 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
           categorias={categorias}
           onCerrar={() => setEditar(null)}
           onGrupoRenombrado={clave => { if (g) ir({ cat, fam, g: clave }) }}
+        />
+      )}
+
+      {/* Lo que se lleva en el dedo mientras se arrastra un grupo */}
+      {arrastre.estado && grupoArrastrado && (
+        <div aria-hidden className="pointer-events-none fixed z-50 w-40 -translate-x-1/2 overflow-hidden rounded-xl border-2 border-brand-yellow bg-[#111820] shadow-2xl shadow-black"
+          style={{ left: arrastre.estado.x, top: arrastre.estado.y - 118 }}>
+          <Imagen src={grupoArrastrado.resumen.imagen} alt="" className="h-16 w-full" />
+          <p className="truncate px-2 pt-1 text-xs font-bold text-white">{grupoArrastrado.caracteristica ?? grupoArrastrado.nombre}</p>
+          <p className="truncate px-2 pb-1.5 text-[10px] text-steel-300">
+            {arrastre.estado.destino ? 'Suelta para unir' : 'Llévalo sobre otro grupo'}
+          </p>
+        </div>
+      )}
+
+      {unir && unirOrigen && unirDestino && fam && (
+        <UnirGruposMedidas
+          familia={nombreFamilia(fam)}
+          origen={unirOrigen}
+          destino={unirDestino}
+          grupos={listaGrupos}
+          onCerrar={() => setUnir(null)}
         />
       )}
 

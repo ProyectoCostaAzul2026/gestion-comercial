@@ -37,7 +37,7 @@ export default async function VentasPage({
   // KPIs — pagos reales del día por fuente
   let pagosQuery = supabase
     .from('venta_pagos')
-    .select('metodo, monto, ventas!inner(fecha, estado, empleado_id)')
+    .select('metodo, monto, ventas!inner(id, fecha, estado, empleado_id)')
     .eq('ventas.fecha', hoy)
     .neq('ventas.estado', 'anulada')
   if (!esAdmin) pagosQuery = pagosQuery.eq('ventas.empleado_id', user.id)
@@ -46,9 +46,12 @@ export default async function VentasPage({
   // Créditos del día
   const { data: creditosHoy } = await supabase
     .from('ventas_credito')
-    .select('monto_original, ventas!inner(fecha, estado)')
+    .select('monto_original, ventas!inner(id, fecha, estado, empleado_id)')
     .eq('ventas.fecha', hoy)
     .neq('ventas.estado', 'anulada')
+
+  // Un empleado solo ve lo suyo, igual que en los pagos
+  const creditosPropios = (creditosHoy ?? []).filter((c: any) => esAdmin || c.ventas?.empleado_id === user.id)
 
   // KPIs
   const desgloseMedios: Record<string, number> = {}
@@ -57,10 +60,11 @@ export default async function VentasPage({
     if (metodo === 'mixto') continue
     desgloseMedios[metodo] = (desgloseMedios[metodo] ?? 0) + Number((p as any).monto)
   }
-  desgloseMedios['credito'] = (creditosHoy ?? []).reduce((s, c) => s + Number((c as any).monto_original), 0)
+  desgloseMedios['credito'] = creditosPropios.reduce((s, c) => s + Number((c as any).monto_original), 0)
 
   const totalVentasHoy = Object.values(desgloseMedios).reduce((s, v) => s + v, 0)
-  const numTicketsHoy = new Set((pagosHoy ?? []).map((p: any) => p.ventas?.id)).size + (creditosHoy?.length ?? 0)
+  // Un ticket puede tener varios pagos (mixto) o un abono inicial además del crédito: se cuenta una sola vez
+  const numTicketsHoy = new Set([...(pagosHoy ?? []), ...creditosPropios].map((p: any) => p.ventas?.id).filter(Boolean)).size
   const ventaPromedioHoy = numTicketsHoy > 0 ? totalVentasHoy / numTicketsHoy : 0
 
   // Ventas filtradas para la tabla
@@ -90,7 +94,7 @@ export default async function VentasPage({
   return (
     <div className="space-y-4">
       <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] px-4 pt-5 pb-4">
-        <div className="relative z-10 flex items-center justify-between gap-3">
+        <div className="relative z-10 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="font-display text-3xl font-bold text-brand-yellow">Ventas</h1>
             <p className="mt-0.5 text-xs text-steel-300">
@@ -115,7 +119,7 @@ export default async function VentasPage({
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
         <div className="rounded-2xl border border-white/10 border-l-4 border-l-brand-yellow bg-[#111820] p-4">
           <div className="flex items-start justify-between">
             <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Total ventas (hoy)</p>

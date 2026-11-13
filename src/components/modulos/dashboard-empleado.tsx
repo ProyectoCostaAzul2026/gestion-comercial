@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import {
   ShoppingCart, Package, TrendingUp, Receipt, BarChart3,
-  Phone, Mail, Banknote, Calendar, AlertCircle,
+  Phone, Mail, Banknote, Calendar, AlertCircle, ClipboardCheck, Users,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -141,6 +141,20 @@ export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, 
           </span>
           Inventario
         </Link>
+        {[
+          { href: '/dashboard/recepcion', icon: ClipboardCheck, label: 'Recepción' },
+          { href: '/dashboard/clientes', icon: Users, label: 'Clientes' },
+          { href: '/dashboard/horario', icon: Calendar, label: 'Horario y permisos' },
+          { href: '/dashboard/ventas', icon: Receipt, label: 'Mis ventas' },
+        ].map(({ href, icon: Icon, label }) => (
+          <Link key={href} href={href}
+            className="flex h-16 items-center gap-3 rounded-2xl border border-white/10 bg-[#111820] px-4 text-sm font-bold leading-tight text-white transition hover:border-brand-blue/40">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-blue/15 text-brand-blue">
+              <Icon className="size-6" />
+            </span>
+            {label}
+          </Link>
+        ))}
       </div>
 
       {/* ── Mis ventas con filtro ── */}

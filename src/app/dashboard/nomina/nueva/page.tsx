@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { NominaNuevaForm } from '@/components/modulos/nomina-nueva-form'
+import { hoyBogota } from '@/lib/fechas'
 
 export default async function NuevaNominaPage({
   searchParams,
@@ -25,7 +26,7 @@ export default async function NuevaNominaPage({
     .eq('activo', true)
     .order('nombre_completo')
 
-  const hoy = new Date().toISOString().slice(0, 10)
+  const hoy = hoyBogota()
 
   return (
     <div className="max-w-md">

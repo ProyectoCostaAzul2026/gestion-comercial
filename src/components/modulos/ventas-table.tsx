@@ -25,6 +25,22 @@ const TIPO_PAGO_LABEL: Record<string, string> = {
   daviplata: 'Daviplata',
   tarjeta: 'Tarjeta',
   mixto: 'Mixto',
+  credito: 'Crédito',
+}
+
+function InsigniaEstado({ estado }: { estado: string }) {
+  return (
+    <Badge variant="outline" className={
+      estado === 'anulada'
+        ? 'gap-1 rounded-full border-brand-red/30 bg-brand-red/20 text-brand-red'
+        : estado === 'modificada'
+          ? 'rounded-full border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow'
+          : 'rounded-full border-emerald-500/30 bg-emerald-500/20 text-emerald-400'
+    }>
+      {estado === 'anulada' && <AlertCircle className="size-3" />}
+      {estado === 'anulada' ? 'Anulada' : estado === 'modificada' ? 'Modificada' : 'Completada'}
+    </Badge>
+  )
 }
 
 function normalizar(texto: string): string {
@@ -45,7 +61,7 @@ export function VentasTable({ ventas }: { ventas: VentaListItem[] }) {
 
   return (
     <div>
-      <div className="relative mb-4 max-w-sm">
+      <div className="relative mb-4 sm:max-w-sm">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-500" />
         <Input
           value={query}
@@ -55,7 +71,39 @@ export function VentasTable({ ventas }: { ventas: VentaListItem[] }) {
         />
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
+      {/* Celular: una tarjeta por venta, sin desplazarse de lado */}
+      <ul className="space-y-2 md:hidden">
+        {filtradas.map((venta) => (
+          <li key={venta.id}>
+            <Link href={`/dashboard/ventas/${venta.id}`}
+              className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#111820] px-3 py-3 active:bg-white/5">
+              <div className="min-w-0 flex-1">
+                <p className="flex items-center gap-2 text-sm">
+                  <span className="font-mono font-bold text-brand-blue">#{venta.numero_ticket}</span>
+                  <span className="text-xs text-steel-300">{venta.hora?.slice(0, 5)}</span>
+                  <span className="text-xs text-steel-300">· {TIPO_PAGO_LABEL[venta.tipo_pago] ?? venta.tipo_pago}</span>
+                </p>
+                <p className="truncate text-xs text-steel-300">
+                  {venta.clientes?.nombre ?? 'Sin cliente'}{venta.empleado?.nombre_completo ? ` · ${venta.empleado.nombre_completo}` : ''}
+                </p>
+              </div>
+              <div className="flex shrink-0 flex-col items-end gap-1">
+                <p className={`font-display text-base font-bold ${venta.estado === 'anulada' ? 'text-steel-500 line-through' : 'text-white'}`}>
+                  ${Number(venta.total).toLocaleString('es-CO')}
+                </p>
+                {venta.estado !== 'completada' && <InsigniaEstado estado={venta.estado} />}
+              </div>
+            </Link>
+          </li>
+        ))}
+      </ul>
+      {filtradas.length === 0 && (
+        <p className="rounded-2xl border border-white/10 bg-[#111820] p-8 text-center text-sm text-steel-500 md:hidden">
+          {ventas.length === 0 ? 'No hay ventas registradas para este filtro.' : 'No se encontraron ventas con esa búsqueda.'}
+        </p>
+      )}
+
+      <div className="hidden overflow-hidden rounded-2xl border border-white/10 bg-[#111820] md:block">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -84,17 +132,7 @@ export function VentasTable({ ventas }: { ventas: VentaListItem[] }) {
                   <TableCell className="text-right font-display text-sm font-bold text-white">${Number(venta.total).toLocaleString('es-CO')}</TableCell>
                   <TableCell className="text-xs text-steel-300">{TIPO_PAGO_LABEL[venta.tipo_pago] ?? venta.tipo_pago}</TableCell>
                   <TableCell>
-                    <Badge variant="outline" className={
-                      venta.estado === 'anulada'
-                        ? 'gap-1 rounded-full border-brand-red/30 bg-brand-red/20 text-brand-red'
-                        : venta.estado === 'modificada'
-                          ? 'rounded-full border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow'
-                          : 'rounded-full border-emerald-500/30 bg-emerald-500/20 text-emerald-400'
-                    }>
-                      {venta.estado === 'anulada' && <AlertCircle className="size-3" />}
-                      {venta.estado === 'anulada' ? 'Anulada' :
-                       venta.estado === 'modificada' ? 'Modificada' : 'Completada'}
-                    </Badge>
+                    <InsigniaEstado estado={venta.estado} />
                   </TableCell>
                   <TableCell className="text-right">
                     <Link

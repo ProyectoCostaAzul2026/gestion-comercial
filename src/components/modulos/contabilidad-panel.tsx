@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge'
 import { Download, ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { hoyBogota } from '@/lib/fechas'
 
 const PERIODOS = [
   { value: 'hoy', label: 'Hoy' },
@@ -645,7 +646,7 @@ export function ContabilidadPanel({
           <TableBody>
             {cuentasCobrarFiltradas.map((c: any) => {
               const abonado = Number(c.monto_original) - Number(c.saldo_pendiente)
-              const hoy = new Date().toISOString().slice(0, 10)
+              const hoy = hoyBogota()
               const vencido = c.fecha_pago_programada && c.fecha_pago_programada < hoy
               return (
                 <TableRow key={c.id} className="border-white/8 hover:bg-white/5">
@@ -708,7 +709,7 @@ export function ContabilidadPanel({
           </TableHeader>
           <TableBody>
             {cuentasPagarFiltradas.map((f: any) => {
-              const hoy = new Date().toISOString().slice(0, 10)
+              const hoy = hoyBogota()
               const vencida = f.fecha_vencimiento && f.fecha_vencimiento < hoy
               return (
                 <TableRow key={f.id} className={`border-white/8 hover:bg-white/5 ${vencida ? 'bg-brand-red/10' : ''}`}>

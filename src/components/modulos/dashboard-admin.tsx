@@ -4,7 +4,7 @@ import Link from 'next/link'
 import {
   AlertTriangle, ShoppingCart, Package, Wallet, BarChart3, Truck, BookOpen,
   TrendingUp, Receipt, Users, PackageX, CalendarClock,
-  Banknote, Smartphone, CreditCard, ArrowLeftRight, AlertCircle, CalendarOff, ClipboardList,
+  Banknote, Smartphone, CreditCard, ArrowLeftRight, AlertCircle, CalendarOff, ClipboardList, ClipboardCheck, DollarSign,
 } from 'lucide-react'
 import { fechaLarga } from '@/lib/permisos'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -288,6 +288,8 @@ export function DashboardAdmin({ profile, config, fechaHoy, kpisHoy, ultimasVent
             { href: '/dashboard/contabilidad', icon: BookOpen, label: 'Contabilidad', primary: false },
             { href: '/dashboard/proveedores', icon: Truck, label: 'Proveedores', primary: false },
             { href: '/dashboard/inventario', icon: Package, label: 'Inventario', primary: false },
+            { href: '/dashboard/recepcion', icon: ClipboardCheck, label: 'Recepción', primary: false },
+            { href: '/dashboard/nomina', icon: DollarSign, label: 'Nómina', primary: false },
           ].map(({ href, icon: Icon, label, primary }) => (
             <Link key={href} href={href}
               className={`flex h-16 items-center gap-3 rounded-2xl px-4 text-sm font-bold transition ${

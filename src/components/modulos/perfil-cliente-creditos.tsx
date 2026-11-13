@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
+import { hoyBogota } from '@/lib/fechas'
 
 interface Abono {
   id: string
@@ -120,7 +121,7 @@ function CreditoCard({ credito }: { credito: Credito }) {
 
   const esPagado = credito.estado === 'pagado'
   const cerrado = esCerrado(credito.estado)
-  const hoy = new Date().toISOString().slice(0, 10)
+  const hoy = hoyBogota()
   const vencido = credito.fecha_pago_programada && credito.fecha_pago_programada < hoy && !cerrado
 
   return (

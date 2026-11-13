@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { EmpleadoFiltros } from '@/components/modulos/empleado-filtros'
+import { hoyBogota } from '@/lib/fechas'
 
 export default async function PerfilEmpleadoPage({
   params,
@@ -32,7 +33,7 @@ export default async function PerfilEmpleadoPage({
 
   if (error || !empleado) notFound()
 
-  const hoy = new Date().toISOString().slice(0, 10)
+  const hoy = hoyBogota()
   const inicioMes = hoy.slice(0, 8) + '01'
 
   // Ventas

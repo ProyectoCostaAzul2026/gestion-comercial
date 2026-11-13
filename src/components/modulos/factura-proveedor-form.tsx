@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Trash2, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import { hoyBogota } from '@/lib/fechas'
 
 interface PagoProgramado {
   key: string
@@ -35,7 +36,7 @@ export function FacturaProveedorForm({ proveedorId, facturaId, inicial, onSucces
   const esEdicion = !!facturaId
   const supabase = createClient()
   const router = useRouter()
-  const hoy = new Date().toISOString().slice(0, 10)
+  const hoy = hoyBogota()
 
   const [form, setForm] = useState({
     numero_factura: inicial?.numero_factura ?? '',

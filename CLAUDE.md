@@ -3,7 +3,7 @@
 # Contexto del proyecto — Gestión Comercial Ferreléctricos Costa Azul
 
 > Claude Code carga este archivo en cada sesión. Mantenerlo al día cuando cambie algo importante
-> (esquema de la BD, convenciones, estado de los datos). Última revisión: 2026-11-07.
+> (esquema de la BD, convenciones, estado de los datos). Última revisión: 2026-11-13.
 
 ## Qué es
 
@@ -82,6 +82,14 @@ nómina).
   `peso.ts` (cuentas del peso por unidad), `precios-cantidad.ts` (precios por cantidad: tramo que aplica, validación y
   sugeridos), `recepcion.ts` (recepción de mercancía: costo con o sin IVA, diferencias del conteo y lo que falta para
   cerrar), `temas-ayuda.ts` (textos del panel Instrucciones), `festivos-colombia.ts`.
+- `src/components/layout/NavigationShell.tsx`: barra inferior en celular (Inicio, Ventas, Vender, Inventario, Más) con el
+  menú completo en un panel que sube desde abajo, y menú lateral fijo desde `lg`. El menú sale de `navItems` en
+  `permissions.ts` (con `grupo`); `rutaActiva` marca el módulo también en sus subpáginas. Las subpáginas con encabezado
+  fijo usan `-m-4 md:-m-6` y `sticky top-[calc(3.5rem+env(safe-area-inset-top))] lg:top-0` (quedan bajo la barra superior).
+- La app **solo tiene tema oscuro** (`<html className="dark">`): no volver a depender del tema del sistema.
+- **Fechas**: "hoy" siempre con `hoyBogota()` / `bogotaEnDias()` de `src/lib/fechas.ts`. Nunca
+  `new Date().toISOString().slice(0, 10)` (es UTC: desde las 7 p. m. de Bogotá ya es mañana).
+- `src/app/manifest.ts` e íconos `public/icono-*.png`: la app se puede instalar en la pantalla de inicio del celular.
 - `src/proxy.ts`: exige sesión en `/dashboard`, cierra la sesión si el perfil está inactivo y manda a los
   empleados fuera de las rutas de administrador.
 - `DATABASE.md`: tablas, RPC, índices y políticas RLS (al día al 2026-11-07). Mantenerlo actualizado.
@@ -107,6 +115,13 @@ nómina).
   "Nueva categoría / familia / grupo" y "Agregar medida"); `inventario/nuevo` sin ese contexto manda al inventario. Mover,
   sacar del grupo y desactivar están en `acciones-inventario.tsx` (menú de tres puntos y detalle del producto) y usan la
   RPC `mover_productos` (`SECURITY DEFINER`, administrador y empleado; conserva código, stock y precios).
+- **Unir grupos arrastrando** (`src/lib/usar-arrastre.ts`, `src/lib/unir-grupos.ts`, `unir-grupos-medidas.tsx`): en la lista
+  de grupos de una familia, mantener presionada una tarjeta (400 ms con el dedo; con el ratón, arrastrar) y soltarla sobre
+  otra abre una confirmación. Las medidas del origen toman la característica (con `mover_productos`) y la marca (update
+  directo) del destino. `planearUnion` valida antes de guardar: medidas repetidas (se quedan en su grupo; si todas se
+  repiten, no deja unir), marcas distintas (avisa) y el orden de los dos pasos para no chocar con un tercer grupo. Si el
+  segundo paso falla se devuelve el primero, y el aviso de éxito trae "Deshacer". Los botones de la tarjeta llevan
+  `data-sin-arrastre`. Pendiente: una RPC `unir_grupos_medidas` que haga los dos pasos en una sola transacción.
 - **Editar tarjetas** (`editar-tarjeta-inventario.tsx`, lápiz de la tarjeta o botón "Editar" del nivel): nombre e imagen
   (URL). Categoría: update directo. Familia: RPC `editar_familia` (renombra sus productos a `familia - característica`;
   la imagen es solo de la tarjeta). Grupo: RPC `editar_grupo_medidas` (cambia la característica y, si se cambió la
@@ -293,4 +308,10 @@ nómina).
   actualizada" sin cambiar nada) y el formulario pondría el saldo igual al total aunque haya pagos.
 - Recepción de mercancía: quedan para después adjuntar la foto o el PDF de la factura y repartir fletes y descuentos en
   el costo de los renglones.
+- Listas que en celular siguen siendo tablas con desplazamiento lateral (Ventas y Clientes ya tienen tarjetas): nómina,
+  servicios, agotados, desactivados, garantías, productos por proveedor, caja, contabilidad y reportes.
+- El lint tiene unos 315 errores heredados (casi todos `any`); no bloquean el build.
+- Verificación visual sin tocar producción: un servidor local que imita a Supabase (auth y pocas tablas) con
+  `NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321` y la cookie `sb-localhost-auth-token`; el host real de Supabase no
+  está en la lista de red del entorno de nube.
 - No hay tests ni CI.

@@ -3,9 +3,10 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { ProveedoresTable, type ProveedorListItem, type EventoPago } from '@/components/modulos/proveedores-table'
+import { bogotaEnDias, hoyBogota } from '@/lib/fechas'
 
-const hoy = new Date().toISOString().slice(0, 10)
-const en7Dias = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+const hoy = hoyBogota()
+const en7Dias = bogotaEnDias(7)
 
 function diasRestantes(fecha: string): number {
   const ms = new Date(fecha).getTime() - new Date(hoy).getTime()
