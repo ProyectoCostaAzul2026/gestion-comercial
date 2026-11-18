@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { BotonAtras } from '@/components/ui/boton-atras'
 import { PagoFacturaForm } from '@/components/modulos/pago-factura-form'
 
 export default async function PagarFacturaPage({
@@ -26,9 +25,7 @@ export default async function PagarFacturaPage({
   return (
     <div className="max-w-md">
       <div className="mb-6 flex items-center gap-3">
-        <Link href={`/dashboard/proveedores/${id}`} className="rounded-xl border border-white/20 p-2 hover:bg-white/5">
-          <ArrowLeft className="h-4 w-4 text-white" />
-        </Link>
+        <BotonAtras href={`/dashboard/proveedores/${id}`} />
         <div>
           <h1 className="font-display text-2xl font-bold text-white">Registrar pago</h1>
           <p className="text-xs text-steel-300">

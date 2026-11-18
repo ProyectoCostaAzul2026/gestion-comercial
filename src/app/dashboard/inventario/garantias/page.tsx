@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { BotonAtras } from '@/components/ui/boton-atras'
 import { GarantiasPanel } from '@/components/modulos/garantias-panel'
 
 export default async function GarantiasPage() {
@@ -20,9 +19,7 @@ export default async function GarantiasPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/dashboard/inventario" className="rounded-xl border border-white/20 p-2 hover:bg-white/5">
-          <ArrowLeft className="h-4 w-4 text-white" />
-        </Link>
+        <BotonAtras href="/dashboard/inventario" />
         <div>
           <h1 className="font-display text-2xl font-bold text-brand-yellow">Garantías</h1>
           <p className="text-xs text-steel-300">{(garantias as any[] ?? []).filter((g: any) => g.estado === 'pendiente').length} pendientes</p>

@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { hoyBogota } from '@/lib/fechas'
+import { useNavegacion } from '@/lib/navegacion'
 
 interface PagoFacturaFormProps {
   facturaId: string
@@ -20,6 +21,7 @@ interface PagoFacturaFormProps {
 export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId }: PagoFacturaFormProps) {
   const supabase = createClient()
   const router = useRouter()
+  const { volver } = useNavegacion()
   const hoy = hoyBogota()
   const [monto, setMonto] = useState(saldoPendiente)
   const [metodoPago, setMetodoPago] = useState('efectivo')
@@ -51,7 +53,7 @@ export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId }: Pago
       })
       if (error) throw error
       toast.success('Pago registrado')
-      if (proveedorId) router.push(`/dashboard/proveedores/${proveedorId}`)
+      if (proveedorId) volver(`/dashboard/proveedores/${proveedorId}`, { refrescar: true })
       router.refresh()
     } catch (err: any) {
       toast.error('Error: ' + err.message)

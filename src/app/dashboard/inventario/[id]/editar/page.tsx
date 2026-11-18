@@ -1,8 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { ProductoForm } from '@/components/modulos/producto-form'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { BotonAtras } from '@/components/ui/boton-atras'
 
 export default async function EditarProductoPage({
   params,
@@ -51,9 +50,7 @@ producto_proveedores ( id, proveedor_id, precio_costo, referencia_proveedor, not
     <div className="-m-4 md:-m-6">
       <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 border-b lg:top-0 border-white/10 bg-[#0a0e14] px-4 py-3">
         <div className="flex items-center gap-3">
-          <Link href={rutaVolver} className="rounded-xl border border-white/20 p-2 hover:bg-white/5">
-            <ArrowLeft className="h-4 w-4 text-white" />
-          </Link>
+          <BotonAtras href={rutaVolver} />
           <div>
             <h1 className="font-display text-lg font-bold text-white">Editar Producto</h1>
             <p className="text-xs text-steel-300">{producto.nombre}</p>

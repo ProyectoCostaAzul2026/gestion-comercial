@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Printer } from 'lucide-react'
+import { BotonAtras } from '@/components/ui/boton-atras'
+import { Printer } from 'lucide-react'
 import { VentaAcciones } from '@/components/modulos/venta-acciones'
 
 const METODO_LABEL: Record<string, string> = {
@@ -104,9 +105,7 @@ export default async function VentaDetallePage({
   return (
     <div className="max-w-2xl space-y-4">
       <div className="flex items-center gap-3">
-        <Link href="/dashboard/ventas" className="rounded-xl border border-white/20 p-2 hover:bg-white/5">
-          <ArrowLeft className="h-4 w-4 text-white" />
-        </Link>
+        <BotonAtras href="/dashboard/ventas" />
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <h1 className="font-display text-2xl font-bold text-white">Ticket #{venta.numero_ticket}</h1>

@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
+import { useNavegacion } from '@/lib/navegacion'
 
 interface ClienteFormState {
   nombre: string
@@ -50,7 +50,7 @@ function estadoInicial(cliente?: ClienteExistente): ClienteFormState {
 export function ClienteForm({ cliente, onSuccess }: ClienteFormProps) {
   const esEdicion = !!cliente
   const supabase = createClient()
-  const router = useRouter()
+  const { volver } = useNavegacion()
   const [form, setForm] = useState<ClienteFormState>(estadoInicial(cliente))
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -101,8 +101,7 @@ export function ClienteForm({ cliente, onSuccess }: ClienteFormProps) {
         toast.success('Cliente creado')
       }
 
-      router.refresh()
-      router.push('/dashboard/clientes')
+      volver('/dashboard/clientes', { refrescar: true })
       onSuccess?.()
     } catch (err: any) {
       toast.error('Error al guardar: ' + err.message)
@@ -123,8 +122,7 @@ export function ClienteForm({ cliente, onSuccess }: ClienteFormProps) {
       return
     }
     toast.success('Cliente desactivado')
-    router.push('/dashboard/clientes')
-    router.refresh()
+    volver('/dashboard/clientes', { refrescar: true })
   }
 
   const inputCls = 'h-12 border-white/10 bg-[#1a2430] text-[16px] text-white placeholder:text-steel-500 focus:border-brand-yellow/60'

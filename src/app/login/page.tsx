@@ -1,9 +1,8 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import Link from 'next/link'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -19,8 +18,15 @@ export default function LoginPage() {
   const router = useRouter()
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('error') === 'perfil_no_encontrado') {
+    if (typeof window === 'undefined') return
+    const sp = new URLSearchParams(window.location.search)
+    if (sp.get('error') === 'perfil_no_encontrado') {
       setError('Tu cuenta no tiene un perfil configurado todavía. Pídele a un administrador que revise tu usuario, o intenta iniciar sesión de nuevo en unos minutos.')
+    } else if (sp.get('error') === 'enlace_invalido') {
+      setModoRecuperar(true)
+      setRecuperarMsg('El enlace venció o ya se usó. Escribe tu correo para recibir uno nuevo.')
+    } else if (sp.get('recuperar') === '1') {
+      setModoRecuperar(true)
     }
   }, [])
 
@@ -61,7 +67,8 @@ export default function LoginPage() {
 
     const supabase = createClient()
     const { error } = await supabase.auth.resetPasswordForEmail(recuperarEmail, {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`,
+      // La dirección de esta misma app (no depende de una variable de entorno que puede faltar o estar mal)
+      redirectTo: `${window.location.origin}/auth/confirm`,
     })
 
     setRecuperarLoading(false)

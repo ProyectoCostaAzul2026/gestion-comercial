@@ -40,7 +40,7 @@ export function ServiciosTable({
   const actualizarFecha = (clave: string, valor: string) => {
     const params = new URLSearchParams(searchParams.toString())
     params.set(clave, valor)
-    router.push(`${pathname}?${params.toString()}`)
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false })
   }
 
   const filtrados = useMemo(() => {

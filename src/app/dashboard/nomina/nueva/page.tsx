@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { BotonAtras } from '@/components/ui/boton-atras'
 import { NominaNuevaForm } from '@/components/modulos/nomina-nueva-form'
 import { hoyBogota } from '@/lib/fechas'
 
@@ -31,9 +30,7 @@ export default async function NuevaNominaPage({
   return (
     <div className="max-w-md">
       <div className="mb-6 flex items-center gap-3">
-        <Link href="/dashboard/nomina" className="rounded-xl border border-white/20 p-2 hover:bg-white/5">
-          <ArrowLeft className="h-4 w-4 text-white" />
-        </Link>
+        <BotonAtras href="/dashboard/nomina" />
         <h1 className="font-display text-2xl font-bold text-white">Registrar pago de nómina</h1>
       </div>
       <div className="rounded-2xl border border-white/10 bg-[#111820] p-6">

@@ -1,6 +1,5 @@
-import Link from 'next/link'
+import { BotonAtras } from '@/components/ui/boton-atras'
 import { notFound, redirect } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { traerTodo } from '@/lib/supabase/traer-todo'
 import { esAdmin } from '@/lib/permissions'
@@ -125,9 +124,7 @@ export default async function RecepcionDetallePage({ params }: { params: Promise
 
   return (
     <div className="max-w-3xl space-y-4">
-      <Link href="/dashboard/recepcion" className="inline-flex items-center gap-2 text-sm text-steel-300 hover:text-white">
-        <ArrowLeft className="h-4 w-4" />Recepciones
-      </Link>
+      <BotonAtras href="/dashboard/recepcion" texto="Recepciones" />
       {errorItems && <p className="text-sm text-brand-red">No se pudieron cargar los renglones: {errorItems.message}</p>}
       <RecepcionPanel recepcion={recepcion} renglones={renglones} productosProveedor={productosProveedor}
         esAdmin={administrador} datosAdmin={datosAdmin} />

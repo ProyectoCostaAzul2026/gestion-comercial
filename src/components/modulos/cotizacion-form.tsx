@@ -2,7 +2,6 @@
 
 import { useState, useMemo, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,6 +13,7 @@ import { Search, Plus, Trash2, Printer, MessageCircle, Package } from 'lucide-re
 import { precioConCantidad, type TramoPrecio } from '@/lib/precios-cantidad'
 import { AvisoPrecioCantidad } from './precios-cantidad'
 import { enlaceWhatsApp } from '@/lib/whatsapp'
+import { useNavegacion } from '@/lib/navegacion'
 
 interface ProductoSearch {
   id: string; nombre: string; codigo: string | null
@@ -70,7 +70,7 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
   maxDescuentoPct?: number
 }) {
   const supabase = createClient()
-  const router = useRouter()
+  const { volver } = useNavegacion()
 
   const [nombreCotizante, setNombreCotizante] = useState('')
   const [telefonoCotizante, setTelefonoCotizante] = useState('')
@@ -522,7 +522,7 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
           <Button type="button" variant="outline" className="border-emerald-500/40 bg-transparent font-semibold text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-400" onClick={handleWhatsApp}>
             <MessageCircle className="mr-2 h-4 w-4" />Enviar WhatsApp
           </Button>
-          <Button type="button" variant="outline" className="border-white/10 bg-transparent text-steel-300 hover:bg-white/5 hover:text-white" onClick={() => router.push('/dashboard/ventas')}>
+          <Button type="button" variant="outline" className="border-white/10 bg-transparent text-steel-300 hover:bg-white/5 hover:text-white" onClick={() => volver('/dashboard/ventas')}>
             Cancelar
           </Button>
         </div>

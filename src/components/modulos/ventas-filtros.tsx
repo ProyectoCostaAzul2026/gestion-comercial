@@ -25,7 +25,7 @@ export function VentasFiltros({ fechaInicio, fechaFin, tipoPago, estado, emplead
     const params = new URLSearchParams(searchParams.toString())
     if (valor && valor !== 'todos' && valor !== '') { params.set(clave, valor) }
     else { params.delete(clave) }
-    router.push(`${pathname}?${params.toString()}`)
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false })
   }
 
   const labelCls = 'block text-[10px] font-bold uppercase tracking-widest text-steel-300'

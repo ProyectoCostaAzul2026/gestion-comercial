@@ -3,7 +3,7 @@
 # Contexto del proyecto — Gestión Comercial Ferreléctricos Costa Azul
 
 > Claude Code carga este archivo en cada sesión. Mantenerlo al día cuando cambie algo importante
-> (esquema de la BD, convenciones, estado de los datos). Última revisión: 2026-11-13.
+> (esquema de la BD, convenciones, estado de los datos). Última revisión: 2026-11-18.
 
 ## Qué es
 
@@ -94,6 +94,18 @@ nómina).
 - **Tablas en celular**: el componente `Table` de `src/components/ui/table.tsx` apila cada fila como tarjeta de dos
   columnas con el título de su columna encima (`table[data-apilar]` en `globals.css`); `apilar={false}` lo desactiva.
   Los encabezados de página son compactos en celular y reservan espacio a la derecha para las franjas.
+- **Navegación atrás** (`src/lib/navegacion.ts`, `src/components/ui/boton-atras.tsx`): la app lleva su propia pila de
+  páginas visitadas (sessionStorage, la registra `NavigationShell`). `BotonAtras href=…` vuelve a la página anterior de la
+  app o, si se entró directo por un enlace, a `href`. Después de guardar un formulario se usa `volver(ruta, { refrescar:
+  true })` (no `router.push`), y para ir del formulario a lo recién creado, `reemplazar(ruta)`, así el formulario no queda
+  en el historial. Los filtros que van en la dirección usan `router.replace(..., { scroll: false })`, no `push`.
+- **Pantallas de precarga**: cada página del dashboard tiene `loading.tsx` con una silueta de `src/components/ui/esqueleto.tsx`
+  (lista, tarjetas, detalle, formulario, panel, venta, semana). Una página nueva debe traer su `loading.tsx`.
+  `barra-progreso.tsx` muestra una barra arriba apenas se toca un enlace interno.
+- **Recuperar contraseña e invitaciones**: el enlace del correo llega a `/auth/confirm` (Route Handler), que acepta
+  `token_hash` + `type` (funciona en cualquier dispositivo) o `code` (solo en el navegador que pidió el enlace), deja la
+  sesión y manda a `/auth/reset-password`. Si el enlace no sirve, `/login?error=enlace_invalido`. El proxy pasa a
+  `/auth/confirm` cualquier página que reciba `code` o `token_hash`. `redirectTo` usa la dirección de la propia app.
 - La app **solo tiene tema oscuro** (`<html className="dark">`): no volver a depender del tema del sistema.
 - **Fechas**: "hoy" siempre con `hoyBogota()` / `bogotaEnDias()` de `src/lib/fechas.ts`. Nunca
   `new Date().toISOString().slice(0, 10)` (es UTC: desde las 7 p. m. de Bogotá ya es mañana).
@@ -330,10 +342,13 @@ nómina).
 - El repositorio de GitHub es público: valorar hacerlo privado. Si se hace, instalar la app de Claude en GitHub
   (github.com/apps/claude) para que las sesiones en la nube puedan clonarlo.
 - La búsqueda del inventario filtra en el navegador (bien con ~3000 productos; pasar a búsqueda en el servidor si crece).
-- **SQL pendiente de confirmar** (`sql/pendiente_garantias_y_fraccion.sql`): RPC `registrar_garantia` (saca del stock lo
-  que va al proveedor; `venta-acciones.tsx` ya la llama con la cantidad devuelta y exige proveedor), movimiento de
-  inventario al devolver por fracción en `devolver_productos`, y `anular_venta` pasando a unidades el sobrante de una
-  línea por fracción. Mientras no se aplique, enviar a garantía avisa que falta la migración.
+- Migración `garantias_y_fraccion` (2026-11-18): RPC `registrar_garantia` (saca del stock lo que va al proveedor;
+  `recibir_garantia` lo suma al volver), movimiento de inventario al devolver por fracción y `anular_venta` pasando a
+  unidades el sobrante de una línea por fracción.
+- Plantillas de correo de Supabase: para que el enlace de recuperación funcione desde cualquier dispositivo, la plantilla
+  "Reset Password" debe enlazar a `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery` (e "Invite user"
+  a `...&type=invite`), y `https://gestion-comercial-alpha.vercel.app/**` debe estar en Redirect URLs. Se cambia en el
+  panel de Supabase (Authentication > Emails y URL Configuration); el conector no lo permite.
 - Migración `iva_fraccion_y_editar_factura` (2026-11-18): IVA informativo en las líneas por fracción y RPC
   `editar_factura_proveedor` (recalcula saldo y estado con lo pagado). Las 4 ventas por fracción anteriores conservan
   su IVA en 0.

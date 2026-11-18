@@ -24,6 +24,7 @@ import { Switch } from '@/components/ui/switch'
 import { Plus, Trash2, ArrowLeftRight, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import { useNavegacion } from '@/lib/navegacion'
 
 // La medida acepta el mismo texto libre que el panel de Familias (enteros, fracciones, decimales,
 // varias dimensiones o rangos: 50, 3/4, 1-1/4, 2.5, 1/2x1/2x40, 4 A 32). Antes se exigía un formato
@@ -275,6 +276,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
   const [tramos, setTramos] = useState<TramoPrecio[]>(preciosCantidad)
   const supabase = createClient()
   const router = useRouter()
+  const { volver } = useNavegacion()
   const [precioSugerido, setPrecioSugerido] = useState<number | null>(null)
   const [mostrarNuevaCategoria, setMostrarNuevaCategoria] = useState(false)
   const [nuevaCategoriaNombre, setNuevaCategoriaNombre] = useState('')
@@ -560,8 +562,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
         }
 
         toast.success('Producto actualizado')
-        router.refresh()
-        router.push(rutaVolver)
+        volver(rutaVolver, { refrescar: true })
         onSuccess?.()
       } else {
         const { data: nuevoId, error: rpcError } = await supabase.rpc('guardar_producto', {
@@ -591,7 +592,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
         if (errorAlCrear) toast.error(errorAlCrear)
         toast.success('Producto creado')
         router.refresh()
-        if (!isSheet) router.push(rutaVolver)
+        if (!isSheet) volver(rutaVolver, { refrescar: true })
         onSuccess?.()
       }
     } catch (err: any) {
@@ -617,8 +618,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
       return
     }
     toast.success('Producto desactivado')
-    router.push(rutaVolver)
-    router.refresh()
+    volver(rutaVolver, { refrescar: true })
   }
 
   return (

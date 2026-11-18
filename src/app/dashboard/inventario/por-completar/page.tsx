@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, ClipboardList, Pencil } from 'lucide-react'
+import { BotonAtras } from '@/components/ui/boton-atras'
+import { ClipboardList, Pencil } from 'lucide-react'
 import { faltantesPorCompletar } from '@/lib/por-completar'
 
 /**
@@ -34,9 +35,7 @@ export default async function PorCompletarPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
-        <Link href="/dashboard/inventario" className="rounded-xl border border-white/20 p-2 hover:bg-white/5" aria-label="Volver al inventario">
-          <ArrowLeft className="h-4 w-4 text-white" />
-        </Link>
+        <BotonAtras href="/dashboard/inventario" etiqueta="Volver al inventario" />
         <div>
           <h1 className="flex items-center gap-2 font-display text-lg font-bold text-white">
             <ClipboardList className="h-5 w-5 text-brand-yellow" />Productos por completar
