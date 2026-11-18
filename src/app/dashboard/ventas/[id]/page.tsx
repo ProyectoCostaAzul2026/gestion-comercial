@@ -3,7 +3,7 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { BotonAtras } from '@/components/ui/boton-atras'
 import { Printer } from 'lucide-react'
-import { VentaAcciones } from '@/components/modulos/venta-acciones'
+import { VentaAcciones, type AccionVenta } from '@/components/modulos/venta-acciones'
 
 const METODO_LABEL: Record<string, string> = {
   efectivo: 'Efectivo',
@@ -14,12 +14,21 @@ const METODO_LABEL: Record<string, string> = {
   credito: 'Crédito',
 }
 
+const TITULOS_ACCION: Record<AccionVenta, string> = {
+  devolver: 'Devolver productos',
+  cambiar: 'Cambiar productos',
+  anular: 'Anular venta',
+}
+
 export default async function VentaDetallePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ accion?: string }>
 }) {
   const { id } = await params
+  const { accion: accionPedida } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -101,6 +110,74 @@ export default async function VentaDetallePage({
     venta.estado === 'anulada' ? 'border-brand-red/30 bg-brand-red/20 text-brand-red'
     : venta.estado === 'modificada' || venta.estado === 'credito' ? 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow'
     : 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400'
+
+  // Devolver, cambiar y anular tienen su propia vista (?accion=...): misma venta, solo el formulario de la acción
+  const acciones = (accion: AccionVenta | undefined) => (
+        <VentaAcciones
+          accion={accion}
+          key={JSON.stringify([(items ?? []).map(i => i.id + i.cantidad), (devoluciones ?? []).length])}
+          ventaId={id}
+          esAdmin={esAdmin}
+          ventaTotal={Number(venta.total)}
+          baseVenta={baseVenta}
+          descuentoGlobalPorcentaje={venta.descuento_habilitado ? Number(venta.descuento_total_porcentaje) : 0}
+          conDescuentoGlobal={(venta.descuento_habilitado ? Number(venta.descuento_total_porcentaje ?? 0) : 0) > 0 || venta.descuento_tipo === 'manual'}
+          tipoPago={venta.tipo_pago}
+          tieneAjustes={(devoluciones ?? []).length > 0}
+          tieneServicios={(servicios ?? []).length > 0}
+          credito={creditoVenta}
+          items={(items ?? []).map(i => {
+            const devueltos: { cantidad: number; cantidad_fraccion: number | null }[] = (i as any).devolucion_items ?? []
+            const yaDevuelto = devueltos.reduce((sum, d) => sum + d.cantidad, 0)
+            // Fracción que queda por devolver (redondeada para no arrastrar decimales de punto flotante)
+            const fraccionRestante = Math.round(
+              (Number(i.cantidad_fraccion ?? 0) - devueltos.reduce((sum, d) => sum + Number(d.cantidad_fraccion ?? 0), 0)) * 1e4,
+            ) / 1e4
+            const proveedoresProducto = (i as any).productos?.producto_proveedores ?? []
+            const proveedorPrincipal = proveedoresProducto.find((p: any) => p.es_proveedor_principal) ?? proveedoresProducto[0]
+            return {
+              id: i.id,
+              nombre_producto: i.nombre_producto,
+              cantidad: i.es_fraccionado ? i.cantidad : i.cantidad - yaDevuelto,
+              cantidad_linea: i.cantidad,
+              precio_unitario: Number(i.precio_unitario),
+              subtotal_linea: Number(i.subtotal_linea),
+              descuento_linea: Number(i.descuento_linea),
+              es_fraccionado: i.es_fraccionado,
+              cantidad_fraccion: i.es_fraccionado ? fraccionRestante : Number(i.cantidad_fraccion),
+              cantidad_fraccion_linea: Number(i.cantidad_fraccion),
+              producto_id: (i as any).producto_id,
+              proveedores_producto: proveedoresProducto.map((p: any) => ({
+                id: p.proveedores?.id ?? p.proveedor_id,
+                nombre: p.proveedores?.nombre ?? '—',
+              })),
+              proveedor_preseleccionado: proveedoresProducto.length === 1 ? proveedorPrincipal?.proveedores?.id ?? '' : '',
+            }
+          }).filter(i => i.es_fraccionado ? i.cantidad_fraccion > 0 : i.cantidad > 0)}
+        />
+  )
+  // Una venta con devoluciones o cambios ya no se anula (se devuelve lo que queda)
+  const accionVista = esAdmin && venta.estado !== 'anulada' && accionPedida && accionPedida in TITULOS_ACCION
+    && !(accionPedida === 'anular' && (devoluciones ?? []).length > 0)
+    ? accionPedida as AccionVenta
+    : null
+  if (accionVista) {
+    return (
+      <div className="max-w-2xl space-y-4">
+        <div className="flex items-center gap-3">
+          <BotonAtras href={`/dashboard/ventas/${id}`} />
+          <div className="min-w-0 flex-1">
+            <h1 className="font-display text-2xl font-bold text-white">{TITULOS_ACCION[accionVista]}</h1>
+            <p className="text-xs text-steel-300">
+              Ticket #{venta.numero_ticket} · {venta.fecha} · ${Number(venta.total).toLocaleString('es-CO')} · {METODO_LABEL[venta.tipo_pago] ?? venta.tipo_pago}
+              {cliente?.nombre ? ` · ${cliente.nombre}` : ''}
+            </p>
+          </div>
+        </div>
+        {acciones(accionVista)}
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-2xl space-y-4">
@@ -307,49 +384,7 @@ export default async function VentaDetallePage({
       )}
 
       {/* Acciones */}
-      {venta.estado !== 'anulada' && (
-        <VentaAcciones
-          key={JSON.stringify([(items ?? []).map(i => i.id + i.cantidad), (devoluciones ?? []).length])}
-          ventaId={id}
-          esAdmin={esAdmin}
-          ventaTotal={Number(venta.total)}
-          baseVenta={baseVenta}
-          descuentoGlobalPorcentaje={venta.descuento_habilitado ? Number(venta.descuento_total_porcentaje) : 0}
-          conDescuentoGlobal={(venta.descuento_habilitado ? Number(venta.descuento_total_porcentaje ?? 0) : 0) > 0 || venta.descuento_tipo === 'manual'}
-          tipoPago={venta.tipo_pago}
-          tieneAjustes={(devoluciones ?? []).length > 0}
-          tieneServicios={(servicios ?? []).length > 0}
-          credito={creditoVenta}
-          items={(items ?? []).map(i => {
-            const devueltos: { cantidad: number; cantidad_fraccion: number | null }[] = (i as any).devolucion_items ?? []
-            const yaDevuelto = devueltos.reduce((sum, d) => sum + d.cantidad, 0)
-            // Fracción que queda por devolver (redondeada para no arrastrar decimales de punto flotante)
-            const fraccionRestante = Math.round(
-              (Number(i.cantidad_fraccion ?? 0) - devueltos.reduce((sum, d) => sum + Number(d.cantidad_fraccion ?? 0), 0)) * 1e4,
-            ) / 1e4
-            const proveedoresProducto = (i as any).productos?.producto_proveedores ?? []
-            const proveedorPrincipal = proveedoresProducto.find((p: any) => p.es_proveedor_principal) ?? proveedoresProducto[0]
-            return {
-              id: i.id,
-              nombre_producto: i.nombre_producto,
-              cantidad: i.es_fraccionado ? i.cantidad : i.cantidad - yaDevuelto,
-              cantidad_linea: i.cantidad,
-              precio_unitario: Number(i.precio_unitario),
-              subtotal_linea: Number(i.subtotal_linea),
-              descuento_linea: Number(i.descuento_linea),
-              es_fraccionado: i.es_fraccionado,
-              cantidad_fraccion: i.es_fraccionado ? fraccionRestante : Number(i.cantidad_fraccion),
-              cantidad_fraccion_linea: Number(i.cantidad_fraccion),
-              producto_id: (i as any).producto_id,
-              proveedores_producto: proveedoresProducto.map((p: any) => ({
-                id: p.proveedores?.id ?? p.proveedor_id,
-                nombre: p.proveedores?.nombre ?? '—',
-              })),
-              proveedor_preseleccionado: proveedoresProducto.length === 1 ? proveedorPrincipal?.proveedores?.id ?? '' : '',
-            }
-          }).filter(i => i.es_fraccionado ? i.cantidad_fraccion > 0 : i.cantidad > 0)}
-        />
-      )}
+      {venta.estado !== 'anulada' && acciones(undefined)}
 
     </div>
   )

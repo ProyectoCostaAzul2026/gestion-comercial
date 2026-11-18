@@ -1,5 +1,3 @@
--- PENDIENTE DE APLICAR (espera confirmación). Aplicar con apply_migration, nombre: hoja_de_tareas.
--- Después: get_advisors, DATABASE.md y database.types.ts.
 --
 -- Hoja de tareas: el administrador crea tareas (prioridad, fecha límite opcional, asignadas a un empleado o libres para
 -- cualquiera). El empleado ve las suyas y las libres y las marca como hechas. No se repiten solas, pero el administrador

@@ -147,7 +147,7 @@ export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, 
           { href: '/dashboard/tareas', icon: ListChecks, label: tareasPendientes ? `Tareas (${tareasPendientes})` : 'Tareas' },
           { href: '/dashboard/recepcion', icon: ClipboardCheck, label: 'Recepción' },
           { href: '/dashboard/clientes', icon: Users, label: 'Clientes' },
-          { href: '/dashboard/horario', icon: Calendar, label: 'Horario y permisos' },
+          { href: '/dashboard/empleados/horario', icon: Calendar, label: 'Horario y permisos' },
           { href: '/dashboard/ventas', icon: Receipt, label: 'Mis ventas' },
         ].map(({ href, icon: Icon, label }) => (
           <Link key={href} href={href}

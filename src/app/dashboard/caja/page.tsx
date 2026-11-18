@@ -76,20 +76,6 @@ export default async function CajaPage() {
     .filter((m: any) => !['ingreso', 'transferencia_caja_mayor'].includes(m.tipo_movimiento))
     .reduce((s: number, m: any) => s + Number(m.monto), 0)
 
-  // Egresos solo en efectivo/caja_menor para el arqueo
-  const egresosEfectivo = (movimientos ?? [])
-    .filter((m: any) =>
-      !['ingreso', 'transferencia_caja_mayor'].includes(m.tipo_movimiento) &&
-      (m.origen_destino === 'caja_menor' || m.origen_destino === 'efectivo')
-    )
-    .reduce((s: number, m: any) => s + Number(m.monto), 0)
-
-  // Ingresos del día en efectivo (ventas, abonos, cobros de cambios). Lo que debe haber sobre la base es el saldo del
-  // efectivo desde el último cierre (saldos_medios_pago), igual que en cerrar_caja_arqueo.
-  const ingresosEfectivo = (movimientos ?? [])
-    .filter((m: any) => m.tipo_movimiento === 'ingreso' && (m.origen_destino === 'caja_menor' || m.origen_destino === 'efectivo'))
-    .reduce((s: number, m: any) => s + Number(m.monto), 0)
-
   const empleadosPagadosHoy = new Set((nominasHoy ?? []).map((n: any) => n.empleado_id))
   // Nómina del día: quienes trabajan hoy (turno y sin permiso) y quien ya recibió pago
   const enNominaHoy = new Set<string>([...(empleadosActivos ?? []), ...empleadosPagadosHoy])
@@ -104,8 +90,6 @@ export default async function CajaPage() {
       ventasCredito={ventasCredito}
       totalIngresos={totalIngresos}
       totalEgresos={totalEgresos}
-      egresosEfectivo={egresosEfectivo}
-      ingresosEfectivo={ingresosEfectivo}
       movimientos={(movimientos as any) ?? []}
       fondos={(fondos as any) ?? []}
       saldos={saldos ?? []}

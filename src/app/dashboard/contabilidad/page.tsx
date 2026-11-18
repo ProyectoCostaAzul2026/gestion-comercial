@@ -3,30 +3,13 @@ import { traerTodo } from '@/lib/supabase/traer-todo'
 import { redirect } from 'next/navigation'
 import { hoyBogota } from '@/lib/fechas'
 import { ContabilidadPanel } from '@/components/modulos/contabilidad-panel'
-import { costoLineaVenta } from '@/lib/costo-venta'
-
-function getPeriodo(periodo: string, desde?: string, hasta?: string) {
-  // Mediodía UTC del día de Bogotá: las cuentas de días no se corren por la zona horaria del servidor
-  const hoy = new Date(hoyBogota() + 'T12:00:00Z')
-  const fmt = (d: Date) => d.toISOString().slice(0, 10)
-  switch (periodo) {
-    case 'hoy': return { desde: fmt(hoy), hasta: fmt(hoy) }
-    case 'semana': {
-      const lunes = new Date(hoy)
-      lunes.setDate(hoy.getDate() - ((hoy.getDay() + 6) % 7))
-      return { desde: fmt(lunes), hasta: fmt(hoy) }
-    }
-    case 'mes': return { desde: fmt(hoy).slice(0, 8) + '01', hasta: fmt(hoy) }
-    case 'año': return { desde: fmt(hoy).slice(0, 4) + '-01-01', hasta: fmt(hoy) }
-    case 'rango': return { desde: desde ?? fmt(hoy).slice(0, 8) + '01', hasta: hasta ?? fmt(hoy) }
-    default: return { desde: fmt(hoy).slice(0, 8) + '01', hasta: fmt(hoy) }
-  }
-}
+import { costoLineaVenta, totalNetoVenta } from '@/lib/costo-venta'
+import { leerPeriodo } from '@/lib/periodos'
 
 export default async function ContabilidadPage({
   searchParams,
 }: {
-  searchParams: Promise<{ periodo?: string; desde?: string; hasta?: string }>
+  searchParams: Promise<{ periodo?: string; fecha?: string; desde?: string; hasta?: string }>
 }) {
   const sp = await searchParams
   const supabase = await createClient()
@@ -37,8 +20,8 @@ export default async function ContabilidadPage({
     .from('profiles').select('rol').eq('id', user.id).single()
   if ((profile as any)?.rol !== 'administrador') redirect('/dashboard')
 
-  const periodo = sp.periodo ?? 'mes'
-  const { desde, hasta } = getPeriodo(periodo, sp.desde, sp.hasta)
+  const periodo = leerPeriodo(sp, hoyBogota(), 'mes')
+  const { desde, hasta } = periodo
 
   const [
     { data: ventas },
@@ -55,7 +38,7 @@ export default async function ContabilidadPage({
     traerTodo((filaDesde, filaHasta) =>
       supabase
         .from('ventas')
-        .select('id, numero_ticket, fecha, total, tipo_pago, estado, clientes(nombre)')
+        .select('id, numero_ticket, fecha, total, monto_devolucion, tipo_pago, estado, clientes(nombre)')
         .gte('fecha', desde)
         .lte('fecha', hasta)
         .in('estado', ['completada', 'modificada', 'credito'])
@@ -80,7 +63,7 @@ export default async function ContabilidadPage({
         .from('venta_items')
         .select(`
           id, nombre_producto, cantidad, costo_unitario, subtotal_linea,
-          es_fraccionado, cantidad_fraccion,
+          es_fraccionado, cantidad_fraccion, devolucion_items(cantidad, cantidad_fraccion),
           productos(id, nombre, cantidad_total_unidad, tiene_iva, iva_incluido, porcentaje_iva, producto_proveedores(proveedor_id, proveedores(nombre))),
           ventas!inner(fecha, estado)
         `)
@@ -152,7 +135,7 @@ export default async function ContabilidadPage({
   }))
 
   // El total de cada venta ya incluye sus servicios: no se suman aparte (antes se contaban dos veces)
-  const totalIngresos = (ventas ?? []).reduce((s: number, v: any) => s + Number(v.total), 0)
+  const totalIngresos = (ventas ?? []).reduce((s: number, v: any) => s + totalNetoVenta(v), 0)
   const totalServicios = (ventaServicios ?? []).reduce((s: number, vs: any) => s + Number(vs.precio_aplicado), 0)
   const totalCMV = (ventaItems ?? []).reduce((s: number, i: any) => s + costoLineaVenta(i), 0)
   const totalGastos = (gastos ?? []).reduce((s: number, g: any) => s + Number(g.monto), 0)
@@ -163,7 +146,8 @@ export default async function ContabilidadPage({
 
   return (
     <ContabilidadPanel
-      ventas={(ventas as any) ?? []}
+      // Cada venta con su total menos lo devuelto (devolver_productos no baja el total)
+      ventas={((ventas as any[]) ?? []).map(v => ({ ...v, total: totalNetoVenta(v) }))}
       ventaServicios={(ventaServicios as any) ?? []}
       ventaItems={(ventaItems as any) ?? []}
       gastos={(gastos as any) ?? []}

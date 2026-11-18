@@ -3,9 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Clock, Phone, Plus } from 'lucide-react'
 import { AvatarIniciales, telefonoMarcable } from '@/components/modulos/avatar-iniciales'
-import { NominaTable } from '@/components/modulos/nomina-table'
-import { HorarioSemanal } from '@/components/modulos/horario-semanal'
-import { EmpleadosTabs } from '@/components/modulos/empleados-tabs'
+import { EmpleadosSecciones } from '@/components/modulos/empleados-secciones'
 
 export default async function EmpleadosPage() {
   const supabase = await createClient()
@@ -20,10 +18,7 @@ export default async function EmpleadosPage() {
 
   const [
     { data: empleados },
-    { data: nominasHoy },
-    { data: historial },
     { data: turnos },
-    { data: permisosHoy },
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -31,44 +26,10 @@ export default async function EmpleadosPage() {
       .order('nombre_completo'),
 
     supabase
-      .from('nominas')
-      .select('id, empleado_id, total_pago, estado, horas_trabajadas')
-      .eq('periodo_inicio', hoy)
-      .eq('periodo_fin', hoy),
-
-    supabase
-      .from('nominas')
-      .select(`
-        id, periodo_inicio, periodo_fin, total_pago, estado,
-        salario_base, horas_trabajadas, bonificaciones, deducciones, notas,
-        profiles(nombre_completo)
-      `)
-      .order('periodo_inicio', { ascending: false })
-      .limit(100),
-
-    supabase
       .from('horario_laboral')
-      .select('id, empleado_id, dia_semana, hora_inicio, hora_fin, activo, profiles(nombre_completo)')
+      .select('id, empleado_id, dia_semana, hora_inicio, hora_fin, activo')
       .eq('activo', true),
-
-    supabase.from('permisos_empleado').select('empleado_id').eq('fecha', hoy),
   ])
-
-  const empleadosActivos = (empleados ?? []).filter((e: any) => e.activo)
-
-  const empleadosParaNomina = empleadosActivos.map((e: any) => ({
-    id: e.id,
-    nombre_completo: e.nombre_completo,
-    salario_base: Number(e.salario_base ?? 0),
-    activo: e.activo,
-    nominaHoy: (nominasHoy ?? []).find((n: any) => n.empleado_id === e.id) ?? null,
-    turnosSemana: (turnos ?? []).filter((t: any) => t.empleado_id === e.id),
-  }))
-
-  const empleadosParaHorario = empleadosActivos.map((e: any) => ({
-    id: e.id,
-    nombre_completo: e.nombre_completo,
-  }))
 
   // Día de hoy en Bogotá, como lo guarda horario_laboral.dia_semana (sin tildes)
   const DIAS = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado']
@@ -166,16 +127,9 @@ export default async function EmpleadosPage() {
         </div>
       </div>
 
-      <EmpleadosTabs
-        listaCompleta={listaCompleta}
-        empleadosParaNomina={empleadosParaNomina}
-        historial={(historial as any) ?? []}
-        turnos={(turnos as any) ?? []}
-        empleadosParaHorario={empleadosParaHorario}
-        fechaHoy={hoy}
-        esAdmin={esAdmin}
-        permisosHoy={(permisosHoy ?? []).map(p => p.empleado_id)}
-      />
+      <EmpleadosSecciones actual="equipo" esAdmin={esAdmin} />
+
+      {listaCompleta}
     </div>
   )
 }

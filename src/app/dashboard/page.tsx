@@ -5,6 +5,7 @@ import { DashboardEmpleado } from '@/components/modulos/dashboard-empleado'
 import { sumarDias } from '@/lib/permisos'
 import { bogotaEnDias, hoyBogota } from '@/lib/fechas'
 import { empleadosEnTurno } from '@/lib/turnos'
+import { totalNetoVenta } from '@/lib/costo-venta'
 
 export default async function DashboardPage({
   searchParams,
@@ -61,8 +62,9 @@ export default async function DashboardPage({
       { data: permisosProximos },
       { data: porCompletar },
     ] = await Promise.all([
-      supabase.from('ventas').select('id, total, estado')
-        .eq('fecha', hoy).in('estado', ['completada', 'modificada']),
+      // Ventas de hoy como en Reportes: todas menos las anuladas (también las de crédito) y sin lo devuelto
+      supabase.from('ventas').select('id, total, monto_devolucion, estado')
+        .eq('fecha', hoy).in('estado', ['completada', 'modificada', 'credito']),
       supabase.from('venta_pagos').select('metodo, monto, ventas!inner(fecha, estado)')
         .eq('ventas.fecha', hoy).neq('ventas.estado', 'anulada'),
       supabase.from('nominas').select('id, empleado_id')
@@ -95,7 +97,7 @@ export default async function DashboardPage({
         .eq('por_completar', true).eq('activo', true).order('created_at', { ascending: false }).limit(50),
     ])
 
-    const totalVentasHoy = (ventasHoy ?? []).reduce((s: number, v: any) => s + Number(v.total), 0)
+    const totalVentasHoy = (ventasHoy ?? []).reduce((s: number, v: any) => s + totalNetoVenta(v), 0)
     const numTicketsHoy = ventasHoy?.length ?? 0
     const ticketPromedio = numTicketsHoy > 0 ? totalVentasHoy / numTicketsHoy : 0
     const desglosePago: Record<string, number> = {}
@@ -146,11 +148,11 @@ export default async function DashboardPage({
     { data: turnosEmpleado },
   ] = await Promise.all([
     supabase.from('ventas')
-      .select('id, numero_ticket, fecha, hora, total, tipo_pago, estado, clientes(nombre)')
+      .select('id, numero_ticket, fecha, hora, total, monto_devolucion, tipo_pago, estado, clientes(nombre)')
       .eq('empleado_id', user.id)
       .gte('fecha', ventaDesde)
       .lte('fecha', ventaHasta)
-      .in('estado', ['completada', 'modificada'])
+      .in('estado', ['completada', 'modificada', 'credito'])
       .order('fecha', { ascending: false }),
     supabase.from('nominas')
       .select('id, periodo_inicio, total_pago, horas_trabajadas, salario_base, bonificaciones, deducciones, estado')
@@ -164,7 +166,7 @@ export default async function DashboardPage({
       .eq('activo', true),
   ])
 
-  const totalVentas = (ventasEmpleado ?? []).reduce((s: number, v: any) => s + Number(v.total), 0)
+  const totalVentas = (ventasEmpleado ?? []).reduce((s: number, v: any) => s + totalNetoVenta(v), 0)
   const numVentas = ventasEmpleado?.length ?? 0
 
   return (

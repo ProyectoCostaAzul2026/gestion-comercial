@@ -1,8 +1,6 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { useRouter, usePathname, useSearchParams } from 'next/navigation'
-import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -12,16 +10,11 @@ import {
 } from 'recharts'
 import { jsPDF } from 'jspdf'
 import { autoTable } from 'jspdf-autotable'
-import { Download, Banknote, Smartphone, CreditCard, Coins, Calculator } from 'lucide-react'
-
-const PERIODOS = [
-  { value: 'hoy', label: 'Hoy' },
-  { value: 'semana', label: 'Esta semana' },
-  { value: 'mes_anterior', label: 'Últimos 30 días' },
-  { value: 'mes', label: 'Este mes' },
-  { value: 'año', label: 'Este año' },
-  { value: 'rango', label: 'Rango personalizado' },
-]
+import Link from 'next/link'
+import { Download, Banknote, Smartphone, CreditCard, Coins, Calculator, FileSpreadsheet, TrendingUp, Wallet, PackageX } from 'lucide-react'
+import { SelectorPeriodo, Variacion } from './selector-periodo'
+import type { Periodo } from '@/lib/periodos'
+import type { ResumenPeriodo } from '@/lib/reportes-servidor'
 
 const TOP_OPCIONES = [
   { value: '10', label: 'Top 10' },
@@ -87,14 +80,101 @@ function SelectorModoGrafico({ modo, onChange }: { modo: ModoGrafico; onChange: 
   )
 }
 
-function KPICard({ label, valor, sub, color }: {
+function KPICard({ label, valor, sub, color, comparacion }: {
   label: string; valor: string; sub?: string; color?: string
+  /** Variación contra el periodo anterior */
+  comparacion?: React.ReactNode
 }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
       <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">{label}</p>
       <p className={`mt-1 font-display text-lg font-bold ${color ?? 'text-white'}`}>{valor}</p>
+      {comparacion && <div className="mt-0.5">{comparacion}</div>}
       {sub && <p className="mt-0.5 text-xs text-steel-500">{sub}</p>}
+    </div>
+  )
+}
+
+interface FilaUtilidad {
+  nombre: string; ingresos: number; costo: number; utilidad: number; margen: number; unidades: number; productos: number
+}
+
+/** Utilidad real (ventas menos costo con IVA) agrupada por categoría o por familia */
+function TablaUtilidad({ porCategoria, porFamilia, desde, hasta }: {
+  porCategoria: FilaUtilidad[]; porFamilia: FilaUtilidad[]; desde: string; hasta: string
+}) {
+  const [vista, setVista] = useState<'categoria' | 'familia'>('categoria')
+  const [verTodo, setVerTodo] = useState(false)
+  const filas = vista === 'categoria' ? porCategoria : porFamilia
+  const mostradas = verTodo ? filas : filas.slice(0, 15)
+  const total = filas.reduce((t, f) => ({ ingresos: t.ingresos + f.ingresos, costo: t.costo + f.costo }), { ingresos: 0, costo: 0 })
+  return (
+    <div className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="font-semibold text-white">Utilidad por {vista === 'categoria' ? 'categoría' : 'familia'}</p>
+          <p className="text-xs text-steel-500">Ventas menos costo (con el IVA pagado al proveedor). Ordenado por utilidad.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1 rounded-xl bg-[#0b1117] p-1">
+            {(['categoria', 'familia'] as const).map(v => (
+              <button key={v} type="button" onClick={() => { setVista(v); setVerTodo(false) }}
+                className={`h-9 rounded-lg px-3 text-xs font-bold ${vista === v ? 'bg-brand-yellow text-steel-900' : 'text-steel-300 hover:text-white'}`}>
+                {v === 'categoria' ? 'Categoría' : 'Familia'}
+              </button>
+            ))}
+          </div>
+          <Button size="sm" variant="outline" className="border-white/10 text-steel-300 hover:text-white"
+            onClick={() => exportarTopPDF(`Utilidad por ${vista === 'categoria' ? 'categoria' : 'familia'}`,
+              ['Nombre', 'Unidades', 'Ventas', 'Costo', 'Utilidad', 'Margen'],
+              filas.map(f => [f.nombre, Math.round(f.unidades * 100) / 100, fmt(f.ingresos), fmt(f.costo), fmt(f.utilidad), pct(f.margen)]),
+              desde, hasta)}>
+            <Download className="mr-1 h-3.5 w-3.5" />PDF
+          </Button>
+        </div>
+      </div>
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+            <TableHead>{vista === 'categoria' ? 'Categoría' : 'Familia'}</TableHead>
+            <TableHead className="text-right">Ventas</TableHead>
+            <TableHead className="text-right">Costo</TableHead>
+            <TableHead className="text-right">Utilidad</TableHead>
+            <TableHead className="text-right">Margen</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {mostradas.map(f => (
+            <TableRow key={f.nombre} className="border-white/8 hover:bg-white/5">
+              <TableCell className="text-xs font-medium text-white">
+                {f.nombre}
+                <span className="block text-[11px] font-normal text-steel-500">{f.productos} producto{f.productos === 1 ? '' : 's'}</span>
+              </TableCell>
+              <TableCell className="text-right text-xs text-steel-300">{fmt(f.ingresos)}</TableCell>
+              <TableCell className="text-right text-xs text-steel-300">{fmt(f.costo)}</TableCell>
+              <TableCell className={`text-right font-display font-bold ${f.utilidad >= 0 ? 'text-emerald-400' : 'text-brand-red'}`}>{fmt(f.utilidad)}</TableCell>
+              <TableCell className={`text-right text-xs font-semibold ${f.margen >= 30 ? 'text-emerald-400' : f.margen >= 15 ? 'text-amber-400' : 'text-brand-red'}`}>{pct(f.margen)}</TableCell>
+            </TableRow>
+          ))}
+          {filas.length === 0 && (
+            <TableRow className="border-white/8"><TableCell colSpan={5} className="py-6 text-center text-steel-500">Sin ventas en el periodo</TableCell></TableRow>
+          )}
+          {filas.length > 0 && (
+            <TableRow className="bg-steel-700 hover:bg-steel-700">
+              <TableCell className="font-bold text-brand-yellow">Total</TableCell>
+              <TableCell className="text-right text-xs font-bold text-white">{fmt(total.ingresos)}</TableCell>
+              <TableCell className="text-right text-xs font-bold text-white">{fmt(total.costo)}</TableCell>
+              <TableCell className="text-right font-display font-bold text-brand-yellow">{fmt(total.ingresos - total.costo)}</TableCell>
+              <TableCell className="text-right text-xs font-bold text-white">{total.ingresos > 0 ? pct(((total.ingresos - total.costo) / total.ingresos) * 100) : '—'}</TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+      {filas.length > 15 && (
+        <button type="button" onClick={() => setVerTodo(v => !v)} className="w-full text-center text-xs font-medium text-brand-blue hover:underline">
+          {verTodo ? 'Ver menos' : `Ver las ${filas.length}`}
+        </button>
+      )}
     </div>
   )
 }
@@ -129,12 +209,18 @@ interface FlujoCajaItem {
 }
 
 export function ReportesPanel({
-  periodo, desde, hasta, diasPeriodo,
+  periodo, hoy, anterior, desde, hasta, diasPeriodo,
   kpisPeriodo, mediosPeriodoStats,
   graficaFlujoCaja, graficaMedios, graficaHoras, graficaDiasSemana, graficaEmpleados,
   topProductosData, inventario, deudaProveedores, nominaPeriodo,
+  descuentos, utilidadPorCategoria, utilidadPorFamilia,
 }: {
-  periodo: string; desde: string; hasta: string; diasPeriodo: number
+  periodo: Periodo; hoy: string
+  anterior: { desde: string; hasta: string; etiqueta: string; resumen: ResumenPeriodo }
+  desde: string; hasta: string; diasPeriodo: number
+  descuentos: { total: number; ventasConDescuento: number; serie: { periodo: string; descuentos: number; ventas: number; tickets: number }[] }
+  utilidadPorCategoria: FilaUtilidad[]
+  utilidadPorFamilia: FilaUtilidad[]
   kpisPeriodo: {
     totalIngresos: number; totalCMV: number; totalGastos: number
     totalNominas: number; gananciaBruta: number; resultado: number; margenBruto: number
@@ -152,24 +238,10 @@ export function ReportesPanel({
   deudaProveedores: { total: number; top5: { nombre: string; deuda: number }[] }
   nominaPeriodo: { nombre: string; total: number; dias: number }[]
 }) {
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
   const [topN, setTopN] = useState(10)
   const [modoHoras, setModoHoras] = useState<'valor' | 'ticket' | 'valorTicket'>('valor')
   const [modoDias, setModoDias] = useState<'valor' | 'ticket' | 'valorTicket'>('valor')
-
-  const actualizarURL = (params: Record<string, string>) => {
-    const p = new URLSearchParams(searchParams.toString())
-    Object.entries(params).forEach(([k, v]) => v ? p.set(k, v) : p.delete(k))
-    router.replace(`${pathname}?${p.toString()}`, { scroll: false })
-  }
-
-  const handlePeriodo = (v: string) => {
-    if (!v) return
-    if (v === 'rango') { actualizarURL({ periodo: v }); return }
-    actualizarURL({ periodo: v, desde: '', hasta: '' })
-  }
+  const ant = anterior.resumen
 
   const topPorCantidad = useMemo(() =>
     [...topProductosData].sort((a, b) => b.cantidad - a.cantidad).slice(0, topN),
@@ -220,50 +292,52 @@ export function ReportesPanel({
       </div>
 
       {/* ── SELECTOR DE PERÍODO ── */}
-      <section className="rounded-2xl border border-white/10 bg-[#111820] p-4">
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Período de análisis</label>
-            <Select items={PERIODOS} onValueChange={v => v && handlePeriodo(v)} value={periodo}>
-              <SelectTrigger className="w-52 border-white/10 bg-[#1a2430] text-white"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {PERIODOS.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          {periodo === 'rango' && (
+      <SelectorPeriodo periodo={periodo} hoy={hoy} anterior={anterior.etiqueta} />
+
+      {/* Vistas de análisis y exportación */}
+      <nav aria-label="Más reportes" className="grid grid-cols-2 gap-2 md:grid-cols-4">
+        {[
+          { href: '/dashboard/reportes/flujo', icono: TrendingUp, titulo: 'Flujo de caja proyectado', sub: 'Próximas semanas' },
+          { href: '/dashboard/reportes/cartera', icono: Wallet, titulo: 'Cartera por edades', sub: 'Clientes y proveedores' },
+          { href: '/dashboard/reportes/sin-movimiento', icono: PackageX, titulo: 'Sin movimiento', sub: 'Dinero quieto en stock' },
+          { href: `/dashboard/contabilidad/exportar?desde=${desde}&hasta=${hasta}`, icono: FileSpreadsheet, titulo: 'Excel para el contador', sub: 'Del periodo elegido', descarga: true },
+        ].map(v => {
+          const Icono = v.icono
+          const clase = 'flex min-h-16 items-center gap-3 rounded-2xl border border-white/10 bg-[#111820] p-3 transition-colors hover:border-brand-yellow/50'
+          const contenido = (
             <>
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Desde</label>
-                <Input type="date" value={desde}
-                  onChange={e => actualizarURL({ desde: e.target.value, periodo: 'rango' })} className="w-36 border-white/10 bg-[#1a2430] text-white" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Hasta</label>
-                <Input type="date" value={hasta}
-                  onChange={e => actualizarURL({ hasta: e.target.value, periodo: 'rango' })} className="w-36 border-white/10 bg-[#1a2430] text-white" />
-              </div>
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-yellow/10 text-brand-yellow"><Icono className="h-5 w-5" /></span>
+              <span className="min-w-0">
+                <span className="block text-sm font-bold leading-tight text-white">{v.titulo}</span>
+                <span className="block text-[11px] text-steel-500">{v.sub}</span>
+              </span>
             </>
-          )}
-          <p className="self-end pb-2 text-xs text-steel-500">{desde} — {hasta} ({diasPeriodo} días)</p>
-        </div>
-      </section>
+          )
+          return v.descarga
+            ? <a key={v.href} href={v.href} className={clase}>{contenido}</a>
+            : <Link key={v.href} href={v.href} className={clase}>{contenido}</Link>
+        })}
+      </nav>
 
       {/* ── KPIs PERÍODO ── */}
       <section className="space-y-4">
         <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
-          Período: {desde} — {hasta}
+          Resumen del periodo
         </h2>
 
         {/* Ventas y tickets */}
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <KPICard label="Ventas totales" valor={fmt(kpisPeriodo.totalIngresos)}
+            comparacion={<Variacion actual={kpisPeriodo.totalIngresos} anterior={ant.ingresos} compacto />}
             sub={`Promedio/día: ${fmt(kpisPeriodo.ventaPromedioDiaria)}`} color="text-emerald-400" />
-          <KPICard label="Venta promedio por ticket" valor={fmt(kpisPeriodo.ticketPromedioPeriodo)} />
+          <KPICard label="Venta promedio por ticket" valor={fmt(kpisPeriodo.ticketPromedioPeriodo)}
+            comparacion={<Variacion actual={kpisPeriodo.ticketPromedioPeriodo} anterior={ant.ticketPromedio} compacto />} />
           <KPICard label="Tickets totales" valor={String(kpisPeriodo.numVentas)}
+            comparacion={<Variacion actual={kpisPeriodo.numVentas} anterior={ant.numVentas} compacto />}
             sub={`Promedio/día: ${kpisPeriodo.ticketsPromedioDiarios.toFixed(1)}`} />
-          <KPICard label="Nóminas período" valor={fmt(kpisPeriodo.totalNominas)}
-            color="text-amber-400" />
+          <KPICard label="Resultado" valor={fmt(kpisPeriodo.resultado)}
+            comparacion={<Variacion actual={kpisPeriodo.resultado} anterior={ant.resultado} compacto />}
+            color={kpisPeriodo.resultado >= 0 ? 'text-brand-yellow' : 'text-brand-red'} />
         </div>
 
         {/* Saldos por medio período */}
@@ -373,6 +447,118 @@ export function ReportesPanel({
               </Bar>
             </BarChart>
           </ResponsiveContainer>
+        </div>
+      </section>
+
+      {/* ── COMPARACIÓN CON EL PERIODO ANTERIOR ── */}
+      <section className="space-y-3">
+        <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+          Contra el periodo anterior
+        </h2>
+        <div className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+                <TableHead>Concepto</TableHead>
+                <TableHead className="text-right">Este periodo</TableHead>
+                <TableHead className="text-right">Anterior</TableHead>
+                <TableHead className="text-right">Cambio</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {([
+                ['Ventas', kpisPeriodo.totalIngresos, ant.ingresos, false, true],
+                ['Tickets', kpisPeriodo.numVentas, ant.numVentas, false, false],
+                ['Ticket promedio', kpisPeriodo.ticketPromedioPeriodo, ant.ticketPromedio, false, true],
+                ['Costo de lo vendido', kpisPeriodo.totalCMV, ant.costoVentas, true, true],
+                ['Ganancia bruta', kpisPeriodo.gananciaBruta, ant.gananciaBruta, false, true],
+                ['Gastos', kpisPeriodo.totalGastos, ant.gastos, true, true],
+                ['Nómina', kpisPeriodo.totalNominas, ant.nominas, true, true],
+                ['Descuentos dados', descuentos.total, ant.descuentos, true, true],
+                ['Resultado', kpisPeriodo.resultado, ant.resultado, false, true],
+              ] as [string, number, number, boolean, boolean][]).map(([nombre, actual, previo, inverso, dinero]) => (
+                <TableRow key={nombre} className={`border-white/8 hover:bg-white/5 ${nombre === 'Resultado' ? 'bg-brand-yellow/5' : ''}`}>
+                  <TableCell className={`text-xs ${nombre === 'Resultado' ? 'font-bold text-brand-yellow' : 'font-medium text-white'}`}>{nombre}</TableCell>
+                  <TableCell className="text-right font-display text-sm font-bold text-white">{dinero ? fmt(actual) : actual.toLocaleString('es-CO')}</TableCell>
+                  <TableCell className="text-right text-xs text-steel-300">{dinero ? fmt(previo) : previo.toLocaleString('es-CO')}</TableCell>
+                  <TableCell className="text-right"><Variacion actual={actual} anterior={previo} inverso={inverso} compacto /></TableCell>
+                </TableRow>
+              ))}
+              <TableRow className="border-white/8 hover:bg-white/5">
+                <TableCell className="text-xs font-medium text-white">Margen bruto</TableCell>
+                <TableCell className="text-right font-display text-sm font-bold text-white">{pct(kpisPeriodo.margenBruto)}</TableCell>
+                <TableCell className="text-right text-xs text-steel-300">{pct(ant.margenBruto)}</TableCell>
+                <TableCell className="text-right text-[11px] font-semibold">
+                  {Math.abs(kpisPeriodo.margenBruto - ant.margenBruto) < 0.05 ? (
+                    <span className="text-steel-300">= 0.0 pts</span>
+                  ) : (
+                    <span className={kpisPeriodo.margenBruto > ant.margenBruto ? 'text-emerald-400' : 'text-brand-red'}>
+                      {kpisPeriodo.margenBruto > ant.margenBruto ? '▲' : '▼'} {Math.abs(kpisPeriodo.margenBruto - ant.margenBruto).toFixed(1)} pts
+                    </span>
+                  )}
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart
+              data={[
+                { nombre: 'Ventas', actual: kpisPeriodo.totalIngresos, anterior: ant.ingresos },
+                { nombre: 'Gan. bruta', actual: kpisPeriodo.gananciaBruta, anterior: ant.gananciaBruta },
+                { nombre: 'Gastos+nómina', actual: kpisPeriodo.totalGastos + kpisPeriodo.totalNominas, anterior: ant.gastos + ant.nominas },
+                { nombre: 'Resultado', actual: kpisPeriodo.resultado, anterior: ant.resultado },
+              ]}
+              margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+              <XAxis dataKey="nombre" tick={{ fontSize: 10, fill: '#9aa7b0' }} />
+              <YAxis tick={AXIS_TICK} tickFormatter={v => `$${(v / 1000).toFixed(0)}K`} width={50} />
+              <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                formatter={(v: any, name: any) => [fmt(Number(v)), name === 'actual' ? 'Este periodo' : 'Anterior']} />
+              <Bar dataKey="anterior" fill="#5b6b76" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="actual" fill="#ffce00" radius={[3, 3, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+          <p className="text-center text-[11px] text-steel-500">
+            <span className="mr-1 inline-block h-2 w-2 rounded-sm bg-brand-yellow" />Este periodo
+            <span className="ml-3 mr-1 inline-block h-2 w-2 rounded-sm bg-[#5b6b76]" />{anterior.etiqueta}
+          </p>
+        </div>
+      </section>
+
+      {/* ── DESCUENTOS EN EL TIEMPO ── */}
+      <section className="space-y-3">
+        <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+          Descuentos
+        </h2>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+          <KPICard label="Descuentos dados" valor={fmt(descuentos.total)} color="text-amber-400"
+            comparacion={<Variacion actual={descuentos.total} anterior={ant.descuentos} inverso compacto />} />
+          <KPICard label="Sobre lo que se habría vendido"
+            valor={pct(kpisPeriodo.totalIngresos + descuentos.total > 0 ? (descuentos.total / (kpisPeriodo.totalIngresos + descuentos.total)) * 100 : 0)}
+            sub="Descuento ÷ (ventas + descuento)" />
+          <KPICard label="Ventas con descuento" valor={String(descuentos.ventasConDescuento)}
+            sub={kpisPeriodo.numVentas > 0 ? `${pct((descuentos.ventasConDescuento / kpisPeriodo.numVentas) * 100)} de los tickets` : undefined} />
+        </div>
+        <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
+          <p className="mb-1 text-sm font-semibold text-white">Descuentos en el tiempo</p>
+          <p className="mb-4 text-xs text-steel-500">{diasPeriodo > 92 ? 'Por mes' : 'Por día'}. Incluye descuentos por línea, descuento total y total editado a mano.</p>
+          {descuentos.total > 0 ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <ComposedChart data={descuentos.serie} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                <XAxis dataKey="periodo" tick={{ fontSize: 10, fill: '#9aa7b0' }} />
+                <YAxis yAxisId="d" tick={AXIS_TICK} tickFormatter={v => `$${(v / 1000).toFixed(0)}K`} width={45} />
+                <YAxis yAxisId="t" orientation="right" tick={AXIS_TICK} allowDecimals={false} width={25} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                  formatter={(v: any, name: any) => name === 'tickets' ? [v, 'Ventas con descuento'] : [fmt(Number(v)), 'Descuento']} />
+                <Bar yAxisId="d" dataKey="descuentos" fill="#fbbf24" radius={[3, 3, 0, 0]} />
+                <Line yAxisId="t" type="monotone" dataKey="tickets" stroke="#1c6cb4" strokeWidth={2} dot={false} />
+              </ComposedChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="py-8 text-center text-sm text-steel-500">No se dieron descuentos en este periodo.</p>
+          )}
         </div>
       </section>
 
@@ -694,6 +880,14 @@ export function ReportesPanel({
             </Table>
           </div>
         </div>
+      </section>
+
+      {/* ── UTILIDAD POR CATEGORÍA Y FAMILIA ── */}
+      <section className="space-y-3">
+        <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+          Utilidad real
+        </h2>
+        <TablaUtilidad porCategoria={utilidadPorCategoria} porFamilia={utilidadPorFamilia} desde={desde} hasta={hasta} />
       </section>
 
       {/* ── INVENTARIO Y PROVEEDORES ── */}

@@ -85,7 +85,7 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
       })
       if (error) throw error
       toast.success('Nómina registrada')
-      volver('/dashboard/nomina', { refrescar: true })
+      volver('/dashboard/empleados/nomina', { refrescar: true })
     } catch (err: any) {
       toast.error('Error: ' + err.message)
     } finally {

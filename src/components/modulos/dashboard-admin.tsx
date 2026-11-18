@@ -176,7 +176,7 @@ export function DashboardAdmin({ profile, config, fechaHoy, kpisHoy, ultimasVent
                   <CalendarOff className="size-4" />
                   {alertas.permisos.length} permiso{alertas.permisos.length !== 1 ? 's' : ''} esta semana
                 </p>
-                <Link href="/dashboard/horario" className="text-xs font-medium text-brand-red hover:underline">
+                <Link href="/dashboard/empleados/horario" className="text-xs font-medium text-brand-red hover:underline">
                   Ver horario →
                 </Link>
               </div>
@@ -291,7 +291,7 @@ export function DashboardAdmin({ profile, config, fechaHoy, kpisHoy, ultimasVent
             { href: '/dashboard/proveedores', icon: Truck, label: 'Proveedores', primary: false },
             { href: '/dashboard/inventario', icon: Package, label: 'Inventario', primary: false },
             { href: '/dashboard/recepcion', icon: ClipboardCheck, label: 'Recepción', primary: false },
-            { href: '/dashboard/nomina', icon: DollarSign, label: 'Nómina', primary: false },
+            { href: '/dashboard/empleados/nomina', icon: DollarSign, label: 'Nómina', primary: false },
             { href: '/dashboard/tareas', icon: ListChecks, label: tareasPendientes ? `Tareas (${tareasPendientes})` : 'Tareas', primary: false },
             { href: '/dashboard/bitacora', icon: ShieldCheck, label: 'Bitácora', primary: false },
           ].map(({ href, icon: Icon, label, primary }) => (

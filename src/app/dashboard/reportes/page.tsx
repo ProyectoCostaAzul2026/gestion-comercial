@@ -3,39 +3,14 @@ import { traerTodo } from '@/lib/supabase/traer-todo'
 import { redirect } from 'next/navigation'
 import { ReportesPanel } from '@/components/modulos/reportes-panel'
 import { hoyBogota } from '@/lib/fechas'
-import { costoLineaVenta } from '@/lib/costo-venta'
-
-function getPeriodo(periodo: string, desde?: string, hasta?: string) {
-  const fmt = (d: Date) => d.toLocaleDateString('en-CA', { timeZone: 'America/Bogota' })
-  // Mediodía UTC del día de Bogotá: las cuentas de días no se corren por la zona horaria del servidor
-  const hoy = new Date(hoyBogota() + 'T12:00:00Z')
-  switch (periodo) {
-    case 'hoy': return { desde: fmt(hoy), hasta: fmt(hoy) }
-    case 'semana': {
-      const lunes = new Date(hoy)
-      lunes.setDate(hoy.getDate() - ((hoy.getDay() + 6) % 7))
-      return { desde: fmt(lunes), hasta: fmt(hoy) }
-    }
-    case 'mes_anterior': {
-      const hace1mes = new Date(hoy)
-      hace1mes.setMonth(hoy.getMonth() - 1)
-      return { desde: fmt(hace1mes), hasta: fmt(hoy) }
-    }
-    case 'mes': return { desde: fmt(hoy).slice(0, 8) + '01', hasta: fmt(hoy) }
-    case 'año': return { desde: fmt(hoy).slice(0, 4) + '-01-01', hasta: fmt(hoy) }
-    case 'rango': return { desde: desde ?? fmt(hoy).slice(0, 8) + '01', hasta: hasta ?? fmt(hoy) }
-    default: {
-      const hace1mes = new Date(hoy)
-      hace1mes.setMonth(hoy.getMonth() - 1)
-      return { desde: fmt(hace1mes), hasta: fmt(hoy) }
-    }
-  }
-}
+import { cantidadNeta, costoLineaVenta, subtotalNeto, totalNetoVenta } from '@/lib/costo-venta'
+import { claveSerie, diasEntre, leerPeriodo, periodoAnterior } from '@/lib/periodos'
+import { resumenPeriodo } from '@/lib/reportes-servidor'
 
 export default async function ReportesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ periodo?: string; desde?: string; hasta?: string }>
+  searchParams: Promise<{ periodo?: string; fecha?: string; desde?: string; hasta?: string }>
 }) {
   const sp = await searchParams
   const supabase = await createClient()
@@ -47,12 +22,12 @@ export default async function ReportesPage({
   if ((profile as any)?.rol !== 'administrador') redirect('/dashboard')
 
   const hoy = hoyBogota()
-  const periodo = sp.periodo ?? 'mes_anterior'
-  const { desde, hasta } = getPeriodo(periodo, sp.desde, sp.hasta)
-
-  const diasPeriodo = Math.max(1, Math.round(
-    (new Date(hasta).getTime() - new Date(desde).getTime()) / (1000 * 60 * 60 * 24)
-  ) + 1)
+  const periodoActual = leerPeriodo(sp, hoy, 'mes')
+  const anterior = periodoAnterior(periodoActual)
+  const { desde, hasta } = periodoActual
+  const diasPeriodo = diasEntre(desde, hasta)
+  // Cifras del periodo anterior para comparar (se piden en paralelo con las del actual)
+  const resumenAnteriorPromesa = resumenPeriodo(supabase, anterior.desde, anterior.hasta)
 
   const [
     { data: ventas },
@@ -68,7 +43,7 @@ export default async function ReportesPage({
     traerTodo((filaDesde, filaHasta) =>
       supabase
         .from('ventas')
-        .select('id, fecha, hora, total, tipo_pago, estado, empleado_id, profiles!empleado_id(nombre_completo)')
+        .select('id, fecha, hora, total, total_descuentos, monto_devolucion, tipo_pago, estado, empleado_id, profiles!empleado_id(nombre_completo)')
         .gte('fecha', desde)
         .lte('fecha', hasta)
         .in('estado', ['completada', 'modificada', 'credito'])
@@ -93,8 +68,9 @@ export default async function ReportesPage({
         .from('venta_items')
         .select(`
           id, nombre_producto, cantidad, precio_unitario, subtotal_linea,
-          costo_unitario, es_fraccionado, cantidad_fraccion, venta_id, producto_id,
-          productos(id, codigo, nombre, marca, unidad_medida, precio_costo_base, cantidad_total_unidad, tiene_iva, iva_incluido, porcentaje_iva),
+          costo_unitario, es_fraccionado, cantidad_fraccion, venta_id, producto_id, devolucion_items(cantidad, cantidad_fraccion),
+          productos(id, codigo, nombre, marca, unidad_medida, precio_costo_base, cantidad_total_unidad, tiene_iva, iva_incluido, porcentaje_iva,
+            producto_familias(nombre_base), categorias_producto(nombre)),
           ventas!inner(fecha, estado)
         `)
         .gte('ventas.fecha', desde)
@@ -169,7 +145,8 @@ export default async function ReportesPage({
   // Solo ventas completadas/modificadas para ingresos reales
   const ventasCompletadas = (ventas ?? []).filter((v: any) =>
     v.estado === 'completada' || v.estado === 'modificada')
-  const totalIngresos = (ventas ?? []).reduce((s: number, v: any) => s + Number(v.total), 0)
+  // Lo devuelto no es venta: devolver_productos no baja el total, lo anota en monto_devolucion
+  const totalIngresos = (ventas ?? []).reduce((s: number, v: any) => s + totalNetoVenta(v), 0)
   const numVentasPeriodo = ventas?.length ?? 0
 
   const totalCMV = (ventaItems ?? []).reduce((s: number, i: any) => s + costoLineaVenta(i), 0)
@@ -230,7 +207,7 @@ export default async function ReportesPage({
   const ticketsPorHora: Record<number, number> = {}
   for (const v of ventas ?? []) {
     const hora = parseInt((v as any).hora?.slice(0, 2) ?? '0')
-    ventasPorHora[hora] = (ventasPorHora[hora] ?? 0) + Number((v as any).total)
+    ventasPorHora[hora] = (ventasPorHora[hora] ?? 0) + totalNetoVenta(v as any)
     ticketsPorHora[hora] = (ticketsPorHora[hora] ?? 0) + 1
   }
   const graficaHoras = Array.from({ length: 13 }, (_, i) => i + 8).map(h => ({
@@ -248,7 +225,7 @@ export default async function ReportesPage({
     const fecha = (v as any).fecha as string
     const d = new Date(fecha + 'T00:00:00')
     const idx = (d.getDay() + 6) % 7
-    totalPorDiaSemana[idx] += Number((v as any).total)
+    totalPorDiaSemana[idx] += totalNetoVenta(v as any)
     ticketsPorDiaSemana[idx] += 1
   }
   const conteoPorDiaSemana = [0, 0, 0, 0, 0, 0, 0]
@@ -272,7 +249,7 @@ export default async function ReportesPage({
   for (const v of ventas ?? []) {
     const nombre = (v as any).profiles?.nombre_completo ?? 'Sin asignar'
     if (!ventasPorEmpleado[nombre]) ventasPorEmpleado[nombre] = { nombre, total: 0, tickets: 0 }
-    ventasPorEmpleado[nombre].total += Number((v as any).total)
+    ventasPorEmpleado[nombre].total += totalNetoVenta(v as any)
     ventasPorEmpleado[nombre].tickets += 1
   }
   const graficaEmpleados = Object.values(ventasPorEmpleado).sort((a, b) => b.total - a.total)
@@ -286,7 +263,7 @@ export default async function ReportesPage({
   for (const i of ventaItems ?? []) {
     const pid = (i as any).producto_id
     if (!pid) continue
-    const cant = (i as any).es_fraccionado ? Number((i as any).cantidad_fraccion ?? 1) : Number((i as any).cantidad)
+    const cant = cantidadNeta(i as any)
     if (!productoStats[pid]) {
       productoStats[pid] = {
         producto_id: pid,
@@ -298,7 +275,7 @@ export default async function ReportesPage({
       }
     }
     productoStats[pid].cantidad += cant
-    productoStats[pid].ingresos += Number((i as any).subtotal_linea)
+    productoStats[pid].ingresos += subtotalNeto(i as any)
     productoStats[pid].tickets.add((i as any).venta_id)
     productoStats[pid].costo += costoLineaVenta(i as any)
   }
@@ -336,9 +313,57 @@ export default async function ReportesPage({
     nominaPorEmpleado[nombre].dias += 1
   }
 
+  // ── Descuentos en el tiempo ──
+  const totalDescuentos = (ventas ?? []).reduce((s: number, v: any) => s + Number(v.total_descuentos ?? 0), 0)
+  const descuentosPorFecha: Record<string, { descuentos: number; ventas: number; tickets: number }> = {}
+  {
+    // Todos los días (o meses) del periodo, aunque no haya ventas, para que la línea no salte
+    const cursor = new Date(desde + 'T12:00:00Z')
+    const fin = new Date(hasta + 'T12:00:00Z')
+    while (cursor <= fin) {
+      descuentosPorFecha[claveSerie(cursor.toISOString().slice(0, 10), diasPeriodo)] ??= { descuentos: 0, ventas: 0, tickets: 0 }
+      cursor.setUTCDate(cursor.getUTCDate() + 1)
+    }
+  }
+  for (const v of ventas ?? []) {
+    const k = claveSerie((v as any).fecha, diasPeriodo)
+    const d = (descuentosPorFecha[k] ??= { descuentos: 0, ventas: 0, tickets: 0 })
+    d.descuentos += Number((v as any).total_descuentos ?? 0)
+    d.ventas += totalNetoVenta(v as any)
+    if (Number((v as any).total_descuentos ?? 0) > 0) d.tickets += 1
+  }
+  const serieDescuentos = Object.entries(descuentosPorFecha)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([fecha, d]) => ({ periodo: fecha.length === 7 ? fecha : fecha.slice(5), ...d }))
+  const ventasConDescuento = (ventas ?? []).filter((v: any) => Number(v.total_descuentos ?? 0) > 0).length
+
+  // ── Utilidad por categoría y por familia ──
+  const agrupar = (clave: (i: any) => string) => {
+    const mapa: Record<string, { nombre: string; ingresos: number; costo: number; unidades: number; productos: Set<string> }> = {}
+    for (const i of ventaItems ?? []) {
+      const nombre = clave(i)
+      const g = (mapa[nombre] ??= { nombre, ingresos: 0, costo: 0, unidades: 0, productos: new Set() })
+      g.ingresos += subtotalNeto(i as any)
+      g.costo += costoLineaVenta(i as any)
+      g.unidades += cantidadNeta(i as any)
+      if ((i as any).producto_id) g.productos.add((i as any).producto_id)
+    }
+    return Object.values(mapa).map(g => ({
+      nombre: g.nombre, ingresos: g.ingresos, costo: g.costo, utilidad: g.ingresos - g.costo,
+      margen: g.ingresos > 0 ? ((g.ingresos - g.costo) / g.ingresos) * 100 : 0,
+      unidades: g.unidades, productos: g.productos.size,
+    })).sort((a, b) => b.utilidad - a.utilidad)
+  }
+  const utilidadPorCategoria = agrupar(i => i.productos?.categorias_producto?.nombre ?? 'Sin categoría')
+  const utilidadPorFamilia = agrupar(i => i.productos?.producto_familias?.nombre_base ?? 'Sin familia')
+
+  const resumenAnterior = await resumenAnteriorPromesa
+
   return (
     <ReportesPanel
-      periodo={periodo}
+      periodo={periodoActual}
+      hoy={hoy}
+      anterior={{ ...anterior, resumen: resumenAnterior }}
       desde={desde}
       hasta={hasta}
       diasPeriodo={diasPeriodo}
@@ -360,6 +385,9 @@ export default async function ReportesPage({
       inventario={{ valorCosto: valorInventarioCosto, valorVenta: valorInventarioVenta }}
       deudaProveedores={{ total: deudaTotal, top5: top5Deudas }}
       nominaPeriodo={Object.values(nominaPorEmpleado)}
+      descuentos={{ total: totalDescuentos, ventasConDescuento, serie: serieDescuentos }}
+      utilidadPorCategoria={utilidadPorCategoria}
+      utilidadPorFamilia={utilidadPorFamilia}
     />
   )
 }

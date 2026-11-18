@@ -74,8 +74,18 @@ nómina).
 - `src/app/dashboard/<módulo>/`: páginas (Server Components que consultan Supabase y pasan datos a
   componentes cliente). Módulos: `ventas` (nueva, cotización, servicios, recibo), `inventario` (navegación por tarjetas: categoría, familia, grupo de medidas; nuevo, editar,
   familia, agotados, desactivados, garantías), `recepcion` (detalle y producto nuevo de un renglón), `clientes`,
-  `proveedores` (facturas, pagos), `empleados`,
-  `caja`, `contabilidad`, `nomina`, `horario`, `reportes`, `configuracion`, `instrucciones`, `mi-perfil`.
+  `proveedores` (facturas, pagos), `empleados` (pestañas Equipo, `horario` y `nomina` con `nueva`; las rutas viejas
+  `/dashboard/horario` y `/dashboard/nomina` redirigen; el empleado solo entra a `empleados/horario`, ver
+  `RUTAS_PERMITIDAS_EMPLEADO` y `esRutaSoloAdmin` en `permissions.ts`), `caja` (`cierre`: arqueo en vista propia),
+  `contabilidad` (`exportar`: Route Handler que arma el Excel del contador con `exceljs` y `src/lib/excel-contador.ts`),
+  `reportes` (`flujo` proyectado, `cartera` por edades, `sin-movimiento`), `configuracion`, `instrucciones`, `mi-perfil`.
+- **Periodos de Reportes y Contabilidad** (`src/lib/periodos.ts`, `selector-periodo.tsx`): día, semana (lunes a domingo),
+  mes, año o rango, con flechas y `?periodo=&fecha=` (o `desde`/`hasta` en rango). Se comparan contra el periodo anterior
+  con los mismos días si el actual va en curso (`periodoAnterior`); las cifras del anterior salen de `resumenPeriodo`
+  (`src/lib/reportes-servidor.ts`). Reportes también muestra descuentos en el tiempo y utilidad por categoría y familia.
+- **Vistas propias de acciones**: devolver, cambiar y anular una venta abren `/dashboard/ventas/[id]?accion=...` (el mismo
+  `VentaAcciones` con la prop `accion`; al terminar o cancelar vuelve al detalle). El cierre de caja es `/dashboard/caja/cierre`.
+- `EncabezadoPagina` (`src/components/ui/encabezado-pagina.tsx`): encabezado con franjas, título, atrás y acciones.
 - `src/components/modulos/`: formularios y paneles cliente; aquí vive la lógica de negocio del front.
 - `src/lib/`: `permissions.ts` (permisos por rol y `RUTAS_SOLO_ADMIN`), `precio-utils.ts` (margen e IVA),
   `escala-precios.ts` (motor de precios por medida: orden de medidas, redondeo, sugeridos, costos estimados y alertas),
@@ -168,13 +178,13 @@ nómina).
 - **Pedido sugerido** (Agotados y página del proveedor): `cantidadSugerida` toma la rotación de 90 días y, como mínimo,
   repone hasta el doble del stock mínimo (sin ventas la rotación es 0). Se descarga en PDF o se envía por WhatsApp.
 - **Hoja de tareas** (`/dashboard/tareas`, `tareas-panel.tsx`, `src/lib/tareas.ts`; tablas `tareas` y `tareas_plantillas`,
-  SQL en `sql/pendiente_hoja_de_tareas.sql`): solo el administrador crea, edita y borra; prioridad alta, media o baja,
+  SQL en `sql/hoja_de_tareas.sql`): solo el administrador crea, edita y borra; prioridad alta, media o baja,
   asignada a un empleado o libre, con fecha límite opcional. No se repiten solas: se guardan como plantilla o se "crean de
   nuevo" desde una hecha. El empleado ve las suyas y las libres y las marca hechas (con nota) con la RPC `marcar_tarea`.
 - **Cierre de caja** (`cerrar_caja_arqueo`, `arqueo-panel.tsx`): lo que debe haber sobre la base es el saldo del medio
   `efectivo` en `saldos_medios_pago` desde el último cierre (lo mueven todas las RPC de dinero y el cierre lo deja en 0).
   Entradas y salidas del día salen de `movimientos_caja`; lo que no cuadra con ellas es efectivo de días sin cerrar.
-  SQL en `sql/pendiente_cierre_caja.sql` (antes no contaba abonos y restaba dos veces las anulaciones).
+  Migración `cierre_caja_saldo_efectivo` (2026-11-18; antes no contaba abonos y restaba dos veces las anulaciones).
 - **Bitácora** (`/dashboard/bitacora`, solo administrador; `bitacora-panel.tsx`, `src/lib/bitacora.ts`): registro de cambios
   importantes (precios, activar o desactivar productos, roles y salarios, configuración, estados de ventas, ajustes
   manuales de stock, retiros, arqueos, devoluciones y cualquier borrado o vaciado de las tablas del negocio). La escriben
@@ -315,7 +325,15 @@ nómina).
   fecha o sin total. Tres proveedores tienen nombre provisional (`Proveedor sin nombre - ...`).
 - NIT del negocio corregido en `configuracion_negocio`. Se borraron las 2 ventas de prueba y los saldos de medios de
   pago están en 0.
-- Ventas, caja y demás tablas operativas están vacías. Hay 6 perfiles: 5 administradores y 1 empleado.
+- Hay 6 perfiles: 5 administradores y 1 empleado.
+- **Datos de prueba (2026-11-18)**: se borraron las ventas de prueba anteriores (stock devuelto, saldos en 0) y se generaron,
+  con las mismas RPC de la app y fechadas día a día del 1 de octubre al 18 de noviembre, ventas de varios usuarios (todos
+  los medios, crédito, descuentos, servicios, fracción), abonos, devoluciones, cambios, una garantía, anulaciones, gastos,
+  nómina diaria, retiros, traslados semanales, pagos a un proveedor de prueba y cierres de caja diarios (dos días sin
+  cerrar; hoy abierto). Todo lleva la marca `PRUEBA SISTEMA` en observaciones o notas, con 4 "Cliente Prueba" y un
+  "Proveedor Prueba Sistema". Bajaron el stock real de unos 260 productos. El cuadre cerró: cada medio contra sus
+  movimientos, crédito contra la deuda de clientes, efectivo y cada cierre, cada venta contra lo que entró por ella y las
+  facturas contra sus pagos. Un pago real a proveedor desde caja mayor, anterior al arreglo de caja mayor, no la descontó.
 - 2026-11-07 (migración `mejoras_inventario_recepcion_horario`): tablas y columnas nuevas `permisos_empleado`,
   `productos.por_completar` y `recepcion_items.cantidad_almacen` / `ingresado_bodega` / `ingresado_almacen` (reemplazan a
   `destino`).
@@ -346,7 +364,6 @@ nómina).
   se pueden cambiar por las del fabricante cuando su web tenga catálogo (Truper solo publica miniaturas; Ecoled limita las
   consultas). Las fotos de Easy son de productos equivalentes de la tienda, no siempre de la misma marca. Las imágenes enlazadas pueden romperse si el proveedor cambia su web; algunas de Ferremakros pesan
   más de 1 MB. Confirmar con la primera compra el costo de las medidas nuevas (19 del 2026-11-05 y 236 del 2026-11-06). Quedan por confirmar algunos términos del lote 1 que pueden ser marcas y la medida de dos piezas Kaudal.
-- El advisor de seguridad marca `is_admin()` y `rls_auto_enable()` como ejecutables por `anon`.
 - El repositorio de GitHub es público: valorar hacerlo privado. Si se hace, instalar la app de Claude en GitHub
   (github.com/apps/claude) para que las sesiones en la nube puedan clonarlo.
 - La búsqueda del inventario filtra en el navegador (bien con ~3000 productos; pasar a búsqueda en el servidor si crece).
@@ -364,6 +381,15 @@ nómina).
   `costoPorUnidadVendida` (`src/lib/costo-venta.ts`) suma el IVA al costo cuando el producto tiene IVA y no lo trae
   incluido. El IVA de las ventas sigue siendo solo informativo.
 - El total de una venta incluye sus servicios (`venta_servicios`): no sumarlos aparte a los ingresos.
+- **Devoluciones en las cifras**: `devolver_productos` no baja `ventas.total`; anota lo devuelto en `ventas.monto_devolucion`
+  y las unidades en `devolucion_items`. Toda suma de ventas usa `totalNetoVenta` y todo costo o cantidad por línea usa
+  `cantidadNeta`, `subtotalNeto` y `costoLineaVenta` de `src/lib/costo-venta.ts` (la consulta debe traer
+  `devolucion_items(cantidad, cantidad_fraccion)`). `cambiar_productos` sí actualiza el total.
+- 2026-11-18: migraciones `hoja_de_tareas`, `cierre_caja_saldo_efectivo` y `unir_grupos_y_politicas_con_sesion` (las
+  políticas RLS que eran "para public" pasaron a `authenticated`; `anon` ya no ejecuta `is_admin()` ni `rls_auto_enable()`),
+  y `cuadre_caja_mayor` (`sql/cuadre_caja_mayor.sql`): el saldo de caja mayor es `saldos_medios_pago` medio `caja_mayor` y un
+  trigger lo copia a `caja_mayor.saldo_actual`; `transferir_entre_fondos` deja movimiento de salida (`referencia_tipo`
+  `transferencia_salida`) y de llegada; se creó `retiros.registrado_por` (antes todo retiro fallaba).
 - Recepción de mercancía: quedan para después adjuntar la foto o el PDF de la factura y repartir fletes y descuentos en
   el costo de los renglones.
 - `DATABASE.md` y `database.types.ts` no incluyen todavía lo del 2026-11-13 (`bitacora`, `bitacora_borrados`,

@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { useNavegacion } from '@/lib/navegacion'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -95,10 +96,13 @@ export function ArqueoPanel({ ingresosEfectivo, egresosEfectivo, saldoEfectivo, 
   saldoEfectivo: number
   montoBase: number
   fechaHoy: string
-  onCerrar: () => void
+  /** Sin onCerrar el arqueo está en su propia vista: cancelar o terminar vuelve a Caja */
+  onCerrar?: () => void
 }) {
   const supabase = createClient()
   const router = useRouter()
+  const { volver } = useNavegacion()
+  const salir = (refrescar = false) => (onCerrar ? onCerrar() : volver('/dashboard/caja', { refrescar }))
   const [conteoBase, setConteoBase] = useState<ConteoItem[]>(crearConteoVacio())
   const [conteoSobrante, setConteoSobrante] = useState<ConteoItem[]>(crearConteoVacio())
   const [observacion, setObservacion] = useState('')
@@ -134,7 +138,7 @@ export function ArqueoPanel({ ingresosEfectivo, egresosEfectivo, saldoEfectivo, 
       if (error) throw error
       toast.success('Caja cerrada y sobrante transferido a Caja Mayor')
       router.refresh()
-      onCerrar()
+      salir(true)
     } catch (err: any) {
       toast.error('Error: ' + err.message)
     } finally {
@@ -147,7 +151,7 @@ export function ArqueoPanel({ ingresosEfectivo, egresosEfectivo, saldoEfectivo, 
     <div className="space-y-4 rounded-2xl border border-brand-red/30 bg-brand-red/10 p-4">
       <div className="flex items-center justify-between">
         <h2 className="font-display font-bold text-brand-red">Arqueo y Cierre de Caja — {fechaHoy}</h2>
-        <button type="button" onClick={onCerrar} className="text-xs text-brand-red hover:underline">Cancelar</button>
+        {onCerrar && <button type="button" onClick={onCerrar} className="text-xs text-brand-red hover:underline">Cancelar</button>}
       </div>
 
       <div className="space-y-1 rounded-xl border border-white/10 bg-[#111820] p-3 text-sm">
@@ -183,7 +187,7 @@ export function ArqueoPanel({ ingresosEfectivo, egresosEfectivo, saldoEfectivo, 
           items={conteoSobrante} onChange={setConteoSobrante} totalEsperado={saldoSistema} />
       </div>
 
-      {!cadraCaja && totalSobrante > 0 && (
+      {!cadraCaja && (totalSobrante > 0 || totalBase > 0) && (
         <div className="space-y-2 rounded-xl border border-brand-yellow/30 bg-brand-yellow/10 p-3">
           <div className="flex items-center gap-2 text-brand-yellow">
             <AlertTriangle className="h-4 w-4" />
