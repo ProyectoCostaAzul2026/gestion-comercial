@@ -489,9 +489,13 @@ export function ReportesPanel({
                 <TableCell className="text-right font-display text-sm font-bold text-white">{pct(kpisPeriodo.margenBruto)}</TableCell>
                 <TableCell className="text-right text-xs text-steel-300">{pct(ant.margenBruto)}</TableCell>
                 <TableCell className="text-right text-[11px] font-semibold">
-                  <span className={kpisPeriodo.margenBruto >= ant.margenBruto ? 'text-emerald-400' : 'text-brand-red'}>
-                    {kpisPeriodo.margenBruto >= ant.margenBruto ? '▲' : '▼'} {Math.abs(kpisPeriodo.margenBruto - ant.margenBruto).toFixed(1)} pts
-                  </span>
+                  {Math.abs(kpisPeriodo.margenBruto - ant.margenBruto) < 0.05 ? (
+                    <span className="text-steel-300">= 0.0 pts</span>
+                  ) : (
+                    <span className={kpisPeriodo.margenBruto > ant.margenBruto ? 'text-emerald-400' : 'text-brand-red'}>
+                      {kpisPeriodo.margenBruto > ant.margenBruto ? '▲' : '▼'} {Math.abs(kpisPeriodo.margenBruto - ant.margenBruto).toFixed(1)} pts
+                    </span>
+                  )}
                 </TableCell>
               </TableRow>
             </TableBody>

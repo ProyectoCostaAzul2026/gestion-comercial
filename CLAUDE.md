@@ -74,8 +74,18 @@ nómina).
 - `src/app/dashboard/<módulo>/`: páginas (Server Components que consultan Supabase y pasan datos a
   componentes cliente). Módulos: `ventas` (nueva, cotización, servicios, recibo), `inventario` (navegación por tarjetas: categoría, familia, grupo de medidas; nuevo, editar,
   familia, agotados, desactivados, garantías), `recepcion` (detalle y producto nuevo de un renglón), `clientes`,
-  `proveedores` (facturas, pagos), `empleados`,
-  `caja`, `contabilidad`, `nomina`, `horario`, `reportes`, `configuracion`, `instrucciones`, `mi-perfil`.
+  `proveedores` (facturas, pagos), `empleados` (pestañas Equipo, `horario` y `nomina` con `nueva`; las rutas viejas
+  `/dashboard/horario` y `/dashboard/nomina` redirigen; el empleado solo entra a `empleados/horario`, ver
+  `RUTAS_PERMITIDAS_EMPLEADO` y `esRutaSoloAdmin` en `permissions.ts`), `caja` (`cierre`: arqueo en vista propia),
+  `contabilidad` (`exportar`: Route Handler que arma el Excel del contador con `exceljs` y `src/lib/excel-contador.ts`),
+  `reportes` (`flujo` proyectado, `cartera` por edades, `sin-movimiento`), `configuracion`, `instrucciones`, `mi-perfil`.
+- **Periodos de Reportes y Contabilidad** (`src/lib/periodos.ts`, `selector-periodo.tsx`): día, semana (lunes a domingo),
+  mes, año o rango, con flechas y `?periodo=&fecha=` (o `desde`/`hasta` en rango). Se comparan contra el periodo anterior
+  con los mismos días si el actual va en curso (`periodoAnterior`); las cifras del anterior salen de `resumenPeriodo`
+  (`src/lib/reportes-servidor.ts`). Reportes también muestra descuentos en el tiempo y utilidad por categoría y familia.
+- **Vistas propias de acciones**: devolver, cambiar y anular una venta abren `/dashboard/ventas/[id]?accion=...` (el mismo
+  `VentaAcciones` con la prop `accion`; al terminar o cancelar vuelve al detalle). El cierre de caja es `/dashboard/caja/cierre`.
+- `EncabezadoPagina` (`src/components/ui/encabezado-pagina.tsx`): encabezado con franjas, título, atrás y acciones.
 - `src/components/modulos/`: formularios y paneles cliente; aquí vive la lógica de negocio del front.
 - `src/lib/`: `permissions.ts` (permisos por rol y `RUTAS_SOLO_ADMIN`), `precio-utils.ts` (margen e IVA),
   `escala-precios.ts` (motor de precios por medida: orden de medidas, redondeo, sugeridos, costos estimados y alertas),
