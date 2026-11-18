@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -11,7 +12,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DenominacionesPanel } from './denominaciones-panel'
-import { ArqueoPanel } from './arqueo-panel'
 import { AlertTriangle, Plus, Trash2, ChevronDown, ChevronUp, Check, Banknote, Smartphone, CreditCard, Coins, Wallet, Calculator } from 'lucide-react'
 import { calcularPagoDia, horasPagarPorFecha, esDomingoOFestivo } from '@/lib/festivos-colombia'
 
@@ -53,7 +53,7 @@ interface CajaPanelProps {
   cajaMayorSaldo: number
   ventasEfectivo: number; ventasNequi: number
   ventasDaviplata: number; ventasTarjeta: number; ventasCredito: number
-  totalIngresos: number; totalEgresos: number; egresosEfectivo: number; ingresosEfectivo: number
+  totalIngresos: number; totalEgresos: number
   movimientos: Movimiento[]
   fondos: FondoDenominacion[]
   saldos: SaldoMedio[]
@@ -162,7 +162,7 @@ const MEDIO_ESTILO: Record<string, { label: string; icono: any; texto: string; b
 
 export function CajaPanel({
   cajaMayorSaldo, ventasEfectivo, ventasNequi, ventasDaviplata, ventasTarjeta, ventasCredito,
-  totalIngresos, totalEgresos, egresosEfectivo, ingresosEfectivo,
+  totalIngresos, totalEgresos,
   movimientos, fondos, saldos, config, proveedores,
   fechaHoy, nominasPagadasHoy, empleadosActivos, arqueoHoy, categoriasGasto,
   empleados, empleadosPagadosHoy,
@@ -522,10 +522,10 @@ export function CajaPanel({
             <p className="mt-0.5 text-xs text-steel-300">{fechaHoy}{esFestivoHoy ? ' · Domingo/Festivo' : ''}</p>
           </div>
           {!arqueoHoy ? (
-            <Button variant="outline" className="border-brand-red/30 bg-transparent text-brand-red hover:bg-brand-red/15 hover:text-brand-red"
-              onClick={() => abrirPanel('arqueo')}>
-              Arqueo y Cierre de Caja
-            </Button>
+            <Link href="/dashboard/caja/cierre"
+              className="inline-flex h-10 items-center rounded-xl border border-brand-red/40 px-4 text-sm font-semibold text-brand-red hover:bg-brand-red/15">
+              Arqueo y cierre de caja
+            </Link>
           ) : (
             <span className="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-400">Caja cerrada hoy</span>
           )}
@@ -548,18 +548,6 @@ export function CajaPanel({
           <AlertTriangle className="h-4 w-4 shrink-0" />
           <span>{nominasPagadasHoy} de {empleadosActivos} empleados tienen nómina pagada hoy. Se recomienda pagar antes de cerrar caja.</span>
         </div>
-      )}
-
-      {/* Panel arqueo */}
-      {panelActivo === 'arqueo' && !arqueoHoy && (
-        <ArqueoPanel
-          ingresosEfectivo={ingresosEfectivo}
-          egresosEfectivo={egresosEfectivo}
-          saldoEfectivo={saldosPorMedio.efectivo ?? 0}
-          montoBase={config.monto_base_caja_menor}
-          fechaHoy={fechaHoy}
-          onCerrar={() => setPanelActivo('ninguno')}
-        />
       )}
 
       {/* Entradas del día */}

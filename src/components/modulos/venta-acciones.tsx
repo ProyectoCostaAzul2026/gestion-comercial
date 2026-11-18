@@ -3,12 +3,14 @@
 import { useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { useNavegacion } from '@/lib/navegacion'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Search, Trash2 } from 'lucide-react'
+import { Ban, Repeat, Search, Trash2, Undo2 } from 'lucide-react'
 import { precioConCantidad, type TramoPrecio } from '@/lib/precios-cantidad'
 import { AvisoPrecioCantidad } from './precios-cantidad'
 import {
@@ -74,6 +76,8 @@ interface GarantiaItem {
 
 interface VentaAccionesProps {
   ventaId: string; esAdmin: boolean
+  /** Vista propia de la acción (/dashboard/ventas/[id]?accion=...): abre esa acción y, al terminar o cancelar, vuelve al detalle */
+  accion?: AccionVenta
   items: VentaItem[]
   ventaTotal: number
   /** Suma de subtotal_linea de todas las líneas de la venta más sus servicios */
@@ -91,7 +95,8 @@ interface VentaAccionesProps {
   credito: { saldoPendiente: number; abonado: number } | null
 }
 
-type Accion = 'ninguna' | 'anular' | 'devolver' | 'cambiar'
+export type AccionVenta = 'anular' | 'devolver' | 'cambiar'
+type Accion = 'ninguna' | AccionVenta
 
 const itemsDevolucionIniciales = (items: VentaItem[]): ItemDevolucion[] =>
   items.map(i => ({
@@ -124,11 +129,12 @@ const selectMedioCls = 'rounded-lg border border-white/10 bg-[#111820] px-2 py-1
 
 export function VentaAcciones({
   ventaId, esAdmin, items, ventaTotal, baseVenta, descuentoGlobalPorcentaje, conDescuentoGlobal, tipoPago, tieneAjustes,
-  tieneServicios, credito,
+  tieneServicios, credito, accion,
 }: VentaAccionesProps) {
   const router = useRouter()
   const supabase = createClient()
-  const [accionActiva, setAccionActiva] = useState<Accion>('ninguna')
+  const { volver } = useNavegacion()
+  const [accionActiva, setAccionActiva] = useState<Accion>(accion ?? 'ninguna')
 
   const [motivo, setMotivo] = useState('')
   const [anulando, setAnulando] = useState(false)
@@ -162,6 +168,8 @@ export function VentaAcciones({
   }
 
   const cerrar = () => {
+    // En la vista propia de la acción, cancelar o terminar vuelve al detalle de la venta (y lo recarga)
+    if (accion) { volver(`/dashboard/ventas/${ventaId}`, { refrescar: true }); return }
     setAccionActiva('ninguna'); setMotivo(''); setObservacionDev(''); setObservacionCambio(''); setPaso(1)
     setItemsDevolucion(itemsDevolucionIniciales(items))
     setItemsRetirar(itemsRetirarIniciales(items))
@@ -178,6 +186,7 @@ export function VentaAcciones({
       if (error) throw error
       toast.success('Venta anulada')
       router.refresh()
+      if (accion) cerrar()
     } catch (err: any) {
       toast.error('Error al anular: ' + err.message)
     } finally {
@@ -342,21 +351,29 @@ export function VentaAcciones({
 
   return (
     <div className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
-      <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
-        Acciones
-      </h2>
+      {!accion && (
+        <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+          Acciones
+        </h2>
+      )}
 
       {accionActiva === 'ninguna' && (
         <div className="space-y-1">
           <div className="flex flex-wrap items-center gap-2">
-            <button type="button" onClick={() => setAccionActiva('devolver')} className="text-sm text-brand-yellow hover:underline">Devolver productos</button>
-            <span className="text-steel-500">·</span>
-            <button type="button" onClick={() => setAccionActiva('cambiar')} className="text-sm text-brand-blue hover:underline">Cambiar productos</button>
+            {/* Cada acción abre su propia vista; Atrás vuelve a este detalle */}
+            <Link href={`/dashboard/ventas/${ventaId}?accion=devolver`}
+              className="inline-flex h-11 items-center gap-2 rounded-xl border border-brand-yellow/40 px-4 text-sm font-semibold text-brand-yellow hover:bg-brand-yellow/10">
+              <Undo2 className="h-4 w-4" />Devolver productos
+            </Link>
+            <Link href={`/dashboard/ventas/${ventaId}?accion=cambiar`}
+              className="inline-flex h-11 items-center gap-2 rounded-xl border border-brand-blue/40 px-4 text-sm font-semibold text-brand-blue hover:bg-brand-blue/10">
+              <Repeat className="h-4 w-4" />Cambiar productos
+            </Link>
             {!tieneAjustes && (
-              <>
-                <span className="text-steel-500">·</span>
-                <button type="button" onClick={() => setAccionActiva('anular')} className="text-sm text-brand-red hover:underline">Anular venta</button>
-              </>
+              <Link href={`/dashboard/ventas/${ventaId}?accion=anular`}
+                className="inline-flex h-11 items-center gap-2 rounded-xl border border-brand-red/40 px-4 text-sm font-semibold text-brand-red hover:bg-brand-red/10">
+                <Ban className="h-4 w-4" />Anular venta
+              </Link>
             )}
           </div>
           {tieneAjustes && (
