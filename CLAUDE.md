@@ -178,13 +178,13 @@ nómina).
 - **Pedido sugerido** (Agotados y página del proveedor): `cantidadSugerida` toma la rotación de 90 días y, como mínimo,
   repone hasta el doble del stock mínimo (sin ventas la rotación es 0). Se descarga en PDF o se envía por WhatsApp.
 - **Hoja de tareas** (`/dashboard/tareas`, `tareas-panel.tsx`, `src/lib/tareas.ts`; tablas `tareas` y `tareas_plantillas`,
-  SQL en `sql/pendiente_hoja_de_tareas.sql`): solo el administrador crea, edita y borra; prioridad alta, media o baja,
+  SQL en `sql/hoja_de_tareas.sql`): solo el administrador crea, edita y borra; prioridad alta, media o baja,
   asignada a un empleado o libre, con fecha límite opcional. No se repiten solas: se guardan como plantilla o se "crean de
   nuevo" desde una hecha. El empleado ve las suyas y las libres y las marca hechas (con nota) con la RPC `marcar_tarea`.
 - **Cierre de caja** (`cerrar_caja_arqueo`, `arqueo-panel.tsx`): lo que debe haber sobre la base es el saldo del medio
   `efectivo` en `saldos_medios_pago` desde el último cierre (lo mueven todas las RPC de dinero y el cierre lo deja en 0).
   Entradas y salidas del día salen de `movimientos_caja`; lo que no cuadra con ellas es efectivo de días sin cerrar.
-  SQL en `sql/pendiente_cierre_caja.sql` (antes no contaba abonos y restaba dos veces las anulaciones).
+  Migración `cierre_caja_saldo_efectivo` (2026-11-18; antes no contaba abonos y restaba dos veces las anulaciones).
 - **Bitácora** (`/dashboard/bitacora`, solo administrador; `bitacora-panel.tsx`, `src/lib/bitacora.ts`): registro de cambios
   importantes (precios, activar o desactivar productos, roles y salarios, configuración, estados de ventas, ajustes
   manuales de stock, retiros, arqueos, devoluciones y cualquier borrado o vaciado de las tablas del negocio). La escriben
@@ -356,7 +356,6 @@ nómina).
   se pueden cambiar por las del fabricante cuando su web tenga catálogo (Truper solo publica miniaturas; Ecoled limita las
   consultas). Las fotos de Easy son de productos equivalentes de la tienda, no siempre de la misma marca. Las imágenes enlazadas pueden romperse si el proveedor cambia su web; algunas de Ferremakros pesan
   más de 1 MB. Confirmar con la primera compra el costo de las medidas nuevas (19 del 2026-11-05 y 236 del 2026-11-06). Quedan por confirmar algunos términos del lote 1 que pueden ser marcas y la medida de dos piezas Kaudal.
-- El advisor de seguridad marca `is_admin()` y `rls_auto_enable()` como ejecutables por `anon`.
 - El repositorio de GitHub es público: valorar hacerlo privado. Si se hace, instalar la app de Claude en GitHub
   (github.com/apps/claude) para que las sesiones en la nube puedan clonarlo.
 - La búsqueda del inventario filtra en el navegador (bien con ~3000 productos; pasar a búsqueda en el servidor si crece).
@@ -374,6 +373,12 @@ nómina).
   `costoPorUnidadVendida` (`src/lib/costo-venta.ts`) suma el IVA al costo cuando el producto tiene IVA y no lo trae
   incluido. El IVA de las ventas sigue siendo solo informativo.
 - El total de una venta incluye sus servicios (`venta_servicios`): no sumarlos aparte a los ingresos.
+- **Devoluciones en las cifras**: `devolver_productos` no baja `ventas.total`; anota lo devuelto en `ventas.monto_devolucion`
+  y las unidades en `devolucion_items`. Toda suma de ventas usa `totalNetoVenta` y todo costo o cantidad por línea usa
+  `cantidadNeta`, `subtotalNeto` y `costoLineaVenta` de `src/lib/costo-venta.ts` (la consulta debe traer
+  `devolucion_items(cantidad, cantidad_fraccion)`). `cambiar_productos` sí actualiza el total.
+- 2026-11-18: migraciones `hoja_de_tareas`, `cierre_caja_saldo_efectivo` y `unir_grupos_y_politicas_con_sesion` (las
+  políticas RLS que eran "para public" pasaron a `authenticated`; `anon` ya no ejecuta `is_admin()` ni `rls_auto_enable()`).
 - Recepción de mercancía: quedan para después adjuntar la foto o el PDF de la factura y repartir fletes y descuentos en
   el costo de los renglones.
 - `DATABASE.md` y `database.types.ts` no incluyen todavía lo del 2026-11-13 (`bitacora`, `bitacora_borrados`,

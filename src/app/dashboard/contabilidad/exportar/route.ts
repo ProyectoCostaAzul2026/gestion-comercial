@@ -3,7 +3,7 @@ import ExcelJS from 'exceljs'
 import { createClient } from '@/lib/supabase/server'
 import { traerTodo } from '@/lib/supabase/traer-todo'
 import { hoyBogota } from '@/lib/fechas'
-import { cantidadVendida, costoPorUnidadVendida } from '@/lib/costo-venta'
+import { cantidadNeta, costoPorUnidadVendida, subtotalNeto } from '@/lib/costo-venta'
 import { diasVencido } from '@/lib/cartera'
 import { agregarTabla, congelar, datoSuelto, nuevaHoja, type Columna } from '@/lib/excel-contador'
 
@@ -35,13 +35,13 @@ export async function GET(request: NextRequest) {
 
   const [ventas, pagosVenta, items, servicios, compras, pagosProv, gastos, nominas, caja, cobrar, pagar, negocio] = await Promise.all([
     traerTodo((a, b) => supabase.from('ventas')
-      .select('id, numero_ticket, fecha, hora, tipo_pago, subtotal, total_descuentos, total_iva, total, estado, motivo_anulacion, clientes(nombre, nit_cc), profiles!empleado_id(nombre_completo)')
+      .select('id, numero_ticket, fecha, hora, tipo_pago, subtotal, total_descuentos, total_iva, total, monto_devolucion, estado, motivo_anulacion, clientes(nombre, nit_cc), profiles!empleado_id(nombre_completo)')
       .gte('fecha', desde).lte('fecha', hasta).order('fecha').order('hora').order('id').range(a, b)),
     traerTodo((a, b) => supabase.from('venta_pagos')
       .select('venta_id, metodo, monto, ventas!inner(fecha)')
       .gte('ventas.fecha', desde).lte('ventas.fecha', hasta).order('id').range(a, b)),
     traerTodo((a, b) => supabase.from('venta_items')
-      .select('nombre_producto, cantidad, es_fraccionado, cantidad_fraccion, precio_unitario, descuento_linea, subtotal_linea, iva_unitario, costo_unitario, productos(codigo, cantidad_total_unidad, tiene_iva, iva_incluido, porcentaje_iva), ventas!inner(numero_ticket, fecha, estado)')
+      .select('nombre_producto, cantidad, es_fraccionado, cantidad_fraccion, precio_unitario, descuento_linea, subtotal_linea, iva_unitario, costo_unitario, devolucion_items(cantidad, cantidad_fraccion), productos(codigo, cantidad_total_unidad, tiene_iva, iva_incluido, porcentaje_iva), ventas!inner(numero_ticket, fecha, estado)')
       .gte('ventas.fecha', desde).lte('ventas.fecha', hasta).neq('ventas.estado', 'anulada').order('id').range(a, b)),
     traerTodo((a, b) => supabase.from('venta_servicios')
       .select('nombre_servicio, precio_aplicado, ventas!inner(numero_ticket, fecha, estado)')
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
   // El Resumen va primero en el libro, pero se llena al final: sus fórmulas apuntan a los totales de las demás hojas
   const hResumen = nuevaHoja(libro, 'Resumen', 'Resumen contable del periodo', 2)
 
-  const hVentas = nuevaHoja(libro, 'Ventas', `Ventas del ${desde} al ${hasta}`, 12)
+  const hVentas = nuevaHoja(libro, 'Ventas', `Ventas del ${desde} al ${hasta}`, 14)
   const tVentas = agregarTabla(hVentas, 4, 'Ventas (incluye las anuladas, que no suman)', [
     { titulo: 'Fecha', tipo: 'fecha', valor: (v: any) => v.fecha },
     { titulo: 'Hora', tipo: 'texto', valor: (v: any) => v.hora?.slice(0, 5) },
@@ -97,17 +97,25 @@ export async function GET(request: NextRequest) {
     { titulo: 'Descuentos', tipo: 'dinero', valor: (v: any) => v.total_descuentos, total: (c, d, h) => `SUMIF(${c('Estado')}${d}:${c('Estado')}${h},"<>Anulada",${c('Descuentos')}${d}:${c('Descuentos')}${h})` },
     { titulo: 'IVA contenido', tipo: 'dinero', valor: (v: any) => v.total_iva, nota: 'Informativo: el negocio no es responsable de IVA. Es el IVA que trae el precio, no se suma al total.', total: (c, d, h) => `SUMIF(${c('Estado')}${d}:${c('Estado')}${h},"<>Anulada",${c('IVA contenido')}${d}:${c('IVA contenido')}${h})` },
     { titulo: 'Total', tipo: 'dinero', valor: (v: any) => v.total, total: (c, d, h) => `SUMIF(${c('Estado')}${d}:${c('Estado')}${h},"<>Anulada",${c('Total')}${d}:${c('Total')}${h})`, nota: 'El total ya incluye los servicios de la venta.' },
+    { titulo: 'Devoluciones', tipo: 'dinero', valor: (v: any) => Number(v.monto_devolucion ?? 0), total: (c, d, h) => `SUMIF(${c('Estado')}${d}:${c('Estado')}${h},"<>Anulada",${c('Devoluciones')}${d}:${c('Devoluciones')}${h})`, nota: 'Dinero devuelto al cliente por productos devueltos.' },
+    { titulo: 'Total neto', tipo: 'dinero', formula: (c, r) => `IF(${c('Estado')}${r}="Anulada",0,${c('Total')}${r}-${c('Devoluciones')}${r})`, total: 'suma', nota: 'Lo que de verdad se vendió: total menos devoluciones. Una venta anulada vale 0.' },
     { titulo: 'Estado', tipo: 'texto', valor: (v: any) => ESTADOS[v.estado] ?? v.estado },
   ] as Columna<any>[], ventas.data)
   congelar(hVentas, 5)
 
   const filasDetalle = [
-    ...(items.data as any[]).map(i => ({
-      fecha: i.ventas?.fecha, ticket: i.ventas?.numero_ticket, tipo: i.es_fraccionado ? 'Producto por fracción' : 'Producto',
-      codigo: i.productos?.codigo, nombre: i.nombre_producto, cantidad: cantidadVendida(i),
-      precio: i.es_fraccionado ? Number(i.subtotal_linea) / Math.max(cantidadVendida(i), 1e-9) : Number(i.precio_unitario),
-      descuento: Number(i.descuento_linea ?? 0), subtotal: Number(i.subtotal_linea), costo: costoPorUnidadVendida(i),
-    })),
+    // Sin lo devuelto: cantidad y valor de lo que el cliente se quedó (las líneas devueltas del todo no salen)
+    ...(items.data as any[]).filter(i => cantidadNeta(i) > 0).map(i => {
+      const vendida = Number(i.es_fraccionado ? i.cantidad_fraccion : i.cantidad) || 1
+      const parte = cantidadNeta(i) / vendida
+      return {
+        fecha: i.ventas?.fecha, ticket: i.ventas?.numero_ticket, tipo: i.es_fraccionado ? 'Producto por fracción' : 'Producto',
+        codigo: i.productos?.codigo, nombre: i.nombre_producto, cantidad: cantidadNeta(i),
+        // Precio de lista por unidad (en fracción, por metro o kilo); el descuento y el subtotal, de lo que se quedó el cliente
+        precio: i.es_fraccionado ? (Number(i.subtotal_linea) + Number(i.descuento_linea ?? 0)) / vendida : Number(i.precio_unitario),
+        descuento: Number(i.descuento_linea ?? 0) * parte, subtotal: subtotalNeto(i), costo: costoPorUnidadVendida(i),
+      }
+    }),
     ...(servicios.data as any[]).map(s => ({
       fecha: s.ventas?.fecha, ticket: s.ventas?.numero_ticket, tipo: 'Servicio', codigo: '', nombre: s.nombre_servicio,
       cantidad: 1, precio: Number(s.precio_aplicado), descuento: 0, subtotal: Number(s.precio_aplicado), costo: 0,
@@ -227,7 +235,7 @@ export async function GET(request: NextRequest) {
   tc.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2F5597' } }
   tc.alignment = { horizontal: 'center' }
   f = tituloER + 1
-  const ingresos = datoSuelto(hResumen, f++, 'Ventas', { formula: tVentas.totales['Total'] }, 'dinero', 'Suma de la hoja Ventas sin las anuladas. Incluye servicios.')
+  const ingresos = datoSuelto(hResumen, f++, 'Ventas', { formula: tVentas.totales['Total neto'] }, 'dinero', 'Total neto de la hoja Ventas: sin anuladas ni devoluciones. Incluye servicios.')
   const costo = datoSuelto(hResumen, f++, 'Costo de lo vendido', { formula: tDetalle.totales['Costo total'] }, 'dinero', 'Suma de la hoja Detalle ventas. Incluye el IVA de compra.')
   const bruta = datoSuelto(hResumen, f++, 'Ganancia bruta', { formula: `${ingresos}-${costo}` }, 'dinero')
   const gasto = datoSuelto(hResumen, f++, 'Gastos', { formula: tGastos.totales['Monto'] }, 'dinero')

@@ -2,7 +2,7 @@
 // Usa las mismas reglas que la página de Reportes: ventas no anuladas, costo con costoLineaVenta, gastos y nóminas pagadas.
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { traerTodo } from '@/lib/supabase/traer-todo'
-import { costoLineaVenta } from '@/lib/costo-venta'
+import { costoLineaVenta, totalNetoVenta } from '@/lib/costo-venta'
 
 export interface ResumenPeriodo {
   ingresos: number
@@ -25,14 +25,14 @@ type Cliente = SupabaseClient<any, any, any>
 
 export async function resumenPeriodo(supabase: Cliente, desde: string, hasta: string): Promise<ResumenPeriodo> {
   const [ventas, items, gastos, nominas, pagos, creditos] = await Promise.all([
-    traerTodo<{ total: number; total_descuentos: number | null }>((a, b) =>
-      supabase.from('ventas').select('total, total_descuentos')
+    traerTodo<{ total: number; total_descuentos: number | null; monto_devolucion: number | null }>((a, b) =>
+      supabase.from('ventas').select('total, total_descuentos, monto_devolucion')
         .gte('fecha', desde).lte('fecha', hasta).in('estado', ['completada', 'modificada', 'credito'])
         .order('id').range(a, b)),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     traerTodo<any>((a, b) =>
       supabase.from('venta_items')
-        .select('cantidad, es_fraccionado, cantidad_fraccion, costo_unitario, productos(cantidad_total_unidad, tiene_iva, iva_incluido, porcentaje_iva), ventas!inner(fecha, estado)')
+        .select('cantidad, es_fraccionado, cantidad_fraccion, costo_unitario, devolucion_items(cantidad, cantidad_fraccion), productos(cantidad_total_unidad, tiene_iva, iva_incluido, porcentaje_iva), ventas!inner(fecha, estado)')
         .gte('ventas.fecha', desde).lte('ventas.fecha', hasta).neq('ventas.estado', 'anulada')
         .order('id').range(a, b)),
     traerTodo<{ monto: number }>((a, b) =>
@@ -51,7 +51,7 @@ export async function resumenPeriodo(supabase: Cliente, desde: string, hasta: st
   ])
 
   const suma = <T,>(filas: T[], campo: (f: T) => unknown) => filas.reduce((s, f) => s + Number(campo(f) ?? 0), 0)
-  const ingresos = suma(ventas.data, v => v.total)
+  const ingresos = ventas.data.reduce((s, v) => s + totalNetoVenta(v), 0)
   const numVentas = ventas.data.length
   const costoVentas = items.data.reduce((s, i) => s + costoLineaVenta(i), 0)
   const totalGastos = suma(gastos.data, g => g.monto)

@@ -3,7 +3,7 @@ import { traerTodo } from '@/lib/supabase/traer-todo'
 import { redirect } from 'next/navigation'
 import { ReportesPanel } from '@/components/modulos/reportes-panel'
 import { hoyBogota } from '@/lib/fechas'
-import { costoLineaVenta } from '@/lib/costo-venta'
+import { cantidadNeta, costoLineaVenta, subtotalNeto, totalNetoVenta } from '@/lib/costo-venta'
 import { claveSerie, diasEntre, leerPeriodo, periodoAnterior } from '@/lib/periodos'
 import { resumenPeriodo } from '@/lib/reportes-servidor'
 
@@ -43,7 +43,7 @@ export default async function ReportesPage({
     traerTodo((filaDesde, filaHasta) =>
       supabase
         .from('ventas')
-        .select('id, fecha, hora, total, total_descuentos, tipo_pago, estado, empleado_id, profiles!empleado_id(nombre_completo)')
+        .select('id, fecha, hora, total, total_descuentos, monto_devolucion, tipo_pago, estado, empleado_id, profiles!empleado_id(nombre_completo)')
         .gte('fecha', desde)
         .lte('fecha', hasta)
         .in('estado', ['completada', 'modificada', 'credito'])
@@ -68,7 +68,7 @@ export default async function ReportesPage({
         .from('venta_items')
         .select(`
           id, nombre_producto, cantidad, precio_unitario, subtotal_linea,
-          costo_unitario, es_fraccionado, cantidad_fraccion, venta_id, producto_id,
+          costo_unitario, es_fraccionado, cantidad_fraccion, venta_id, producto_id, devolucion_items(cantidad, cantidad_fraccion),
           productos(id, codigo, nombre, marca, unidad_medida, precio_costo_base, cantidad_total_unidad, tiene_iva, iva_incluido, porcentaje_iva,
             producto_familias(nombre_base), categorias_producto(nombre)),
           ventas!inner(fecha, estado)
@@ -145,7 +145,8 @@ export default async function ReportesPage({
   // Solo ventas completadas/modificadas para ingresos reales
   const ventasCompletadas = (ventas ?? []).filter((v: any) =>
     v.estado === 'completada' || v.estado === 'modificada')
-  const totalIngresos = (ventas ?? []).reduce((s: number, v: any) => s + Number(v.total), 0)
+  // Lo devuelto no es venta: devolver_productos no baja el total, lo anota en monto_devolucion
+  const totalIngresos = (ventas ?? []).reduce((s: number, v: any) => s + totalNetoVenta(v), 0)
   const numVentasPeriodo = ventas?.length ?? 0
 
   const totalCMV = (ventaItems ?? []).reduce((s: number, i: any) => s + costoLineaVenta(i), 0)
@@ -206,7 +207,7 @@ export default async function ReportesPage({
   const ticketsPorHora: Record<number, number> = {}
   for (const v of ventas ?? []) {
     const hora = parseInt((v as any).hora?.slice(0, 2) ?? '0')
-    ventasPorHora[hora] = (ventasPorHora[hora] ?? 0) + Number((v as any).total)
+    ventasPorHora[hora] = (ventasPorHora[hora] ?? 0) + totalNetoVenta(v as any)
     ticketsPorHora[hora] = (ticketsPorHora[hora] ?? 0) + 1
   }
   const graficaHoras = Array.from({ length: 13 }, (_, i) => i + 8).map(h => ({
@@ -224,7 +225,7 @@ export default async function ReportesPage({
     const fecha = (v as any).fecha as string
     const d = new Date(fecha + 'T00:00:00')
     const idx = (d.getDay() + 6) % 7
-    totalPorDiaSemana[idx] += Number((v as any).total)
+    totalPorDiaSemana[idx] += totalNetoVenta(v as any)
     ticketsPorDiaSemana[idx] += 1
   }
   const conteoPorDiaSemana = [0, 0, 0, 0, 0, 0, 0]
@@ -248,7 +249,7 @@ export default async function ReportesPage({
   for (const v of ventas ?? []) {
     const nombre = (v as any).profiles?.nombre_completo ?? 'Sin asignar'
     if (!ventasPorEmpleado[nombre]) ventasPorEmpleado[nombre] = { nombre, total: 0, tickets: 0 }
-    ventasPorEmpleado[nombre].total += Number((v as any).total)
+    ventasPorEmpleado[nombre].total += totalNetoVenta(v as any)
     ventasPorEmpleado[nombre].tickets += 1
   }
   const graficaEmpleados = Object.values(ventasPorEmpleado).sort((a, b) => b.total - a.total)
@@ -262,7 +263,7 @@ export default async function ReportesPage({
   for (const i of ventaItems ?? []) {
     const pid = (i as any).producto_id
     if (!pid) continue
-    const cant = (i as any).es_fraccionado ? Number((i as any).cantidad_fraccion ?? 1) : Number((i as any).cantidad)
+    const cant = cantidadNeta(i as any)
     if (!productoStats[pid]) {
       productoStats[pid] = {
         producto_id: pid,
@@ -274,7 +275,7 @@ export default async function ReportesPage({
       }
     }
     productoStats[pid].cantidad += cant
-    productoStats[pid].ingresos += Number((i as any).subtotal_linea)
+    productoStats[pid].ingresos += subtotalNeto(i as any)
     productoStats[pid].tickets.add((i as any).venta_id)
     productoStats[pid].costo += costoLineaVenta(i as any)
   }
@@ -328,7 +329,7 @@ export default async function ReportesPage({
     const k = claveSerie((v as any).fecha, diasPeriodo)
     const d = (descuentosPorFecha[k] ??= { descuentos: 0, ventas: 0, tickets: 0 })
     d.descuentos += Number((v as any).total_descuentos ?? 0)
-    d.ventas += Number((v as any).total)
+    d.ventas += totalNetoVenta(v as any)
     if (Number((v as any).total_descuentos ?? 0) > 0) d.tickets += 1
   }
   const serieDescuentos = Object.entries(descuentosPorFecha)
@@ -342,9 +343,9 @@ export default async function ReportesPage({
     for (const i of ventaItems ?? []) {
       const nombre = clave(i)
       const g = (mapa[nombre] ??= { nombre, ingresos: 0, costo: 0, unidades: 0, productos: new Set() })
-      g.ingresos += Number((i as any).subtotal_linea)
+      g.ingresos += subtotalNeto(i as any)
       g.costo += costoLineaVenta(i as any)
-      g.unidades += (i as any).es_fraccionado ? Number((i as any).cantidad_fraccion ?? 0) : Number((i as any).cantidad)
+      g.unidades += cantidadNeta(i as any)
       if ((i as any).producto_id) g.productos.add((i as any).producto_id)
     }
     return Object.values(mapa).map(g => ({

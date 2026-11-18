@@ -3,7 +3,7 @@ import { traerTodo } from '@/lib/supabase/traer-todo'
 import { redirect } from 'next/navigation'
 import { hoyBogota } from '@/lib/fechas'
 import { ContabilidadPanel } from '@/components/modulos/contabilidad-panel'
-import { costoLineaVenta } from '@/lib/costo-venta'
+import { costoLineaVenta, totalNetoVenta } from '@/lib/costo-venta'
 import { leerPeriodo } from '@/lib/periodos'
 
 export default async function ContabilidadPage({
@@ -38,7 +38,7 @@ export default async function ContabilidadPage({
     traerTodo((filaDesde, filaHasta) =>
       supabase
         .from('ventas')
-        .select('id, numero_ticket, fecha, total, tipo_pago, estado, clientes(nombre)')
+        .select('id, numero_ticket, fecha, total, monto_devolucion, tipo_pago, estado, clientes(nombre)')
         .gte('fecha', desde)
         .lte('fecha', hasta)
         .in('estado', ['completada', 'modificada', 'credito'])
@@ -63,7 +63,7 @@ export default async function ContabilidadPage({
         .from('venta_items')
         .select(`
           id, nombre_producto, cantidad, costo_unitario, subtotal_linea,
-          es_fraccionado, cantidad_fraccion,
+          es_fraccionado, cantidad_fraccion, devolucion_items(cantidad, cantidad_fraccion),
           productos(id, nombre, cantidad_total_unidad, tiene_iva, iva_incluido, porcentaje_iva, producto_proveedores(proveedor_id, proveedores(nombre))),
           ventas!inner(fecha, estado)
         `)
@@ -135,7 +135,7 @@ export default async function ContabilidadPage({
   }))
 
   // El total de cada venta ya incluye sus servicios: no se suman aparte (antes se contaban dos veces)
-  const totalIngresos = (ventas ?? []).reduce((s: number, v: any) => s + Number(v.total), 0)
+  const totalIngresos = (ventas ?? []).reduce((s: number, v: any) => s + totalNetoVenta(v), 0)
   const totalServicios = (ventaServicios ?? []).reduce((s: number, vs: any) => s + Number(vs.precio_aplicado), 0)
   const totalCMV = (ventaItems ?? []).reduce((s: number, i: any) => s + costoLineaVenta(i), 0)
   const totalGastos = (gastos ?? []).reduce((s: number, g: any) => s + Number(g.monto), 0)
@@ -146,7 +146,8 @@ export default async function ContabilidadPage({
 
   return (
     <ContabilidadPanel
-      ventas={(ventas as any) ?? []}
+      // Cada venta con su total menos lo devuelto (devolver_productos no baja el total)
+      ventas={((ventas as any[]) ?? []).map(v => ({ ...v, total: totalNetoVenta(v) }))}
       ventaServicios={(ventaServicios as any) ?? []}
       ventaItems={(ventaItems as any) ?? []}
       gastos={(gastos as any) ?? []}
