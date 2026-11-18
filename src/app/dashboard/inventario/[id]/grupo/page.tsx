@@ -2,14 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { BotonAtras } from '@/components/ui/boton-atras'
 import { esAdmin } from '@/lib/permissions'
-import { GrupoMedidasPanel, type MiembroGrupo } from '@/components/modulos/grupo-medidas-panel'
-
-// Un grupo de medidas son los productos de la misma familia, característica y marca: lo mismo en distintas medidas.
-// No tiene tabla propia; se arma desde cualquiera de sus productos.
-const CAMPOS_MIEMBRO = `
-  id, nombre, codigo, unidad_medida, marca, activo, stock_actual, stock_minimo, ubicacion,
-  precio_venta, precio_costo_base, tiene_iva, iva_incluido, porcentaje_iva, orden_medida, peso_unitario_g
-`
+import { GrupoMedidasPanel } from '@/components/modulos/grupo-medidas-panel'
+import { cargarGrupoMedidas } from '@/lib/grupo-medidas-servidor'
 
 export default async function GrupoMedidasPage({
   params,
@@ -21,45 +15,14 @@ export default async function GrupoMedidasPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: producto, error } = await supabase
-    .from('productos')
-    .select('id, nombre, familia_id, caracteristica, marca')
-    .eq('id', id)
-    .single()
-  if (error || !producto) notFound()
-
-  let consulta = supabase.from('productos').select(CAMPOS_MIEMBRO)
-  if (producto.familia_id) {
-    consulta = consulta.eq('familia_id', producto.familia_id)
-    consulta = producto.caracteristica == null
-      ? consulta.is('caracteristica', null)
-      : consulta.eq('caracteristica', producto.caracteristica)
-    consulta = producto.marca == null ? consulta.is('marca', null) : consulta.eq('marca', producto.marca)
-  } else {
-    consulta = consulta.eq('id', producto.id)
-  }
-
-  const [
-    { data: miembrosData },
-    { data: perfil },
-    { data: config },
-    { data: categorias },
-    { data: proveedores },
-  ] = await Promise.all([
-    consulta.order('id'),
+  const [grupo, { data: perfil }, { data: categorias }, { data: proveedores }] = await Promise.all([
+    cargarGrupoMedidas(supabase, id),
     supabase.from('profiles').select('rol').eq('id', user.id).single(),
-    supabase.from('configuracion_negocio').select('margen_default').single(),
     supabase.from('categorias_producto').select('id, nombre').order('nombre'),
     supabase.from('proveedores').select('id, nombre').eq('activo', true).order('nombre'),
   ])
-
-  const miembros: MiembroGrupo[] = (miembrosData ?? []).map(m => ({
-    ...m,
-    precio_venta: Number(m.precio_venta),
-    precio_costo_base: m.precio_costo_base != null ? Number(m.precio_costo_base) : null,
-    porcentaje_iva: Number(m.porcentaje_iva),
-    peso_unitario_g: m.peso_unitario_g != null ? Number(m.peso_unitario_g) : null,
-  }))
+  if (!grupo) notFound()
+  const { producto, miembros } = grupo
 
   return (
     <div className="-m-4 md:-m-6">
@@ -80,7 +43,6 @@ export default async function GrupoMedidasPage({
           productoActualId={producto.id}
           miembrosIniciales={miembros}
           esAdmin={esAdmin(perfil?.rol)}
-          margenDefault={config?.margen_default != null ? Number(config.margen_default) * 100 : 40}
           categorias={categorias ?? []}
           proveedoresDisponibles={proveedores ?? []}
         />

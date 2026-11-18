@@ -1,0 +1,63 @@
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+import { ListChecks } from 'lucide-react'
+import { hoyBogota, bogotaEnDias } from '@/lib/fechas'
+import { TareasPanel } from '@/components/modulos/tareas-panel'
+import type { PlantillaTarea, Tarea } from '@/lib/tareas'
+
+const CAMPOS = 'id, titulo, descripcion, prioridad, asignado_a, fecha_limite, estado, hecha_por, hecha_en, nota, plantilla_id, created_at'
+
+export default async function TareasPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: perfil } = await supabase.from('profiles').select('rol').eq('id', user.id).single()
+  const esAdmin = perfil?.rol === 'administrador'
+
+  // Las tablas de tareas nacen con una migración posterior a los tipos generados
+  const [pendientes, hechas, plantillas, { data: empleados }] = await Promise.all([
+    supabase.from('tareas' as never).select(CAMPOS).eq('estado', 'pendiente').order('created_at').limit(500),
+    supabase.from('tareas' as never).select(CAMPOS).eq('estado', 'hecha')
+      .gte('hecha_en', `${bogotaEnDias(-30)}T00:00:00-05:00`).order('hecha_en', { ascending: false }).limit(200),
+    esAdmin
+      ? supabase.from('tareas_plantillas' as never).select('id, titulo, descripcion, prioridad, asignado_a, veces_usada').order('veces_usada', { ascending: false })
+      : Promise.resolve({ data: [], error: null }),
+    supabase.from('profiles').select('id, nombre_completo, rol').eq('activo', true).order('nombre_completo'),
+  ])
+
+  const error = pendientes.error ?? hechas.error
+  return (
+    <div className="space-y-4">
+      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] py-3 pl-4 pr-14 md:py-4 md:pr-28">
+        <h1 className="flex items-center gap-2 font-display text-2xl font-bold text-brand-yellow md:text-3xl">
+          <ListChecks className="h-7 w-7" aria-hidden />Tareas
+        </h1>
+        <p className="mt-0.5 text-xs text-steel-300">
+          {esAdmin ? 'Crea tareas, asígnalas o déjalas libres y mira quién las hizo.' : 'Tus tareas y las libres. Márcalas cuando las termines.'}
+        </p>
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-12 overflow-hidden md:w-24">
+          <div className="absolute inset-y-0 right-0 w-9 -skew-x-12 translate-x-4 bg-brand-yellow/80 md:w-20 md:translate-x-8" />
+          <div className="absolute inset-y-0 right-0 w-3 -skew-x-12 translate-x-1 bg-brand-blue md:w-7" />
+        </div>
+      </div>
+
+      {error ? (
+        <p className="rounded-2xl border border-brand-yellow/30 bg-brand-yellow/10 p-4 text-sm text-white">
+          La hoja de tareas todavía no está activada en la base de datos.
+          <span className="mt-1 block text-xs text-steel-300">Detalle: {error.message}</span>
+        </p>
+      ) : (
+        <TareasPanel
+          pendientes={(pendientes.data ?? []) as unknown as Tarea[]}
+          hechas={(hechas.data ?? []) as unknown as Tarea[]}
+          plantillas={(plantillas.data ?? []) as unknown as PlantillaTarea[]}
+          personas={(empleados ?? []).map(e => ({ id: e.id, nombre: e.nombre_completo, rol: e.rol }))}
+          esAdmin={esAdmin}
+          usuarioId={user.id}
+          hoy={hoyBogota()}
+        />
+      )}
+    </div>
+  )
+}

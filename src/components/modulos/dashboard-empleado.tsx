@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import {
   ShoppingCart, Package, TrendingUp, Receipt, BarChart3,
-  Phone, Mail, Banknote, Calendar, AlertCircle, ClipboardCheck, Users,
+  Phone, Mail, Banknote, Calendar, AlertCircle, ClipboardCheck, Users, ListChecks,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -18,6 +18,8 @@ const DIAS_ORDEN = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado
 function fmt(n: number) { return `$${Math.round(n).toLocaleString('es-CO')}` }
 
 interface Props {
+  /** Tareas pendientes suyas y libres (null si la hoja de tareas aún no está activa) */
+  tareasPendientes: number | null
   profile: {
     nombre_completo: string; rol: string; telefono: string | null
     salario_base: number | null; foto_url: string | null; email: string | null
@@ -31,7 +33,7 @@ interface Props {
   filtros: { ventaDesde: string; ventaHasta: string; nominaDesde: string; nominaHasta: string }
 }
 
-export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, turnos, kpis, filtros }: Props) {
+export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, turnos, kpis, filtros, tareasPendientes }: Props) {
   if (!profile) {
     return (
       <div className="rounded-2xl border border-white/10 bg-[#111820] p-6 text-center text-sm text-steel-300">
@@ -142,6 +144,7 @@ export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, 
           Inventario
         </Link>
         {[
+          { href: '/dashboard/tareas', icon: ListChecks, label: tareasPendientes ? `Tareas (${tareasPendientes})` : 'Tareas' },
           { href: '/dashboard/recepcion', icon: ClipboardCheck, label: 'Recepción' },
           { href: '/dashboard/clientes', icon: Users, label: 'Clientes' },
           { href: '/dashboard/horario', icon: Calendar, label: 'Horario y permisos' },

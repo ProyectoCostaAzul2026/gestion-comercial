@@ -37,6 +37,10 @@ export default async function DashboardPage({
   const esAdmin = (profile as any)?.rol === 'administrador'
   const hoy = hoyBogota()
 
+  // Tareas pendientes que le tocan a quien entra (si la tabla aún no existe, no se muestra el número)
+  const { count: tareasPendientes } = await supabase.from('tareas' as never)
+    .select('id', { count: 'exact', head: true }).eq('estado', 'pendiente')
+
   const { data: config } = await supabase
     .from('configuracion_negocio')
     .select('nombre, logo_url')
@@ -101,6 +105,7 @@ export default async function DashboardPage({
 
     return (
       <DashboardAdmin
+        tareasPendientes={tareasPendientes ?? null}
         profile={profile as any}
         config={config as any}
         fechaHoy={hoy}
@@ -164,6 +169,7 @@ export default async function DashboardPage({
 
   return (
     <DashboardEmpleado
+      tareasPendientes={tareasPendientes ?? null}
       profile={profile as any}
       config={config as any}
       fechaHoy={hoy}
