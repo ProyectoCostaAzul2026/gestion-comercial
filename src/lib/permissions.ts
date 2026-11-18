@@ -81,6 +81,7 @@ export const navItems: NavItem[] = [
   { label: 'Inventario', href: '/dashboard/inventario', icon: 'Package', grupo: 'Operación' },
   { label: 'Recepción', href: '/dashboard/recepcion', icon: 'ClipboardCheck', grupo: 'Operación' },
   { label: 'Clientes', href: '/dashboard/clientes', icon: 'Users', grupo: 'Operación' },
+  { label: 'Tareas', href: '/dashboard/tareas', icon: 'ListChecks', grupo: 'Equipo' },
   { label: 'Horario y permisos', href: '/dashboard/horario', icon: 'Calendar', grupo: 'Equipo' },
   { label: 'Empleados', href: '/dashboard/empleados', icon: 'UserCog', grupo: 'Equipo', soloAdmin: true },
   { label: 'Nómina', href: '/dashboard/nomina', icon: 'DollarSign', grupo: 'Equipo', soloAdmin: true },

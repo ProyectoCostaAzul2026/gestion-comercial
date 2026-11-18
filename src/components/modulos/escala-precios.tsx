@@ -47,11 +47,13 @@ function Dato({ etiqueta, valor, nota }: { etiqueta: string; valor: string; nota
   )
 }
 
-export function EscalaPrecios({ miembros, margenDefault, onGuardado }: {
+export function EscalaPrecios({ miembros, margenDefault, onGuardado, paginaCompleta = false }: {
   /** Miembros del grupo, ya ordenados por medida */
   miembros: MiembroGrupo[]
   margenDefault: number
-  onGuardado: (precios: Record<string, number>) => void
+  onGuardado?: (precios: Record<string, number>) => void
+  /** Vista propia de precios: sin marco, y el botón de guardar queda fijo abajo de la pantalla */
+  paginaCompleta?: boolean
 }) {
   const router = useRouter()
   const supabase = createClient()
@@ -135,7 +137,7 @@ export function EscalaPrecios({ miembros, margenDefault, onGuardado }: {
       const { error } = await supabase.rpc('aplicar_escala_precios', { p_precios: precios })
       if (error) throw error
       toast.success(`Se guardaron ${precios.length} precio(s) de venta`)
-      onGuardado(Object.fromEntries(precios.map(p => [p.producto_id, p.precio_venta])))
+      onGuardado?.(Object.fromEntries(precios.map(p => [p.producto_id, p.precio_venta])))
       router.refresh()
     } catch (err) {
       toast.error('Error al guardar los precios: ' + mensajeError(err))
@@ -145,9 +147,9 @@ export function EscalaPrecios({ miembros, margenDefault, onGuardado }: {
   }
 
   return (
-    <div className="space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-4">
+    <div className={paginaCompleta ? 'space-y-4' : 'space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-4'}>
       <div>
-        <h3 className="font-display font-bold text-white">Escala de precios</h3>
+        <h3 className={`font-display font-bold text-white ${paginaCompleta ? 'sr-only' : ''}`}>Escala de precios</h3>
         <p className="text-xs text-steel-500">
           Pon un margen y el sistema sugiere un precio por medida a partir del costo. Tú decides el precio final: al
           guardar, esos quedan como precios de venta.
@@ -264,10 +266,22 @@ export function EscalaPrecios({ miembros, margenDefault, onGuardado }: {
         </p>
       )}
 
-      <Button type="button" onClick={guardar} disabled={cambios.length === 0 || guardando}
-        className="h-11 w-full rounded-xl bg-brand-yellow font-bold text-steel-900 hover:bg-brand-yellow hover:brightness-105">
-        {guardando ? 'Guardando…' : cambios.length === 0 ? 'Sin cambios de precio' : `Guardar ${cambios.length} precio(s)`}
-      </Button>
+      <div className={paginaCompleta
+        ? 'sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 -mx-4 border-t border-white/10 bg-[#111820]/95 px-4 py-2 backdrop-blur lg:bottom-4 lg:mx-0 lg:rounded-2xl lg:border lg:shadow-2xl lg:shadow-black/50'
+        : ''}>
+        <div className={paginaCompleta ? 'flex items-center gap-3' : ''}>
+          {paginaCompleta && (
+            <p className="min-w-0 flex-1 text-xs text-steel-300">
+              {cambios.length === 0 ? 'Sin cambios' : `${cambios.length} precio${cambios.length === 1 ? '' : 's'} por guardar`}
+              {conPerdida > 0 && <span className="block text-brand-red">{conPerdida} bajo el costo</span>}
+            </p>
+          )}
+          <Button type="button" onClick={guardar} disabled={cambios.length === 0 || guardando}
+            className={`h-11 rounded-xl bg-brand-yellow font-bold text-steel-900 hover:bg-brand-yellow hover:brightness-105 ${paginaCompleta ? 'shrink-0 px-6' : 'w-full'}`}>
+            {guardando ? 'Guardando…' : cambios.length === 0 ? 'Sin cambios de precio' : `Guardar ${cambios.length} precio(s)`}
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }

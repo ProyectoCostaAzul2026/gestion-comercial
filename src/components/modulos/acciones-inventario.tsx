@@ -9,7 +9,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
-  ArrowLeft, Eye, FolderInput, Layers, Pencil, Plus, PowerOff, Scissors, Shapes, SlidersHorizontal,
+  ArrowLeft, Eye, FolderInput, Layers, Pencil, Plus, PowerOff, Scissors, Shapes, SlidersHorizontal, Tags,
 } from 'lucide-react'
 
 /** Lo mínimo de un producto que necesitan las acciones de mover y sacar */
@@ -192,7 +192,8 @@ export function AccionesInventario({ objetivo, onCerrar, categorias, familias, e
             {esGrupo && (
               <>
                 <Link href={`/dashboard/inventario/nuevo?desde=${base.id}${volver}`} className={BOTON}><Plus className="h-4 w-4 text-steel-300" /> Agregar una medida a este grupo</Link>
-                <Link href={`/dashboard/inventario/${base.id}/grupo`} className={BOTON}><SlidersHorizontal className="h-4 w-4 text-steel-300" /> Precios, orden y pesos del grupo</Link>
+                {esAdmin && <Link href={`/dashboard/inventario/${base.id}/grupo/precios`} className={BOTON}><Tags className="h-4 w-4 text-steel-300" /> Precios del grupo</Link>}
+                <Link href={`/dashboard/inventario/${base.id}/grupo`} className={BOTON}><SlidersHorizontal className="h-4 w-4 text-steel-300" /> Orden, pesos y datos del grupo</Link>
               </>
             )}
             <div className="my-1 border-t border-white/10" />

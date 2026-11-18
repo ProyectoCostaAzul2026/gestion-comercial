@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { ArrowDown, ArrowUp, ListOrdered, Pencil, Plus, Scale, Settings2, Trash2, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronRight, ListOrdered, Pencil, Plus, Scale, Settings2, Tags, Trash2, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,7 +13,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ordenarPorMedida } from '@/lib/escala-precios'
 import { formatearPeso, pesoDeCantidad } from '@/lib/peso'
-import { EscalaPrecios } from './escala-precios'
 import { CalculadoraPesoUnitario } from './peso-por-unidad'
 import { INPUT_CLS, LABEL_CLS } from './producto-form'
 
@@ -46,7 +45,6 @@ interface Props {
   miembrosIniciales: MiembroGrupo[]
   esAdmin: boolean
   /** Margen por defecto del negocio, en porcentaje */
-  margenDefault: number
   categorias: { id: string; nombre: string }[]
   proveedoresDisponibles: { id: string; nombre: string }[]
 }
@@ -66,7 +64,7 @@ const pesos = (v: number) => `$${Math.round(v).toLocaleString('es-CO')}`
 const mensajeError = (err: unknown) => (err as { message?: string } | null)?.message ?? String(err)
 
 export function GrupoMedidasPanel({
-  productoActualId, miembrosIniciales, esAdmin, margenDefault, categorias, proveedoresDisponibles,
+  productoActualId, miembrosIniciales, esAdmin, categorias, proveedoresDisponibles,
 }: Props) {
   const supabase = createClient()
   const router = useRouter()
@@ -514,11 +512,17 @@ export function GrupoMedidasPanel({
       )}
 
       {esAdmin ? (
-        <EscalaPrecios
-          miembros={ordenados}
-          margenDefault={margenDefault}
-          onGuardado={precios => setMiembros(prev => prev.map(m => precios[m.id] !== undefined ? { ...m, precio_venta: precios[m.id] } : m))}
-        />
+        <Link href={`/dashboard/inventario/${productoActualId}/grupo/precios`}
+          className="flex items-center gap-3 rounded-2xl border border-brand-yellow/40 bg-brand-yellow/5 p-4 hover:bg-brand-yellow/10">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-yellow text-steel-900">
+            <Tags className="h-5 w-5" aria-hidden />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-display font-bold text-white">Escala de precios</span>
+            <span className="block text-xs text-steel-300">Cambia los precios de las {miembros.length} medidas con un margen, redondeo y sugeridos</span>
+          </span>
+          <ChevronRight className="h-5 w-5 shrink-0 text-brand-yellow" aria-hidden />
+        </Link>
       ) : (
         <p className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#111820] px-4 py-3 text-xs text-steel-300">
           <Pencil className="h-3.5 w-3.5 shrink-0" aria-hidden />

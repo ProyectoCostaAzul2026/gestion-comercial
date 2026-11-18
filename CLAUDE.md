@@ -137,11 +137,10 @@ nómina).
   RPC `mover_productos` (`SECURITY DEFINER`, administrador y empleado; conserva código, stock y precios).
 - **Unir grupos arrastrando** (`src/lib/usar-arrastre.ts`, `src/lib/unir-grupos.ts`, `unir-grupos-medidas.tsx`): en la lista
   de grupos de una familia, mantener presionada una tarjeta (400 ms con el dedo; con el ratón, arrastrar) y soltarla sobre
-  otra abre una confirmación. Las medidas del origen toman la característica (con `mover_productos`) y la marca (update
-  directo) del destino. `planearUnion` valida antes de guardar: medidas repetidas (se quedan en su grupo; si todas se
-  repiten, no deja unir), marcas distintas (avisa) y el orden de los dos pasos para no chocar con un tercer grupo. Si el
-  segundo paso falla se devuelve el primero, y el aviso de éxito trae "Deshacer". Los botones de la tarjeta llevan
-  `data-sin-arrastre`. Pendiente: una RPC `unir_grupos_medidas` que haga los dos pasos en una sola transacción.
+  otra abre una confirmación. Las medidas del origen toman la característica y la marca del destino con la RPC
+  `unir_grupos_medidas` (una sola transacción: marca con nombre temporal y luego `mover_productos`; también deshace).
+  `planearUnion` valida antes de guardar: medidas repetidas (se quedan en su grupo; si todas se repiten, no deja unir) y
+  marcas distintas (avisa). El aviso de éxito trae "Deshacer". Los botones de la tarjeta llevan `data-sin-arrastre`.
 - **Editar tarjetas** (`editar-tarjeta-inventario.tsx`, lápiz de la tarjeta o botón "Editar" del nivel): nombre e imagen
   (URL). Categoría: update directo. Familia: RPC `editar_familia` (renombra sus productos a `familia - característica`;
   la imagen es solo de la tarjeta). Grupo: RPC `editar_grupo_medidas` (cambia la característica y, si se cambió la
@@ -168,6 +167,14 @@ nómina).
   contado queda como borrador en el navegador (`localStorage`) hasta guardar o descartar.
 - **Pedido sugerido** (Agotados y página del proveedor): `cantidadSugerida` toma la rotación de 90 días y, como mínimo,
   repone hasta el doble del stock mínimo (sin ventas la rotación es 0). Se descarga en PDF o se envía por WhatsApp.
+- **Hoja de tareas** (`/dashboard/tareas`, `tareas-panel.tsx`, `src/lib/tareas.ts`; tablas `tareas` y `tareas_plantillas`,
+  SQL en `sql/pendiente_hoja_de_tareas.sql`): solo el administrador crea, edita y borra; prioridad alta, media o baja,
+  asignada a un empleado o libre, con fecha límite opcional. No se repiten solas: se guardan como plantilla o se "crean de
+  nuevo" desde una hecha. El empleado ve las suyas y las libres y las marca hechas (con nota) con la RPC `marcar_tarea`.
+- **Cierre de caja** (`cerrar_caja_arqueo`, `arqueo-panel.tsx`): lo que debe haber sobre la base es el saldo del medio
+  `efectivo` en `saldos_medios_pago` desde el último cierre (lo mueven todas las RPC de dinero y el cierre lo deja en 0).
+  Entradas y salidas del día salen de `movimientos_caja`; lo que no cuadra con ellas es efectivo de días sin cerrar.
+  SQL en `sql/pendiente_cierre_caja.sql` (antes no contaba abonos y restaba dos veces las anulaciones).
 - **Bitácora** (`/dashboard/bitacora`, solo administrador; `bitacora-panel.tsx`, `src/lib/bitacora.ts`): registro de cambios
   importantes (precios, activar o desactivar productos, roles y salarios, configuración, estados de ventas, ajustes
   manuales de stock, retiros, arqueos, devoluciones y cualquier borrado o vaciado de las tablas del negocio). La escriben
@@ -236,7 +243,8 @@ nómina).
   "por grupos" en Inventario). Las medidas se ordenan por tamaño (calibre o diámetro y luego largo) o por
   `productos.orden_medida` (orden manual, RPC `ordenar_medidas`). La escala de precios del grupo (solo admin) sugiere
   precios con un margen y el redondeo de `escala-precios.ts` ($50 bajo $1.000, $100 desde $1.000) y guarda con
-  `aplicar_escala_precios`. Es una tabla con alertas (se quitó la gráfica el 2026-11-07).
+  `aplicar_escala_precios`. Es una tabla con alertas y tiene su propia página, `inventario/[id]/grupo/precios` (botón
+  "Precios" del grupo; la página del grupo queda para orden y pesos; datos con `src/lib/grupo-medidas-servidor.ts`).
 - **Peso por unidad** (`productos.peso_unitario_g`, gramos, opcional y solo informativo): con él la app calcula cuánto
   deben pesar N unidades y cuántas unidades hay en un peso, en Nueva venta, en Editar producto ("Contar por peso" en
   bodega y almacén: peso total menos el recipiente, dividido por el peso de una unidad; al guardar, ese stock queda y

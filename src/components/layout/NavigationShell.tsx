@@ -6,7 +6,7 @@ import { Suspense, useEffect, useState } from 'react'
 import {
   Home, Package, Users, ShoppingCart, Wallet, Truck, UserCog,
   BarChart3, LogOut, Settings, Calendar, DollarSign, BookOpen,
-  Zap, Menu, X, HelpCircle, ClipboardCheck, Plus, ShieldCheck,
+  Zap, Menu, X, HelpCircle, ClipboardCheck, Plus, ShieldCheck, ListChecks,
 } from 'lucide-react'
 import { GRUPOS_NAV, navItems, rutaActiva, type NavItem } from '@/lib/permissions'
 import { createClient } from '@/lib/supabase/client'
@@ -15,7 +15,7 @@ import { BarraProgreso } from './barra-progreso'
 
 const iconMap: Record<string, React.ElementType> = {
   Home, Package, Users, ShoppingCart, Wallet, Truck, UserCog,
-  BarChart3, Settings, Calendar, DollarSign, BookOpen, HelpCircle, ClipboardCheck, ShieldCheck,
+  BarChart3, Settings, Calendar, DollarSign, BookOpen, HelpCircle, ClipboardCheck, ShieldCheck, ListChecks,
 }
 
 const RUTA_VENDER = '/dashboard/ventas/nueva'

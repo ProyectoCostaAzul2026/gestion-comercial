@@ -4,7 +4,7 @@ import { useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
-import { ChevronRight, ClipboardCheck, EllipsisVertical, Hand, Merge, Package, Pencil, Plus, Search, SlidersHorizontal, X } from 'lucide-react'
+import { ChevronRight, ClipboardCheck, EllipsisVertical, Tags, Hand, Merge, Package, Pencil, Plus, Search, SlidersHorizontal, X } from 'lucide-react'
 import {
   buscarProductos, claveCategoria, claveFamilia, claveGrupo, nivelCategorias, nivelFamilias, nivelGrupos, pesos,
   rangoPrecios, SIN, type NivelGrupo, type ProductoInventario, type Resumen,
@@ -348,10 +348,16 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
                         <Pencil className="h-4 w-4" /> Editar
                       </button>
                     )}
+                    {fam !== SIN && esAdmin && (
+                      <Link href={`${RUTA}/${grupo.items[0].id}/grupo/precios`}
+                        className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-brand-yellow px-3 text-sm font-bold text-steel-900 hover:brightness-105">
+                        <Tags className="h-4 w-4" /> Precios
+                      </Link>
+                    )}
                     {fam !== SIN && (
                       <Link href={`${RUTA}/${grupo.items[0].id}/grupo`}
                         className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-white/15 px-3 text-sm font-bold text-white hover:bg-white/5">
-                        <SlidersHorizontal className="h-4 w-4" /> Precios y orden
+                        <SlidersHorizontal className="h-4 w-4" /> Orden y pesos
                       </Link>
                     )}
                     <Link href={`${RUTA}/conteo?q=${encodeURIComponent(grupo.nombre)}`} className={BOTON_EDITAR}>
@@ -439,7 +445,6 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
           familia={nombreFamilia(fam)}
           origen={unirOrigen}
           destino={unirDestino}
-          grupos={listaGrupos}
           onCerrar={() => setUnir(null)}
         />
       )}

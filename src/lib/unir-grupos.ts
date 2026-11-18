@@ -16,11 +16,6 @@ export interface PlanUnion {
   repetidas: MedidaRepetida[]
   /** Las medidas que pasan cambian de marca (los grupos tenían marcas distintas) */
   cambiaMarca: boolean
-  /**
-   * Con cambio de marca hay dos pasos (nombre y marca) y a mitad de camino las medidas pasan por un grupo intermedio:
-   * se elige el orden en el que ese paso intermedio no choca con un tercer grupo de la familia.
-   */
-  orden: 'nombre-primero' | 'marca-primero'
   /** Si no se puede unir, el motivo */
   error: string | null
 }
@@ -32,9 +27,9 @@ export function claveMedida(medida: string | null): string {
 
 const igual = (a: string | null, b: string | null) => (a ?? '').trim().toLowerCase() === (b ?? '').trim().toLowerCase()
 
-/** `grupos` son todos los grupos de la familia (para revisar que el paso intermedio no choque con un tercero) */
-export function planearUnion(origen: NivelGrupo, destino: NivelGrupo, grupos: NivelGrupo[] = []): PlanUnion {
-  const vacio = { mover: [], repetidas: [], cambiaMarca: false, orden: 'nombre-primero' as const }
+/** La unión la guarda la RPC unir_grupos_medidas en una sola transacción (característica y marca juntas) */
+export function planearUnion(origen: NivelGrupo, destino: NivelGrupo): PlanUnion {
+  const vacio = { mover: [], repetidas: [], cambiaMarca: false }
   if (origen.clave === destino.clave) return { ...vacio, error: 'Suelta el grupo sobre otro distinto.' }
   if (origen.items.length === 0 || destino.items.length === 0) return { ...vacio, error: 'Uno de los grupos ya no tiene productos. Actualiza la página.' }
 
@@ -58,20 +53,9 @@ export function planearUnion(origen: NivelGrupo, destino: NivelGrupo, grupos: Ni
   }
 
   const cambiaMarca = !igual(origen.marca, destino.marca)
-  const base = { mover, repetidas, cambiaMarca, orden: 'nombre-primero' as const }
+  const base = { mover, repetidas, cambiaMarca }
   if (mover.length === 0) {
     return { ...base, error: 'Todas las medidas de este grupo ya existen en el grupo de destino. Para juntar dos productos repetidos, pasa el stock a uno y desactiva el otro.' }
   }
-  if (!cambiaMarca) return { ...base, error: null }
-
-  // ¿Alguna medida que pasa ya existe en el grupo intermedio (misma característica y marca que tendría a mitad de camino)?
-  const chocaCon = (caracteristica: string | null, marca: string | null) => {
-    const tercero = grupos.find(g => g.clave !== origen.clave && g.clave !== destino.clave && igual(g.caracteristica, caracteristica) && igual(g.marca, marca))
-    if (!tercero) return false
-    const medidas = new Set(tercero.items.map(p => claveMedida(p.unidad_medida)))
-    return mover.some(p => medidas.has(claveMedida(p.unidad_medida)))
-  }
-  if (!chocaCon(destino.caracteristica, origen.marca)) return { ...base, error: null }
-  if (!chocaCon(origen.caracteristica, destino.marca)) return { ...base, orden: 'marca-primero', error: null }
-  return { ...base, error: 'Hay otros grupos de esta familia con las mismas medidas, característica o marca que impiden hacer el cambio. Une primero esos grupos o cambia la marca desde "Editar producto".' }
+  return { ...base, error: null }
 }

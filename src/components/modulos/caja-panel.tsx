@@ -53,7 +53,7 @@ interface CajaPanelProps {
   cajaMayorSaldo: number
   ventasEfectivo: number; ventasNequi: number
   ventasDaviplata: number; ventasTarjeta: number; ventasCredito: number
-  totalIngresos: number; totalEgresos: number; egresosEfectivo: number
+  totalIngresos: number; totalEgresos: number; egresosEfectivo: number; ingresosEfectivo: number
   movimientos: Movimiento[]
   fondos: FondoDenominacion[]
   saldos: SaldoMedio[]
@@ -162,7 +162,7 @@ const MEDIO_ESTILO: Record<string, { label: string; icono: any; texto: string; b
 
 export function CajaPanel({
   cajaMayorSaldo, ventasEfectivo, ventasNequi, ventasDaviplata, ventasTarjeta, ventasCredito,
-  totalIngresos, totalEgresos, egresosEfectivo,
+  totalIngresos, totalEgresos, egresosEfectivo, ingresosEfectivo,
   movimientos, fondos, saldos, config, proveedores,
   fechaHoy, nominasPagadasHoy, empleadosActivos, arqueoHoy, categoriasGasto,
   empleados, empleadosPagadosHoy,
@@ -238,7 +238,7 @@ export function CajaPanel({
       `• A crédito: ${p(ventasCredito)}`,
       `Otros ingresos de caja: ${p(totalIngresos)}`,
       `Egresos (gastos, retiros, proveedores, nómina): ${p(totalEgresos)}`,
-      `Efectivo que debe haber sobre la base: ${p(ventasEfectivo - egresosEfectivo)}`,
+      `Efectivo que debe haber sobre la base: ${p(saldosPorMedio.efectivo ?? 0)}`,
       `Nómina pagada: ${nominasPagadasHoy} de ${empleadosActivos}`,
       arqueoHoy ? 'Caja cerrada con arqueo.' : 'La caja aún no se ha cerrado.',
     ].join('\n')
@@ -553,8 +553,9 @@ export function CajaPanel({
       {/* Panel arqueo */}
       {panelActivo === 'arqueo' && !arqueoHoy && (
         <ArqueoPanel
-          ventasEfectivo={ventasEfectivo}
+          ingresosEfectivo={ingresosEfectivo}
           egresosEfectivo={egresosEfectivo}
+          saldoEfectivo={saldosPorMedio.efectivo ?? 0}
           montoBase={config.monto_base_caja_menor}
           fechaHoy={fechaHoy}
           onCerrar={() => setPanelActivo('ninguno')}

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import {
   AlertTriangle, ShoppingCart, Package, Wallet, BarChart3, Truck, BookOpen,
   TrendingUp, Receipt, Users, PackageX, CalendarClock,
-  Banknote, Smartphone, CreditCard, ArrowLeftRight, AlertCircle, CalendarOff, ClipboardList, ClipboardCheck, DollarSign,
+  Banknote, Smartphone, CreditCard, ArrowLeftRight, AlertCircle, CalendarOff, ClipboardList, ClipboardCheck, DollarSign, ListChecks, ShieldCheck,
 } from 'lucide-react'
 import { fechaLarga } from '@/lib/permisos'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -40,9 +40,11 @@ interface Props {
   }
   /** Fecha de hoy en Bogotá, para marcar los permisos de hoy */
   fechaHoyBogota: string
+  /** Tareas pendientes de todo el equipo (null si la hoja de tareas aún no está activa) */
+  tareasPendientes: number | null
 }
 
-export function DashboardAdmin({ profile, config, fechaHoy, kpisHoy, ultimasVentas, alertas, fechaHoyBogota }: Props) {
+export function DashboardAdmin({ profile, config, fechaHoy, kpisHoy, ultimasVentas, alertas, fechaHoyBogota, tareasPendientes }: Props) {
   if (!profile) {
     return (
       <div className="rounded-2xl border border-white/10 bg-[#111820] p-6 text-center text-sm text-steel-300">
@@ -290,6 +292,8 @@ export function DashboardAdmin({ profile, config, fechaHoy, kpisHoy, ultimasVent
             { href: '/dashboard/inventario', icon: Package, label: 'Inventario', primary: false },
             { href: '/dashboard/recepcion', icon: ClipboardCheck, label: 'Recepción', primary: false },
             { href: '/dashboard/nomina', icon: DollarSign, label: 'Nómina', primary: false },
+            { href: '/dashboard/tareas', icon: ListChecks, label: tareasPendientes ? `Tareas (${tareasPendientes})` : 'Tareas', primary: false },
+            { href: '/dashboard/bitacora', icon: ShieldCheck, label: 'Bitácora', primary: false },
           ].map(({ href, icon: Icon, label, primary }) => (
             <Link key={href} href={href}
               className={`flex h-16 items-center gap-3 rounded-2xl px-4 text-sm font-bold transition ${
