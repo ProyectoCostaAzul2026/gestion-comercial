@@ -86,9 +86,13 @@ function crearConteoVacio(): ConteoItem[] {
   ]
 }
 
-export function ArqueoPanel({ ventasEfectivo, egresosEfectivo, montoBase, fechaHoy, onCerrar }: {
-  ventasEfectivo: number
+export function ArqueoPanel({ ingresosEfectivo, egresosEfectivo, saldoEfectivo, montoBase, fechaHoy, onCerrar }: {
+  /** Entradas de hoy en efectivo: ventas, abonos y cobros de cambios */
+  ingresosEfectivo: number
+  /** Salidas de hoy en efectivo: gastos, retiros, pagos, nómina, devoluciones y anulaciones */
   egresosEfectivo: number
+  /** Saldo del efectivo desde el último cierre (incluye días sin cerrar); es lo que compara cerrar_caja_arqueo */
+  saldoEfectivo: number
   montoBase: number
   fechaHoy: string
   onCerrar: () => void
@@ -101,8 +105,10 @@ export function ArqueoPanel({ ventasEfectivo, egresosEfectivo, montoBase, fechaH
   const [confirmando, setConfirmando] = useState(false)
   const [cerrando, setCerrando] = useState(false)
 
-  // Saldo sistema: solo efectivo (cash in - cash out)
-  const saldoSistema = ventasEfectivo - egresosEfectivo
+  // Lo que debe haber sobre la base: el saldo del efectivo desde el último cierre. Si quedó efectivo de días que no se
+  // cerraron, aparece aparte como "de días anteriores".
+  const saldoSistema = saldoEfectivo
+  const arrastre = saldoEfectivo - (ingresosEfectivo - egresosEfectivo)
   const totalBase = useMemo(() => conteoBase.reduce((s, i) => s + i.subtotal, 0), [conteoBase])
   const totalSobrante = useMemo(() => conteoSobrante.reduce((s, i) => s + i.subtotal, 0), [conteoSobrante])
   const diferencia = totalSobrante - saldoSistema
@@ -147,15 +153,21 @@ export function ArqueoPanel({ ventasEfectivo, egresosEfectivo, montoBase, fechaH
       <div className="space-y-1 rounded-xl border border-white/10 bg-[#111820] p-3 text-sm">
         <p className="mb-1 font-medium text-steel-300">Saldo calculado por el sistema</p>
         <div className="flex justify-between">
-          <span className="text-steel-300">Ingresos en efectivo</span>
-          <span className="text-white">${ventasEfectivo.toLocaleString('es-CO')}</span>
+          <span className="text-steel-300">Entradas de hoy en efectivo</span>
+          <span className="text-white">${ingresosEfectivo.toLocaleString('es-CO')}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-steel-300">Egresos en efectivo</span>
+          <span className="text-steel-300">Salidas de hoy en efectivo</span>
           <span className="text-white">-${egresosEfectivo.toLocaleString('es-CO')}</span>
         </div>
+        {Math.abs(arrastre) >= 1 && (
+          <div className="flex justify-between">
+            <span className="text-steel-300">De días anteriores sin cerrar</span>
+            <span className="text-white">{arrastre < 0 ? '-' : ''}${Math.abs(arrastre).toLocaleString('es-CO')}</span>
+          </div>
+        )}
         <div className="flex justify-between border-t border-white/8 pt-1 font-bold">
-          <span className="text-white">Saldo neto en efectivo</span>
+          <span className="text-white">Debe haber sobre la base</span>
           <span className="font-display text-white">${saldoSistema.toLocaleString('es-CO')}</span>
         </div>
       </div>
