@@ -3,6 +3,8 @@
 import { useRef } from 'react'
 import { Printer, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { enlaceWhatsApp } from '@/lib/whatsapp'
+import { toast } from 'sonner'
 
 const METODO_LABEL: Record<string, string> = {
   efectivo: 'Efectivo', nequi: 'Nequi', daviplata: 'Daviplata',
@@ -246,17 +248,15 @@ export function ReciboView({ venta, items, servicios, pagos, config }: ReciboVie
   }
 
   const handleWhatsAppCliente = () => {
-    const telefono = cliente?.telefono?.replace(/\D/g, '')
-    if (!telefono) { alert('Este cliente no tiene teléfono registrado'); return }
-    const texto = buildWhatsAppTexto()
-    window.open(`https://wa.me/${telefono}?text=${encodeURIComponent(texto)}`, '_blank')
+    const enlace = enlaceWhatsApp(cliente?.telefono, buildWhatsAppTexto())
+    if (!enlace) { toast.error('Este cliente no tiene un teléfono válido registrado'); return }
+    window.open(enlace, '_blank')
   }
 
   const handleWhatsAppNegocio = () => {
-    const numero = config?.whatsapp_negocio?.replace(/\D/g, '')
-    if (!numero) { alert('Configura el número de WhatsApp del negocio en Configuración'); return }
-    const texto = buildWhatsAppTexto()
-    window.open(`https://wa.me/${numero}?text=${encodeURIComponent(texto)}`, '_blank')
+    const enlace = enlaceWhatsApp(config?.whatsapp_negocio, buildWhatsAppTexto())
+    if (!enlace) { toast.error('Configura el número de WhatsApp del negocio en Configuración'); return }
+    window.open(enlace, '_blank')
   }
 
   return (

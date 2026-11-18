@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { calcularPagoDia, horasPagarPorFecha } from '@/lib/festivos-colombia'
+import { calcularPagoDia, horasPagarPorFecha, turnoEnFecha } from '@/lib/festivos-colombia'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 
@@ -64,11 +64,13 @@ function calcularHorasTurno(inicio: string, fin: string): number {
 }
 
 export function NominaTable({
-  empleados, historial, fechaHoy,
+  empleados, historial, fechaHoy, permisosHoy = [],
 }: {
   empleados: EmpleadoNomina[]
   historial: HistorialNomina[]
   fechaHoy: string
+  /** Empleados con permiso hoy (no asisten): no entran en el pago del día */
+  permisosHoy?: string[]
 }) {
   const supabase = createClient()
   const router = useRouter()
@@ -87,17 +89,19 @@ export function NominaTable({
   const empleadosConCalculo = useMemo(() => {
     return empleados.map(e => {
       const turnoHoy = e.turnosSemana.find(t => DIAS_A_NUM[t.dia_semana] === diaHoy)
-      const horasTurno = turnoHoy ? calcularHorasTurno(turnoHoy.hora_inicio, turnoHoy.hora_fin) : null
+      // En festivo el turno habitual se recorta a la jornada de festivo
+      const real = turnoHoy ? turnoEnFecha(fechaHoy, turnoHoy.hora_inicio, turnoHoy.hora_fin) : null
+      const horasTurno = real ? calcularHorasTurno(real.inicio, real.fin) : null
       const pagoSugerido = turnoHoy
         ? calcularPagoDia(e.salario_base, fechaHoy, horasTurno ?? undefined)
         : 0
-      return { ...e, horasTurno, pagoSugerido, tieneHorario: !!turnoHoy }
+      return { ...e, horasTurno, pagoSugerido, tieneHorario: !!turnoHoy, conPermiso: permisosHoy.includes(e.id) }
     })
-  }, [empleados, fechaHoy, diaHoy])
+  }, [empleados, fechaHoy, diaHoy, permisosHoy])
 
   // ✅ Solo empleados con turno hoy
   const empleadosEnTurno = useMemo(() =>
-    empleadosConCalculo.filter(e => e.tieneHorario),
+    empleadosConCalculo.filter(e => e.tieneHorario && !e.conPermiso),
     [empleadosConCalculo])
 
   const pendientes = empleadosEnTurno.filter(e => !e.nominaHoy)
@@ -176,6 +180,13 @@ export function NominaTable({
 
       {tabActiva === 'hoy' && (
         <div className="space-y-3">
+          {empleadosConCalculo.some(e => e.conPermiso && e.tieneHorario) && (
+            <p className="rounded-2xl border border-brand-red/30 bg-brand-red/10 px-4 py-3 text-xs text-white">
+              Con permiso hoy (no asisten y no entran en el pago):{' '}
+              <span className="font-semibold">{empleadosConCalculo.filter(e => e.conPermiso && e.tieneHorario).map(e => e.nombre_completo).join(', ')}</span>.
+              Si alguno sí vino, quita el permiso en Horario o págale con «Registrar pago».
+            </p>
+          )}
           {empleadosEnTurno.length === 0 && (
             <div className="rounded-2xl border border-white/10 bg-[#111820] p-6 text-center text-sm text-steel-500">
               No hay empleados con turno asignado para hoy ({fechaHoy})

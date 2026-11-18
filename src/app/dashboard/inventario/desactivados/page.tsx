@@ -25,18 +25,20 @@ export default async function ProductosDesactivadosPage() {
 
   const ids = (inactivos ?? []).map(p => p.id)
 
+  // Tiene registros si aparece en una venta, una devolución o cambio, una garantía o una recepción de mercancía.
+  // Es la misma regla de la función producto_tiene_registros de la base (que además mira los movimientos de inventario).
   const idsConVentas = new Set<string>()
   if (ids.length > 0) {
-    const { data: itemsVendidos } = await traerTodo((filaDesde, filaHasta) =>
-      supabase
-        .from('venta_items')
-        .select('producto_id')
-        .in('producto_id', ids)
-        .order('id')
-        .range(filaDesde, filaHasta)
-    )
-    for (const row of itemsVendidos ?? []) {
-      if (row.producto_id) idsConVentas.add(row.producto_id)
+    const tablas = ['venta_items', 'devolucion_items', 'garantias', 'recepcion_items'] as const
+    const resultados = await Promise.all(tablas.map(tabla =>
+      traerTodo((filaDesde, filaHasta) =>
+        supabase.from(tabla).select('producto_id').in('producto_id', ids).order('id').range(filaDesde, filaHasta)
+      )
+    ))
+    for (const { data } of resultados) {
+      for (const row of data ?? []) {
+        if (row.producto_id) idsConVentas.add(row.producto_id)
+      }
     }
   }
 
@@ -62,6 +64,12 @@ export default async function ProductosDesactivadosPage() {
           <p className="text-xs text-steel-300">{(inactivos ?? []).length} producto(s) inactivo(s) en total</p>
         </div>
       </div>
+
+      <p className="rounded-2xl border border-white/10 bg-[#111820] px-4 py-3 text-xs text-steel-300">
+        Solo se pueden eliminar los productos <span className="font-semibold text-white">sin registros</span> (sin ventas,
+        devoluciones, garantías ni recepciones) y sin stock. Esos se borran solos a los 3 meses de estar desactivados; los
+        que tienen registros se conservan siempre para no perder el historial.
+      </p>
 
       <ProductosDesactivadosPanel conRegistros={conRegistros} sinRegistros={sinRegistros} />
     </div>

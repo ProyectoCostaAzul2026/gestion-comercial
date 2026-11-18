@@ -9,6 +9,9 @@ import { jsPDF } from 'jspdf'
 import { autoTable } from 'jspdf-autotable'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
+import { cantidadSugerida } from '@/lib/pedido'
+import { hoyBogota } from '@/lib/fechas'
+import { enlaceWhatsApp, textoPedido } from '@/lib/whatsapp'
 
 export interface ProductoAgotado {
   id: string
@@ -18,6 +21,7 @@ export interface ProductoAgotado {
   unidad_medida: string | null
   prioridad: number
   stock_actual: number
+  stock_minimo: number
   stock_bodega: number
   stock_almacen: number
   proveedor1: string | null
@@ -34,7 +38,7 @@ const PRIORIDAD_LABEL: Record<number, string> = {
 
 interface Props {
   productos: ProductoAgotado[]
-  proveedores: { id: string; nombre: string }[]
+  proveedores: { id: string; nombre: string; telefono?: string | null }[]
 }
 
 export function AgotadosTable({ productos, proveedores }: Props) {
@@ -58,6 +62,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
     stock_actual: number
     stock_bodega: number
     stock_almacen: number
+    stock_minimo: number
     rotacion_diaria: number
     cantidad_pedir: number
   }[]>([])
@@ -101,8 +106,9 @@ export function AgotadosTable({ productos, proveedores }: Props) {
         stock_actual: p.stock_actual,
         stock_bodega: p.stock_bodega,
         stock_almacen: p.stock_almacen,
+        stock_minimo: p.stock_minimo,
         rotacion_diaria: rotacionMap[p.id] ?? 0,
-        cantidad_pedir: Math.max(0, Math.ceil((rotacionMap[p.id] ?? 0) * diasPedido) - (p.stock_almacen + p.stock_bodega)),
+        cantidad_pedir: cantidadSugerida({ rotacionDiaria: rotacionMap[p.id] ?? 0, dias: diasPedido, stock: p.stock_almacen + p.stock_bodega, stockMinimo: p.stock_minimo }),
       }))
 
       setListaPedido(lista)
@@ -125,7 +131,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
     autoTable(doc, {
       startY: 28,
       head: [['Cód. proveedor', 'Nombre', 'Marca', 'Medida', 'Cant. a pedir']],
-      body: listaPedido.map(p => [
+      body: listaPedido.filter(p => p.cantidad_pedir > 0).map(p => [
         p.codigo,
         p.nombre,
         p.marca ?? '—',
@@ -143,14 +149,25 @@ export function AgotadosTable({ productos, proveedores }: Props) {
       },
     })
 
-    doc.save(`lista-pedido-${new Date().toISOString().slice(0, 10)}.pdf`)
+    doc.save(`lista-pedido-${hoyBogota()}.pdf`)
     setConfirmando(false)
+  }
+
+  const handleWhatsApp = () => {
+    const proveedor = proveedores.find(p => p.id === filtroProveedor)
+    const texto = textoPedido('Ferreléctricos Costa Azul', listaPedido.map(p => ({
+      codigo: p.codigo, nombre: p.nombre, medida: p.unidad_medida, marca: p.marca, cantidad: p.cantidad_pedir,
+    })))
+    if (!listaPedido.some(p => p.cantidad_pedir > 0)) { toast.error('No hay cantidades por pedir'); return }
+    const enlace = enlaceWhatsApp(proveedor?.telefono, texto)
+    if (!enlace) { toast.error('Este proveedor no tiene un teléfono válido: agrégalo en su ficha'); return }
+    window.open(enlace, '_blank')
   }
 
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-3">
+        <div className="grid w-full grid-cols-2 gap-2 md:flex md:w-auto md:flex-wrap md:gap-3">
           <Select
             items={[
               { value: 'todos', label: 'Todos los estados' },
@@ -160,7 +177,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
             onValueChange={(v) => v && setFiltroEstado(v)}
             value={filtroEstado}
           >
-            <SelectTrigger className="w-44 border-white/10 bg-[#1a2430] text-white"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-11 w-full border-white/10 bg-[#1a2430] text-white md:w-44"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos los estados</SelectItem>
               <SelectItem value="agotado">Agotado</SelectItem>
@@ -176,7 +193,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
             onValueChange={(v) => v && setFiltroPrioridad(v)}
             value={filtroPrioridad}
           >
-            <SelectTrigger className="w-48 border-white/10 bg-[#1a2430] text-white"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-11 w-full border-white/10 bg-[#1a2430] text-white md:w-48"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todas">Todas las prioridades</SelectItem>
               {[1, 2, 3, 4, 5].map((n) => (
@@ -193,7 +210,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
             onValueChange={(v) => v && setFiltroProveedor(v)}
             value={filtroProveedor}
           >
-            <SelectTrigger className="w-52 border-white/10 bg-[#1a2430] text-white"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-11 w-full border-white/10 bg-[#1a2430] text-white md:w-52"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos los proveedores</SelectItem>
               {proveedores.map((p) => (
@@ -217,7 +234,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
           </div>
           {filtroProveedor === 'todos' ? (
             <p className="self-center text-xs text-brand-yellow">
-              Selecciona un proveedor para imprimir lista
+              Elige un proveedor para armar el pedido
             </p>
           ) : (
             <button
@@ -226,7 +243,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
               disabled={calculando || diasPedido <= 0}
               className="inline-flex items-center justify-center rounded-xl border border-brand-yellow/60 px-4 py-2 text-sm font-semibold text-brand-yellow hover:bg-brand-yellow/10 disabled:opacity-50"
             >
-              {calculando ? 'Calculando…' : 'Imprimir Lista'}
+              {calculando ? 'Calculando…' : 'Armar pedido'}
             </button>
           )}
         </div>
@@ -285,7 +302,9 @@ export function AgotadosTable({ productos, proveedores }: Props) {
             <h3 className="font-display font-bold text-white">
               Vista previa — Lista de Pedido · {proveedores.find(p => p.id === filtroProveedor)?.nombre ?? ''}
             </h3>
-            <p className="text-xs text-steel-300">Días proyectados: {diasPedido}</p>
+            <p className="text-xs text-steel-300">
+              Días proyectados: {diasPedido}. Se sugiere lo que se vendería en esos días (ventas de los últimos 90) y, como mínimo, reponer hasta el doble del stock mínimo. Puedes cambiar cada cantidad.
+            </p>
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-white/8 text-steel-300">
@@ -304,7 +323,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
                         setDiasPedido(d)
                         setListaPedido(prev => prev.map(p => ({
                           ...p,
-                          cantidad_pedir: Math.max(0, Math.ceil(p.rotacion_diaria * d) - (p.stock_almacen + p.stock_bodega)),
+                          cantidad_pedir: cantidadSugerida({ rotacionDiaria: p.rotacion_diaria, dias: d, stock: p.stock_almacen + p.stock_bodega, stockMinimo: p.stock_minimo }),
                         })))
                       }}
                     />
@@ -335,13 +354,20 @@ export function AgotadosTable({ productos, proveedores }: Props) {
                 ))}
               </tbody>
             </table>
-            <div className="flex gap-2 pt-2">
+            <div className="flex flex-wrap gap-2 pt-2">
               <button
                 type="button"
                 onClick={handleImprimir}
                 className="inline-flex items-center rounded-xl bg-brand-yellow px-4 py-2 text-sm font-bold text-steel-900 hover:brightness-105"
               >
                 Descargar PDF
+              </button>
+              <button
+                type="button"
+                onClick={handleWhatsApp}
+                className="inline-flex items-center rounded-xl border border-emerald-500/40 px-4 py-2 text-sm font-bold text-emerald-400 hover:bg-emerald-500/10"
+              >
+                Enviar por WhatsApp
               </button>
               <button
                 type="button"

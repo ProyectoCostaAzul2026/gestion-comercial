@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Geist_Mono, Barlow, Barlow_Semi_Condensed } from "next/font/google"
 import { Toaster } from "sonner"
 import "./globals.css"
@@ -23,19 +23,17 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Ferreléctricos Costa Azul",
   description: "Sistema de gestión comercial",
+  applicationName: "Costa Azul",
+  appleWebApp: { capable: true, title: "Costa Azul", statusBarStyle: "black-translucent" },
 }
 
-// Tema oscuro por defecto; respeta el modo claro solo si el SO lo pide explícitamente.
-const themeScript = `
-(function () {
-  try {
-    var prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
-    if (!prefersLight) document.documentElement.classList.add('dark');
-  } catch (e) {
-    document.documentElement.classList.add('dark');
-  }
-})();
-`
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#111820',
+  colorScheme: 'dark',
+}
 
 export default function RootLayout({
   children,
@@ -43,13 +41,11 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es" suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-      </head>
+    // La app solo tiene tema oscuro: los colores de las pantallas están escritos para fondo oscuro
+    <html lang="es" className="dark">
       <body className={`${barlow.variable} ${barlowSemi.variable} ${geistMono.variable} min-h-full flex flex-col antialiased font-sans`}>
         {children}
-        <Toaster position="top-right" richColors theme="dark" />
+        <Toaster position="top-center" richColors theme="dark" />
       </body>
     </html>
   )

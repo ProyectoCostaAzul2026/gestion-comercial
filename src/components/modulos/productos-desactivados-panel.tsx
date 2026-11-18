@@ -145,11 +145,13 @@ export function ProductosDesactivadosPanel({
     if (!confirmado) return
     setProcesando(p.id)
     try {
-      const { error: movError } = await supabase.from('movimientos_inventario').delete().eq('producto_id', p.id)
-      if (movError) throw movError
-
-      const { error: delError } = await supabase.from('productos').delete().eq('id', p.id)
-      if (delError) throw delError
+      // La base revisa que esté desactivado, sin stock y sin ventas, devoluciones, garantías ni recepciones
+      const { error } = await supabase.rpc('eliminar_producto_desactivado' as never, { p_producto_id: p.id } as never)
+      if (error) {
+        throw new Error(error.code === 'PGRST202'
+          ? 'falta activar el borrado en la base de datos (migración bitacora_y_borrado_productos). El producto sigue desactivado.'
+          : error.message)
+      }
 
       toast.success('Producto eliminado')
       setListaSinRegistros(prev => prev.filter(x => x.id !== p.id))

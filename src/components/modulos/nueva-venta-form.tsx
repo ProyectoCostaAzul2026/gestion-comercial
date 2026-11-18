@@ -270,7 +270,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
   const totalCalculado = useMemo(() => redondear100(subtotalTotal - descuentoTotalMonto), [subtotalTotal, descuentoTotalMonto])
 
   const ivaInformativo = useMemo(() =>
-    carrito.reduce((sum, item) => item.es_fraccionado ? sum : sum + item.iva_unitario * item.cantidad, 0),
+    carrito.reduce((sum, item) => sum + item.iva_unitario * (item.es_fraccionado ? item.cantidad_fraccion : item.cantidad), 0),
     [carrito])
 
   const valorBruto = subtotalProductosBruto + subtotalServicios
@@ -373,7 +373,9 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
     setCarrito(prev => [...prev, {
       key: `${p.id}-fraccion-${Date.now()}`,
       producto_id: p.id, nombre: `${p.nombre} (fracción)`,
-      precio_unitario: p.precio_por_unidad_medida ?? 0, iva_unitario: 0,
+      // IVA contenido en el precio de cada metro o kilo
+      precio_unitario: p.precio_por_unidad_medida ?? 0,
+      iva_unitario: p.tiene_iva ? calcularIvaUnitario(p.precio_por_unidad_medida ?? 0, p.porcentaje_iva) : 0,
       cantidad: 1, stock_almacen: p.stock_almacen, stock_bodega: p.stock_bodega, ubicacion: p.ubicacion,
       descuento_habilitado: false, descuento_porcentaje: 0,
       es_fraccionado: true, cantidad_fraccion: p.cantidad_minima_venta ?? 1,
@@ -646,16 +648,6 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
   return (
     <div className="flex flex-col gap-6 lg:flex-row">
       <div className="min-w-0 flex-1 space-y-4">
-
-        {/* HEADER DIAGONAL */}
-        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] px-4 pt-5 pb-4">
-          <h1 className="font-display text-3xl font-bold text-white">Nueva <span className="text-brand-yellow">Venta</span></h1>
-          <p className="mt-0.5 text-xs text-steel-300">Registra productos, servicios y cobro</p>
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-28 overflow-hidden">
-            <div className="absolute inset-y-0 right-0 w-20 -skew-x-12 translate-x-8 bg-brand-yellow/80" />
-            <div className="absolute inset-y-0 right-0 w-7 -skew-x-12 translate-x-1 bg-brand-blue" />
-          </div>
-        </div>
 
         {/* CLIENTE */}
         <section className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">

@@ -1,8 +1,10 @@
-﻿import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { DashboardAdmin } from '@/components/modulos/dashboard-admin'
 import { DashboardEmpleado } from '@/components/modulos/dashboard-empleado'
 import { sumarDias } from '@/lib/permisos'
+import { bogotaEnDias, hoyBogota } from '@/lib/fechas'
+import { empleadosEnTurno } from '@/lib/turnos'
 
 export default async function DashboardPage({
   searchParams,
@@ -33,7 +35,7 @@ export default async function DashboardPage({
   }
 
   const esAdmin = (profile as any)?.rol === 'administrador'
-  const hoy = new Date().toISOString().slice(0, 10)
+  const hoy = hoyBogota()
 
   const { data: config } = await supabase
     .from('configuracion_negocio')
@@ -42,7 +44,6 @@ export default async function DashboardPage({
 
   if (esAdmin) {
     // Permisos de hoy a 7 días: el empleado no asiste ese día
-    const hoyBogota = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' })
     const [
       { data: ventasHoy },
       { data: pagosHoy },
@@ -62,7 +63,7 @@ export default async function DashboardPage({
         .eq('ventas.fecha', hoy).neq('ventas.estado', 'anulada'),
       supabase.from('nominas').select('id, empleado_id')
         .eq('periodo_inicio', hoy).eq('estado', 'pagada'),
-      supabase.from('profiles').select('id').eq('activo', true),
+      empleadosEnTurno(supabase, hoy).then(ids => ({ data: ids })),
       supabase.from('ventas').select(`
         id, numero_ticket, hora, total, tipo_pago, estado,
         clientes(nombre), profiles!empleado_id(nombre_completo)
@@ -73,18 +74,18 @@ export default async function DashboardPage({
       supabase.from('facturas_proveedor')
         .select('id, numero_factura, saldo_pendiente, fecha_vencimiento, proveedores(id, nombre)')
         .in('estado', ['pendiente', 'parcial'])
-        .lte('fecha_vencimiento', new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10))
+        .lte('fecha_vencimiento', bogotaEnDias(7))
         .order('fecha_vencimiento'),
       supabase.from('pagos_programados_proveedor')
         .select('id, monto, fecha_programada, nota, factura_id, facturas_proveedor(proveedores(id, nombre))')
         .eq('pagado', false)
-        .lte('fecha_programada', new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10))
+        .lte('fecha_programada', bogotaEnDias(3))
         .order('fecha_programada'),
       supabase.from('caja_mayor').select('saldo_actual').maybeSingle(),
       supabase.from('permisos_empleado')
         .select('id, fecha, motivo, profiles!permisos_empleado_empleado_id_fkey(nombre_completo)')
-        .gte('fecha', hoyBogota)
-        .lte('fecha', sumarDias(hoyBogota, 7))
+        .gte('fecha', hoy)
+        .lte('fecha', sumarDias(hoy, 7))
         .order('fecha'),
       supabase.from('productos').select('id, nombre')
         .eq('por_completar', true).eq('activo', true).order('created_at', { ascending: false }).limit(50),
@@ -109,7 +110,8 @@ export default async function DashboardPage({
           ticketPromedio,
           desglosePago,
           nominasPagadas: nominasHoy?.length ?? 0,
-          empleadosActivos: empleadosActivos?.length ?? 0,
+          // Los que trabajan hoy (turno y sin permiso), más quien ya recibió pago sin tener turno
+          empleadosActivos: new Set([...(empleadosActivos ?? []), ...(nominasHoy ?? []).map(n => n.empleado_id)]).size,
           cajaMayor: Number((cajaMayor as any)?.saldo_actual ?? 0),
         }}
         ultimasVentas={(ultimasVentas as any) ?? []}
@@ -122,7 +124,7 @@ export default async function DashboardPage({
           })),
           porCompletar: porCompletar ?? [],
         }}
-        fechaHoyBogota={hoyBogota}
+        fechaHoyBogota={hoy}
       />
     )
   }

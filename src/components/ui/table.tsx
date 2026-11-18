@@ -4,14 +4,49 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-function Table({ className, ...props }: React.ComponentProps<"table">) {
+/**
+ * Tabla. En celular (menos de 768 px) cada fila se muestra como una tarjeta: el encabezado se oculta y cada celda lleva
+ * delante el nombre de su columna (ver `table[data-apilar]` en globals.css). `apilar={false}` deja la tabla con
+ * desplazamiento lateral.
+ */
+function Table({ className, apilar = true, ...props }: React.ComponentProps<"table"> & { apilar?: boolean }) {
+  const ref = React.useRef<HTMLTableElement>(null)
+
+  // Copia el título de cada columna a sus celdas (data-etiqueta) y lo mantiene al cambiar las filas
+  React.useEffect(() => {
+    const tabla = ref.current
+    if (!tabla || !apilar) return
+    const etiquetar = () => {
+      const titulos = Array.from(tabla.querySelectorAll("thead th")).map((th) => (th.textContent ?? "").trim())
+      tabla.querySelectorAll("tbody tr, tfoot tr").forEach((fila) => {
+        let columna = 0
+        Array.from(fila.children).forEach((celda) => {
+          if (!(celda instanceof HTMLTableCellElement)) return
+          const titulo = celda.colSpan > 1 ? "" : titulos[columna] ?? ""
+          if (titulo) {
+            if (celda.dataset.etiqueta !== titulo) celda.dataset.etiqueta = titulo
+          } else if (celda.dataset.etiqueta !== undefined) {
+            delete celda.dataset.etiqueta
+          }
+          columna += celda.colSpan
+        })
+      })
+    }
+    etiquetar()
+    const observador = new MutationObserver(etiquetar)
+    observador.observe(tabla, { childList: true, subtree: true })
+    return () => observador.disconnect()
+  }, [apilar])
+
   return (
     <div
       data-slot="table-container"
       className="relative w-full overflow-x-auto"
     >
       <table
+        ref={ref}
         data-slot="table"
+        data-apilar={apilar ? "" : undefined}
         className={cn("w-full caption-bottom text-sm", className)}
         {...props}
       />
