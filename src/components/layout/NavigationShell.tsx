@@ -106,7 +106,8 @@ export default function NavigationShell({
   const router = useRouter()
   const [drawerOpen, setDrawerOpen] = useState(false)
 
-  const visibleItems = navItems.filter((item) => !item.soloAdmin || rol === 'administrador')
+  const visibleItems = navItems.filter((item) =>
+    rol === 'administrador' ? !item.soloEmpleado : !item.soloAdmin)
 
   // Pila de navegación para el botón Atrás; al volver después de guardar algo, se piden los datos de nuevo
   useEffect(() => {

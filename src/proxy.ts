@@ -1,6 +1,6 @@
 ﻿import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { RUTAS_SOLO_ADMIN } from '@/lib/permissions'
+import { esRutaSoloAdmin } from '@/lib/permissions'
 
 export async function proxy(request: NextRequest) {
   // Enlace de un correo de Supabase (recuperar contraseña, invitación) que llegó a otra página, por ejemplo a la raíz
@@ -65,7 +65,7 @@ export async function proxy(request: NextRequest) {
     }
 
     // Ruta exclusiva de Admin pero el usuario es empleado (spec 4.2)
-    if (RUTAS_SOLO_ADMIN.some((ruta) => pathname.startsWith(ruta)) && profile?.rol !== 'administrador') {
+    if (esRutaSoloAdmin(pathname) && profile?.rol !== 'administrador') {
       const url = request.nextUrl.clone()
       url.pathname = '/dashboard/ventas'
       return NextResponse.redirect(url)

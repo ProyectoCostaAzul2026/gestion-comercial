@@ -71,6 +71,8 @@ export interface NavItem {
   icon: string
   grupo: GrupoNav
   soloAdmin?: boolean
+  /** Solo para empleados (el administrador llega por otra entrada del menú) */
+  soloEmpleado?: boolean
 }
 
 export const GRUPOS_NAV: GrupoNav[] = ['Operación', 'Equipo', 'Administración', 'Sistema']
@@ -82,9 +84,9 @@ export const navItems: NavItem[] = [
   { label: 'Recepción', href: '/dashboard/recepcion', icon: 'ClipboardCheck', grupo: 'Operación' },
   { label: 'Clientes', href: '/dashboard/clientes', icon: 'Users', grupo: 'Operación' },
   { label: 'Tareas', href: '/dashboard/tareas', icon: 'ListChecks', grupo: 'Equipo' },
-  { label: 'Horario y permisos', href: '/dashboard/horario', icon: 'Calendar', grupo: 'Equipo' },
+  // Empleados reúne Equipo, Horario y permisos, y Nómina; el empleado solo entra a Horario y permisos
   { label: 'Empleados', href: '/dashboard/empleados', icon: 'UserCog', grupo: 'Equipo', soloAdmin: true },
-  { label: 'Nómina', href: '/dashboard/nomina', icon: 'DollarSign', grupo: 'Equipo', soloAdmin: true },
+  { label: 'Horario y permisos', href: '/dashboard/empleados/horario', icon: 'Calendar', grupo: 'Equipo', soloEmpleado: true },
   { label: 'Proveedores', href: '/dashboard/proveedores', icon: 'Truck', grupo: 'Administración', soloAdmin: true },
   { label: 'Caja', href: '/dashboard/caja', icon: 'Wallet', grupo: 'Administración', soloAdmin: true },
   { label: 'Contabilidad', href: '/dashboard/contabilidad', icon: 'BookOpen', grupo: 'Administración', soloAdmin: true },
@@ -95,6 +97,12 @@ export const navItems: NavItem[] = [
 ]
 
 /** true si la ruta actual pertenece al módulo (también en sus subpáginas) */
+/** true si un empleado (no administrador) no puede abrir la ruta */
+export function esRutaSoloAdmin(pathname: string): boolean {
+  if (RUTAS_PERMITIDAS_EMPLEADO.some(r => pathname === r || pathname.startsWith(r + '/'))) return false
+  return RUTAS_SOLO_ADMIN.some(r => pathname === r || pathname.startsWith(r + '/'))
+}
+
 export function rutaActiva(pathname: string, href: string): boolean {
   if (href === '/dashboard') return pathname === href
   return pathname === href || pathname.startsWith(href + '/')
@@ -105,6 +113,9 @@ export function rutaActiva(pathname: string, href: string): boolean {
 // solo-Admin (agrégalas también a navItems con soloAdmin:true cuando existan).
 // Horario es de ambos roles, así que NO va aquí — su edición se restringe
 // dentro del propio módulo con tienePermiso('editar_horario', rol).
+/** Rutas dentro de una ruta de administrador que el empleado sí puede abrir */
+export const RUTAS_PERMITIDAS_EMPLEADO = ['/dashboard/empleados/horario']
+
 export const RUTAS_SOLO_ADMIN = [
   '/dashboard/proveedores',
   '/dashboard/empleados',
