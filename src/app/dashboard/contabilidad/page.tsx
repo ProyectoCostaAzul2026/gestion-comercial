@@ -4,29 +4,12 @@ import { redirect } from 'next/navigation'
 import { hoyBogota } from '@/lib/fechas'
 import { ContabilidadPanel } from '@/components/modulos/contabilidad-panel'
 import { costoLineaVenta } from '@/lib/costo-venta'
-
-function getPeriodo(periodo: string, desde?: string, hasta?: string) {
-  // Mediodía UTC del día de Bogotá: las cuentas de días no se corren por la zona horaria del servidor
-  const hoy = new Date(hoyBogota() + 'T12:00:00Z')
-  const fmt = (d: Date) => d.toISOString().slice(0, 10)
-  switch (periodo) {
-    case 'hoy': return { desde: fmt(hoy), hasta: fmt(hoy) }
-    case 'semana': {
-      const lunes = new Date(hoy)
-      lunes.setDate(hoy.getDate() - ((hoy.getDay() + 6) % 7))
-      return { desde: fmt(lunes), hasta: fmt(hoy) }
-    }
-    case 'mes': return { desde: fmt(hoy).slice(0, 8) + '01', hasta: fmt(hoy) }
-    case 'año': return { desde: fmt(hoy).slice(0, 4) + '-01-01', hasta: fmt(hoy) }
-    case 'rango': return { desde: desde ?? fmt(hoy).slice(0, 8) + '01', hasta: hasta ?? fmt(hoy) }
-    default: return { desde: fmt(hoy).slice(0, 8) + '01', hasta: fmt(hoy) }
-  }
-}
+import { leerPeriodo } from '@/lib/periodos'
 
 export default async function ContabilidadPage({
   searchParams,
 }: {
-  searchParams: Promise<{ periodo?: string; desde?: string; hasta?: string }>
+  searchParams: Promise<{ periodo?: string; fecha?: string; desde?: string; hasta?: string }>
 }) {
   const sp = await searchParams
   const supabase = await createClient()
@@ -37,8 +20,8 @@ export default async function ContabilidadPage({
     .from('profiles').select('rol').eq('id', user.id).single()
   if ((profile as any)?.rol !== 'administrador') redirect('/dashboard')
 
-  const periodo = sp.periodo ?? 'mes'
-  const { desde, hasta } = getPeriodo(periodo, sp.desde, sp.hasta)
+  const periodo = leerPeriodo(sp, hoyBogota(), 'mes')
+  const { desde, hasta } = periodo
 
   const [
     { data: ventas },

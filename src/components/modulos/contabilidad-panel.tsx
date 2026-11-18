@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -10,18 +10,12 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Download, ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react'
+import { Download, ChevronDown, ChevronUp, FileSpreadsheet, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { hoyBogota } from '@/lib/fechas'
 import { cantidadVendida, costoLineaVenta, costoPorUnidadVendida } from '@/lib/costo-venta'
-
-const PERIODOS = [
-  { value: 'hoy', label: 'Hoy' },
-  { value: 'semana', label: 'Esta semana' },
-  { value: 'mes', label: 'Este mes' },
-  { value: 'año', label: 'Este año' },
-  { value: 'rango', label: 'Rango personalizado' },
-]
+import type { Periodo } from '@/lib/periodos'
+import { SelectorPeriodo } from './selector-periodo'
 
 const FUENTES = [
   { value: 'caja_menor', label: 'Caja menor' },
@@ -119,7 +113,7 @@ interface ContabilidadPanelProps {
   nombresClientesCredito: string[]
   desde: string
   hasta: string
-  periodo: string
+  periodo: Periodo
   balance: {
     totalIngresos: number
     totalServicios: number
@@ -139,8 +133,6 @@ export function ContabilidadPanel({
   desde, hasta, periodo, balance,
 }: ContabilidadPanelProps) {
   const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
   const supabase = createClient()
 
   const [filtroTipoIngreso, setFiltroTipoIngreso] = useState('todos')
@@ -157,18 +149,6 @@ export function ContabilidadPanel({
   const [fuentesGasto, setFuentesGasto] = useState<FuentePago[]>([{ key: '1', fuente: 'caja_menor', monto: 0 }])
   const [guardandoGasto, setGuardandoGasto] = useState(false)
   const [confirmarGasto, setConfirmarGasto] = useState(false)
-
-  const actualizarURL = (params: Record<string, string>) => {
-    const p = new URLSearchParams(searchParams.toString())
-    Object.entries(params).forEach(([k, v]) => v ? p.set(k, v) : p.delete(k))
-    router.replace(`${pathname}?${p.toString()}`, { scroll: false })
-  }
-
-  const handlePeriodo = (v: string) => {
-    if (!v) return
-    if (v === 'rango') { actualizarURL({ periodo: v }); return }
-    actualizarURL({ periodo: v, desde: '', hasta: '' })
-  }
 
   const categoriasEnTabla = useMemo(() => categoriasGasto.map(c => c.nombre), [categoriasGasto])
 
@@ -264,9 +244,16 @@ export function ContabilidadPanel({
       <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] py-3 pl-4 pr-14 md:py-4 md:pr-28">
         <div className="relative z-10 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
           <h1 className="font-display text-2xl font-bold text-brand-yellow md:text-3xl">Contabilidad</h1>
-          <Button variant="outline" className="border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={() => exportarCSVCompleto({ ventas, ventaServicios, ventaItems, gastos, nominas, desde, hasta })}>
-            <Download className="mr-2 h-4 w-4" />Exportar todo CSV
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            {/* Libro de Excel con resumen, ventas, compras, gastos, nómina, caja y cartera (lo arma el servidor) */}
+            <a href={`/dashboard/contabilidad/exportar?desde=${desde}&hasta=${hasta}`}
+              className="inline-flex h-10 items-center gap-2 rounded-xl bg-brand-yellow px-4 text-sm font-bold text-steel-900 hover:brightness-105">
+              <FileSpreadsheet className="h-4 w-4" />Excel para el contador
+            </a>
+            <Button variant="outline" className="h-10 border-white/15 bg-transparent font-semibold text-steel-300 hover:bg-white/5 hover:text-white" onClick={() => exportarCSVCompleto({ ventas, ventaServicios, ventaItems, gastos, nominas, desde, hasta })}>
+              <Download className="mr-2 h-4 w-4" />CSV
+            </Button>
+          </div>
         </div>
         <div className="pointer-events-none absolute inset-y-0 right-0 w-12 overflow-hidden md:w-24">
           <div className="absolute inset-y-0 right-0 w-9 -skew-x-12 translate-x-4 bg-brand-yellow/80 md:w-20 md:translate-x-8" />
@@ -275,30 +262,7 @@ export function ContabilidadPanel({
       </div>
 
       {/* Selector período */}
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Período</label>
-          <Select items={PERIODOS} onValueChange={v => v && handlePeriodo(v)} value={periodo}>
-            <SelectTrigger className="w-48 border-white/10 bg-[#1a2430] text-white"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {PERIODOS.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        {periodo === 'rango' && (
-          <>
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Desde</label>
-              <Input type="date" value={desde} onChange={e => actualizarURL({ desde: e.target.value, periodo: 'rango' })} className="w-36 border-white/10 bg-[#1a2430] text-white" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Hasta</label>
-              <Input type="date" value={hasta} onChange={e => actualizarURL({ hasta: e.target.value, periodo: 'rango' })} className="w-36 border-white/10 bg-[#1a2430] text-white" />
-            </div>
-          </>
-        )}
-        <p className="self-end pb-2 text-xs text-steel-500">{desde} — {hasta}</p>
-      </div>
+      <SelectorPeriodo periodo={periodo} hoy={hoyBogota()} />
 
       {/* Balance cards */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
