@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import {
   Home, Package, Users, ShoppingCart, Wallet, Truck, UserCog,
   BarChart3, LogOut, Settings, Calendar, DollarSign, BookOpen,
@@ -10,6 +10,8 @@ import {
 } from 'lucide-react'
 import { GRUPOS_NAV, navItems, rutaActiva, type NavItem } from '@/lib/permissions'
 import { createClient } from '@/lib/supabase/client'
+import { registrarRuta, tomarRefresco } from '@/lib/navegacion'
+import { BarraProgreso } from './barra-progreso'
 
 const iconMap: Record<string, React.ElementType> = {
   Home, Package, Users, ShoppingCart, Wallet, Truck, UserCog,
@@ -105,6 +107,12 @@ export default function NavigationShell({
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   const visibleItems = navItems.filter((item) => !item.soloAdmin || rol === 'administrador')
+
+  // Pila de navegación para el botón Atrás; al volver después de guardar algo, se piden los datos de nuevo
+  useEffect(() => {
+    registrarRuta(pathname)
+    if (tomarRefresco()) router.refresh()
+  }, [pathname, router])
   const cerrar = () => setDrawerOpen(false)
 
   // Bloquear scroll del body cuando el panel "Más" está abierto
@@ -151,6 +159,7 @@ export default function NavigationShell({
 
   return (
     <div className="min-h-dvh bg-[#0a0e14] font-sans text-white">
+      <Suspense fallback={null}><BarraProgreso /></Suspense>
 
       {/* ── MENÚ LATERAL FIJO (PC) ── */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/10 bg-[#111820] lg:flex print:hidden">

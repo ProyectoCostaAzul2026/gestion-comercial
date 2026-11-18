@@ -81,7 +81,7 @@ export function BitacoraPanel({ registros, borrados, filtros, hayMas }: Props) {
   const filtrar = (clave: string, valor: string) => {
     const sp = new URLSearchParams(params.toString())
     if (valor) sp.set(clave, valor); else sp.delete(clave)
-    router.push(`${pathname}?${sp.toString()}`)
+    router.replace(`${pathname}?${sp.toString()}`, { scroll: false })
   }
   const sinFiltro = !filtros.tabla && !filtros.origen && !filtros.desde && !filtros.hasta
   // Solo tiene sentido buscar saltos cuando se ve la lista completa, sin filtros

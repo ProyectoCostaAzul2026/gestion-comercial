@@ -19,7 +19,7 @@ export function EmpleadoFiltros({ desdeKey, hastaKey, desdeValue, hastaValue }: 
     const params = new URLSearchParams(searchParams.toString())
     if (valor) params.set(clave, valor)
     else params.delete(clave)
-    router.push(`${pathname}?${params.toString()}`)
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false })
   }
 
   return (

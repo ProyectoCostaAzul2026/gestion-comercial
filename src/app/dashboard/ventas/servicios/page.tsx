@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { BotonAtras } from '@/components/ui/boton-atras'
 import { ServiciosTable } from '@/components/modulos/servicios-table'
 import { bogotaEnDias, hoyBogota } from '@/lib/fechas'
 
@@ -37,9 +36,7 @@ export default async function ServiciosPage({
   return (
     <div>
       <div className="mb-6 flex items-center gap-3">
-        <Link href="/dashboard/ventas" className="rounded-xl border border-white/20 p-2 hover:bg-white/5">
-          <ArrowLeft className="h-4 w-4 text-white" />
-        </Link>
+        <BotonAtras href="/dashboard/ventas" />
         <div>
           <h1 className="font-display text-2xl font-bold text-brand-yellow">Servicios realizados</h1>
           <p className="mt-0.5 text-xs text-steel-300">{servicios?.length ?? 0} servicios en el período</p>

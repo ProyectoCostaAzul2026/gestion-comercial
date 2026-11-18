@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { calcularPagoDia, horasPagarPorFecha, esDomingoOFestivo } from '@/lib/festivos-colombia'
 import { Sun } from 'lucide-react'
 import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
+import { useNavegacion } from '@/lib/navegacion'
 
 interface Empleado {
   id: string
@@ -30,7 +30,7 @@ interface NominaNuevaFormProps {
 
 export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
   const supabase = createClient()
-  const router = useRouter()
+  const { volver } = useNavegacion()
 
   const [empleadoId, setEmpleadoId] = useState(inicial.empleado_id)
   const [fecha, setFecha] = useState(inicial.fecha)
@@ -85,8 +85,7 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
       })
       if (error) throw error
       toast.success('Nómina registrada')
-      router.push('/dashboard/nomina')
-      router.refresh()
+      volver('/dashboard/nomina', { refrescar: true })
     } catch (err: any) {
       toast.error('Error: ' + err.message)
     } finally {

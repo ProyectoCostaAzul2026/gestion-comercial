@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
+import { useNavegacion } from '@/lib/navegacion'
 
 interface ProveedorFormState {
   nombre: string
@@ -56,7 +56,7 @@ function estadoInicial(proveedor?: ProveedorExistente): ProveedorFormState {
 export function ProveedorForm({ proveedor }: ProveedorFormProps) {
   const esEdicion = !!proveedor
   const supabase = createClient()
-  const router = useRouter()
+  const { volver } = useNavegacion()
   const [form, setForm] = useState<ProveedorFormState>(estadoInicial(proveedor))
   const [saving, setSaving] = useState(false)
   const [desactivando, setDesactivando] = useState(false)
@@ -90,8 +90,7 @@ export function ProveedorForm({ proveedor }: ProveedorFormProps) {
         if (error) throw error
         toast.success('Proveedor creado')
       }
-      router.refresh()
-      router.push('/dashboard/proveedores')
+      volver('/dashboard/proveedores', { refrescar: true })
     } catch (err: any) {
       toast.error('Error: ' + err.message)
     } finally {
@@ -108,8 +107,7 @@ export function ProveedorForm({ proveedor }: ProveedorFormProps) {
     setDesactivando(false)
     if (error) { toast.error('Error: ' + error.message); return }
     toast.success('Proveedor desactivado')
-    router.push('/dashboard/proveedores')
-    router.refresh()
+    volver('/dashboard/proveedores', { refrescar: true })
   }
 
   const inputCls = 'h-12 border-white/10 bg-[#1a2430] text-[16px] text-white placeholder:text-steel-500 focus:border-brand-yellow/60'

@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { traerTodo } from '@/lib/supabase/traer-todo'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { BotonAtras } from '@/components/ui/boton-atras'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { EmpleadoFiltros } from '@/components/modulos/empleado-filtros'
 import { hoyBogota } from '@/lib/fechas'
@@ -87,9 +87,7 @@ export default async function PerfilEmpleadoPage({
   return (
     <div className="max-w-2xl space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/dashboard/empleados" className="rounded-xl border border-white/20 p-2 hover:bg-white/5">
-          <ArrowLeft className="h-4 w-4 text-white" />
-        </Link>
+        <BotonAtras href="/dashboard/empleados" />
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <h1 className="font-display text-2xl font-bold text-white">{empleado.nombre_completo}</h1>

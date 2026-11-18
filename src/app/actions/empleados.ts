@@ -1,7 +1,15 @@
 'use server'
 
 import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
+
+/** Dirección de la app que está atendiendo (sirve en producción y en vistas previas); si falta, la de la variable */
+async function origenApp(): Promise<string> {
+  const h = await headers()
+  const host = h.get('x-forwarded-host') ?? h.get('host')
+  if (host) return `${h.get('x-forwarded-proto') ?? 'https'}://${host}`
+  return process.env.NEXT_PUBLIC_SITE_URL ?? ''
+}
 
 export async function invitarEmpleado(data: {
   email: string
@@ -45,7 +53,7 @@ export async function invitarEmpleado(data: {
         nombre_completo: data.nombre_completo,
         foto_url: data.foto_url || null,
       },
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`,
+      redirectTo: `${await origenApp()}/auth/confirm`,
     }
   )
 

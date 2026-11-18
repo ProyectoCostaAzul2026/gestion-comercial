@@ -1,5 +1,4 @@
--- PENDIENTE DE APLICAR (espera confirmación). Aplicar con apply_migration, nombre: garantias_y_fraccion.
--- Después: get_advisors, DATABASE.md y database.types.ts.
+-- Migración garantias_y_fraccion (aplicada el 2026-11-18).
 
 -- ───────────── 1. Anular una venta con líneas por fracción ─────────────
 -- anular_venta devolvía los metros o kilos al sobrante sin pasarlos a unidades enteras (el sobrante podía quedar con más

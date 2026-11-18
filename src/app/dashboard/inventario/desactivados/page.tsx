@@ -1,8 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { traerTodo } from '@/lib/supabase/traer-todo'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { BotonAtras } from '@/components/ui/boton-atras'
 import { ProductosDesactivadosPanel, type ProductoDesactivado } from '@/components/modulos/productos-desactivados-panel'
 
 export default async function ProductosDesactivadosPage() {
@@ -56,9 +55,7 @@ export default async function ProductosDesactivadosPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/dashboard/inventario" className="rounded-xl border border-white/20 p-2 hover:bg-white/5">
-          <ArrowLeft className="h-4 w-4 text-white" />
-        </Link>
+        <BotonAtras href="/dashboard/inventario" />
         <div>
           <h1 className="font-display text-2xl font-bold text-white">Productos Desactivados</h1>
           <p className="text-xs text-steel-300">{(inactivos ?? []).length} producto(s) inactivo(s) en total</p>

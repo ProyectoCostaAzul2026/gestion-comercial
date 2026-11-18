@@ -3,6 +3,15 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { RUTAS_SOLO_ADMIN } from '@/lib/permissions'
 
 export async function proxy(request: NextRequest) {
+  // Enlace de un correo de Supabase (recuperar contraseña, invitación) que llegó a otra página, por ejemplo a la raíz
+  // cuando la dirección de destino no está permitida en Supabase: se pasa a la ruta que lo procesa.
+  const sp = request.nextUrl.searchParams
+  if (request.nextUrl.pathname !== '/auth/confirm' && (sp.has('token_hash') || (sp.has('code') && !request.nextUrl.pathname.startsWith('/dashboard')))) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/auth/confirm'
+    return NextResponse.redirect(url)
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(

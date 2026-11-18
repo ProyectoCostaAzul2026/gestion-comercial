@@ -1,7 +1,6 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Plus, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -12,6 +11,7 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { INPUT_CLS, LABEL_CLS } from './producto-form'
+import { useNavegacion } from '@/lib/navegacion'
 
 /**
  * Abre una recepción (crear_recepcion): crea la factura del proveedor, como "Nueva factura" en Proveedores, y la deja
@@ -19,7 +19,7 @@ import { INPUT_CLS, LABEL_CLS } from './producto-form'
  */
 export function RecepcionNuevaForm({ proveedores, hoy }: { proveedores: { id: string; nombre: string }[]; hoy: string }) {
   const supabase = useMemo(() => createClient(), [])
-  const router = useRouter()
+  const { reemplazar } = useNavegacion()
   const [abierto, setAbierto] = useState(false)
   const [proveedorId, setProveedorId] = useState('')
   const [numero, setNumero] = useState('')
@@ -48,7 +48,7 @@ export function RecepcionNuevaForm({ proveedores, hoy }: { proveedores: { id: st
     setGuardando(false)
     if (error) { toast.error(error.message); return }
     toast.success('Recepción abierta')
-    router.push(`/dashboard/recepcion/${data}`)
+    reemplazar(`/dashboard/recepcion/${data}`)
   }
 
   if (!abierto) {

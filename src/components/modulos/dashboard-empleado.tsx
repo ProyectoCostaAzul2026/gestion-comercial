@@ -46,7 +46,7 @@ export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, 
   const actualizar = (params: Record<string, string>) => {
     const p = new URLSearchParams(searchParams.toString())
     Object.entries(params).forEach(([k, v]) => v ? p.set(k, v) : p.delete(k))
-    router.push(`${pathname}?${p.toString()}`)
+    router.replace(`${pathname}?${p.toString()}`, { scroll: false })
   }
 
   const turnosOrdenados = [...turnos].sort((a, b) =>

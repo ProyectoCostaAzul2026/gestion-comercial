@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { BotonAtras } from '@/components/ui/boton-atras'
 import { ReciboView } from '@/components/modulos/recibo-view'
 
 export default async function ReciboPage({
@@ -52,9 +51,7 @@ export default async function ReciboPage({
   return (
     <div>
       <div className="mb-4 flex items-center gap-3 print:hidden">
-        <Link href={`/dashboard/ventas/${id}`} className="rounded-xl border border-white/20 p-2 hover:bg-white/5">
-          <ArrowLeft className="h-4 w-4 text-white" />
-        </Link>
+        <BotonAtras href={`/dashboard/ventas/${id}`} />
         <h1 className="font-display text-lg font-bold text-white">Recibo — Ticket #{venta.numero_ticket}</h1>
       </div>
 

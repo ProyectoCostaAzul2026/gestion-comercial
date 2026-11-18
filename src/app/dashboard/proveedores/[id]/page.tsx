@@ -2,8 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { traerTodo } from '@/lib/supabase/traer-todo'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
+import { BotonAtras } from '@/components/ui/boton-atras'
 import { AvatarIniciales } from '@/components/modulos/avatar-iniciales'
-import { ArrowLeft } from 'lucide-react'
 import { PerfilProveedorAcciones } from '@/components/modulos/perfil-proveedor-acciones'
 import { ProductosProveedorTable } from '@/components/modulos/productos-proveedor-table'
 import { GarantiasPanel } from '@/components/modulos/garantias-panel'
@@ -71,9 +71,7 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
   return (
     <div className="max-w-3xl space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/dashboard/proveedores" className="rounded-xl border border-white/20 p-2 hover:bg-white/5">
-          <ArrowLeft className="h-4 w-4 text-white" />
-        </Link>
+        <BotonAtras href="/dashboard/proveedores" />
         <AvatarIniciales nombre={proveedor.nombre} foto={proveedor.logo_url} logo className="h-14 w-14 text-lg" />
         <div className="min-w-0 flex-1">
           <h1 className="font-display text-2xl font-bold text-white">{proveedor.nombre}</h1>

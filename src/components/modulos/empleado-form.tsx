@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import { useNavegacion } from '@/lib/navegacion'
 
 export interface EmpleadoExistente {
   id: string
@@ -29,6 +30,7 @@ export function EmpleadoForm({ empleado }: EmpleadoFormProps) {
   const esEdicion = !!empleado
   const supabase = createClient()
   const router = useRouter()
+  const { volver } = useNavegacion()
 
   const [form, setForm] = useState({
     email: empleado?.email ?? '',
@@ -62,8 +64,7 @@ export function EmpleadoForm({ empleado }: EmpleadoFormProps) {
         }).eq('id', empleado.id)
         if (error) throw error
         toast.success('Empleado actualizado')
-        router.refresh()
-        router.push('/dashboard/empleados')
+        volver('/dashboard/empleados', { refrescar: true })
       } else {
         if (!form.email.trim()) { toast.error('El email es obligatorio'); setSaving(false); return }
         await invitarEmpleado({
@@ -75,8 +76,7 @@ export function EmpleadoForm({ empleado }: EmpleadoFormProps) {
           salario_base: form.salario_base || null,
         })
         toast.success('Invitación enviada al empleado por email')
-        router.refresh()
-        router.push('/dashboard/empleados')
+        volver('/dashboard/empleados', { refrescar: true })
       }
     } catch (err: any) {
       toast.error('Error: ' + err.message)
@@ -92,8 +92,7 @@ export function EmpleadoForm({ empleado }: EmpleadoFormProps) {
     try {
       await desactivarEmpleado(empleado.id)
       toast.success('Empleado desactivado')
-      router.refresh()
-      router.push('/dashboard/empleados')
+      volver('/dashboard/empleados', { refrescar: true })
     } catch (err: any) {
       toast.error('Error: ' + err.message)
     } finally {

@@ -5,7 +5,6 @@ import { createClient } from '@/lib/supabase/client'
 import { calcularIvaUnitario } from '@/lib/precio-utils'
 import { precioConCantidad, type TramoPrecio } from '@/lib/precios-cantidad'
 import { AvisoPrecioCantidad } from './precios-cantidad'
-import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,6 +16,7 @@ import {
 } from '@/components/ui/select'
 import { Search, Plus, Trash2, AlertTriangle, ArrowRightLeft, MapPin, Package, Wrench } from 'lucide-react'
 import { AyudaPesoVenta } from './peso-por-unidad'
+import { useNavegacion } from '@/lib/navegacion'
 
 type MetodoPago = 'efectivo' | 'nequi' | 'daviplata' | 'tarjeta'
 
@@ -168,7 +168,7 @@ function esMultiplo(cantidad: number, minimo: number): boolean {
 }
 
 export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.10, whatsappNegocio }: NuevaVentaFormProps) {
-  const router = useRouter()
+  const { volver, reemplazar } = useNavegacion()
   const supabase = createClient()
 
   // ── Cliente ──
@@ -571,8 +571,8 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
         })
         if (rpcError) throw rpcError
         toast.success('Venta a crédito registrada')
-        if (action === 'con_recibo') router.push(`/dashboard/ventas/${data}?recibo=1`)
-        else { router.push('/dashboard/ventas'); router.refresh() }
+        if (action === 'con_recibo') reemplazar(`/dashboard/ventas/${data}?recibo=1`)
+        else volver('/dashboard/ventas', { refrescar: true })
         return
       }
 
@@ -633,8 +633,8 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
         window.open(`https://wa.me/${numero}?text=${encodeURIComponent(texto)}`, '_blank')
       }
 
-      if (action === 'con_recibo') router.push(`/dashboard/ventas/${data}?recibo=1`)
-      else { router.push('/dashboard/ventas'); router.refresh() }
+      if (action === 'con_recibo') reemplazar(`/dashboard/ventas/${data}?recibo=1`)
+      else volver('/dashboard/ventas', { refrescar: true })
 
     } catch (err: any) {
       toast.error('Error al registrar venta: ' + err.message)
@@ -1289,7 +1289,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
           <Button type="button" variant="outline" onClick={() => handleSubmit('sin_recibo')} disabled={submitting} className="h-12 w-full border-white/10 bg-[#1a2430] font-semibold text-white hover:bg-white/5 hover:text-white">
             {submitting && submitAction === 'sin_recibo' ? 'Guardando…' : esCredito ? 'Registrar venta a crédito' : 'Guardar sin recibo'}
           </Button>
-          <button type="button" onClick={() => router.push('/dashboard/ventas')}
+          <button type="button" onClick={() => volver('/dashboard/ventas')}
             className={buttonVariants({ variant: 'outline', className: 'h-12 w-full border-white/10 bg-transparent text-steel-300 hover:bg-white/5 hover:text-white' })}>
             Cancelar
           </button>
