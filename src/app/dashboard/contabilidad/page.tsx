@@ -81,7 +81,7 @@ export default async function ContabilidadPage({
         .select(`
           id, nombre_producto, cantidad, costo_unitario, subtotal_linea,
           es_fraccionado, cantidad_fraccion,
-          productos(id, nombre, cantidad_total_unidad, producto_proveedores(proveedor_id, proveedores(nombre))),
+          productos(id, nombre, cantidad_total_unidad, tiene_iva, iva_incluido, porcentaje_iva, producto_proveedores(proveedor_id, proveedores(nombre))),
           ventas!inner(fecha, estado)
         `)
         .gte('ventas.fecha', desde)

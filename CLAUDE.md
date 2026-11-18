@@ -330,17 +330,17 @@ nómina).
 - El repositorio de GitHub es público: valorar hacerlo privado. Si se hace, instalar la app de Claude en GitHub
   (github.com/apps/claude) para que las sesiones en la nube puedan clonarlo.
 - La búsqueda del inventario filtra en el navegador (bien con ~3000 productos; pasar a búsqueda en el servidor si crece).
-- Garantías desde una devolución o un cambio: en `venta-acciones.tsx` no se puede elegir el proveedor (la lista no se
-  carga), la cantidad va fija en 1 y no se guarda `devolucion_id`; además la RPC reintegra el stock y `recibir_garantia`
-  lo vuelve a sumar.
-- **SQL pendiente de confirmar** (`sql/pendiente_iva_fraccion_y_editar_factura.sql`): IVA informativo de las líneas
-  por fracción en `registrar_venta` y `registrar_venta_credito` (hoy guardan 0; el front ya lo muestra) y la RPC
-  `editar_factura_proveedor`, que el formulario de editar factura ya llama (sin ella avisa que falta la migración).
-- Reportes y Contabilidad restan el costo sin IVA a ventas con IVA incluido: la utilidad sale más alta de lo real si
-  el negocio declara IVA. Falta decidir el tratamiento (ver con el dueño si es responsable de IVA).
+- **SQL pendiente de confirmar** (`sql/pendiente_garantias_y_fraccion.sql`): RPC `registrar_garantia` (saca del stock lo
+  que va al proveedor; `venta-acciones.tsx` ya la llama con la cantidad devuelta y exige proveedor), movimiento de
+  inventario al devolver por fracción en `devolver_productos`, y `anular_venta` pasando a unidades el sobrante de una
+  línea por fracción. Mientras no se aplique, enviar a garantía avisa que falta la migración.
+- Migración `iva_fraccion_y_editar_factura` (2026-11-18): IVA informativo en las líneas por fracción y RPC
+  `editar_factura_proveedor` (recalcula saldo y estado con lo pagado). Las 4 ventas por fracción anteriores conservan
+  su IVA en 0.
+- **El negocio no es responsable de IVA** (confirmado el 2026-11-18): el IVA pagado al proveedor es parte del costo.
+  `costoPorUnidadVendida` (`src/lib/costo-venta.ts`) suma el IVA al costo cuando el producto tiene IVA y no lo trae
+  incluido. El IVA de las ventas sigue siendo solo informativo.
 - El total de una venta incluye sus servicios (`venta_servicios`): no sumarlos aparte a los ingresos.
-- Devolver o anular una línea fraccionada no deja movimiento en `movimientos_inventario`, y `anular_venta` suma la
-  fracción al remanente sin pasarla a unidades.
 - Recepción de mercancía: quedan para después adjuntar la foto o el PDF de la factura y repartir fletes y descuentos en
   el costo de los renglones.
 - `DATABASE.md` y `database.types.ts` no incluyen todavía lo del 2026-11-13 (`bitacora`, `bitacora_borrados`,

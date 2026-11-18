@@ -200,35 +200,41 @@ export function VentaAcciones({
   const devolucionEnDinero = -repartoDevolucion.caja
   const devolucionADeuda = -repartoDevolucion.deuda
 
-  // Registra en garantías los items marcados como defectuosos (no regresan a inventario)
+  // Envía a garantía lo marcado como defectuoso. La devolución ya regresó esas unidades al inventario: la función
+  // registrar_garantia las saca (van hacia el proveedor) y recibir_garantia las suma cuando vuelven.
   const registrarGarantias = async (
     garantias: Record<string, GarantiaItem>,
-    ventaItemIds: string[]
+    seleccionados: { venta_item_id: string; cantidad: number; es_fraccionado?: boolean }[]
   ) => {
-    const itemsConGarantia = ventaItemIds
-      .map(id => garantias[id])
-      .filter((g): g is GarantiaItem => Boolean(g?.esGarantia && g.proveedorId))
-
-    if (itemsConGarantia.length === 0) return
-
-    const userId = (await supabase.auth.getUser()).data.user?.id
-
-    for (const g of itemsConGarantia) {
-      await (supabase as any).from('garantias').insert({
-        producto_id: g.producto_id || null,
-        proveedor_id: g.proveedorId,
-        nombre_producto: g.nombre,
-        cantidad: 1,
-        observaciones: g.observacion || null,
-        venta_id: ventaId,
-        registrado_por: userId,
-      })
+    const fallos: string[] = []
+    for (const sel of seleccionados) {
+      const g = garantias[sel.venta_item_id]
+      if (!g?.esGarantia || sel.es_fraccionado) continue
+      if (!g.producto_id) { fallos.push(`${g.nombre}: el producto ya no existe`); continue }
+      const { error } = await supabase.rpc('registrar_garantia' as never, {
+        p_producto_id: g.producto_id,
+        p_proveedor_id: g.proveedorId,
+        p_cantidad: sel.cantidad,
+        p_observaciones: g.observacion || null,
+        p_venta_id: ventaId,
+      } as never)
+      if (error) {
+        fallos.push(`${g.nombre}: ${error.code === 'PGRST202' ? 'falta activar las garantías en la base de datos (migración garantias_y_fraccion)' : error.message}`)
+      }
     }
+    if (fallos.length > 0) toast.error(`No se registró la garantía de ${fallos.join('; ')}`, { duration: 10000 })
   }
+
+  /** Una garantía marcada sin proveedor no se puede registrar: se avisa antes de hacer la devolución o el cambio */
+  const garantiaSinProveedor = (garantias: Record<string, GarantiaItem>, ids: string[]) =>
+    ids.some(id => garantias[id]?.esGarantia && !garantias[id]?.proveedorId)
 
   const handleDevolver = async () => {
     if (seleccionadosDevolucion.length === 0) { toast.error('Selecciona al menos un producto'); return }
     if (!observacionDev.trim()) { toast.error('La observación es obligatoria'); return }
+    if (garantiaSinProveedor(garantiasDevolucion, seleccionadosDevolucion.map(i => i.venta_item_id))) {
+      toast.error('Elige el proveedor de cada producto que va a garantía'); return
+    }
     setDevolviendo(true)
     try {
       const payload = seleccionadosDevolucion.map(i =>
@@ -241,7 +247,7 @@ export function VentaAcciones({
         p_medio_devolucion: medioDevolucion,
       })
       if (error) throw error
-      await registrarGarantias(garantiasDevolucion, seleccionadosDevolucion.map(i => i.venta_item_id))
+      await registrarGarantias(garantiasDevolucion, seleccionadosDevolucion)
       const partes = [
         devolucionADeuda > 0 ? `Descontado de la deuda: $${devolucionADeuda.toLocaleString('es-CO')}` : '',
         devolucionEnDinero > 0 ? `Devolver: $${devolucionEnDinero.toLocaleString('es-CO')} (${MEDIO_AJUSTE_LABEL[medioDevolucion]})` : '',
@@ -299,6 +305,9 @@ export function VentaAcciones({
     if (seleccionadosCambio.length === 0) { toast.error('Selecciona al menos un producto a retirar'); return }
     if (itemsAgregar.length === 0) { toast.error('Agrega al menos un producto nuevo'); return }
     if (!observacionCambio.trim()) { toast.error('La observación es obligatoria'); return }
+    if (garantiaSinProveedor(garantiasCambio, seleccionadosCambio.map(i => i.venta_item_id))) {
+      toast.error('Elige el proveedor de cada producto que va a garantía'); return
+    }
     setCambiando(true)
     try {
       const { data, error } = await supabase.rpc('cambiar_productos', {
@@ -310,7 +319,7 @@ export function VentaAcciones({
         p_medio_pago: medioCambio,
       })
       if (error) throw error
-      await registrarGarantias(garantiasCambio, seleccionadosCambio.map(i => i.venta_item_id))
+      await registrarGarantias(garantiasCambio, seleccionadosCambio)
       const r = data as any
       const medio = MEDIO_AJUSTE_LABEL[medioCambio]
       const ajuste = Number(r.ajuste_credito ?? 0)
@@ -425,7 +434,7 @@ export function VentaAcciones({
                 </div>
 
                 {/* Switch garantía */}
-                {item.seleccionado && (
+                {item.seleccionado && !item.es_fraccionado && (
                   <div className="mt-2 space-y-2 border-t border-white/8 pt-2">
                     <div className="flex items-center gap-2">
                       <input
@@ -436,7 +445,7 @@ export function VentaAcciones({
                           const checked = e.target.checked
                           const proveedores = item.proveedores_producto ?? []
                           const proveedorAuto = proveedores.length === 1 ? proveedores[0].id : ''
-                          if (proveedores.length > 1) cargarProveedores()
+                          void cargarProveedores()
                           setGarantiasDevolucion(prev => ({
                             ...prev,
                             [item.venta_item_id]: {
@@ -452,7 +461,7 @@ export function VentaAcciones({
                         className="h-4 w-4 accent-brand-yellow"
                       />
                       <label htmlFor={`garantia-dev-${item.venta_item_id}`} className="text-xs font-medium text-brand-yellow">
-                        Enviar a garantía (no regresa al inventario)
+                        Enviar a garantía (sale del inventario hasta que el proveedor lo devuelva)
                       </label>
                     </div>
                     {garantiasDevolucion[item.venta_item_id]?.esGarantia && (
@@ -567,7 +576,7 @@ export function VentaAcciones({
                               const checked = e.target.checked
                               const proveedores = item.proveedores_producto ?? []
                               const proveedorAuto = proveedores.length === 1 ? proveedores[0].id : ''
-                              if (proveedores.length > 1) cargarProveedores()
+                              void cargarProveedores()
                               setGarantiasCambio(prev => ({
                                 ...prev,
                                 [item.venta_item_id]: {

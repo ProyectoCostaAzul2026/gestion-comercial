@@ -1,5 +1,4 @@
--- PENDIENTE DE APLICAR (espera confirmación). Aplicar con apply_migration, nombre: iva_fraccion_y_editar_factura.
--- Después: get_advisors, DATABASE.md y database.types.ts.
+-- Migración iva_fraccion_y_editar_factura (aplicada el 2026-11-18).
 
 -- ───────────── 1. IVA de las líneas vendidas por fracción ─────────────
 -- registrar_venta y registrar_venta_credito guardaban iva_unitario = 0 en las líneas por fracción (metro, kilo) aunque

@@ -94,7 +94,7 @@ export default async function ReportesPage({
         .select(`
           id, nombre_producto, cantidad, precio_unitario, subtotal_linea,
           costo_unitario, es_fraccionado, cantidad_fraccion, venta_id, producto_id,
-          productos(id, codigo, nombre, marca, unidad_medida, precio_costo_base, cantidad_total_unidad),
+          productos(id, codigo, nombre, marca, unidad_medida, precio_costo_base, cantidad_total_unidad, tiene_iva, iva_incluido, porcentaje_iva),
           ventas!inner(fecha, estado)
         `)
         .gte('ventas.fecha', desde)
