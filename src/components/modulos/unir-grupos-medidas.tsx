@@ -13,8 +13,6 @@ interface Props {
   familia: string
   origen: NivelGrupo
   destino: NivelGrupo
-  /** Todos los grupos de la familia */
-  grupos: NivelGrupo[]
   onCerrar: () => void
   /** Se llama cuando la unión quedó guardada (con la clave del grupo de destino) */
   onUnido?: (claveDestino: string) => void
@@ -26,42 +24,25 @@ const nombreGrupo = (g: NivelGrupo) => [g.caracteristica ?? g.nombre, g.marca].f
  * Confirmación de "unir un grupo de medidas dentro de otro" (se abre al soltar una tarjeta sobre otra).
  * Muestra qué va a pasar, avisa las medidas repetidas y el cambio de marca, y permite deshacer después de guardar.
  */
-export function UnirGruposMedidas({ familia, origen, destino, grupos, onCerrar, onUnido }: Props) {
+export function UnirGruposMedidas({ familia, origen, destino, onCerrar, onUnido }: Props) {
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
   const [guardando, setGuardando] = useState(false)
-  const plan = useMemo(() => planearUnion(origen, destino, grupos), [origen, destino, grupos])
+  const plan = useMemo(() => planearUnion(origen, destino), [origen, destino])
   const ids = plan.mover.map(p => p.id)
   const n = plan.mover.length
 
-  // Los dos pasos de la unión. El de la marca solo existe cuando los grupos tienen marcas distintas.
-  const ponerNombre = (caracteristica: string | null) =>
-    supabase.rpc('mover_productos', { p_producto_ids: ids, p_caracteristica: caracteristica ?? '' })
-  const ponerMarca = (marca: string | null) => supabase.from('productos').update({ marca }).in('id', ids)
-
-  /** Lleva las medidas a la característica y marca dadas, en el orden que no choca. Devuelve el error, o null. */
-  async function llevar(a: NivelGrupo, desde: NivelGrupo, orden: 'nombre-primero' | 'marca-primero'): Promise<string | null> {
-    if (!plan.cambiaMarca) return (await ponerNombre(a.caracteristica)).error?.message ?? null
-    if (orden === 'nombre-primero') {
-      const { error } = await ponerNombre(a.caracteristica)
-      if (error) return error.message
-      const { error: errorMarca } = await ponerMarca(a.marca)
-      if (!errorMarca) return null
-      // No dejar la unión a medias: vuelven a su nombre
-      await ponerNombre(desde.caracteristica)
-      return errorMarca.message
-    }
-    const { error: errorMarca } = await ponerMarca(a.marca)
-    if (errorMarca) return errorMarca.message
-    const { error } = await ponerNombre(a.caracteristica)
-    if (!error) return null
-    await ponerMarca(desde.marca)
-    return error.message
+  /** Lleva las medidas a la característica y marca del grupo dado, en una sola transacción. Devuelve el error, o null. */
+  async function llevar(a: NivelGrupo): Promise<string | null> {
+    const { error } = await supabase.rpc('unir_grupos_medidas' as never, {
+      p_producto_ids: ids, p_caracteristica: a.caracteristica ?? '', p_marca: a.marca ?? '',
+    } as never)
+    return error?.message ?? null
   }
 
   async function deshacer() {
-    // Vuelven a su característica (y marca) de antes, por el camino inverso; el código, el stock y los precios nunca cambiaron
-    const error = await llevar(origen, destino, plan.orden === 'nombre-primero' ? 'marca-primero' : 'nombre-primero')
+    // Vuelven a su característica y marca de antes; el código, el stock y los precios nunca cambiaron
+    const error = await llevar(origen)
     if (error) { toast.error('No se pudo deshacer: ' + error); return }
     toast.success('Unión deshecha')
     router.refresh()
@@ -70,7 +51,7 @@ export function UnirGruposMedidas({ familia, origen, destino, grupos, onCerrar, 
   async function unir() {
     if (plan.error || guardando) return
     setGuardando(true)
-    const error = await llevar(destino, origen, plan.orden)
+    const error = await llevar(destino)
     setGuardando(false)
     if (error) {
       toast.error('No se pudo unir: ' + error)

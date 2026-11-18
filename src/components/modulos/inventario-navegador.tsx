@@ -445,7 +445,6 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
           familia={nombreFamilia(fam)}
           origen={unirOrigen}
           destino={unirDestino}
-          grupos={listaGrupos}
           onCerrar={() => setUnir(null)}
         />
       )}
