@@ -325,7 +325,15 @@ nómina).
   fecha o sin total. Tres proveedores tienen nombre provisional (`Proveedor sin nombre - ...`).
 - NIT del negocio corregido en `configuracion_negocio`. Se borraron las 2 ventas de prueba y los saldos de medios de
   pago están en 0.
-- Ventas, caja y demás tablas operativas están vacías. Hay 6 perfiles: 5 administradores y 1 empleado.
+- Hay 6 perfiles: 5 administradores y 1 empleado.
+- **Datos de prueba (2026-11-18)**: se borraron las ventas de prueba anteriores (stock devuelto, saldos en 0) y se generaron,
+  con las mismas RPC de la app y fechadas día a día del 1 de octubre al 18 de noviembre, ventas de varios usuarios (todos
+  los medios, crédito, descuentos, servicios, fracción), abonos, devoluciones, cambios, una garantía, anulaciones, gastos,
+  nómina diaria, retiros, traslados semanales, pagos a un proveedor de prueba y cierres de caja diarios (dos días sin
+  cerrar; hoy abierto). Todo lleva la marca `PRUEBA SISTEMA` en observaciones o notas, con 4 "Cliente Prueba" y un
+  "Proveedor Prueba Sistema". Bajaron el stock real de unos 260 productos. El cuadre cerró: cada medio contra sus
+  movimientos, crédito contra la deuda de clientes, efectivo y cada cierre, cada venta contra lo que entró por ella y las
+  facturas contra sus pagos. Un pago real a proveedor desde caja mayor, anterior al arreglo de caja mayor, no la descontó.
 - 2026-11-07 (migración `mejoras_inventario_recepcion_horario`): tablas y columnas nuevas `permisos_empleado`,
   `productos.por_completar` y `recepcion_items.cantidad_almacen` / `ingresado_bodega` / `ingresado_almacen` (reemplazan a
   `destino`).
@@ -378,7 +386,10 @@ nómina).
   `cantidadNeta`, `subtotalNeto` y `costoLineaVenta` de `src/lib/costo-venta.ts` (la consulta debe traer
   `devolucion_items(cantidad, cantidad_fraccion)`). `cambiar_productos` sí actualiza el total.
 - 2026-11-18: migraciones `hoja_de_tareas`, `cierre_caja_saldo_efectivo` y `unir_grupos_y_politicas_con_sesion` (las
-  políticas RLS que eran "para public" pasaron a `authenticated`; `anon` ya no ejecuta `is_admin()` ni `rls_auto_enable()`).
+  políticas RLS que eran "para public" pasaron a `authenticated`; `anon` ya no ejecuta `is_admin()` ni `rls_auto_enable()`),
+  y `cuadre_caja_mayor` (`sql/cuadre_caja_mayor.sql`): el saldo de caja mayor es `saldos_medios_pago` medio `caja_mayor` y un
+  trigger lo copia a `caja_mayor.saldo_actual`; `transferir_entre_fondos` deja movimiento de salida (`referencia_tipo`
+  `transferencia_salida`) y de llegada; se creó `retiros.registrado_por` (antes todo retiro fallaba).
 - Recepción de mercancía: quedan para después adjuntar la foto o el PDF de la factura y repartir fletes y descuentos en
   el costo de los renglones.
 - `DATABASE.md` y `database.types.ts` no incluyen todavía lo del 2026-11-13 (`bitacora`, `bitacora_borrados`,
