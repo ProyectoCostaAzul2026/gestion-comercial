@@ -9,7 +9,7 @@ export default async function GarantiasPage() {
   if (!user) redirect('/login')
 
   const [{ data: garantias }, { data: proveedores }] = await Promise.all([
-    (supabase as any)
+    supabase
       .from('garantias')
       .select('id, nombre_producto, cantidad, observaciones, fecha_registro, estado, proveedores(id, nombre), productos(id, imagen_url)')
       .order('fecha_registro', { ascending: false }),

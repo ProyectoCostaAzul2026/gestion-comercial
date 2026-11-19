@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { SelectorTema } from '@/components/tema/selector-tema'
+import type { Tema } from '@/lib/tema'
 
 interface Perfil {
   id: string
@@ -13,7 +14,7 @@ interface Perfil {
   foto_url: string | null
 }
 
-export function MiPerfilForm({ perfil }: { perfil: Perfil }) {
+export function MiPerfilForm({ perfil, temaInicial }: { perfil: Perfil; temaInicial: Tema }) {
   const [passwordActual, setPasswordActual] = useState('')
   const [passwordNueva, setPasswordNueva] = useState('')
   const [passwordConfirmar, setPasswordConfirmar] = useState('')
@@ -80,7 +81,7 @@ export function MiPerfilForm({ perfil }: { perfil: Perfil }) {
 
   return (
     <div className="max-w-md space-y-6">
-      <SelectorTema />
+      <SelectorTema temaInicial={temaInicial} />
 
       {/* Avatar + nombre */}
       <div className="flex flex-col items-center gap-3 rounded-2xl bg-superficie p-6 text-center">

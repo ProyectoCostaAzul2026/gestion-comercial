@@ -21,7 +21,10 @@ export function SelectorPeriodo({ periodo, hoy, anterior }: {
 
   const ir = (cambios: Record<string, string | null>) => {
     const p = new URLSearchParams(searchParams.toString())
-    for (const [k, v] of Object.entries(cambios)) v ? p.set(k, v) : p.delete(k)
+    for (const [k, v] of Object.entries(cambios)) {
+      if (v) p.set(k, v)
+      else p.delete(k)
+    }
     router.replace(`${pathname}?${p.toString()}`, { scroll: false })
   }
 

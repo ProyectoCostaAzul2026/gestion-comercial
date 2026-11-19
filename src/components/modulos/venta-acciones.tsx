@@ -224,13 +224,13 @@ export function VentaAcciones({
       const g = garantias[sel.venta_item_id]
       if (!g?.esGarantia || sel.es_fraccionado) continue
       if (!g.producto_id) { fallos.push(`${g.nombre}: el producto ya no existe`); continue }
-      const { error } = await supabase.rpc('registrar_garantia' as never, {
+      const { error } = await supabase.rpc('registrar_garantia', {
         p_producto_id: g.producto_id,
         p_proveedor_id: g.proveedorId,
         p_cantidad: sel.cantidad,
-        p_observaciones: g.observacion || null,
+        p_observaciones: g.observacion || undefined,
         p_venta_id: ventaId,
-      } as never)
+      })
       if (error) {
         fallos.push(`${g.nombre}: ${error.code === 'PGRST202' ? 'falta activar las garantías en la base de datos (migración garantias_y_fraccion)' : error.message}`)
       }

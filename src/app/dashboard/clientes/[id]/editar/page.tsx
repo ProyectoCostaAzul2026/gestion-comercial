@@ -35,7 +35,7 @@ export default async function EditarClientePage({
       <div className="max-w-md p-4">
         {cliente.es_cliente_generico ? (
           <p className="rounded-2xl border border-brand-yellow/30 bg-brand-yellow/10 p-4 text-sm text-brand-yellow">
-            "Cliente General" es un registro del sistema y no se puede editar.
+            El cliente de mostrador es un registro del sistema y no se puede editar.
           </p>
         ) : (
           <ClienteForm cliente={cliente} />

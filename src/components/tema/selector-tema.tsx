@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Moon, Smartphone, Sun } from 'lucide-react'
-import { aplicarTema, COOKIE_TEMA, leerTema, type Tema } from '@/lib/tema'
+import { aplicarTema, type Tema } from '@/lib/tema'
 
 const OPCIONES: { valor: Tema; nombre: string; Icono: typeof Sun }[] = [
   { valor: 'claro', nombre: 'Claro', Icono: Sun },
@@ -11,12 +11,9 @@ const OPCIONES: { valor: Tema; nombre: string; Icono: typeof Sun }[] = [
 ]
 
 /** Elegir el modo de la app. Cada persona elige el suyo en su dispositivo. */
-export function SelectorTema() {
-  const [tema, setTema] = useState<Tema>('oscuro')
-  useEffect(() => {
-    const c = document.cookie.match(new RegExp(`(?:^|; )${COOKIE_TEMA}=([^;]+)`))
-    setTema(leerTema(c?.[1]))
-  }, [])
+export function SelectorTema({ temaInicial }: { temaInicial: Tema }) {
+  // El servidor lee la cookie y pasa el tema guardado, así el botón marcado es el correcto desde el primer pintado
+  const [tema, setTema] = useState<Tema>(temaInicial)
 
   return (
     <fieldset className="space-y-2">

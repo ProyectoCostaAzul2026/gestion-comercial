@@ -17,11 +17,11 @@ export default async function TareasPage() {
 
   // Las tablas de tareas nacen con una migración posterior a los tipos generados
   const [pendientes, hechas, plantillas, { data: empleados }] = await Promise.all([
-    supabase.from('tareas' as never).select(CAMPOS).eq('estado', 'pendiente').order('created_at').limit(500),
-    supabase.from('tareas' as never).select(CAMPOS).eq('estado', 'hecha')
+    supabase.from('tareas').select(CAMPOS).eq('estado', 'pendiente').order('created_at').limit(500),
+    supabase.from('tareas').select(CAMPOS).eq('estado', 'hecha')
       .gte('hecha_en', `${bogotaEnDias(-30)}T00:00:00-05:00`).order('hecha_en', { ascending: false }).limit(200),
     esAdmin
-      ? supabase.from('tareas_plantillas' as never).select('id, titulo, descripcion, prioridad, asignado_a, veces_usada').order('veces_usada', { ascending: false })
+      ? supabase.from('tareas_plantillas').select('id, titulo, descripcion, prioridad, asignado_a, veces_usada').order('veces_usada', { ascending: false })
       : Promise.resolve({ data: [], error: null }),
     supabase.from('profiles').select('id, nombre_completo, rol').eq('activo', true).order('nombre_completo'),
   ])

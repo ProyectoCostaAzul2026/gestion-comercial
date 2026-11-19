@@ -58,7 +58,7 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
       `)
       .eq('proveedor_id', id)
       .order('fecha_emision', { ascending: false }),
-    (supabase as any)
+    supabase
       .from('garantias')
       .select('id, nombre_producto, cantidad, observaciones, fecha_registro, estado, productos(id)')
       .eq('proveedor_id', id)

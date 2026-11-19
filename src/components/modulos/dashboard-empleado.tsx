@@ -31,6 +31,9 @@ interface Props {
 }
 
 export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, turnos, kpis, filtros, tareasPendientes }: Props) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   if (!profile) {
     return (
       <div className="rounded-2xl bg-superficie p-6 text-center text-sm text-steel-300">
@@ -38,9 +41,6 @@ export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, 
       </div>
     )
   }
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
 
   const actualizar = (params: Record<string, string>) => {
     const p = new URLSearchParams(searchParams.toString())
