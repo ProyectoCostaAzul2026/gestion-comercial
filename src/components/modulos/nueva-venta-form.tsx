@@ -728,7 +728,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
   return (
     <div className="-mx-4 -mt-4 md:-mx-6 md:-mt-6">
       {/* Encabezado de la tarea */}
-      <header className="sticky top-0 z-20 flex items-center gap-1 bg-fondo/95 px-2 pb-2 pt-[calc(.75rem+env(safe-area-inset-top))] backdrop-blur md:px-4 lg:pt-4">
+      <header className="sticky top-[env(safe-area-inset-top)] z-20 flex items-center gap-1 bg-fondo/95 px-2 pb-2 pt-3 backdrop-blur md:px-4 lg:top-0 lg:pt-4">
         <button type="button" aria-label={paso === 'cobro' ? 'Volver a la venta' : 'Salir de la venta'}
           onClick={() => (paso === 'cobro' ? setPaso('venta') : volver('/dashboard/ventas'))}
           className="flex size-12 items-center justify-center rounded-xl text-tinta hover:bg-velo/5">

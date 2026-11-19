@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { telefonoMarcable } from '@/components/modulos/avatar-iniciales'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { BotonAtras } from '@/components/ui/boton-atras'
@@ -75,7 +76,10 @@ export default async function PerfilClientePage({
           ].map(([label, value]) => (
             <div key={label} className="flex justify-between gap-4 border-b border-linea pb-2">
               <dt className="text-steel-300">{label}</dt>
-              <dd className="text-right font-medium text-tinta">{value}</dd>
+              <dd className="text-right font-medium text-tinta">
+                {label === 'Teléfono' && cliente.telefono ? <a href={`tel:${telefonoMarcable(cliente.telefono)}`} className="text-enlace underline-offset-2 hover:underline">{value}</a>
+                  : label === 'Email' && cliente.email ? <a href={`mailto:${cliente.email}`} className="text-enlace underline-offset-2 hover:underline">{value}</a> : value}
+              </dd>
             </div>
           ))}
         </dl>

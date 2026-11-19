@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { telefonoMarcable } from '@/components/modulos/avatar-iniciales'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { EnlaceA, MiniaturaProducto, rutaProducto } from '@/components/ui/producto-miniatura'
@@ -212,7 +213,7 @@ export default async function VentaDetallePage({
           <div>
             <dt className="text-sm font-semibold text-suave">Cliente</dt>
             <dd className="font-medium text-tinta">{cliente?.id ? <EnlaceA href={`/dashboard/clientes/${cliente.id}`}>{cliente.nombre}</EnlaceA> : (cliente?.nombre ?? 'Mostrador')}</dd>
-            {cliente?.telefono && <dd className="text-xs text-steel-500">{cliente.telefono}</dd>}
+            {cliente?.telefono && <dd className="text-sm"><a href={`tel:${telefonoMarcable(cliente.telefono)}`} className="text-enlace underline-offset-2 hover:underline">{cliente.telefono}</a></dd>}
           </div>
           <div>
             <dt className="text-sm font-semibold text-suave">Empleado</dt>

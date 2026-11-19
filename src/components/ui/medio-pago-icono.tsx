@@ -41,7 +41,7 @@ export function MedioPagoIcono({ medio, className = 'h-8 w-12' }: { medio: Medio
         </>
       ) : medio === 'caja_mayor' ? (
         <>
-          <rect width="48" height="32" rx="5" fill="#12263A" />
+          <rect x="0.75" y="0.75" width="46.5" height="30.5" rx="4.5" fill="#12263A" stroke="#4A6E92" strokeWidth="1.5" />
           <rect x="12" y="7" width="24" height="18" rx="2.5" fill="none" stroke="#FEDB03" strokeWidth="1.8" />
           <circle cx="24" cy="16" r="4" fill="none" stroke="#FEDB03" strokeWidth="1.8" />
           <path d="M24 12v1.5M24 18.5V20M20 16h1.5M26.5 16H28" stroke="#FEDB03" strokeWidth="1.5" />

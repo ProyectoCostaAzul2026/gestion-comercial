@@ -96,6 +96,8 @@ function KPICard({ label, valor, sub, color, comparacion }: {
 }
 
 interface FilaUtilidad {
+  /** Tarjeta de Inventario de esta categoría o familia */
+  href?: string | null
   nombre: string; ingresos: number; costo: number; utilidad: number; margen: number; unidades: number; productos: number
 }
 
@@ -146,8 +148,8 @@ function TablaUtilidad({ porCategoria, porFamilia, desde, hasta }: {
         <TableBody>
           {mostradas.map(f => (
             <TableRow key={f.nombre} className="border-linea hover:bg-velo/5">
-              <TableCell className="text-xs font-medium text-tinta">
-                {f.nombre}
+              <TableCell className="text-sm font-medium text-tinta">
+                {f.href ? <Link href={f.href} prefetch={false} className="underline-offset-2 hover:text-enlace hover:underline">{f.nombre}</Link> : f.nombre}
                 <span className="block text-xs font-normal text-steel-500">{f.productos} producto{f.productos === 1 ? '' : 's'}</span>
               </TableCell>
               <TableCell className="text-right text-xs text-steel-300">{fmt(f.ingresos)}</TableCell>

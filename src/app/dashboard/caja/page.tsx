@@ -65,6 +65,18 @@ export default async function CajaPage() {
     .filter((m: any) => !['ingreso', 'transferencia_caja_mayor'].includes(m.tipo_movimiento))
     .reduce((s: number, m: any) => s + Number(m.monto), 0)
 
+  // A dónde lleva cada abono (el cliente) y cada pago a proveedor (el proveedor)
+  const idsAbono = (movimientos ?? []).filter((m: any) => m.referencia_tipo === 'abono_credito' && m.referencia_id).map((m: any) => m.referencia_id)
+  const idsFactura = (movimientos ?? []).filter((m: any) => m.referencia_tipo === 'factura_proveedor' && m.referencia_id).map((m: any) => m.referencia_id)
+  const [{ data: creditosAbono }, { data: facturasPago }] = await Promise.all([
+    idsAbono.length ? supabase.from('ventas_credito').select('id, cliente_id').in('id', idsAbono) : Promise.resolve({ data: [] as { id: string; cliente_id: string }[] }),
+    idsFactura.length ? supabase.from('facturas_proveedor').select('id, proveedor_id').in('id', idsFactura) : Promise.resolve({ data: [] as { id: string; proveedor_id: string }[] }),
+  ])
+  const destino = new Map<string, string>()
+  for (const c of creditosAbono ?? []) if (c.cliente_id) destino.set(c.id, `/dashboard/clientes/${c.cliente_id}`)
+  for (const f of facturasPago ?? []) if (f.proveedor_id) destino.set(f.id, `/dashboard/proveedores/${f.proveedor_id}`)
+  const movimientosConDestino = (movimientos ?? []).map((m: any) => ({ ...m, destino: m.referencia_id ? destino.get(m.referencia_id) ?? null : null }))
+
   const empleadosPagadosHoy = new Set((nominasHoy ?? []).map((n: any) => n.empleado_id))
   // Nómina del día: quienes trabajan hoy (turno y sin permiso) y quien ya recibió pago
   const enNominaHoy = new Set<string>([...(empleadosActivos ?? []), ...empleadosPagadosHoy])
@@ -78,7 +90,7 @@ export default async function CajaPage() {
       ventasCredito={ventasCredito}
       totalIngresos={totalIngresos}
       totalEgresos={totalEgresos}
-      movimientos={(movimientos as any) ?? []}
+      movimientos={movimientosConDestino}
       fondos={(fondos as any) ?? []}
       saldos={saldos ?? []}
       config={config ?? { monto_base_caja_menor: 300000, monto_inicial_monedas: 400000, monto_inicial_sencillo: 800000 }}

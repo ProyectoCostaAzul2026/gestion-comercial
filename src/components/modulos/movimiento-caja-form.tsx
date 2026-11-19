@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { ArrowRight } from 'lucide-react'
+import { ArrowDown } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useNavegacion } from '@/lib/navegacion'
 import { Button } from '@/components/ui/button'
@@ -11,14 +11,12 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
-  ajustarFuenteUnica, FUENTES_DISPONIBLES, FuentesPagoEditor, medioDeFuente, validarFuentes, type FuentePago,
+  ajustarFuenteUnica, FUENTES_DISPONIBLES, FuentesPagoEditor, medioDeFuente, SelectorMedio, validarFuentes, type FuentePago,
 } from './fuentes-pago'
 
 export type TipoMovimientoCaja = 'gasto' | 'retiro' | 'traslado'
 
 const pesos = (n: number) => `$${Math.round(n).toLocaleString('es-CO')}`
-const CAMPO = 'h-11 border-linea bg-superficie-2 text-tinta'
-const ETIQUETA = 'text-sm font-semibold text-suave'
 
 /**
  * Formulario de Caja en vista propia: registrar un gasto, un retiro de dinero o un traslado entre medios.
@@ -90,27 +88,43 @@ export function MovimientoCajaForm({ tipo, saldos, categoriasGasto = [], proveed
     ? `Pasar ${pesos(monto)} de ${FUENTES_DISPONIBLES.find(f => f.value === origen)?.label} a ${FUENTES_DISPONIBLES.find(f => f.value === destino)?.label}`
     : `${tipo === 'gasto' ? 'Gasto' : 'Retiro'} de ${pesos(monto)}${fuentes.length > 1 ? ` desde ${fuentes.length} medios` : ` desde ${FUENTES_DISPONIBLES.find(f => f.value === fuentes[0].fuente)?.label}`}`
 
+  const TITULO = 'text-[15px] font-semibold text-tinta'
+  const CAMPO_G = 'h-12 border-linea bg-superficie text-[17px] text-tinta placeholder:text-tenue'
+  const textoBoton = tipo === 'gasto' ? 'Registrar gasto' : tipo === 'retiro' ? 'Registrar retiro' : 'Registrar traslado'
+
   return (
-    <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
+    <div className="space-y-5 pb-28 lg:pb-0">
+      {/* Monto: la cifra principal */}
+      <div className="space-y-1.5">
+        <Label htmlFor="mc-monto" className={TITULO}>{tipo === 'traslado' ? '¿Cuánto pasas?' : tipo === 'retiro' ? '¿Cuánto se retira?' : '¿Cuánto se gastó?'}</Label>
+        <div className="relative">
+          <span className="cifra pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[32px] font-bold text-tenue">$</span>
+          <Input id="mc-monto" type="number" inputMode="numeric" value={monto || ''} onFocus={e => e.target.select()}
+            onChange={e => cambiarMonto(parseFloat(e.target.value) || 0)} placeholder="0"
+            autoFocus={tipo !== 'gasto'}
+            className="cifra h-16 rounded-2xl border-linea bg-superficie pl-10 text-[34px] font-bold text-tinta" />
+        </div>
+      </div>
+
       {tipo === 'gasto' && (
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="space-y-1">
-            <Label htmlFor="mc-concepto" className={ETIQUETA}>Concepto *</Label>
-            <Input id="mc-concepto" value={concepto} onChange={e => setConcepto(e.target.value)} className={CAMPO} placeholder="Ej: bolsas y cinta" autoFocus />
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor="mc-concepto" className={TITULO}>¿En qué se gastó?</Label>
+            <Input id="mc-concepto" value={concepto} onChange={e => setConcepto(e.target.value)} className={CAMPO_G} placeholder="Ej: bolsas y cinta" autoFocus />
           </div>
-          <div className="space-y-1">
-            <Label className={ETIQUETA}>Categoría</Label>
+          <div className="space-y-1.5">
+            <Label className={TITULO}>Categoría</Label>
             <Select items={categoriasGasto.map(c => ({ value: c.nombre, label: c.nombre }))} value={categoria} onValueChange={v => v && setCategoria(v)}>
-              <SelectTrigger className={`${CAMPO} w-full`}><SelectValue placeholder="Elige una categoría" /></SelectTrigger>
+              <SelectTrigger aria-label="Categoría" className={`${CAMPO_G} w-full`}><SelectValue placeholder="Elige una categoría" /></SelectTrigger>
               <SelectContent>{categoriasGasto.map(c => <SelectItem key={c.id} value={c.nombre}>{c.nombre}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           {proveedores.length > 0 && (
-            <div className="space-y-1 sm:col-span-2">
-              <Label className={ETIQUETA}>Proveedor (opcional)</Label>
+            <div className="space-y-1.5">
+              <Label className={TITULO}>Proveedor (opcional)</Label>
               <Select items={[{ value: 'ninguno', label: 'Ninguno' }, ...proveedores.map(p => ({ value: p.id, label: p.nombre }))]}
                 value={proveedorId || 'ninguno'} onValueChange={v => setProveedorId(!v || v === 'ninguno' ? '' : v)}>
-                <SelectTrigger className={`${CAMPO} w-full`}><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-label="Proveedor" className={`${CAMPO_G} w-full`}><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ninguno">Ninguno</SelectItem>
                   {proveedores.map(p => <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>)}
@@ -121,53 +135,48 @@ export function MovimientoCajaForm({ tipo, saldos, categoriasGasto = [], proveed
         </div>
       )}
 
-      <div className="space-y-1">
-        <Label htmlFor="mc-monto" className={ETIQUETA}>Monto *</Label>
-        <Input id="mc-monto" type="number" inputMode="numeric" value={monto || ''} onFocus={e => e.target.select()}
-          onChange={e => cambiarMonto(parseFloat(e.target.value) || 0)} className={`${CAMPO} text-lg font-bold`} placeholder="0"
-          autoFocus={tipo !== 'gasto'} />
-      </div>
-
       {tipo === 'traslado' ? (
-        <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-2">
-          {([['Sale de', origen, setOrigen], ['Llega a', destino, setDestino]] as const).map(([titulo, valor, cambiar], i) => (
-            <div key={titulo} className={`space-y-1 ${i === 1 ? 'col-start-3' : ''}`}>
-              <Label className={ETIQUETA}>{titulo}</Label>
-              <Select items={FUENTES_DISPONIBLES} value={valor} onValueChange={v => v && cambiar(v)}>
-                <SelectTrigger className={`${CAMPO} w-full`}><SelectValue /></SelectTrigger>
-                <SelectContent>{FUENTES_DISPONIBLES.map(f => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}</SelectContent>
-              </Select>
-              <p className="text-xs text-steel-500">Hay {pesos(saldos[medioDeFuente(valor)] ?? 0)}</p>
-            </div>
-          )).flatMap((el, i) => (i === 0 ? [el, <ArrowRight key="flecha" className="mb-8 h-5 w-5 text-steel-500" />] : [el]))}
+        <div className="space-y-4">
+          <div className="space-y-2.5">
+            <p className={TITULO}>Sale de</p>
+            <SelectorMedio valor={origen} saldos={saldos} onElegir={v => { setOrigen(v); setConfirmando(false) }} />
+          </div>
+          <div className="flex justify-center" aria-hidden><ArrowDown className="size-6 text-tenue" /></div>
+          <div className="space-y-2.5">
+            <p className={TITULO}>Llega a</p>
+            <SelectorMedio valor={destino} saldos={saldos} deshabilitado={origen} onElegir={v => { setDestino(v); setConfirmando(false) }} />
+          </div>
         </div>
       ) : (
         <FuentesPagoEditor fuentes={fuentes} setFuentes={setFuentes} montoTotal={monto} saldos={saldos} />
       )}
 
-      <div className="space-y-1">
-        <Label htmlFor="mc-notas" className={ETIQUETA}>{tipo === 'retiro' ? 'Motivo *' : 'Notas'}</Label>
+      <div className="space-y-1.5">
+        <Label htmlFor="mc-notas" className={TITULO}>{tipo === 'retiro' ? 'Motivo *' : 'Notas (opcional)'}</Label>
         <Textarea id="mc-notas" value={notas} onChange={e => setNotas(e.target.value)} rows={2}
-          placeholder={tipo === 'retiro' ? 'Ej: retiro del dueño, consignación al banco' : 'Opcional'}
-          className="border-linea bg-superficie-2 text-tinta placeholder:text-steel-500" />
+          placeholder={tipo === 'retiro' ? 'Ej: retiro del dueño, consignación al banco' : 'Algo que convenga recordar'}
+          className="border-linea bg-superficie text-[16px] text-tinta placeholder:text-tenue" />
       </div>
 
-      {!confirmando ? (
-        <Button onClick={() => { const e = error(); if (e) toast.error(e); else setConfirmando(true) }}
-          className="h-12 w-full bg-brand-yellow text-base font-bold text-steel-900 hover:brightness-105">
-          {tipo === 'gasto' ? 'Registrar gasto' : tipo === 'retiro' ? 'Registrar retiro' : 'Registrar traslado'}
-        </Button>
-      ) : (
-        <div className="space-y-3 rounded-xl border border-brand-yellow/40 bg-brand-yellow/5 p-3">
-          <p className="text-sm font-semibold text-tinta">{resumen}. ¿Confirmas?</p>
-          <div className="flex gap-2">
-            <Button onClick={guardar} disabled={guardando} className="h-11 flex-1 bg-brand-yellow font-bold text-steel-900 hover:brightness-105">
-              {guardando ? 'Guardando…' : 'Sí, registrar'}
-            </Button>
-            <Button variant="outline" onClick={() => setConfirmando(false)} className="h-11 border-linea bg-transparent text-tinta hover:bg-velo/5">Revisar</Button>
+      {/* Acción fija abajo en el celular */}
+      <div className="fixed inset-x-0 bottom-0 z-30 bg-gradient-to-t from-fondo via-fondo/95 to-transparent px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-6 lg:static lg:bg-none lg:p-0">
+        {!confirmando ? (
+          <Button onClick={() => { const e = error(); if (e) toast.error(e); else setConfirmando(true) }}
+            className="h-14 w-full rounded-xl bg-accion text-lg font-bold text-sobre-accion hover:brightness-105">
+            {textoBoton}
+          </Button>
+        ) : (
+          <div className="space-y-3 rounded-2xl border-2 border-accion bg-superficie p-3 shadow-xl">
+            <p className="text-[15px] font-semibold text-tinta">{resumen}. ¿Confirmas?</p>
+            <div className="flex gap-2">
+              <Button onClick={guardar} disabled={guardando} className="h-12 flex-1 bg-accion text-base font-bold text-sobre-accion hover:brightness-105">
+                {guardando ? 'Guardando…' : 'Sí, registrar'}
+              </Button>
+              <Button variant="outline" onClick={() => setConfirmando(false)} className="h-12 border-linea bg-transparent text-tinta hover:bg-velo/5">Revisar</Button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
