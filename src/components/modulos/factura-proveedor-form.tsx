@@ -138,8 +138,8 @@ export function FacturaProveedorForm({ proveedorId, facturaId, inicial, onSucces
     }
   }
 
-  const inputCls = 'h-12 border-white/10 bg-[#1a2430] text-[16px] text-white placeholder:text-steel-500 focus:border-brand-yellow/60'
-  const labelCls = 'text-[10px] font-bold uppercase tracking-widest text-steel-300'
+  const inputCls = 'h-12 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60'
+  const labelCls = 'text-xs font-bold text-steel-300'
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -169,14 +169,14 @@ export function FacturaProveedorForm({ proveedorId, facturaId, inicial, onSucces
       </div>
       <div className="space-y-2">
         <Label htmlFor="notas" className={labelCls}>Notas</Label>
-        <Textarea id="notas" className="border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500 focus:border-brand-yellow/60" value={form.notas} rows={2}
+        <Textarea id="notas" className="border-linea bg-superficie-2 text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60" value={form.notas} rows={2}
           onChange={e => setForm(p => ({ ...p, notas: e.target.value }))} />
       </div>
 
       {/* Pagos programados */}
-      <div className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
+      <div className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-display font-bold text-white">Pagos programados</h3>
+          <h3 className="font-display font-bold text-tinta">Pagos programados</h3>
           <Button type="button" variant="outline" size="sm" className="border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={agregarPago}>
             <Plus className="mr-1 h-4 w-4" />Agregar cuota
           </Button>
@@ -185,22 +185,22 @@ export function FacturaProveedorForm({ proveedorId, facturaId, inicial, onSucces
           <p className="text-xs text-steel-500">Sin pagos programados. Agrega cuotas como recordatorio.</p>
         )}
         {pagosProgramados.map((p, idx) => (
-          <div key={p.key} className="grid grid-cols-12 items-end gap-2 border-b border-white/8 pb-3 last:border-0">
+          <div key={p.key} className="grid grid-cols-12 items-end gap-2 border-b border-linea pb-3 last:border-0">
             <div className="col-span-4 space-y-1">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Fecha</label>
-              <Input type="date" className="border-white/10 bg-[#1a2430] text-white" value={p.fecha_programada}
+              <label className="text-xs font-bold text-steel-300">Fecha</label>
+              <Input type="date" className="border-linea bg-superficie-2 text-tinta" value={p.fecha_programada}
                 onChange={e => setPagosProgramados(prev => prev.map((it, i) =>
                   i === idx ? { ...it, fecha_programada: e.target.value } : it))} />
             </div>
             <div className="col-span-3 space-y-1">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Monto</label>
-              <Input type="number" className="border-white/10 bg-[#1a2430] text-white" value={p.monto || ''}
+              <label className="text-xs font-bold text-steel-300">Monto</label>
+              <Input type="number" className="border-linea bg-superficie-2 text-tinta" value={p.monto || ''}
                 onChange={e => setPagosProgramados(prev => prev.map((it, i) =>
                   i === idx ? { ...it, monto: parseFloat(e.target.value) || 0 } : it))} />
             </div>
             <div className="col-span-4 space-y-1">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Nota</label>
-              <Input value={p.nota} placeholder="Opcional" className="border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500"
+              <label className="text-xs font-bold text-steel-300">Nota</label>
+              <Input value={p.nota} placeholder="Opcional" className="border-linea bg-superficie-2 text-tinta placeholder:text-steel-500"
                 onChange={e => setPagosProgramados(prev => prev.map((it, i) =>
                   i === idx ? { ...it, nota: e.target.value } : it))} />
             </div>
@@ -208,7 +208,7 @@ export function FacturaProveedorForm({ proveedorId, facturaId, inicial, onSucces
               <button type="button" onClick={() => {
                 if (!p.key.startsWith('nuevo-')) setPagosEliminados(prev => [...prev, p.key])
                 setPagosProgramados(prev => prev.filter((_, i) => i !== idx))
-              }} className="text-steel-300 hover:text-brand-red">
+              }} className="text-steel-300 hover:text-sale">
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>

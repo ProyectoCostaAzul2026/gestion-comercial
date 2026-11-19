@@ -57,21 +57,21 @@ export function ServiciosTable({
     <div>
       <div className="mb-4 flex flex-wrap items-end gap-3">
         <div className="space-y-1">
-          <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Desde</label>
+          <label className="text-xs font-bold text-steel-300">Desde</label>
           <Input
             type="date"
             value={desde}
             onChange={(e) => actualizarFecha('desde', e.target.value)}
-            className="w-40 border-white/10 bg-[#1a2430] text-white"
+            className="w-40 border-linea bg-superficie-2 text-tinta"
           />
         </div>
         <div className="space-y-1">
-          <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Hasta</label>
+          <label className="text-xs font-bold text-steel-300">Hasta</label>
           <Input
             type="date"
             value={hasta}
             onChange={(e) => actualizarFecha('hasta', e.target.value)}
-            className="w-40 border-white/10 bg-[#1a2430] text-white"
+            className="w-40 border-linea bg-superficie-2 text-tinta"
           />
         </div>
         <div className="relative min-w-48 flex-1">
@@ -80,12 +80,12 @@ export function ServiciosTable({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar por servicio, ticket, cliente o empleado…"
-            className="h-12 border-white/10 bg-[#1a2430] pl-9 text-[16px] text-white placeholder:text-steel-500"
+            className="h-12 border-linea bg-superficie-2 pl-9 text-[16px] text-tinta placeholder:text-steel-500"
           />
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
+      <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -102,12 +102,12 @@ export function ServiciosTable({
               {filtrados.map((s) => (
                 <TableRow
                   key={s.id}
-                  className="cursor-pointer border-white/8 hover:bg-white/5"
+                  className="cursor-pointer border-linea hover:bg-velo/5"
                   onClick={() => router.push(`/dashboard/ventas/${s.ventas?.id}`)}
                 >
-                  <TableCell className="text-xs font-medium text-white">{s.nombre_servicio}</TableCell>
-                  <TableCell className="text-right font-display text-sm font-bold text-white">${Number(s.precio_aplicado).toLocaleString('es-CO')}</TableCell>
-                  <TableCell className="text-xs text-brand-blue">#{s.ventas?.numero_ticket}</TableCell>
+                  <TableCell className="text-xs font-medium text-tinta">{s.nombre_servicio}</TableCell>
+                  <TableCell className="text-right font-display text-sm font-bold text-tinta">${Number(s.precio_aplicado).toLocaleString('es-CO')}</TableCell>
+                  <TableCell className="text-xs text-enlace">#{s.ventas?.numero_ticket}</TableCell>
                   <TableCell className="text-xs text-steel-300">{s.ventas?.fecha}</TableCell>
                   <TableCell className="text-xs text-steel-300">{s.ventas?.empleado?.nombre_completo ?? '—'}</TableCell>
                   <TableCell className="text-xs text-steel-300">{s.ventas?.clientes?.nombre ?? '—'}</TableCell>

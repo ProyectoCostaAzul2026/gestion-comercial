@@ -12,8 +12,8 @@ export function BotonAtras({ href, etiqueta = 'Volver', texto }: { href: string;
   return (
     <button type="button" onClick={() => volver(href)} aria-label={texto ? undefined : etiqueta}
       className={texto
-        ? 'inline-flex min-h-10 items-center gap-2 rounded-xl px-1 text-sm text-steel-300 hover:text-white'
-        : 'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/20 text-white hover:bg-white/5'}>
+        ? 'inline-flex min-h-10 items-center gap-2 rounded-xl px-1 text-sm text-steel-300 hover:text-tinta'
+        : 'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-linea-fuerte text-tinta hover:bg-velo/5'}>
       <ArrowLeft className="h-4 w-4" aria-hidden />
       {texto}
     </button>

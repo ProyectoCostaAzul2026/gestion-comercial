@@ -1,9 +1,9 @@
 /** Foto redonda de una persona o empresa; sin foto, sus iniciales sobre un color fijo según el nombre */
 const COLORES = [
   'bg-brand-yellow/20 text-brand-yellow',
-  'bg-brand-blue/20 text-brand-blue',
+  'bg-brand-blue/20 text-enlace',
   'bg-emerald-500/20 text-emerald-400',
-  'bg-brand-red/20 text-brand-red',
+  'bg-brand-red/20 text-sale',
   'bg-amber-500/20 text-amber-400',
 ]
 

@@ -126,18 +126,18 @@ function CreditoCard({ credito }: { credito: Credito }) {
   const vencido = credito.fecha_pago_programada && credito.fecha_pago_programada < hoy && !cerrado
 
   return (
-    <div className={`space-y-3 rounded-2xl border p-4 ${cerrado ? 'border-white/10 bg-[#1a2430] opacity-70' : vencido ? 'border-brand-red/30 bg-brand-red/10' : 'border-white/10 bg-[#111820]'}`}>
+    <div className={`space-y-3 rounded-2xl border p-4 ${cerrado ? 'border-linea bg-superficie-2 opacity-70' : vencido ? 'border-brand-red/30 bg-brand-red/10' : 'border-linea bg-superficie'}`}>
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-medium text-white">
+            <span className="font-medium text-tinta">
               Ticket #{credito.ventas?.numero_ticket ?? '—'}
             </span>
-            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${esPagado ? 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400' : credito.estado === 'anulado' ? 'border-white/20 bg-white/10 text-steel-300' : credito.estado === 'parcial' ? 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow' : 'border-brand-red/30 bg-brand-red/20 text-brand-red'}`}>
+            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${esPagado ? 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400' : credito.estado === 'anulado' ? 'border-linea-fuerte bg-velo/10 text-steel-300' : credito.estado === 'parcial' ? 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow' : 'border-brand-red/30 bg-brand-red/20 text-sale'}`}>
               {ESTADO_LABEL[credito.estado] ?? credito.estado}
             </span>
-            {vencido && <span className="inline-flex items-center rounded-full border border-brand-red/30 bg-brand-red/20 px-2.5 py-0.5 text-xs font-semibold text-brand-red">Vencido</span>}
+            {vencido && <span className="inline-flex items-center rounded-full border border-brand-red/30 bg-brand-red/20 px-2.5 py-0.5 text-xs font-semibold text-sale">Vencido</span>}
           </div>
           <p className="mt-0.5 text-xs text-steel-300">
             {credito.ventas?.fecha} · Original: {fmt(credito.monto_original)}
@@ -146,9 +146,9 @@ function CreditoCard({ credito }: { credito: Credito }) {
         </div>
         <div className="shrink-0 text-right">
           {!cerrado && (
-            <p className="font-display text-lg font-bold text-brand-red">{fmt(credito.saldo_pendiente)}</p>
+            <p className="font-display text-lg font-bold text-sale">{fmt(credito.saldo_pendiente)}</p>
           )}
-          <button type="button" onClick={() => setExpandido(v => !v)} className="mt-1 text-steel-300 hover:text-white">
+          <button type="button" onClick={() => setExpandido(v => !v)} className="mt-1 text-steel-300 hover:text-tinta">
             {expandido ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </button>
         </div>
@@ -161,7 +161,7 @@ function CreditoCard({ credito }: { credito: Credito }) {
             <div className="space-y-1">
               <p className="text-xs font-medium text-steel-300">Abonos realizados:</p>
               {credito.abonos_credito.map(a => (
-                <div key={a.id} className="flex justify-between rounded-xl border border-white/10 bg-[#1a2430] px-2 py-1.5 text-xs">
+                <div key={a.id} className="flex justify-between rounded-xl border border-linea bg-superficie-2 px-2 py-1.5 text-xs">
                   <div>
                     <span className="text-steel-300">{new Date(a.created_at).toLocaleDateString('es-CO')}</span>
                     {a.observaciones && <span className="ml-2 text-steel-500">{a.observaciones}</span>}
@@ -178,7 +178,7 @@ function CreditoCard({ credito }: { credito: Credito }) {
               <Button type="button" size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={() => { setMostrarAbono(v => !v); setMostrarFecha(false) }}>
                 Registrar abono
               </Button>
-              <Button type="button" size="sm" variant="outline" className="border-white/10 bg-[#1a2430] text-white hover:bg-white/5 hover:text-white" onClick={() => { setMostrarFecha(v => !v); setMostrarAbono(false) }}>
+              <Button type="button" size="sm" variant="outline" className="border-linea bg-superficie-2 text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => { setMostrarFecha(v => !v); setMostrarAbono(false) }}>
                 {credito.fecha_pago_programada ? 'Cambiar fecha' : 'Programar fecha'}
               </Button>
             </div>
@@ -186,15 +186,15 @@ function CreditoCard({ credito }: { credito: Credito }) {
 
           {/* Panel abono */}
           {mostrarAbono && !cerrado && (
-            <div className="space-y-3 rounded-xl border border-white/10 bg-[#1a2430] p-3">
+            <div className="space-y-3 rounded-xl border border-linea bg-superficie-2 p-3">
               <p className="text-xs font-medium text-steel-300">
                 Registrar abono · Saldo pendiente: {fmt(credito.saldo_pendiente)}
               </p>
               <div className="space-y-1">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Monto a abonar</Label>
+                <Label className="text-xs font-bold text-steel-300">Monto a abonar</Label>
                 <Input
                   type="number"
-                  className="border-white/10 bg-[#111820] text-white"
+                  className="border-linea bg-superficie text-tinta"
                   value={monto || ''}
                   onFocus={e => e.target.select()}
                   onChange={e => {
@@ -208,11 +208,11 @@ function CreditoCard({ credito }: { credito: Credito }) {
               {/* Fuentes */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Fuentes de pago</Label>
+                  <Label className="text-xs font-bold text-steel-300">Fuentes de pago</Label>
                   <button
                     type="button"
                     onClick={() => setFuentes(prev => [...prev, { key: Date.now().toString(), fuente: 'efectivo', monto: 0 }])}
-                    className="flex items-center gap-1 text-xs text-steel-300 hover:text-white"
+                    className="flex items-center gap-1 text-xs text-steel-300 hover:text-tinta"
                   >
                     <Plus className="h-3 w-3" />Agregar fuente
                   </button>
@@ -224,7 +224,7 @@ function CreditoCard({ credito }: { credito: Credito }) {
                       onValueChange={v => v && setFuentes(prev => prev.map((it, i) => i === idx ? { ...it, fuente: v } : it))}
                       value={f.fuente}
                     >
-                      <SelectTrigger className="h-8 w-32 border-white/10 bg-[#111820] text-xs text-white"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="h-8 w-32 border-linea bg-superficie text-xs text-tinta"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {FUENTES.map(fd => <SelectItem key={fd.value} value={fd.value}>{fd.label}</SelectItem>)}
                       </SelectContent>
@@ -234,10 +234,10 @@ function CreditoCard({ credito }: { credito: Credito }) {
                       value={f.monto || ''}
                       onFocus={e => e.target.select()}
                       onChange={e => setFuentes(prev => prev.map((it, i) => i === idx ? { ...it, monto: parseFloat(e.target.value) || 0 } : it))}
-                      className="h-8 border-white/10 bg-[#111820] text-xs text-white"
+                      className="h-8 border-linea bg-superficie text-xs text-tinta"
                     />
                     {fuentes.length > 1 && (
-                      <button type="button" onClick={() => setFuentes(prev => prev.filter((_, i) => i !== idx))} className="text-steel-300 hover:text-brand-red">
+                      <button type="button" onClick={() => setFuentes(prev => prev.filter((_, i) => i !== idx))} className="text-steel-300 hover:text-sale">
                         <Trash2 className="h-4 w-4" />
                       </button>
                     )}
@@ -251,23 +251,23 @@ function CreditoCard({ credito }: { credito: Credito }) {
               </div>
 
               <div className="space-y-1">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Observaciones</Label>
-                <Textarea value={observaciones} onChange={e => setObservaciones(e.target.value)} rows={2} className="border-white/10 bg-[#111820] text-white placeholder:text-steel-500" />
+                <Label className="text-xs font-bold text-steel-300">Observaciones</Label>
+                <Textarea value={observaciones} onChange={e => setObservaciones(e.target.value)} rows={2} className="border-linea bg-superficie text-tinta placeholder:text-steel-500" />
               </div>
 
               {!confirmar ? (
                 <div className="flex gap-2">
                   <Button type="button" size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={() => setConfirmar(true)}>Registrar abono</Button>
-                  <Button type="button" size="sm" variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => { setMostrarAbono(false); setConfirmar(false) }}>Cancelar</Button>
+                  <Button type="button" size="sm" variant="outline" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => { setMostrarAbono(false); setConfirmar(false) }}>Cancelar</Button>
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-white">¿Confirmas el abono de {fmt(monto)}?</p>
+                  <p className="text-sm font-medium text-tinta">¿Confirmas el abono de {fmt(monto)}?</p>
                   <div className="flex gap-2">
                     <Button type="button" size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={handleRegistrarAbono} disabled={registrando}>
                       {registrando ? 'Registrando…' : 'Sí, registrar'}
                     </Button>
-                    <Button type="button" size="sm" variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => setConfirmar(false)}>Cancelar</Button>
+                    <Button type="button" size="sm" variant="outline" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setConfirmar(false)}>Cancelar</Button>
                   </div>
                 </div>
               )}
@@ -276,18 +276,18 @@ function CreditoCard({ credito }: { credito: Credito }) {
 
           {/* Panel fecha */}
           {mostrarFecha && !cerrado && (
-            <div className="space-y-2 rounded-xl border border-white/10 bg-[#1a2430] p-3">
+            <div className="space-y-2 rounded-xl border border-linea bg-superficie-2 p-3">
               <p className="text-xs font-medium text-steel-300">Programar fecha de pago</p>
-              <Input type="date" value={nuevaFecha} onChange={e => setNuevaFecha(e.target.value)} className="w-44 border-white/10 bg-[#111820] text-white" />
+              <Input type="date" value={nuevaFecha} onChange={e => setNuevaFecha(e.target.value)} className="w-44 border-linea bg-superficie text-tinta" />
               <div className="space-y-1">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Nota (opcional)</Label>
-                <Input value={notaFecha} onChange={e => setNotaFecha(e.target.value)} placeholder="Ej: Acordado con el cliente" className="border-white/10 bg-[#111820] text-white placeholder:text-steel-500" />
+                <Label className="text-xs font-bold text-steel-300">Nota (opcional)</Label>
+                <Input value={notaFecha} onChange={e => setNotaFecha(e.target.value)} placeholder="Ej: Acordado con el cliente" className="border-linea bg-superficie text-tinta placeholder:text-steel-500" />
               </div>
               <div className="flex gap-2">
                 <Button type="button" size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={handleActualizarFecha} disabled={actualizandoFecha}>
                   {actualizandoFecha ? 'Guardando…' : 'Guardar fecha'}
                 </Button>
-                <Button type="button" size="sm" variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => setMostrarFecha(false)}>Cancelar</Button>
+                <Button type="button" size="sm" variant="outline" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setMostrarFecha(false)}>Cancelar</Button>
               </div>
             </div>
           )}
@@ -321,7 +321,7 @@ export function PerfilClienteCreditos({ creditos, cliente, negocio }: {
 
   return (
     <div className="space-y-3">
-      <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+      <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
         Créditos ({activos.length} activo{activos.length !== 1 ? 's' : ''})
       </h2>
 
@@ -330,10 +330,10 @@ export function PerfilClienteCreditos({ creditos, cliente, negocio }: {
       )}
 
       {activos.length > 0 && cliente && (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-white/10 bg-[#111820] px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-linea bg-superficie px-4 py-3">
           <div>
             <p className="text-xs text-steel-300">Debe en total</p>
-            <p className="font-display text-xl font-bold text-brand-red">{fmt(activos.reduce((s, c) => s + Number(c.saldo_pendiente), 0))}</p>
+            <p className="font-display text-xl font-bold text-sale">{fmt(activos.reduce((s, c) => s + Number(c.saldo_pendiente), 0))}</p>
           </div>
           <button type="button" onClick={recordar}
             className="inline-flex h-11 items-center gap-2 rounded-xl border border-emerald-500/40 px-4 text-sm font-bold text-emerald-400 hover:bg-emerald-500/10">
@@ -347,7 +347,7 @@ export function PerfilClienteCreditos({ creditos, cliente, negocio }: {
       {pagados.length > 0 && (
         <div>
           <button type="button" onClick={() => setMostrarPagados(v => !v)}
-            className="flex items-center gap-1 text-xs text-steel-300 hover:text-white">
+            className="flex items-center gap-1 text-xs text-steel-300 hover:text-tinta">
             {mostrarPagados ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
             {mostrarPagados ? 'Ocultar' : 'Ver'} {pagados.length} crédito{pagados.length !== 1 ? 's' : ''} pagado{pagados.length !== 1 ? 's' : ''} o anulado{pagados.length !== 1 ? 's' : ''}
           </button>

@@ -125,15 +125,15 @@ export function ClienteForm({ cliente, onSuccess }: ClienteFormProps) {
     volver('/dashboard/clientes', { refrescar: true })
   }
 
-  const inputCls = 'h-12 border-white/10 bg-[#1a2430] text-[16px] text-white placeholder:text-steel-500 focus:border-brand-yellow/60'
-  const labelCls = 'text-[10px] font-bold uppercase tracking-widest text-steel-300'
+  const inputCls = 'h-12 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60'
+  const labelCls = 'text-xs font-bold text-steel-300'
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="nombre" className={labelCls}>Nombre *</Label>
         <Input id="nombre" className={inputCls} value={form.nombre} onChange={(e) => handleChange('nombre', e.target.value)} />
-        {errors.nombre && <p className="text-xs text-brand-red">{errors.nombre}</p>}
+        {errors.nombre && <p className="text-xs text-sale">{errors.nombre}</p>}
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -144,7 +144,7 @@ export function ClienteForm({ cliente, onSuccess }: ClienteFormProps) {
         <div className="space-y-2">
           <Label htmlFor="email" className={labelCls}>Email</Label>
           <Input id="email" type="email" className={inputCls} value={form.email} onChange={(e) => handleChange('email', e.target.value)} />
-          {errors.email && <p className="text-xs text-brand-red">{errors.email}</p>}
+          {errors.email && <p className="text-xs text-sale">{errors.email}</p>}
         </div>
       </div>
 
@@ -160,7 +160,7 @@ export function ClienteForm({ cliente, onSuccess }: ClienteFormProps) {
 
       <div className="space-y-2">
         <Label htmlFor="notas" className={labelCls}>Notas</Label>
-        <Textarea id="notas" className="border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500 focus:border-brand-yellow/60" value={form.notas} onChange={(e) => handleChange('notas', e.target.value)} rows={3} />
+        <Textarea id="notas" className="border-linea bg-superficie-2 text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60" value={form.notas} onChange={(e) => handleChange('notas', e.target.value)} rows={3} />
       </div>
 
       <Button type="submit" disabled={isSubmitting} className="h-12 w-full bg-brand-yellow text-base font-bold text-steel-900 hover:bg-brand-yellow hover:brightness-105">
@@ -172,7 +172,7 @@ export function ClienteForm({ cliente, onSuccess }: ClienteFormProps) {
           type="button"
           disabled={isDesactivando}
           onClick={handleDesactivar}
-          className={buttonVariants({ variant: 'outline', className: 'h-12 w-full border-brand-red/30 bg-brand-red/15 text-brand-red hover:bg-brand-red/25 hover:text-brand-red' })}
+          className={buttonVariants({ variant: 'outline', className: 'h-12 w-full border-brand-red/30 bg-brand-red/15 text-sale hover:bg-brand-red/25 hover:text-sale' })}
         >
           {isDesactivando ? 'Desactivando...' : 'Desactivar cliente'}
         </button>

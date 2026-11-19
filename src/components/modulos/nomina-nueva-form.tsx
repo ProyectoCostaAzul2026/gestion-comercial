@@ -93,8 +93,8 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
     }
   }
 
-  const inputCls = 'h-12 border-white/10 bg-[#1a2430] text-[16px] text-white placeholder:text-steel-500 focus:border-brand-yellow/60'
-  const labelCls = 'text-[10px] font-bold uppercase tracking-widest text-steel-300'
+  const inputCls = 'h-12 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60'
+  const labelCls = 'text-xs font-bold text-steel-300'
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -105,7 +105,7 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
           onValueChange={v => v && setEmpleadoId(v)}
           value={empleadoId}
         >
-          <SelectTrigger className="border-white/10 bg-[#1a2430] text-white"><SelectValue placeholder="Selecciona empleado" /></SelectTrigger>
+          <SelectTrigger className="border-linea bg-superficie-2 text-tinta"><SelectValue placeholder="Selecciona empleado" /></SelectTrigger>
           <SelectContent>
             {empleados.map(e => (
               <SelectItem key={e.id} value={e.id}>{e.nombre_completo}</SelectItem>
@@ -158,13 +158,13 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
       </div>
 
       {/* Resumen de pago */}
-      <div className="space-y-1 rounded-2xl border border-white/10 bg-[#1a2430] p-3 text-sm">
+      <div className="space-y-1 rounded-2xl border border-linea bg-superficie-2 p-3 text-sm">
         <div className="flex justify-between">
           <span className="text-steel-300">
             Pago por {horasTrabajadas}h
             {horasTrabajadas < horasEstandar ? ` (${horasTrabajadas}/${horasEstandar}h)` : ' (completo)'}
           </span>
-          <span className="text-white">${pagoDia.toLocaleString('es-CO')}</span>
+          <span className="text-tinta">${pagoDia.toLocaleString('es-CO')}</span>
         </div>
         {bonificaciones > 0 && (
           <div className="flex justify-between text-emerald-400">
@@ -173,12 +173,12 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
           </div>
         )}
         {deducciones > 0 && (
-          <div className="flex justify-between text-brand-red">
+          <div className="flex justify-between text-sale">
             <span>Deducciones</span>
             <span>-${deducciones.toLocaleString('es-CO')}</span>
           </div>
         )}
-        <div className="mt-1 flex justify-between border-t border-white/8 pt-1 font-bold text-white">
+        <div className="mt-1 flex justify-between border-t border-linea pt-1 font-bold text-tinta">
           <span>Total a pagar</span>
           <span className="font-display text-brand-yellow">${totalPago.toLocaleString('es-CO')}</span>
         </div>
@@ -244,7 +244,7 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
           onValueChange={v => v && setMetodoPago(v)}
           value={metodoPago}
         >
-          <SelectTrigger className="border-white/10 bg-[#1a2430] text-white"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="border-linea bg-superficie-2 text-tinta"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="efectivo">Efectivo (caja menor)</SelectItem>
             <SelectItem value="nequi">Nequi</SelectItem>
@@ -257,7 +257,7 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
         <Label htmlFor="notas" className={labelCls}>Notas</Label>
         <Textarea
           id="notas"
-          className="border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500 focus:border-brand-yellow/60"
+          className="border-linea bg-superficie-2 text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60"
           value={notas}
           onChange={e => setNotas(e.target.value)}
           rows={2}

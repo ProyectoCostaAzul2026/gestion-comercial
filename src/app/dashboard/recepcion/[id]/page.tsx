@@ -125,7 +125,7 @@ export default async function RecepcionDetallePage({ params }: { params: Promise
   return (
     <div className="max-w-3xl space-y-4">
       <BotonAtras href="/dashboard/recepcion" texto="Recepciones" />
-      {errorItems && <p className="text-sm text-brand-red">No se pudieron cargar los renglones: {errorItems.message}</p>}
+      {errorItems && <p className="text-sm text-sale">No se pudieron cargar los renglones: {errorItems.message}</p>}
       <RecepcionPanel recepcion={recepcion} renglones={renglones} productosProveedor={productosProveedor}
         esAdmin={administrador} datosAdmin={datosAdmin} />
     </div>

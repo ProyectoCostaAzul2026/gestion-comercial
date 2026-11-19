@@ -48,7 +48,7 @@ export function RecepcionPanel({ recepcion, renglones, productosProveedor, esAdm
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="font-display text-xl font-bold text-white">{recepcion.proveedor_nombre}</h1>
+            <h1 className="font-display text-xl font-bold text-tinta">{recepcion.proveedor_nombre}</h1>
             <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${CLASE_ESTADO_RECEPCION[recepcion.estado]}`}>
               {ETIQUETA_ESTADO_RECEPCION[recepcion.estado]}
             </span>
@@ -59,15 +59,15 @@ export function RecepcionPanel({ recepcion, renglones, productosProveedor, esAdm
           </p>
         </div>
         <button type="button" onClick={actualizar} aria-label="Actualizar"
-          className="shrink-0 rounded-xl border border-white/10 p-2 text-steel-300 hover:bg-white/5 hover:text-white">
+          className="shrink-0 rounded-xl border border-linea p-2 text-steel-300 hover:bg-velo/5 hover:text-tinta">
           <RefreshCw className={`h-4 w-4 ${actualizando ? 'animate-spin' : ''}`} />
         </button>
       </div>
 
-      <div className="flex gap-1 overflow-x-auto rounded-xl border border-white/10 bg-[#111820] p-1" role="tablist">
+      <div className="flex gap-1 overflow-x-auto rounded-xl border border-linea bg-superficie p-1" role="tablist">
         {pestanas.map(p => (
           <button key={p.id} type="button" role="tab" aria-selected={pestana === p.id} onClick={() => setPestana(p.id)}
-            className={`flex-1 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${pestana === p.id ? 'bg-brand-yellow text-steel-900' : 'text-steel-300 hover:bg-white/5 hover:text-white'}`}>
+            className={`flex-1 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${pestana === p.id ? 'bg-brand-yellow text-steel-900' : 'text-steel-300 hover:bg-velo/5 hover:text-tinta'}`}>
             {p.etiqueta}
           </button>
         ))}

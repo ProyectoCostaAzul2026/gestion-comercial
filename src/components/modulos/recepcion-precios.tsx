@@ -83,7 +83,7 @@ export function RecepcionPrecios({ recepcion, renglones, margenDefault }: {
 
   return (
     <div className="space-y-4">
-      <div className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
+      <div className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
         <div className="flex items-end gap-2">
           <div className="w-28 space-y-1">
             <Label htmlFor="recepcion-margen" className={LABEL_CLS}>Margen %</Label>
@@ -117,31 +117,31 @@ export function RecepcionPrecios({ recepcion, renglones, margenDefault }: {
             ? Math.round(((calc.costoNuevo - r.costo_anterior) / r.costo_anterior) * 1000) / 10 : null
           const aprobado = r.precio_aprobado != null && Number(r.precio_aprobado) === precioNum
           return (
-            <li key={r.id} className="space-y-2 rounded-2xl border border-white/10 bg-[#111820] p-3">
+            <li key={r.id} className="space-y-2 rounded-2xl border border-linea bg-superficie p-3">
               <div className="flex flex-wrap items-center gap-2">
-                <p className="text-sm font-semibold text-white">{nombreConMedida(p)}</p>
-                {!p.activo && <span className="rounded-full border border-brand-blue/40 px-2 py-0.5 text-[10px] font-semibold text-brand-blue">Nuevo: se activa al aprobar</span>}
-                {aprobado && <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400"><CheckCircle2 className="h-3.5 w-3.5" />Aprobado</span>}
+                <p className="text-sm font-semibold text-tinta">{nombreConMedida(p)}</p>
+                {!p.activo && <span className="rounded-full border border-brand-blue/40 px-2 py-0.5 text-xs font-semibold text-enlace">Nuevo: se activa al aprobar</span>}
+                {aprobado && <span className="inline-flex items-center gap-1 text-xs text-emerald-400"><CheckCircle2 className="h-3.5 w-3.5" />Aprobado</span>}
               </div>
               <p className="flex flex-wrap items-center gap-1 text-xs text-steel-300">
                 Costo {r.costo_anterior ? pesos(r.costo_anterior) : 'nuevo'}
                 <ArrowRight className="h-3 w-3" />
-                <span className="text-white">{r.costo_unitario > 0 ? pesos(calc.costoNuevo) : 'sin costo (no cambia)'}</span>
+                <span className="text-tinta">{r.costo_unitario > 0 ? pesos(calc.costoNuevo) : 'sin costo (no cambia)'}</span>
                 {cambioCosto != null && cambioCosto !== 0 && (
-                  <span className={cambioCosto > 0 ? 'text-brand-red' : 'text-emerald-400'}>({cambioCosto > 0 ? '+' : ''}{cambioCosto} %)</span>
+                  <span className={cambioCosto > 0 ? 'text-sale' : 'text-emerald-400'}>({cambioCosto > 0 ? '+' : ''}{cambioCosto} %)</span>
                 )}
                 {p.tiene_iva && <span>· {p.iva_incluido ? 'con IVA' : 'sin IVA'}</span>}
               </p>
               <div className="grid grid-cols-3 items-end gap-2">
                 <div>
                   <p className={LABEL_CLS}>Actual</p>
-                  <p className="text-sm text-white">{pesos(p.precio_venta)}</p>
+                  <p className="text-sm text-tinta">{pesos(p.precio_venta)}</p>
                 </div>
                 <div>
                   <p className={LABEL_CLS}>Sugerido</p>
                   {calc.sugerido > 0 && editable ? (
                     <button type="button" onClick={() => ponerPrecio(r.id, String(calc.sugerido))}
-                      className="text-sm font-semibold text-brand-blue hover:underline">{pesos(calc.sugerido)}</button>
+                      className="text-sm font-semibold text-enlace hover:underline">{pesos(calc.sugerido)}</button>
                   ) : <p className="text-sm text-steel-500">{calc.sugerido > 0 ? pesos(calc.sugerido) : '—'}</p>}
                 </div>
                 <div className="space-y-1">
@@ -152,7 +152,7 @@ export function RecepcionPrecios({ recepcion, renglones, margenDefault }: {
               </div>
               <p className="text-xs text-steel-300">
                 {calc.margen != null && (
-                  <span className={calc.margen < 0 ? 'font-semibold text-brand-red' : ''}>
+                  <span className={calc.margen < 0 ? 'font-semibold text-sale' : ''}>
                     Margen {calc.margen.toLocaleString('es-CO')} %{calc.margen < 0 ? ': queda bajo el costo' : ''}
                   </span>
                 )}

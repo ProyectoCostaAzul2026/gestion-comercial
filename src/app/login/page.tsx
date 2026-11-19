@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { Eye, EyeOff } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
@@ -9,8 +10,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [logoUrl, setLogoUrl] = useState<string | null>(null)
-  const [negocioNombre, setNegocioNombre] = useState('Gestión Comercial')
+  const [verClave, setVerClave] = useState(false)
   const [modoRecuperar, setModoRecuperar] = useState(false)
   const [recuperarEmail, setRecuperarEmail] = useState('')
   const [recuperarMsg, setRecuperarMsg] = useState('')
@@ -30,18 +30,6 @@ export default function LoginPage() {
     }
   }, [])
 
-  useEffect(() => {
-    const supabase = createClient()
-    supabase
-      .from('configuracion_negocio')
-      .select('logo_url, nombre')
-      .maybeSingle()
-      .then(({ data }) => {
-        if (data?.logo_url) setLogoUrl(data.logo_url)
-        if (data?.nombre) setNegocioNombre(data.nombre)
-      })
-  }, [])
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -51,7 +39,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
-      setError('Correo o contraseña incorrectos')
+      setError('El correo o la contraseña no coinciden. Revísalos e intenta de nuevo.')
       setLoading(false)
       return
     }
@@ -81,139 +69,97 @@ export default function LoginPage() {
     setRecuperarMsg('Si el correo existe, te enviamos un enlace para restablecer tu contraseña.')
   }
 
-  const inputCls = 'w-full rounded-xl border border-white/10 bg-[#1a2430] px-4 py-3 text-[16px] text-white placeholder:text-steel-500 focus:border-brand-yellow/60 focus:outline-none focus:ring-0'
-  const labelCls = 'mb-1 block text-[10px] font-bold uppercase tracking-widest text-steel-300'
+  const inputCls = 'h-[52px] w-full rounded-[10px] border border-linea-fuerte bg-superficie px-3.5 text-[17px] text-tinta placeholder:text-tenue focus:border-accion focus:outline-none focus:ring-3 focus:ring-accion/30'
+  const labelCls = 'mb-1.5 block text-sm font-semibold text-suave'
+  const botonCls = 'h-14 w-full rounded-xl bg-accion text-lg font-bold text-sobre-accion transition hover:brightness-105 active:scale-[.99] disabled:opacity-60'
 
   return (
-    <div className="flex min-h-screen bg-[#0a0e14] text-white">
-      {/* Panel de marca — solo en pantallas grandes */}
-      <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-[#111820] p-12 lg:flex">
-        <div className="relative z-10 flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-yellow text-steel-900">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" /></svg>
+    <div className="flex min-h-dvh justify-center bg-fondo px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-[calc(1.25rem+env(safe-area-inset-top))] text-tinta">
+      <div className="flex w-full max-w-[420px] flex-col">
+        {/* El letrero de la ferretería, colgado con cuatro tornillos */}
+        <div className="anim-letrero relative rounded-md bg-letrero px-4 pb-5 pt-6 shadow-[0_10px_24px_rgba(0,0,0,.25)]">
+          {['left-2 top-2 rotate-[35deg]', 'right-2 top-2 -rotate-[20deg]', 'bottom-2 left-2 rotate-[80deg]', 'bottom-2 right-2 rotate-[10deg]'].map(pos => (
+            <span key={pos} aria-hidden className={`absolute flex size-3 items-center justify-center rounded-full bg-[#d8bc00] shadow-[inset_0_0_0_1.5px_#a88f00] ${pos.split(' ').slice(0, 2).join(' ')}`}>
+              <span className={`h-[1.5px] w-[7px] bg-[#8c7700] ${pos.split(' ')[2]}`} />
+            </span>
+          ))}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-costa-azul.webp" alt="Ferreléctricos Costa Azul. No solo vendemos, damos soluciones." width={1200} height={400} className="mx-auto h-auto w-full max-w-[340px]" />
+        </div>
+
+        {/* Cinta métrica que sale de su carcasa */}
+        <div aria-hidden className="mt-7 flex h-14 items-center">
+          <div className="anim-carcasa z-10 flex size-14 shrink-0 items-center justify-center rounded-2xl bg-[#12263a] shadow-[inset_0_0_0_3px_#27405a]">
+            <div className="flex size-[26px] items-center justify-center rounded-full bg-brand-red shadow-[inset_0_0_0_4px_#e8382b]">
+              <span className="size-1.5 rounded-full bg-[#12263a]" />
+            </div>
           </div>
-          <span className="font-display text-2xl font-black tracking-tight">{negocioNombre}</span>
-        </div>
-        <div className="relative z-10">
-          <h2 className="font-display text-4xl font-black leading-tight tracking-tight">
-            Tu ferretería,<br /><span className="text-brand-yellow">bajo control.</span>
-          </h2>
-          <p className="mt-4 max-w-sm text-sm text-steel-300">
-            Ventas, inventario, caja y reportes en un solo lugar. Rápido en el mostrador, claro para el dueño.
-          </p>
-        </div>
-        <div className="relative z-10 flex gap-2">
-          <span className="h-1.5 w-8 rounded-full bg-brand-yellow" />
-          <span className="h-1.5 w-2 rounded-full bg-white/20" />
-          <span className="h-1.5 w-2 rounded-full bg-white/20" />
-        </div>
-
-        {/* Decoración diagonal */}
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-48 overflow-hidden">
-          <div className="absolute inset-y-0 right-0 w-32 -skew-x-12 translate-x-14 bg-brand-yellow/80" />
-          <div className="absolute inset-y-0 right-0 w-10 -skew-x-12 translate-x-2 bg-brand-blue" />
-        </div>
-      </div>
-
-      {/* Formulario */}
-      <div className="flex w-full items-center justify-center bg-[#0a0e14] px-4 lg:w-1/2">
-        <div className="w-full max-w-sm space-y-6 rounded-2xl border border-white/10 bg-[#111820] p-8">
-          <div className="space-y-2 text-center">
-            {logoUrl ? (
-              <img
-                src={logoUrl}
-                alt="Logo"
-                className="mx-auto h-16 w-auto object-contain"
-              />
-            ) : (
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-yellow text-steel-900 lg:hidden">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" /></svg>
-              </div>
-            )}
-            <h1 className="font-display text-2xl font-bold tracking-tight text-brand-yellow">{negocioNombre}</h1>
-            <p className="text-sm text-steel-300">Inicia sesión para continuar</p>
+          <div className="anim-cinta relative -ml-1 flex h-[34px] flex-1 items-end overflow-visible rounded-r-[3px] bg-letrero">
+            <div className="regla-mm absolute inset-0" />
+            <div className="regla-cm absolute inset-0" />
+            <div className="flex w-full overflow-hidden pb-0.5">
+              {Array.from({ length: 14 }, (_, i) => (
+                <span key={i} className="cifra w-[30px] shrink-0 pl-[3px] text-[13px] font-bold text-[#12263a]">{i + 1}</span>
+              ))}
+            </div>
+            <span className="absolute -right-1.5 -top-1 h-[42px] w-[7px] rounded-sm bg-[#8a97a5]" />
           </div>
+        </div>
 
+        <div className="anim-formulario mt-9 flex flex-1 flex-col">
           {modoRecuperar ? (
-            <form onSubmit={handleRecuperar} className="space-y-4">
-              <div>
-                <label className={labelCls}>Correo</label>
-                <input
-                  type="email"
-                  required
-                  value={recuperarEmail}
-                  onChange={(e) => setRecuperarEmail(e.target.value)}
-                  className={inputCls}
-                  placeholder="tucorreo@ejemplo.com"
-                />
+            <form onSubmit={handleRecuperar} className="space-y-5">
+              <div className="space-y-1">
+                <h1 className="text-[28px] font-bold leading-tight">Recupera tu contraseña</h1>
+                <p className="text-base text-suave">Te enviamos un enlace al correo para crear una nueva.</p>
               </div>
-
-              {recuperarMsg && (
-                <p className="text-sm text-steel-300">{recuperarMsg}</p>
-              )}
-
-              <button
-                type="submit"
-                disabled={recuperarLoading}
-                className="w-full rounded-xl bg-brand-yellow px-4 py-3 text-sm font-bold text-steel-900 transition-colors hover:brightness-95 disabled:opacity-50"
-              >
-                {recuperarLoading ? 'Enviando...' : 'Enviar enlace de recuperación'}
+              <div>
+                <label htmlFor="correo-recuperar" className={labelCls}>Correo</label>
+                <input id="correo-recuperar" type="email" required autoComplete="email" value={recuperarEmail}
+                  onChange={(e) => setRecuperarEmail(e.target.value)} className={inputCls} placeholder="nombre@correo.com" />
+              </div>
+              {recuperarMsg && <p role="status" className="rounded-xl bg-superficie px-4 py-3 text-[15px] text-tinta">{recuperarMsg}</p>}
+              <button type="submit" disabled={recuperarLoading} className={botonCls}>
+                {recuperarLoading ? 'Enviando…' : 'Enviar enlace'}
               </button>
-
-              <button
-                type="button"
-                onClick={() => { setModoRecuperar(false); setRecuperarMsg('') }}
-                className="w-full text-center text-sm font-medium text-brand-blue hover:underline"
-              >
-                Volver a iniciar sesión
+              <button type="button" onClick={() => { setModoRecuperar(false); setRecuperarMsg('') }}
+                className="mx-auto block h-12 px-3 text-base font-semibold text-enlace">
+                Volver a ingresar
               </button>
             </form>
           ) : (
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div>
-                <label className={labelCls}>Correo</label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={inputCls}
-                  placeholder="tucorreo@ejemplo.com"
-                />
+            <form onSubmit={handleLogin} className="space-y-5">
+              <div className="space-y-1">
+                <h1 className="text-[28px] font-bold leading-tight">Ingresa a la tienda</h1>
+                <p className="text-base text-suave">Con el correo y la contraseña que te dio el administrador.</p>
               </div>
-
               <div>
-                <div className="mb-1 flex items-center justify-between">
-                  <label className={labelCls}>Contraseña</label>
-                  <button
-                    type="button"
-                    onClick={() => { setModoRecuperar(true); setRecuperarEmail(email) }}
-                    className="text-xs font-medium text-brand-blue hover:underline"
-                  >
-                    ¿Olvidaste tu contraseña?
+                <label htmlFor="correo" className={labelCls}>Correo</label>
+                <input id="correo" type="email" required autoComplete="email" value={email}
+                  onChange={(e) => setEmail(e.target.value)} className={inputCls} placeholder="nombre@correo.com" />
+              </div>
+              <div>
+                <label htmlFor="clave" className={labelCls}>Contraseña</label>
+                <div className="relative">
+                  <input id="clave" type={verClave ? 'text' : 'password'} required autoComplete="current-password" value={password}
+                    onChange={(e) => setPassword(e.target.value)} className={`${inputCls} pr-14`} />
+                  <button type="button" onClick={() => setVerClave(v => !v)} aria-label={verClave ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    className="absolute right-0.5 top-0.5 flex size-12 items-center justify-center rounded-lg text-suave hover:text-tinta">
+                    {verClave ? <EyeOff className="size-[22px]" strokeWidth={1.75} /> : <Eye className="size-[22px]" strokeWidth={1.75} />}
                   </button>
                 </div>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className={inputCls}
-                  placeholder="********"
-                />
               </div>
-
-              {error && <p className="text-sm text-brand-red">{error}</p>}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-xl bg-brand-yellow px-4 py-3 text-sm font-bold text-steel-900 transition-colors hover:brightness-95 disabled:opacity-50"
-              >
-                {loading ? 'Ingresando...' : 'Ingresar'}
+              {error && <p role="alert" className="rounded-xl bg-[color-mix(in_oklab,var(--sale)_13%,transparent)] px-4 py-3 text-[15px] text-tinta">{error}</p>}
+              <button type="submit" disabled={loading} className={botonCls}>
+                {loading ? 'Entrando…' : 'Entrar'}
+              </button>
+              <button type="button" onClick={() => { setModoRecuperar(true); setRecuperarEmail(email) }}
+                className="mx-auto block h-12 px-3 text-base font-semibold text-enlace">
+                Olvidé mi contraseña
               </button>
             </form>
           )}
+          <p className="mt-auto pt-8 text-center text-[13px] text-suave">Ferreléctricos Costa Azul, Bogotá</p>
         </div>
       </div>
     </div>

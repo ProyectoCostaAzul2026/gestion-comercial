@@ -83,7 +83,7 @@ export interface DatosAdminRecepcion {
 /** Colores de la etiqueta de cada estado */
 export const CLASE_ESTADO_RECEPCION: Record<EstadoRecepcion, string> = {
   abierta: 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow',
-  reclamacion: 'border-brand-red/30 bg-brand-red/20 text-brand-red',
+  reclamacion: 'border-brand-red/30 bg-brand-red/20 text-sale',
   cerrada: 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400',
 }
 

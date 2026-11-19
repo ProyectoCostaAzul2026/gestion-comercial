@@ -48,20 +48,20 @@ export default async function EmpleadosPage() {
           const turno = turnoDeHoy(e.id)
           return (
             <div key={e.id}
-              className={`relative flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#111820] p-4 transition hover:border-brand-yellow/50 ${e.activo ? '' : 'opacity-60'}`}>
+              className={`relative flex flex-col gap-3 rounded-2xl border border-linea bg-superficie p-4 transition hover:border-brand-yellow/50 ${e.activo ? '' : 'opacity-60'}`}>
               <div className="flex items-start gap-3">
                 <AvatarIniciales nombre={e.nombre_completo} foto={e.foto_url} />
                 <div className="min-w-0 flex-1">
                   {/* El enlace cubre toda la tarjeta; el teléfono queda encima para poder llamar */}
                   <Link href={`/dashboard/empleados/${e.id}`}
-                    className="line-clamp-2 text-sm font-bold text-white after:absolute after:inset-0 after:rounded-2xl">
+                    className="line-clamp-2 text-sm font-bold text-tinta after:absolute after:inset-0 after:rounded-2xl">
                     {e.nombre_completo}
                   </Link>
                   <div className="mt-1 flex flex-wrap gap-1">
-                    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${e.rol === 'administrador' ? 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow' : 'border-white/10 bg-steel-700 text-steel-300'}`}>
+                    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold ${e.rol === 'administrador' ? 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow' : 'border-linea bg-steel-700 text-steel-300'}`}>
                       {e.rol === 'administrador' ? 'Administrador' : 'Empleado'}
                     </span>
-                    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${e.activo ? 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400' : 'border-white/10 bg-steel-700 text-steel-300'}`}>
+                    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold ${e.activo ? 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400' : 'border-linea bg-steel-700 text-steel-300'}`}>
                       {e.activo ? 'Activo' : 'Inactivo'}
                     </span>
                   </div>
@@ -71,7 +71,7 @@ export default async function EmpleadosPage() {
               <div className="space-y-1 text-xs text-steel-300">
                 {e.telefono && (
                   <a href={`tel:${telefonoMarcable(e.telefono)}`}
-                    className="relative z-10 inline-flex items-center gap-1.5 text-brand-blue hover:underline">
+                    className="relative z-10 inline-flex items-center gap-1.5 text-enlace hover:underline">
                     <Phone className="h-3.5 w-3.5 shrink-0" aria-hidden />{e.telefono}
                   </a>
                 )}
@@ -83,9 +83,9 @@ export default async function EmpleadosPage() {
                 )}
               </div>
 
-              <div className="mt-auto border-t border-white/10 pt-3">
-                <p className="text-[10px] uppercase tracking-wide text-steel-500">Salario base</p>
-                <p className="font-display text-lg font-bold text-white">
+              <div className="mt-auto border-t border-linea pt-3">
+                <p className="text-xs text-steel-500">Salario base</p>
+                <p className="font-display text-lg font-bold text-tinta">
                   {e.salario_base ? `$${Number(e.salario_base).toLocaleString('es-CO')}` : '—'}
                 </p>
               </div>
@@ -101,17 +101,17 @@ export default async function EmpleadosPage() {
         )}
       </div>
       {(empleados ?? []).length === 0 && (
-        <p className="rounded-2xl border border-white/10 bg-[#111820] p-8 text-center text-sm text-steel-500">No hay empleados registrados.</p>
+        <p className="rounded-2xl border border-linea bg-superficie p-8 text-center text-sm text-steel-500">No hay empleados registrados.</p>
       )}
     </div>
   )
 
   return (
     <div className="space-y-4">
-      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] py-3 pl-4 pr-14 md:py-4 md:pr-28">
+      <div className="relative py-1">
         <div className="relative z-10 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
           <div>
-            <h1 className="font-display text-2xl font-bold text-brand-yellow md:text-3xl">Empleados</h1>
+            <h1 className="text-2xl font-bold text-tinta md:text-3xl">Empleados</h1>
             <p className="mt-0.5 text-xs text-steel-300">{empleados?.length ?? 0} registrados · {hoy}</p>
           </div>
           {esAdmin && (
@@ -120,10 +120,6 @@ export default async function EmpleadosPage() {
               <Plus className="h-4 w-4" />Agregar empleado
             </Link>
           )}
-        </div>
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-12 overflow-hidden md:w-24">
-          <div className="absolute inset-y-0 right-0 w-9 -skew-x-12 translate-x-4 bg-brand-yellow/80 md:w-20 md:translate-x-8" />
-          <div className="absolute inset-y-0 right-0 w-3 -skew-x-12 translate-x-1 bg-brand-blue md:w-7" />
         </div>
       </div>
 

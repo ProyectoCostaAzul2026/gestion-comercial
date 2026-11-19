@@ -22,11 +22,11 @@ export default async function EditarEmpleadoPage({ params }: { params: Promise<{
       <div className="mb-6 flex items-center gap-3">
         <BotonAtras href={`/dashboard/empleados/${id}`} />
         <div>
-          <h1 className="font-display text-2xl font-bold text-white">Editar Empleado</h1>
+          <h1 className="font-display text-2xl font-bold text-tinta">Editar Empleado</h1>
           <p className="text-xs text-steel-300">{empleado.nombre_completo}</p>
         </div>
       </div>
-      <div className="rounded-2xl border border-white/10 bg-[#111820] p-6">
+      <div className="rounded-2xl border border-linea bg-superficie p-6">
         <EmpleadoForm empleado={empleado} />
       </div>
     </div>

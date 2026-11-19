@@ -153,9 +153,9 @@ export function AccionesInventario({ objetivo, onCerrar, categorias, familias, e
   }
 
   const volver = rutaVolver ? `&volver=${encodeURIComponent(rutaVolver)}` : ''
-  const BOTON = 'flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-white hover:bg-white/5 disabled:opacity-50'
-  const CAMPO = 'h-11 border-white/10 bg-[#1a2430] text-[16px] text-white placeholder:text-steel-500'
-  const SELECT = 'h-11 w-full rounded-lg border border-white/10 bg-[#1a2430] px-3 text-[16px] text-white'
+  const BOTON = 'flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-tinta hover:bg-velo/5 disabled:opacity-50'
+  const CAMPO = 'h-11 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-steel-500'
+  const SELECT = 'h-11 w-full rounded-lg border border-linea bg-superficie-2 px-3 text-[16px] text-tinta'
 
   const selectorCategoria = (
     <select value={categoriaId} onChange={e => setCategoriaId(e.target.value)} className={SELECT} aria-label="Categoría">
@@ -168,12 +168,12 @@ export function AccionesInventario({ objetivo, onCerrar, categorias, familias, e
     <Sheet open onOpenChange={abierto => { if (!abierto) onCerrar() }}>
       <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto rounded-t-2xl p-4 sm:mx-auto sm:max-w-lg">
         <SheetHeader className="p-0 pr-8">
-          <SheetTitle className="text-base text-white">{titulo}</SheetTitle>
+          <SheetTitle className="text-base text-tinta">{titulo}</SheetTitle>
           {subtitulo && <SheetDescription className="text-xs text-steel-300">{subtitulo}</SheetDescription>}
         </SheetHeader>
 
         {modo !== 'menu' && (
-          <button type="button" onClick={() => setModo('menu')} className="inline-flex items-center gap-1 self-start text-xs text-brand-blue hover:underline">
+          <button type="button" onClick={() => setModo('menu')} className="inline-flex items-center gap-1 self-start text-xs text-enlace hover:underline">
             <ArrowLeft className="h-3.5 w-3.5" /> Volver a las acciones
           </button>
         )}
@@ -196,7 +196,7 @@ export function AccionesInventario({ objetivo, onCerrar, categorias, familias, e
                 <Link href={`/dashboard/inventario/${base.id}/grupo`} className={BOTON}><SlidersHorizontal className="h-4 w-4 text-steel-300" /> Orden, pesos y datos del grupo</Link>
               </>
             )}
-            <div className="my-1 border-t border-white/10" />
+            <div className="my-1 border-t border-linea" />
             <button type="button" className={BOTON} onClick={() => setModo('categoria')}>
               <Shapes className="h-4 w-4 text-brand-yellow" /> Mover a otra categoría
             </button>
@@ -209,7 +209,7 @@ export function AccionesInventario({ objetivo, onCerrar, categorias, familias, e
               </button>
             )}
             {!esGrupo && esAdmin && (
-              <button type="button" className={`${BOTON} text-brand-red`} onClick={desactivar} disabled={guardando}>
+              <button type="button" className={`${BOTON} text-sale`} onClick={desactivar} disabled={guardando}>
                 <PowerOff className="h-4 w-4" /> Desactivar producto
               </button>
             )}
@@ -232,7 +232,7 @@ export function AccionesInventario({ objetivo, onCerrar, categorias, familias, e
         {modo === 'familia' && (
           <div className="space-y-3">
             <p className="text-xs text-steel-300">
-              El nombre queda como <span className="font-semibold text-white">Familia - Característica</span>. Si la familia no
+              El nombre queda como <span className="font-semibold text-tinta">Familia - Característica</span>. Si la familia no
               existe se crea. Si eliges una característica que la familia ya tiene con la misma marca, {esGrupo ? 'las medidas se unen' : 'el producto se une'} a ese grupo de medidas.
               El código, el stock y los precios no cambian.
             </p>
@@ -240,7 +240,7 @@ export function AccionesInventario({ objetivo, onCerrar, categorias, familias, e
               <Label htmlFor="mover-familia" className="text-xs text-steel-300">Familia</Label>
               <Input id="mover-familia" list="mover-familias" value={familia} onChange={e => setFamilia(e.target.value)} placeholder="Ej: Codo" className={CAMPO} autoComplete="off" />
               <datalist id="mover-familias">{familias.map(f => <option key={f.id} value={f.nombre_base} />)}</datalist>
-              {limpiar(familia) && !familiaDestino && <p className="text-[11px] text-brand-yellow">Familia nueva: se creará al guardar.</p>}
+              {limpiar(familia) && !familiaDestino && <p className="text-xs text-brand-yellow">Familia nueva: se creará al guardar.</p>}
             </div>
             <div className="space-y-1">
               <Label htmlFor="mover-caracteristica" className="text-xs text-steel-300">Característica</Label>
@@ -252,8 +252,8 @@ export function AccionesInventario({ objetivo, onCerrar, categorias, familias, e
               Cambiar también la categoría
             </label>
             {cambiarCategoria && selectorCategoria}
-            <p className="rounded-lg border border-white/10 bg-[#111820] px-3 py-2 text-xs text-steel-300">
-              Quedará como: <span className="font-semibold text-white">{nombreFinal}</span>
+            <p className="rounded-lg border border-linea bg-superficie px-3 py-2 text-xs text-steel-300">
+              Quedará como: <span className="font-semibold text-tinta">{nombreFinal}</span>
             </p>
             <button type="button" onClick={guardarFamilia} disabled={guardando}
               className="h-11 w-full rounded-xl bg-brand-yellow text-sm font-bold text-steel-900 hover:brightness-105 disabled:opacity-50">
@@ -265,15 +265,15 @@ export function AccionesInventario({ objetivo, onCerrar, categorias, familias, e
         {modo === 'sacar' && (
           <div className="space-y-3">
             <p className="text-xs text-steel-300">
-              El producto sigue en la familia <span className="font-semibold text-white">{familiaActual}</span> pero forma su propio
+              El producto sigue en la familia <span className="font-semibold text-tinta">{familiaActual}</span> pero forma su propio
               grupo de medidas con otra característica.
             </p>
             <div className="space-y-1">
               <Label htmlFor="sacar-caracteristica" className="text-xs text-steel-300">Característica nueva</Label>
               <Input id="sacar-caracteristica" value={caracteristica} onChange={e => setCaracteristica(e.target.value)} className={CAMPO} autoComplete="off" autoFocus />
             </div>
-            <p className="rounded-lg border border-white/10 bg-[#111820] px-3 py-2 text-xs text-steel-300">
-              Quedará como: <span className="font-semibold text-white">{familiaActual}{SEPARADOR}{limpiar(caracteristica) || '…'}</span>
+            <p className="rounded-lg border border-linea bg-superficie px-3 py-2 text-xs text-steel-300">
+              Quedará como: <span className="font-semibold text-tinta">{familiaActual}{SEPARADOR}{limpiar(caracteristica) || '…'}</span>
             </p>
             <button type="button" onClick={guardarSacar} disabled={guardando}
               className="h-11 w-full rounded-xl bg-brand-yellow text-sm font-bold text-steel-900 hover:brightness-105 disabled:opacity-50">
@@ -297,7 +297,7 @@ export function BotonAccionesProducto({ producto, categorias, familias, esAdmin 
   return (
     <>
       <button type="button" onClick={() => setAbierto(n => n + 1)}
-        className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 px-4 py-3 text-sm font-bold text-white hover:bg-white/5">
+        className="flex w-full items-center justify-center gap-2 rounded-xl border border-linea-fuerte px-4 py-3 text-sm font-bold text-tinta hover:bg-velo/5">
         <FolderInput className="h-4 w-4" /> Mover, sacar del grupo o desactivar
       </button>
       {abierto > 0 && (

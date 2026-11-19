@@ -52,11 +52,11 @@ export function FuentesPagoEditor({ fuentes, setFuentes, montoTotal, saldos }: {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <Label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Sale de</Label>
+        <Label className="text-xs font-bold text-steel-300">Sale de</Label>
         {fuentes.length < FUENTES_DISPONIBLES.length && (
           <button type="button"
             onClick={() => setFuentes([...fuentes, { key: String(Date.now()), fuente: FUENTES_DISPONIBLES.find(f => !usadas.has(f.value))?.value ?? 'caja_menor', monto: Math.max(diferencia, 0) }])}
-            className="inline-flex h-9 items-center gap-1 rounded-lg px-2 text-xs font-semibold text-brand-blue hover:bg-white/5">
+            className="inline-flex h-9 items-center gap-1 rounded-lg px-2 text-xs font-semibold text-enlace hover:bg-velo/5">
             <Plus className="h-3.5 w-3.5" />Repartir en otro medio
           </button>
         )}
@@ -66,28 +66,28 @@ export function FuentesPagoEditor({ fuentes, setFuentes, montoTotal, saldos }: {
           <div className="min-w-0 flex-1">
             <Select items={FUENTES_DISPONIBLES} value={f.fuente}
               onValueChange={v => v && setFuentes(fuentes.map((it, i) => (i === idx ? { ...it, fuente: v } : it)))}>
-              <SelectTrigger className="h-11 w-full border-white/10 bg-[#1a2430] text-sm text-white"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-11 w-full border-linea bg-superficie-2 text-sm text-tinta"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {FUENTES_DISPONIBLES.map(fd => <SelectItem key={fd.value} value={fd.value}>{fd.label}</SelectItem>)}
               </SelectContent>
             </Select>
-            <p className="mt-0.5 text-[11px] text-steel-500">Hay {pesos(saldos[medioDeFuente(f.fuente)] ?? 0)}</p>
+            <p className="mt-0.5 text-xs text-steel-500">Hay {pesos(saldos[medioDeFuente(f.fuente)] ?? 0)}</p>
           </div>
           {fuentes.length > 1 && (
             <Input type="number" inputMode="numeric" value={f.monto || ''} onFocus={e => e.target.select()}
               onChange={e => setFuentes(fuentes.map((it, i) => (i === idx ? { ...it, monto: parseFloat(e.target.value) || 0 } : it)))}
-              className="h-11 w-32 border-white/10 bg-[#1a2430] text-right text-white" placeholder="Monto" aria-label="Monto de esta fuente" />
+              className="h-11 w-32 border-linea bg-superficie-2 text-right text-tinta" placeholder="Monto" aria-label="Monto de esta fuente" />
           )}
           {fuentes.length > 1 && (
             <button type="button" aria-label="Quitar esta fuente" onClick={() => setFuentes(fuentes.filter((_, i) => i !== idx))}
-              className="flex h-11 w-11 items-center justify-center rounded-xl text-steel-300 hover:bg-white/5 hover:text-brand-red">
+              className="flex h-11 w-11 items-center justify-center rounded-xl text-steel-300 hover:bg-velo/5 hover:text-sale">
               <Trash2 className="h-4 w-4" />
             </button>
           )}
         </div>
       ))}
       {fuentes.length > 1 && montoTotal > 0 && Math.abs(diferencia) > 0 && (
-        <p className={`text-xs ${diferencia > 0 ? 'text-brand-yellow' : 'text-brand-red'}`}>
+        <p className={`text-xs ${diferencia > 0 ? 'text-brand-yellow' : 'text-sale'}`}>
           {diferencia > 0 ? `Falta repartir ${pesos(diferencia)}` : `Sobran ${pesos(-diferencia)}`}
         </p>
       )}

@@ -29,21 +29,17 @@ export default async function TareasPage() {
   const error = pendientes.error ?? hechas.error
   return (
     <div className="space-y-4">
-      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] py-3 pl-4 pr-14 md:py-4 md:pr-28">
-        <h1 className="flex items-center gap-2 font-display text-2xl font-bold text-brand-yellow md:text-3xl">
+      <div className="relative py-1">
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-tinta md:text-3xl">
           <ListChecks className="h-7 w-7" aria-hidden />Tareas
         </h1>
         <p className="mt-0.5 text-xs text-steel-300">
           {esAdmin ? 'Crea tareas, asígnalas o déjalas libres y mira quién las hizo.' : 'Tus tareas y las libres. Márcalas cuando las termines.'}
         </p>
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-12 overflow-hidden md:w-24">
-          <div className="absolute inset-y-0 right-0 w-9 -skew-x-12 translate-x-4 bg-brand-yellow/80 md:w-20 md:translate-x-8" />
-          <div className="absolute inset-y-0 right-0 w-3 -skew-x-12 translate-x-1 bg-brand-blue md:w-7" />
-        </div>
       </div>
 
       {error ? (
-        <p className="rounded-2xl border border-brand-yellow/30 bg-brand-yellow/10 p-4 text-sm text-white">
+        <p className="rounded-2xl border border-brand-yellow/30 bg-brand-yellow/10 p-4 text-sm text-tinta">
           La hoja de tareas todavía no está activada en la base de datos.
           <span className="mt-1 block text-xs text-steel-300">Detalle: {error.message}</span>
         </p>

@@ -52,7 +52,7 @@ export default async function ReciboPage({
     <div>
       <div className="mb-4 flex items-center gap-3 print:hidden">
         <BotonAtras href={`/dashboard/ventas/${id}`} />
-        <h1 className="font-display text-lg font-bold text-white">Recibo — Ticket #{venta.numero_ticket}</h1>
+        <h1 className="font-display text-lg font-bold text-tinta">Recibo — Ticket #{venta.numero_ticket}</h1>
       </div>
 
       <ReciboView

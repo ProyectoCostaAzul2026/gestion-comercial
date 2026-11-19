@@ -89,7 +89,7 @@ function FormularioRenglon({ recepcion, productosProveedor, renglon, onListo }: 
         <div className="flex items-center justify-between gap-2">
           <p className={LABEL_CLS}>Producto</p>
           <button type="button" onClick={() => { setEsNuevo(v => !v); setProducto(null) }}
-            className="text-xs font-semibold text-brand-blue hover:underline">
+            className="text-xs font-semibold text-enlace hover:underline">
             {esNuevo ? 'Buscar en el sistema' : 'No está en el sistema'}
           </button>
         </div>
@@ -102,15 +102,15 @@ function FormularioRenglon({ recepcion, productosProveedor, renglon, onListo }: 
           <p className="text-xs text-steel-500">Queda pendiente: el administrador crea el producto y lo asocia a este renglón.</p>
         </div>
       ) : producto ? (
-        <div className="flex items-start justify-between gap-2 rounded-xl border border-white/10 bg-[#1a2430] p-3">
+        <div className="flex items-start justify-between gap-2 rounded-xl border border-linea bg-superficie-2 p-3">
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-white">{nombreConMedida(producto)}</p>
+            <p className="text-sm font-semibold text-tinta">{nombreConMedida(producto)}</p>
             <p className="text-xs text-steel-300">
               {[producto.marca, producto.codigo, producto.costo != null ? `Costo anterior ${pesos(producto.costo)}` : 'Nuevo con este proveedor'].filter(Boolean).join(' · ')}
             </p>
           </div>
           {!conMercancia && (
-            <button type="button" onClick={() => setProducto(null)} aria-label="Cambiar producto" className="text-steel-300 hover:text-white">
+            <button type="button" onClick={() => setProducto(null)} aria-label="Cambiar producto" className="text-steel-300 hover:text-tinta">
               <X className="h-4 w-4" />
             </button>
           )}
@@ -130,7 +130,7 @@ function FormularioRenglon({ recepcion, productosProveedor, renglon, onListo }: 
 
       <div className="flex items-center gap-2">
         <Switch id={`${prefijo}-empaque`} checked={porEmpaque} onCheckedChange={v => setPorEmpaque(v)} />
-        <Label htmlFor={`${prefijo}-empaque`} className="text-sm text-white">Viene por empaque (caja, paquete)</Label>
+        <Label htmlFor={`${prefijo}-empaque`} className="text-sm text-tinta">Viene por empaque (caja, paquete)</Label>
       </div>
 
       {porEmpaque ? (
@@ -151,7 +151,7 @@ function FormularioRenglon({ recepcion, productosProveedor, renglon, onListo }: 
           </div>
           <p className="text-xs text-steel-300">
             {conversion
-              ? <>Son <span className="font-semibold text-white">{conversion.cantidad} unidades a {pesos(conversion.costoUnitario)}</span> c/u ({ivaTexto}).</>
+              ? <>Son <span className="font-semibold text-tinta">{conversion.cantidad} unidades a {pesos(conversion.costoUnitario)}</span> c/u ({ivaTexto}).</>
               : 'Escribe cuántos empaques, cuántas unidades trae cada uno y el costo de cada empaque.'}
           </p>
         </div>
@@ -174,7 +174,7 @@ function FormularioRenglon({ recepcion, productosProveedor, renglon, onListo }: 
           {guardando ? 'Guardando…' : renglon ? 'Guardar renglón' : 'Agregar renglón'}
         </Button>
         {renglon && (
-          <Button type="button" variant="outline" onClick={onListo} className="h-11 border-white/10 bg-transparent text-steel-300 hover:bg-white/5">
+          <Button type="button" variant="outline" onClick={onListo} className="h-11 border-linea bg-transparent text-steel-300 hover:bg-velo/5">
             Cancelar
           </Button>
         )}
@@ -227,8 +227,8 @@ export function RecepcionRenglones({ recepcion, renglones, productosProveedor, e
   return (
     <div className="space-y-4">
       {abierta && (
-        <div className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
-          <h3 className="flex items-center gap-2 font-display font-bold text-white"><Plus className="h-4 w-4 text-brand-yellow" />Agregar renglón</h3>
+        <div className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+          <h3 className="flex items-center gap-2 font-display font-bold text-tinta"><Plus className="h-4 w-4 text-brand-yellow" />Agregar renglón</h3>
           <FormularioRenglon recepcion={recepcion} productosProveedor={productosProveedor} onListo={() => {}} />
         </div>
       )}
@@ -248,32 +248,32 @@ export function RecepcionRenglones({ recepcion, renglones, productosProveedor, e
             const pendiente = !r.producto_id
             const nombre = r.producto ? nombreConMedida(r.producto) : r.descripcion
             return (
-              <li key={r.id} className={`space-y-3 rounded-2xl border p-3 ${pendiente ? 'border-brand-yellow/30 bg-brand-yellow/5' : 'border-white/10 bg-[#111820]'}`}>
+              <li key={r.id} className={`space-y-3 rounded-2xl border p-3 ${pendiente ? 'border-brand-yellow/30 bg-brand-yellow/5' : 'border-linea bg-superficie'}`}>
                 {editando === r.id ? (
                   <FormularioRenglon recepcion={recepcion} productosProveedor={productosProveedor} renglon={r} onListo={() => setEditando(null)} />
                 ) : (
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 space-y-0.5">
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-sm font-semibold text-white">{nombre}</p>
-                        {pendiente && <span className="rounded-full border border-brand-yellow/40 px-2 py-0.5 text-[10px] font-semibold text-brand-yellow">Pendiente</span>}
-                        {r.producto && !r.producto.activo && <span className="rounded-full border border-brand-blue/40 px-2 py-0.5 text-[10px] font-semibold text-brand-blue">Nuevo</span>}
+                        <p className="text-sm font-semibold text-tinta">{nombre}</p>
+                        {pendiente && <span className="rounded-full border border-brand-yellow/40 px-2 py-0.5 text-xs font-semibold text-brand-yellow">Pendiente</span>}
+                        {r.producto && !r.producto.activo && <span className="rounded-full border border-brand-blue/40 px-2 py-0.5 text-xs font-semibold text-enlace">Nuevo</span>}
                       </div>
                       <p className="text-xs text-steel-300">
                         {[r.producto?.marca, r.referencia ? `Ref. ${r.referencia}` : null].filter(Boolean).join(' · ')}
                       </p>
                       <p className="text-xs text-steel-300">
-                        {r.cantidad_facturada} × {pesos(r.costo_unitario)} = <span className="text-white">{pesos(r.cantidad_facturada * r.costo_unitario)}</span>
+                        {r.cantidad_facturada} × {pesos(r.costo_unitario)} = <span className="text-tinta">{pesos(r.cantidad_facturada * r.costo_unitario)}</span>
                         {r.cantidad_contada != null ? ' · Contado' : ' · Sin contar'}
                       </p>
                     </div>
                     {abierta && (
                       <div className="flex shrink-0 gap-1">
                         <button type="button" onClick={() => setEditando(r.id)} aria-label="Corregir renglón"
-                          className="rounded-lg p-2 text-steel-300 hover:bg-white/5 hover:text-white"><Pencil className="h-4 w-4" /></button>
+                          className="rounded-lg p-2 text-steel-300 hover:bg-velo/5 hover:text-tinta"><Pencil className="h-4 w-4" /></button>
                         {r.stock_ingresado === 0 && (
                           <button type="button" onClick={() => quitar(r)} disabled={trabajando === r.id} aria-label="Quitar renglón"
-                            className="rounded-lg p-2 text-steel-300 hover:bg-white/5 hover:text-brand-red"><Trash2 className="h-4 w-4" /></button>
+                            className="rounded-lg p-2 text-steel-300 hover:bg-velo/5 hover:text-sale"><Trash2 className="h-4 w-4" /></button>
                         )}
                       </div>
                     )}
@@ -284,7 +284,7 @@ export function RecepcionRenglones({ recepcion, renglones, productosProveedor, e
                   <div className="space-y-2">
                     <div className="flex flex-wrap gap-2">
                       <Button type="button" variant="outline" size="sm" onClick={() => setAccion(a => a?.renglon === r.id && a.tipo === 'asociar' ? null : { renglon: r.id, tipo: 'asociar' })}
-                        className="border-white/10 bg-transparent text-white hover:bg-white/5"><Link2 className="mr-1 h-4 w-4" />Ya existe: asociar</Button>
+                        className="border-linea bg-transparent text-tinta hover:bg-velo/5"><Link2 className="mr-1 h-4 w-4" />Ya existe: asociar</Button>
                       {esAdmin && (
                         <>
                           <Link href={`/dashboard/recepcion/${recepcion.id}/nuevo-producto?renglon=${r.id}`}
@@ -292,7 +292,7 @@ export function RecepcionRenglones({ recepcion, renglones, productosProveedor, e
                             <PackagePlus className="mr-1 h-4 w-4" />Crear producto
                           </Link>
                           <Button type="button" variant="outline" size="sm" onClick={() => setAccion(a => a?.renglon === r.id && a.tipo === 'familia' ? null : { renglon: r.id, tipo: 'familia' })}
-                            className="border-brand-blue/50 bg-transparent text-brand-blue hover:bg-brand-blue/10"><Layers className="mr-1 h-4 w-4" />Agregar a una familia o grupo</Button>
+                            className="border-brand-blue/50 bg-transparent text-enlace hover:bg-brand-blue/10"><Layers className="mr-1 h-4 w-4" />Agregar a una familia o grupo</Button>
                         </>
                       )}
                     </div>

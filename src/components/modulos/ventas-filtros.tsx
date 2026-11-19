@@ -28,28 +28,28 @@ export function VentasFiltros({ fechaInicio, fechaFin, tipoPago, estado, emplead
     router.replace(`${pathname}?${params.toString()}`, { scroll: false })
   }
 
-  const labelCls = 'block text-[10px] font-bold uppercase tracking-widest text-steel-300'
-  const triggerCls = 'h-11 border-white/10 bg-[#1a2430] text-white'
+  const labelCls = 'block text-xs font-bold text-steel-300'
+  const triggerCls = 'h-11 border-linea bg-superficie-2 text-tinta'
 
   return (
     <div className="mb-4">
       <button type="button" onClick={() => setAbierto(v => !v)} aria-expanded={abierto}
-        className="flex h-11 w-full items-center justify-between rounded-xl border border-white/10 bg-[#111820] px-3 text-sm font-semibold text-white md:hidden">
+        className="flex h-11 w-full items-center justify-between rounded-xl border border-linea bg-superficie px-3 text-sm font-semibold text-tinta md:hidden">
         <span className="flex items-center gap-2">
           <SlidersHorizontal className="h-4 w-4 text-brand-yellow" aria-hidden />
           {fechaInicio === fechaFin ? fechaInicio : `${fechaInicio} a ${fechaFin}`}
-          {activos > 0 && <span className="rounded-full bg-brand-yellow px-2 py-0.5 text-[11px] font-bold text-steel-900">{activos} filtro{activos === 1 ? '' : 's'}</span>}
+          {activos > 0 && <span className="rounded-full bg-brand-yellow px-2 py-0.5 text-xs font-bold text-steel-900">{activos} filtro{activos === 1 ? '' : 's'}</span>}
         </span>
-        <span className="text-xs text-brand-blue">{abierto ? 'Ocultar' : 'Cambiar'}</span>
+        <span className="text-xs text-enlace">{abierto ? 'Ocultar' : 'Cambiar'}</span>
       </button>
     <div className={`grid-cols-2 items-end gap-3 md:flex md:flex-wrap ${abierto ? 'mt-3 grid' : 'hidden'}`}>
       <div className="space-y-1">
         <label className={labelCls}>Desde</label>
-        <Input type="date" value={fechaInicio} max={fechaFin} onChange={e => actualizar('fecha_inicio', e.target.value)} className="h-11 w-full border-white/10 bg-[#1a2430] text-white md:w-40" />
+        <Input type="date" value={fechaInicio} max={fechaFin} onChange={e => actualizar('fecha_inicio', e.target.value)} className="h-11 w-full border-linea bg-superficie-2 text-tinta md:w-40" />
       </div>
       <div className="space-y-1">
         <label className={labelCls}>Hasta</label>
-        <Input type="date" value={fechaFin} min={fechaInicio} onChange={e => actualizar('fecha_fin', e.target.value)} className="h-11 w-full border-white/10 bg-[#1a2430] text-white md:w-40" />
+        <Input type="date" value={fechaFin} min={fechaInicio} onChange={e => actualizar('fecha_fin', e.target.value)} className="h-11 w-full border-linea bg-superficie-2 text-tinta md:w-40" />
       </div>
 
       {esAdmin && (

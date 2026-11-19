@@ -52,11 +52,11 @@ export default async function PerfilClientePage({
 
   return (
     <div className="-m-4 md:-m-6">
-      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 border-b lg:top-0 border-white/10 bg-[#0a0e14] px-4 py-3">
+      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 border-b lg:top-0 border-linea bg-fondo px-4 py-3">
         <div className="flex items-center gap-3">
           <BotonAtras href="/dashboard/clientes" />
           <div>
-            <h1 className="font-display text-lg font-bold text-white">{cliente.nombre}</h1>
+            <h1 className="font-display text-lg font-bold text-tinta">{cliente.nombre}</h1>
             <p className="text-xs text-steel-300">Perfil del cliente</p>
           </div>
         </div>
@@ -73,9 +73,9 @@ export default async function PerfilClientePage({
             ['Dirección', cliente.direccion ?? '—'],
             ['Notas', cliente.notas ?? '—'],
           ].map(([label, value]) => (
-            <div key={label} className="flex justify-between gap-4 border-b border-white/8 pb-2">
+            <div key={label} className="flex justify-between gap-4 border-b border-linea pb-2">
               <dt className="text-steel-300">{label}</dt>
-              <dd className="text-right font-medium text-white">{value}</dd>
+              <dd className="text-right font-medium text-tinta">{value}</dd>
             </div>
           ))}
         </dl>
@@ -93,12 +93,12 @@ export default async function PerfilClientePage({
         {totalDeuda > 0 && (
           <div className="flex items-center justify-between rounded-2xl border border-brand-red/30 bg-brand-red/10 p-4">
             <div>
-              <p className="text-sm font-semibold text-brand-red">Saldo pendiente total</p>
-              <p className="mt-0.5 text-xs text-brand-red">
+              <p className="text-sm font-semibold text-sale">Saldo pendiente total</p>
+              <p className="mt-0.5 text-xs text-sale">
                 {(creditos ?? []).filter((c: any) => c.estado !== 'pagado' && c.estado !== 'anulado').length} crédito(s) activo(s)
               </p>
             </div>
-            <p className="font-display text-2xl font-black text-brand-red">${totalDeuda.toLocaleString('es-CO')}</p>
+            <p className="font-display text-2xl font-bold text-sale">${totalDeuda.toLocaleString('es-CO')}</p>
           </div>
         )}
 
@@ -109,15 +109,15 @@ export default async function PerfilClientePage({
 
         {/* Historial de compras */}
         <div>
-          <h2 className="mb-3 flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+          <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-tinta">
             Historial de compras ({ventas?.length ?? 0})
           </h2>
           {(ventas ?? []).length === 0 ? (
-            <p className="rounded-2xl border border-white/10 bg-[#111820] p-6 text-center text-sm text-steel-500">
+            <p className="rounded-2xl border border-linea bg-superficie p-6 text-center text-sm text-steel-500">
               Sin compras registradas.
             </p>
           ) : (
-            <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
+            <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -131,20 +131,20 @@ export default async function PerfilClientePage({
                   </TableHeader>
                   <TableBody>
                     {(ventas ?? []).map((v: any) => (
-                      <TableRow key={v.id} className="border-white/8 hover:bg-white/5">
+                      <TableRow key={v.id} className="border-linea hover:bg-velo/5">
                         <TableCell>
-                          <Link href={`/dashboard/ventas/${v.id}`} className="text-xs font-medium text-brand-blue hover:underline">
+                          <Link href={`/dashboard/ventas/${v.id}`} className="text-xs font-medium text-enlace hover:underline">
                             #{v.numero_ticket}
                           </Link>
                         </TableCell>
                         <TableCell className="text-xs text-steel-300">{v.fecha}</TableCell>
-                        <TableCell className="text-right font-display text-sm font-bold text-white">
+                        <TableCell className="text-right font-display text-sm font-bold text-tinta">
                           ${Number(v.total).toLocaleString('es-CO')}
                         </TableCell>
                         <TableCell className="text-xs capitalize text-steel-300">{v.tipo_pago}</TableCell>
                         <TableCell>
                           <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize ${
-                            v.estado === 'anulada' ? 'border-brand-red/30 bg-brand-red/20 text-brand-red' :
+                            v.estado === 'anulada' ? 'border-brand-red/30 bg-brand-red/20 text-sale' :
                             v.estado === 'credito' ? 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow' :
                             'border-emerald-500/30 bg-emerald-500/20 text-emerald-400'}`}>
                             {v.estado}

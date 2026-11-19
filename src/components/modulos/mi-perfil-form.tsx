@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { SelectorTema } from '@/components/tema/selector-tema'
 
 interface Perfil {
   id: string
@@ -74,14 +75,15 @@ export function MiPerfilForm({ perfil }: { perfil: Perfil }) {
     .join('')
     .toUpperCase()
 
-  const inputCls = 'w-full rounded-xl border border-white/10 bg-[#1a2430] px-4 py-3 text-[16px] text-white placeholder:text-steel-500 focus:border-brand-yellow/60 focus:outline-none focus:ring-0'
-  const labelCls = 'mb-1 block text-[10px] font-bold uppercase tracking-widest text-steel-300'
+  const inputCls = 'w-full rounded-xl border border-linea bg-superficie-2 px-4 py-3 text-[16px] text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60 focus:outline-none focus:ring-0'
+  const labelCls = 'mb-1 block text-xs font-bold text-steel-300'
 
   return (
     <div className="max-w-md space-y-6">
+      <SelectorTema />
 
       {/* Avatar + nombre */}
-      <div className="flex flex-col items-center gap-3 rounded-2xl border border-white/10 bg-[#111820] p-6 text-center">
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-linea bg-superficie p-6 text-center">
         {perfil.foto_url ? (
           <img
             src={perfil.foto_url}
@@ -89,48 +91,48 @@ export function MiPerfilForm({ perfil }: { perfil: Perfil }) {
             className="h-20 w-20 rounded-full border-2 border-brand-yellow object-cover"
           />
         ) : (
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-brand-yellow font-display text-2xl font-black text-steel-900">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-brand-yellow font-display text-2xl font-bold text-steel-900">
             {iniciales}
           </div>
         )}
         <div>
-          <p className="font-display text-xl font-bold text-white">{perfil.nombre_completo}</p>
-          <span className={`mt-1 inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${perfil.rol === 'administrador' ? 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow' : 'border-white/10 bg-steel-700 text-steel-300'}`}>
+          <p className="font-display text-xl font-bold text-tinta">{perfil.nombre_completo}</p>
+          <span className={`mt-1 inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${perfil.rol === 'administrador' ? 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow' : 'border-linea bg-steel-700 text-steel-300'}`}>
             {perfil.rol === 'administrador' ? 'Administrador' : 'Empleado'}
           </span>
         </div>
       </div>
 
       {/* Datos del usuario */}
-      <div className="rounded-2xl border border-white/10 bg-[#111820] p-6">
-        <h2 className="mb-4 flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow">
-          <span className="h-5 w-1 rounded-full bg-brand-yellow" />
+      <div className="rounded-2xl border border-linea bg-superficie p-6">
+        <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-tinta">
+          
           Información de la cuenta
         </h2>
         <dl className="space-y-3 text-sm">
-          <div className="flex justify-between gap-4 border-b border-white/8 pb-2">
+          <div className="flex justify-between gap-4 border-b border-linea pb-2">
             <dt className="text-steel-300">Nombre</dt>
-            <dd className="text-right font-medium text-white">{perfil.nombre_completo}</dd>
+            <dd className="text-right font-medium text-tinta">{perfil.nombre_completo}</dd>
           </div>
-          <div className="flex justify-between gap-4 border-b border-white/8 pb-2">
+          <div className="flex justify-between gap-4 border-b border-linea pb-2">
             <dt className="text-steel-300">Correo</dt>
-            <dd className="text-right font-medium text-white">{perfil.email ?? '—'}</dd>
+            <dd className="text-right font-medium text-tinta">{perfil.email ?? '—'}</dd>
           </div>
-          <div className="flex justify-between gap-4 border-b border-white/8 pb-2">
+          <div className="flex justify-between gap-4 border-b border-linea pb-2">
             <dt className="text-steel-300">Teléfono</dt>
-            <dd className="text-right font-medium text-white">{perfil.telefono ?? '—'}</dd>
+            <dd className="text-right font-medium text-tinta">{perfil.telefono ?? '—'}</dd>
           </div>
           <div className="flex justify-between gap-4 pb-2">
             <dt className="text-steel-300">Rol</dt>
-            <dd className="text-right font-medium capitalize text-white">{perfil.rol}</dd>
+            <dd className="text-right font-medium capitalize text-tinta">{perfil.rol}</dd>
           </div>
         </dl>
       </div>
 
       {/* Cambiar contraseña */}
-      <div className="rounded-2xl border border-white/10 bg-[#111820] p-6">
-        <h2 className="mb-4 flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow">
-          <span className="h-5 w-1 rounded-full bg-brand-yellow" />
+      <div className="rounded-2xl border border-linea bg-superficie p-6">
+        <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-tinta">
+          
           Cambiar contraseña
         </h2>
 
@@ -171,7 +173,7 @@ export function MiPerfilForm({ perfil }: { perfil: Perfil }) {
             />
           </div>
 
-          {error && <p className="text-sm text-brand-red">{error}</p>}
+          {error && <p className="text-sm text-sale">{error}</p>}
           {exito && <p className="text-sm text-emerald-400">{exito}</p>}
 
           <button

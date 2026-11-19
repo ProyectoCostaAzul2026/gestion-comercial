@@ -14,8 +14,8 @@ import {
 
 // Precios por cantidad: editor de tramos (solo administrador), lista de solo lectura y aviso en las líneas de venta.
 
-const INPUT = 'h-10 border-white/10 bg-[#111820] text-[16px] text-white placeholder:text-steel-500'
-const ETIQUETA = 'text-[10px] font-bold uppercase tracking-widest text-steel-300'
+const INPUT = 'h-10 border-linea bg-superficie text-[16px] text-tinta placeholder:text-steel-500'
+const ETIQUETA = 'text-xs font-bold text-steel-300'
 const pesos = (n: number) => `$${Math.round(n).toLocaleString('es-CO')}`
 const porcentaje = (n: number) => `${n.toLocaleString('es-CO', { maximumFractionDigits: 1 })} %`
 
@@ -82,12 +82,12 @@ export function EditorTramos({ id, inicial, datos, margenNormal, onChange }: {
   return (
     <div className="space-y-3">
       <p className="text-xs text-steel-300">
-        Precio normal: <span className="font-semibold text-white">{pesos(datos.precioVenta)} c/u</span>. Desde cada cantidad,
+        Precio normal: <span className="font-semibold text-tinta">{pesos(datos.precioVenta)} c/u</span>. Desde cada cantidad,
         todas las unidades se cobran al precio de ese tramo, sin descuento adicional.
       </p>
 
       {filas.length === 0 && (
-        <p className="rounded-xl border border-dashed border-white/15 p-3 text-xs text-steel-500">
+        <p className="rounded-xl border border-dashed border-linea p-3 text-xs text-steel-500">
           Sin precios por cantidad. Agrega uno, por ejemplo: desde 100 unidades, el paquete a $25.000.
         </p>
       )}
@@ -99,7 +99,7 @@ export function EditorTramos({ id, inicial, datos, margenNormal, onChange }: {
         const sugerido = cantidad >= 2 ? precioSugeridoTramo(datosPrecio, numero(f.margen)) : 0
         const paqueteReal = unitario ? unitario * cantidad : 0
         return (
-          <div key={f.clave} className="space-y-2 rounded-xl border border-white/10 bg-[#1a2430] p-3">
+          <div key={f.clave} className="space-y-2 rounded-xl border border-linea bg-superficie-2 p-3">
             <div className="grid grid-cols-[1fr_1fr_auto] items-end gap-2">
               <div className="space-y-1">
                 <Label htmlFor={`${id}-cantidad-${f.clave}`} className={ETIQUETA}>Desde (unidades)</Label>
@@ -113,14 +113,14 @@ export function EditorTramos({ id, inicial, datos, margenNormal, onChange }: {
               </div>
               <Button type="button" variant="ghost" size="icon" aria-label={`Quitar el precio ${i + 1}`}
                 onClick={() => actualizar(filas.filter(x => x.clave !== f.clave))}
-                className="h-10 w-10 text-steel-300 hover:bg-white/5 hover:text-brand-red">
+                className="h-10 w-10 text-steel-300 hover:bg-velo/5 hover:text-sale">
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
 
             {unitario !== null && (
               <p className="text-xs text-steel-300">
-                = <span className="font-semibold text-white">{pesos(unitario)} c/u</span>
+                = <span className="font-semibold text-tinta">{pesos(unitario)} c/u</span>
                 {margen !== null && <> · margen {porcentaje(margen)}</>}
                 {paqueteReal !== numero(f.paquete) && <> · el paquete queda en {pesos(paqueteReal)}</>}
               </p>
@@ -131,12 +131,12 @@ export function EditorTramos({ id, inicial, datos, margenNormal, onChange }: {
                 <span>Sugerido con margen</span>
                 <Input aria-label={`Margen para sugerir el precio ${i + 1}`} type="number" inputMode="decimal" min={0} max={95}
                   value={f.margen} onChange={e => cambiar(f.clave, { margen: e.target.value })}
-                  className="h-8 w-16 border-white/10 bg-[#111820] text-xs text-white" />
+                  className="h-8 w-16 border-linea bg-superficie text-xs text-tinta" />
                 <span>%</span>
                 {sugerido > 0 && (
                   <Button type="button" size="sm" variant="outline"
                     onClick={() => cambiar(f.clave, { paquete: String(sugerido * cantidad) })}
-                    className="h-8 border-brand-blue/40 bg-transparent text-xs text-brand-blue hover:bg-brand-blue/10 hover:text-brand-blue">
+                    className="h-8 border-brand-blue/40 bg-transparent text-xs text-enlace hover:bg-brand-blue/10 hover:text-enlace">
                     Usar {pesos(sugerido)} c/u ({pesos(sugerido * cantidad)})
                   </Button>
                 )}
@@ -148,13 +148,13 @@ export function EditorTramos({ id, inicial, datos, margenNormal, onChange }: {
 
       {filas.length < MAX_TRAMOS && (
         <Button type="button" variant="outline" onClick={agregar}
-          className="w-full border-dashed border-white/20 bg-transparent text-steel-300 hover:bg-white/5 hover:text-white">
+          className="w-full border-dashed border-linea-fuerte bg-transparent text-steel-300 hover:bg-velo/5 hover:text-tinta">
           <Plus className="mr-2 h-4 w-4" />Agregar precio por cantidad
         </Button>
       )}
 
       {errores.length > 0 && (
-        <ul className="space-y-1 rounded-xl bg-brand-red/10 p-2 text-xs text-brand-red">
+        <ul className="space-y-1 rounded-xl bg-brand-red/10 p-2 text-xs text-sale">
           {errores.map(e => <li key={e}>{e}</li>)}
         </ul>
       )}
@@ -166,10 +166,10 @@ export function EditorTramos({ id, inicial, datos, margenNormal, onChange }: {
 export function ListaPreciosCantidad({ tramos, precioVenta }: { tramos: readonly TramoPrecio[]; precioVenta: number }) {
   if (tramos.length === 0) return null
   return (
-    <ul className="divide-y divide-white/5 rounded-xl border border-white/10">
+    <ul className="divide-y divide-linea rounded-xl border border-linea">
       {ordenarTramos(tramos).map(t => (
         <li key={t.cantidad_minima}
-          className={`flex flex-wrap items-center justify-between gap-x-3 px-3 py-2 text-sm ${t.precio_unitario < precioVenta ? 'text-white' : 'text-steel-500 line-through'}`}>
+          className={`flex flex-wrap items-center justify-between gap-x-3 px-3 py-2 text-sm ${t.precio_unitario < precioVenta ? 'text-tinta' : 'text-steel-500 line-through'}`}>
           <span>Desde {t.cantidad_minima.toLocaleString('es-CO')} unidades</span>
           <span><span className="font-semibold">{pesos(t.precio_unitario)} c/u</span> · paquete {pesos(precioPaquete(t))}</span>
         </li>
@@ -210,9 +210,9 @@ export function AvisoPrecioCantidad({ tramos, precioVenta, cantidad, soloNormal 
       )}
       {siguiente && (
         <p className="flex items-start gap-1.5 text-steel-300">
-          <Layers className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-blue" aria-hidden />
+          <Layers className="mt-0.5 h-3.5 w-3.5 shrink-0 text-enlace" aria-hidden />
           <span>
-            Lleve {siguiente.cantidad_minima} y paga <span className="font-semibold text-white">{pesos(siguiente.precio_unitario)} c/u</span>
+            Lleve {siguiente.cantidad_minima} y paga <span className="font-semibold text-tinta">{pesos(siguiente.precio_unitario)} c/u</span>
             {' '}(faltan {siguiente.cantidad_minima - cantidad})
           </span>
         </p>

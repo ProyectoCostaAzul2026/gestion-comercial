@@ -31,18 +31,18 @@ const margenValido = (m: number | null): m is number => m !== null && m >= 0 && 
 const mensajeError = (err: unknown) => (err as { message?: string } | null)?.message ?? String(err)
 
 const ESTILO_ALERTA: Record<AlertaEscala, { clase: string; Icono: typeof AlertTriangle }> = {
-  perdida: { clase: 'border-brand-red/30 bg-brand-red/15 text-brand-red', Icono: AlertTriangle },
+  perdida: { clase: 'border-brand-red/30 bg-brand-red/15 text-sale', Icono: AlertTriangle },
   baja: { clase: 'border-amber-500/30 bg-amber-500/10 text-amber-400', Icono: ArrowDownRight },
-  igual: { clase: 'border-white/15 bg-white/5 text-steel-300', Icono: Equal },
+  igual: { clase: 'border-linea bg-velo/5 text-steel-300', Icono: Equal },
   salto: { clase: 'border-amber-500/30 bg-amber-500/10 text-amber-400', Icono: TrendingUp },
 }
 
 function Dato({ etiqueta, valor, nota }: { etiqueta: string; valor: string; nota?: string }) {
   return (
     <div>
-      <p className="text-[10px] uppercase tracking-wide text-steel-500">{etiqueta}</p>
-      <p className="text-sm text-white">{valor}</p>
-      {nota && <p className="text-[10px] italic text-steel-500">{nota}</p>}
+      <p className="text-xs text-steel-500">{etiqueta}</p>
+      <p className="text-sm text-tinta">{valor}</p>
+      {nota && <p className="text-xs italic text-steel-500">{nota}</p>}
     </div>
   )
 }
@@ -147,9 +147,9 @@ export function EscalaPrecios({ miembros, margenDefault, onGuardado, paginaCompl
   }
 
   return (
-    <div className={paginaCompleta ? 'space-y-4' : 'space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-4'}>
+    <div className={paginaCompleta ? 'space-y-4' : 'space-y-4 rounded-2xl border border-linea bg-superficie p-4'}>
       <div>
-        <h3 className={`font-display font-bold text-white ${paginaCompleta ? 'sr-only' : ''}`}>Escala de precios</h3>
+        <h3 className={`font-display font-bold text-tinta ${paginaCompleta ? 'sr-only' : ''}`}>Escala de precios</h3>
         <p className="text-xs text-steel-500">
           Pon un margen y el sistema sugiere un precio por medida a partir del costo. Tú decides el precio final: al
           guardar, esos quedan como precios de venta.
@@ -167,7 +167,7 @@ export function EscalaPrecios({ miembros, margenDefault, onGuardado, paginaCompl
           <Label className={LABEL_CLS}>Redondeo</Label>
           <Select value={modo} onValueChange={v => v && setModo(v as ModoRedondeo)}
             items={MODOS_REDONDEO.map(o => ({ value: o.valor, label: o.etiqueta }))}>
-            <SelectTrigger className="h-11 w-full border-white/10 bg-[#1a2430] text-white">
+            <SelectTrigger className="h-11 w-full border-linea bg-superficie-2 text-tinta">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -175,11 +175,11 @@ export function EscalaPrecios({ miembros, margenDefault, onGuardado, paginaCompl
             </SelectContent>
           </Select>
           {modo === 'auto' && (
-            <p className="text-[11px] text-steel-500">A $50 los precios menores de $1.000 y a $100 los demás.</p>
+            <p className="text-xs text-steel-500">A $50 los precios menores de $1.000 y a $100 los demás.</p>
           )}
         </div>
       </div>
-      {!margenGrupoValido && <p className="text-xs text-brand-red">El margen debe estar entre 0 y 95 %.</p>}
+      {!margenGrupoValido && <p className="text-xs text-sale">El margen debe estar entre 0 y 95 %.</p>}
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <Button type="button" onClick={usarSugeridos} disabled={!margenGrupoValido}
@@ -187,29 +187,29 @@ export function EscalaPrecios({ miembros, margenDefault, onGuardado, paginaCompl
           Usar precios sugeridos
         </Button>
         <Button type="button" variant="outline" onClick={restablecer}
-          className="h-10 rounded-xl border-white/15 bg-transparent font-semibold text-white hover:bg-white/5 hover:text-white">
+          className="h-10 rounded-xl border-linea bg-transparent font-semibold text-tinta hover:bg-velo/5 hover:text-tinta">
           Volver a los precios actuales
         </Button>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-white/10">
+      <div className="overflow-hidden rounded-xl border border-linea">
         {filas.map((f, i) => (
           <Fragment key={f.m.id}>
             {variasSeries && (i === 0 || filas[i - 1].serie !== f.serie) && (
-              <div className="border-b border-white/5 bg-[#1a2430] px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-steel-300">
+              <div className="border-b border-linea bg-superficie-2 px-3 py-1.5 text-xs font-bold text-steel-300">
                 Serie {f.etiquetaSerie}
               </div>
             )}
-            <div className={`border-b border-white/5 px-3 py-3 last:border-0 ${f.cambia ? 'bg-brand-yellow/5' : ''}`}>
+            <div className={`border-b border-linea px-3 py-3 last:border-0 ${f.cambia ? 'bg-brand-yellow/5' : ''}`}>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm font-semibold text-white">{f.m.unidad_medida || '—'}</span>
+                <span className="text-sm font-semibold text-tinta">{f.m.unidad_medida || '—'}</span>
                 {!f.m.activo && (
-                  <span className="rounded-full bg-steel-700 px-2 py-0.5 text-[10px] font-bold uppercase text-steel-300">Inactivo</span>
+                  <span className="rounded-full bg-steel-700 px-2 py-0.5 text-xs font-bold text-steel-300">Inactivo</span>
                 )}
                 {alertas[i].map(a => {
                   const { clase, Icono } = ESTILO_ALERTA[a]
                   return (
-                    <span key={a} className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${clase}`}>
+                    <span key={a} className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold ${clase}`}>
                       <Icono className="h-3 w-3" aria-hidden />{TEXTO_ALERTA[a]}
                     </span>
                   )
@@ -220,10 +220,10 @@ export function EscalaPrecios({ miembros, margenDefault, onGuardado, paginaCompl
                   nota={f.costo.estimado ? 'estimado' : undefined} />
                 <Dato etiqueta="Actual" valor={pesos(f.m.precio_venta)} />
                 <div>
-                  <p className="text-[10px] uppercase tracking-wide text-steel-500">Sugerido</p>
+                  <p className="text-xs text-steel-500">Sugerido</p>
                   {f.sugerido > 0 ? (
                     <button type="button" onClick={() => fijarNuevo(f.m.id, f.sugerido)} title="Usar este precio"
-                      className="text-sm font-semibold text-brand-blue hover:underline">
+                      className="text-sm font-semibold text-enlace hover:underline">
                       {pesos(f.sugerido)}
                     </button>
                   ) : (
@@ -231,24 +231,24 @@ export function EscalaPrecios({ miembros, margenDefault, onGuardado, paginaCompl
                   )}
                 </div>
                 <div className="space-y-0.5">
-                  <Label htmlFor={`margen-${f.m.id}`} className="text-[10px] font-normal uppercase tracking-wide text-steel-500">Margen %</Label>
+                  <Label htmlFor={`margen-${f.m.id}`} className="text-xs font-normal text-steel-500">Margen %</Label>
                   <Input id={`margen-${f.m.id}`} type="number" inputMode="decimal" min={0} max={95} step="0.5"
                     value={margenesFila[f.m.id] ?? ''} placeholder={margen}
                     onChange={e => setMargenesFila(prev => ({ ...prev, [f.m.id]: e.target.value }))}
                     className={`${INPUT_CLS} h-9 px-2 text-[16px] ${f.margenFilaInvalido ? 'border-brand-red/60' : ''}`} />
                 </div>
                 <div className="space-y-0.5">
-                  <Label htmlFor={`nuevo-${f.m.id}`} className="text-[10px] font-normal uppercase tracking-wide text-steel-500">Nuevo</Label>
+                  <Label htmlFor={`nuevo-${f.m.id}`} className="text-xs font-normal text-steel-500">Nuevo</Label>
                   <Input id={`nuevo-${f.m.id}`} type="number" inputMode="numeric" min={0} step={50}
                     value={nuevos[f.m.id] ?? ''}
                     onChange={e => setNuevos(prev => ({ ...prev, [f.m.id]: e.target.value }))}
                     className={`${INPUT_CLS} h-9 px-2 text-[16px] ${f.cambia ? 'border-brand-yellow/60' : ''}`} />
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase tracking-wide text-steel-500">Margen nuevo</p>
-                  <p className="text-sm text-white">{f.margenNuevo !== null ? `${f.margenNuevo.toFixed(1)} %` : '—'}</p>
+                  <p className="text-xs text-steel-500">Margen nuevo</p>
+                  <p className="text-sm text-tinta">{f.margenNuevo !== null ? `${f.margenNuevo.toFixed(1)} %` : '—'}</p>
                   {variaciones[i] !== null && (
-                    <p className="text-[10px] text-steel-500">
+                    <p className="text-xs text-steel-500">
                       {variaciones[i]! >= 0 ? '+' : ''}{variaciones[i]!.toFixed(0)} % vs. anterior
                     </p>
                   )}
@@ -260,20 +260,20 @@ export function EscalaPrecios({ miembros, margenDefault, onGuardado, paginaCompl
       </div>
 
       {conPerdida > 0 && (
-        <p className="flex items-center gap-1.5 text-xs text-brand-red">
+        <p className="flex items-center gap-1.5 text-xs text-sale">
           <AlertTriangle className="h-3.5 w-3.5" aria-hidden />
           {conPerdida} precio(s) nuevo(s) quedan por debajo del costo.
         </p>
       )}
 
       <div className={paginaCompleta
-        ? 'sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 -mx-4 border-t border-white/10 bg-[#111820]/95 px-4 py-2 backdrop-blur lg:bottom-4 lg:mx-0 lg:rounded-2xl lg:border lg:shadow-2xl lg:shadow-black/50'
+        ? 'sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 -mx-4 border-t border-linea bg-superficie/95 px-4 py-2 backdrop-blur lg:bottom-4 lg:mx-0 lg:rounded-2xl lg:border lg:shadow-2xl lg:shadow-black/50'
         : ''}>
         <div className={paginaCompleta ? 'flex items-center gap-3' : ''}>
           {paginaCompleta && (
             <p className="min-w-0 flex-1 text-xs text-steel-300">
               {cambios.length === 0 ? 'Sin cambios' : `${cambios.length} precio${cambios.length === 1 ? '' : 's'} por guardar`}
-              {conPerdida > 0 && <span className="block text-brand-red">{conPerdida} bajo el costo</span>}
+              {conPerdida > 0 && <span className="block text-sale">{conPerdida} bajo el costo</span>}
             </p>
           )}
           <Button type="button" onClick={guardar} disabled={cambios.length === 0 || guardando}

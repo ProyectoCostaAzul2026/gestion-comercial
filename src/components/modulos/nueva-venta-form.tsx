@@ -6,15 +6,16 @@ import { calcularIvaUnitario } from '@/lib/precio-utils'
 import { precioConCantidad, type TramoPrecio } from '@/lib/precios-cantidad'
 import { AvisoPrecioCantidad } from './precios-cantidad'
 import { toast } from 'sonner'
-import { Button, buttonVariants } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select'
-import { Search, Plus, Trash2, AlertTriangle, ArrowRightLeft, MapPin, Package, Wrench } from 'lucide-react'
+  Search, Plus, Minus, Trash2, AlertTriangle, ArrowRightLeft, MapPin, Package, Wrench, Check, ChevronDown, ChevronLeft,
+  ChevronRight, Percent, PackagePlus, ShoppingBasket, UserRound,
+} from 'lucide-react'
+import { MedioPagoIcono } from '@/components/ui/medio-pago-icono'
 import { AyudaPesoVenta } from './peso-por-unidad'
 import { useNavegacion } from '@/lib/navegacion'
 
@@ -181,6 +182,10 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
 
   // ── Carrito ──
   const [carrito, setCarrito] = useState<ItemCarrito[]>([])
+  // Pantalla: armar la venta o cobrar; paneles que se abren a pedido
+  const [paso, setPaso] = useState<'venta' | 'cobro'>('venta')
+  const [mostrarCliente, setMostrarCliente] = useState(false)
+  const [mostrarServicios, setMostrarServicios] = useState(false)
   const [queryProducto, setQueryProducto] = useState('')
   const [resultadosProducto, setResultadosProducto] = useState<ProductoSearch[]>([])
   const [mostrarAltaRapida, setMostrarAltaRapida] = useState(false)
@@ -644,724 +649,712 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
   }
 
   // ─── Render ───────────────────────────────────────────────────────────────
+  // Dos pasos en modo tarea (sin la barra de navegación): armar la venta y cobrar. El total vive en el letrero amarillo.
+
+  const pesos = (n: number) => `$${Math.round(n).toLocaleString('es-CO')}`
+  const medioElegido: MedioVenta = esCredito ? 'credito' : esMixto ? 'varios' : metodoPagoUnico
+  const elegirMedio = (m: MedioVenta) => {
+    if (m === 'credito') {
+      if (cliente.es_cliente_generico) { toast.error('Para vender a crédito elige primero el cliente'); return }
+      setEsCredito(true); setEsMixto(false); return
+    }
+    setEsCredito(false)
+    if (m === 'varios') {
+      if (!esMixto) setPagos([{ metodo: 'efectivo', monto: 0, monto_recibido: 0, vueltas: 0 }])
+      setEsMixto(true); return
+    }
+    setEsMixto(false)
+    setMetodoPagoUnico(m)
+    setPagos([{ metodo: m, monto: totalRedondeado, monto_recibido: 0, vueltas: 0 }])
+  }
+  const recibido = pagos[0]?.monto_recibido ?? 0
+  const cambiarRecibido = (r: number) =>
+    setPagos([{ metodo: 'efectivo', monto: totalRedondeado, monto_recibido: r, vueltas: Math.max(0, r - totalRedondeado) }])
+  const billetes = Array.from(new Set([10000, 20000, 50000, 100000].map(d => Math.ceil(totalRedondeado / d) * d)))
+    .filter(v => v > totalRedondeado).slice(0, 3)
+  const vueltas = esMixto ? (pagoEfectivo?.vueltas ?? 0) : Math.max(0, recibido - totalRedondeado)
+  const lineas = carrito.length + serviciosCarrito.length
+  const irACobrar = () => {
+    if (lineas === 0) { toast.error('Agrega al menos un producto o servicio'); return }
+    if (!esMixto && !esCredito) {
+      setPagos(p => [{ metodo: metodoPagoUnico, monto: totalRedondeado, monto_recibido: p[0]?.monto_recibido ?? 0,
+        vueltas: Math.max(0, (p[0]?.monto_recibido ?? 0) - totalRedondeado) }])
+    }
+    setPaso('cobro')
+    window.scrollTo({ top: 0 })
+  }
+  const CAMPO = 'h-12 border-linea bg-superficie text-tinta placeholder:text-tenue'
+  const ETIQUETA = 'text-sm font-semibold text-suave'
+  const BOTON_LINEA = 'flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-dashed border-linea-fuerte text-[15px] font-semibold text-tinta transition-colors hover:bg-velo/5'
+
+  const resumen = (
+    <dl className="space-y-1.5 text-[15px]">
+      <div className="flex justify-between"><dt className="text-suave">Productos</dt><dd className="cifra text-lg text-tinta">{pesos(subtotalProductosBruto)}</dd></div>
+      {descuentosPorProducto > 0 && <div className="flex justify-between text-entra"><dt>Descuento en productos</dt><dd className="cifra text-lg">−{pesos(descuentosPorProducto)}</dd></div>}
+      {subtotalServicios > 0 && <div className="flex justify-between"><dt className="text-suave">Servicios</dt><dd className="cifra text-lg text-tinta">{pesos(subtotalServicios)}</dd></div>}
+      {descuentosPorServicio > 0 && <div className="flex justify-between text-entra"><dt>Descuento en servicios</dt><dd className="cifra text-lg">−{pesos(descuentosPorServicio)}</dd></div>}
+      {descuentoTotalMonto > 0 && <div className="flex justify-between text-entra"><dt>Descuento al total ({descuentoTotalPct}%)</dt><dd className="cifra text-lg">−{pesos(descuentoTotalMonto)}</dd></div>}
+      {ivaInformativo > 0 && <div className="flex justify-between text-sm text-tenue"><dt>IVA incluido en los precios</dt><dd className="cifra text-base">{pesos(ivaInformativo)}</dd></div>}
+      {totalRedondeado !== Math.round(totalAntesRedondeo) && totalAntesRedondeo > 0 && (
+        <p className="text-sm text-tenue">Total redondeado desde {pesos(totalAntesRedondeo)}</p>
+      )}
+    </dl>
+  )
+
+  // Letrero amarillo con el total: abajo en el celular, en la columna derecha en el PC
+  const letrero = (
+    <div className="flex items-center gap-3 rounded-[18px] bg-letrero py-3 pl-[18px] pr-3 text-tinta-fija shadow-[0_8px_24px_rgba(0,0,0,.22)]">
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold">
+          {esCredito ? `A crédito, ${cliente.nombre}` : `${lineas} ${lineas === 1 ? 'línea' : 'líneas'}`}
+        </p>
+        <p className="cifra text-[36px] font-bold leading-none">{pesos(totalRedondeado)}</p>
+      </div>
+      {paso === 'venta' ? (
+        <button type="button" onClick={irACobrar}
+          className="flex h-14 items-center gap-1.5 rounded-[14px] bg-tinta-fija px-6 text-[19px] font-bold text-letrero transition active:scale-[.98] disabled:opacity-60">
+          Cobrar <ChevronRight className="size-5" strokeWidth={2.5} aria-hidden />
+        </button>
+      ) : (
+        <button type="button" onClick={() => handleSubmit('con_recibo')} disabled={submitting}
+          className="flex h-14 items-center gap-1.5 rounded-[14px] bg-tinta-fija px-5 text-[17px] font-bold text-letrero transition active:scale-[.98] disabled:opacity-60">
+          <Check className="size-5" strokeWidth={2.5} aria-hidden />
+          {submitting && submitAction === 'con_recibo' ? 'Guardando…' : 'Registrar'}
+        </button>
+      )}
+    </div>
+  )
 
   return (
-    <div className="flex flex-col gap-6 lg:flex-row">
-      <div className="min-w-0 flex-1 space-y-4">
+    <div className="-mx-4 -mt-4 md:-mx-6 md:-mt-6">
+      {/* Encabezado de la tarea */}
+      <header className="sticky top-0 z-20 flex items-center gap-1 bg-fondo/95 px-2 pb-2 pt-[calc(.75rem+env(safe-area-inset-top))] backdrop-blur md:px-4 lg:pt-4">
+        <button type="button" aria-label={paso === 'cobro' ? 'Volver a la venta' : 'Salir de la venta'}
+          onClick={() => (paso === 'cobro' ? setPaso('venta') : volver('/dashboard/ventas'))}
+          className="flex size-12 items-center justify-center rounded-xl text-tinta hover:bg-velo/5">
+          <ChevronLeft className="size-6" strokeWidth={2} aria-hidden />
+        </button>
+        <h1 className="flex-1 text-[22px] font-bold text-tinta">{paso === 'cobro' ? 'Cobrar' : 'Nueva venta'}</h1>
+        {paso === 'venta' && (
+          <button type="button" onClick={() => setMostrarCliente(v => !v)} aria-expanded={mostrarCliente}
+            className="mr-2 flex h-10 max-w-[55%] items-center gap-1.5 rounded-full border border-linea bg-superficie pl-2.5 pr-3 text-[15px] font-semibold text-tinta">
+            <UserRound className="size-[18px] shrink-0" strokeWidth={1.75} aria-hidden />
+            <span className="truncate">{cliente.es_cliente_generico ? 'Mostrador' : cliente.nombre}</span>
+          </button>
+        )}
+      </header>
 
-        {/* CLIENTE */}
-        <section className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
-          <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow">
-            <span className="h-5 w-1 rounded-full bg-brand-yellow" />Cliente
-          </h2>
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-500" />
-              <Input
-                value={queryCliente}
-                onChange={async (e) => { setQueryCliente(e.target.value); await buscarClientes(e.target.value) }}
-                placeholder="Buscar por nombre, teléfono o documento…"
-                className="h-12 border-white/10 bg-[#1a2430] pl-9 text-[16px] text-white placeholder:text-steel-500"
-              />
-              {resultadosCliente.length > 0 && (
-                <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-white/10 bg-[#111820] shadow-xl">
-                  {resultadosCliente.map(c => (
-                    <button key={c.id} type="button"
-                      className="flex w-full justify-between px-3 py-2 text-left text-sm hover:bg-white/5"
-                      onClick={() => {
-                        setCliente(c)
-                        setQueryCliente('')
-                        setResultadosCliente([])
-                        if (facturaElectronica && (c as any).email) setEmailFactura((c as any).email)
-                      }}
-                    >
-                      <span className="font-medium text-white">{c.nombre}</span>
-                      {c.telefono && <span className="text-xs text-steel-300">{c.telefono}</span>}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <Button type="button" variant="outline" size="sm" className="h-12 border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={() => setMostrarNuevoCliente(v => !v)}>
-              <Plus className="mr-1 h-4 w-4" />Nuevo
-            </Button>
-          </div>
-
-          <div className="flex items-center gap-2 rounded-xl bg-[#1a2430] px-3 py-2.5 text-sm">
-            <span className="font-medium text-white">{cliente.nombre}</span>
-            {cliente.es_cliente_generico && (
-              <span className="inline-flex items-center rounded-full border border-brand-yellow/30 bg-brand-yellow/20 px-2.5 py-0.5 text-xs font-semibold text-brand-yellow">General</span>
-            )}
-            {!cliente.es_cliente_generico && (
-              <button type="button" onClick={() => setCliente(clienteGeneral)} className="ml-auto text-xs text-steel-300 hover:text-white">
-                Usar Cliente General
-              </button>
-            )}
-          </div>
-
-          {mostrarNuevoCliente && (
-            <div className="space-y-2 rounded-xl border border-white/10 bg-[#1a2430] p-3">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Nuevo cliente rápido</p>
-              <Input placeholder="Nombre *" className="border-white/10 bg-[#111820] text-white placeholder:text-steel-500" value={nuevoCliente.nombre} onChange={e => setNuevoCliente(p => ({ ...p, nombre: e.target.value }))} />
-              <div className="grid grid-cols-2 gap-2">
-                <Input placeholder="Teléfono" className="border-white/10 bg-[#111820] text-white placeholder:text-steel-500" value={nuevoCliente.telefono} onChange={e => setNuevoCliente(p => ({ ...p, telefono: e.target.value }))} />
-                <Input placeholder="NIT/CC" className="border-white/10 bg-[#111820] text-white placeholder:text-steel-500" value={nuevoCliente.nit_cc} onChange={e => setNuevoCliente(p => ({ ...p, nit_cc: e.target.value }))} />
-              </div>
-              <Input placeholder="Email" type="email" className="border-white/10 bg-[#111820] text-white placeholder:text-steel-500" value={nuevoCliente.email} onChange={e => setNuevoCliente(p => ({ ...p, email: e.target.value }))} />
-
-              <div className="flex gap-2">
-                <Button type="button" size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={guardarNuevoCliente} disabled={guardandoCliente}>
-                  {guardandoCliente ? 'Guardando…' : 'Guardar'}
-                </Button>
-                <Button type="button" size="sm" variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => setMostrarNuevoCliente(false)}>Cancelar</Button>
-              </div>
-            </div>
-          )}
-        </section>
-
-        {/* PRODUCTOS */}
-        <section className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
-          <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow">
-              <span className="h-5 w-1 rounded-full bg-brand-yellow" />Productos
-            </h2>
-            <Button type="button" variant="outline" size="sm" className="border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={() => setMostrarAltaRapida(v => !v)}>
-              <Plus className="mr-1 h-4 w-4" />Alta rápida ⚡
-            </Button>
-          </div>
-
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-500" />
-            <Input
-              value={queryProducto}
-              onChange={async e => { setQueryProducto(e.target.value); await buscarProductos(e.target.value) }}
-              placeholder="Buscar por nombre o código…"
-              className="h-12 border-white/10 bg-[#1a2430] pl-9 text-[16px] text-white placeholder:text-steel-500"
-            />
-            {resultadosProducto.length > 0 && (
-              <div className="absolute z-20 mt-1 max-h-72 w-full overflow-y-auto rounded-xl border border-white/10 bg-[#111820] shadow-xl">
-                {resultadosProducto.map(p => (
-                  <div key={p.id} className="border-b border-white/8 last:border-0">
-                    {p.vender_por_fraccion ? (
-                      <div className="px-3 py-2">
-                        <p className="mb-1 text-sm font-medium text-white">{p.nombre}</p>
-                        <div className="flex gap-2">
-                          <button type="button" className="flex-1 rounded-xl border border-white/10 px-2 py-1.5 text-left text-xs hover:border-brand-blue/40 hover:bg-white/5" onClick={() => agregarProducto(p, 'completo')}>
-                            <span className="block font-medium text-white">Unidad completa</span>
-                            <span className="text-steel-300">${p.precio_venta.toLocaleString('es-CO')} · Almacén: {p.stock_almacen}</span>
-                          </button>
-                          <button type="button" className="flex-1 rounded-xl border border-white/10 px-2 py-1.5 text-left text-xs hover:border-brand-blue/40 hover:bg-white/5" onClick={() => agregarProducto(p, 'fraccion')}>
-                            <span className="block font-medium text-white">Por {p.medida_venta}</span>
-                            <span className="text-steel-300">${(p.precio_por_unidad_medida ?? 0).toLocaleString('es-CO')}/{p.medida_venta} · Rem: {p.remanente_fraccion}</span>
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <button type="button"
-                        className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-white/5 disabled:opacity-50"
-                        onClick={() => agregarProducto(p, 'completo')}
-                        disabled={p.stock_almacen <= 0 && p.stock_bodega <= 0}
-                      >
-                        <div>
-                          <span className="font-medium text-white">{p.nombre}</span>
-                          {p.codigo && <span className="ml-2 font-mono text-xs text-brand-yellow">{p.codigo}</span>}
-                          {p.ubicacion && <span className="ml-2 inline-flex items-center gap-0.5 text-xs text-steel-300"><MapPin className="h-3 w-3" />{p.ubicacion}</span>}
-                        </div>
-                        <div className="ml-3 shrink-0 text-right">
-                          <div className="text-xs font-medium text-white">${p.precio_venta.toLocaleString('es-CO')}</div>
-                          {(() => {
-                            const primero = (p.precios_cantidad ?? []).find(t => t.precio_unitario < p.precio_venta)
-                            return primero ? (
-                              <div className="text-[10px] text-emerald-400">
-                                Desde {primero.cantidad_minima}: ${primero.precio_unitario.toLocaleString('es-CO')} c/u
-                              </div>
-                            ) : null
-                          })()}
-                          <div className={`text-xs ${p.stock_almacen <= 0 ? 'text-brand-red' : 'text-steel-300'}`}>
-                            Almacén: {p.stock_almacen}
-                            {p.stock_almacen <= 0 && p.stock_bodega > 0 && ` · Bodega: ${p.stock_bodega}`}
-                          </div>
-                        </div>
+      <div className="flex flex-col gap-6 px-4 pb-40 md:px-6 lg:flex-row lg:items-start lg:pb-10">
+        <div className="min-w-0 flex-1 space-y-4">
+          {paso === 'venta' ? (
+            <>
+              {/* CLIENTE */}
+              {mostrarCliente && (
+                <section className="space-y-3 rounded-2xl bg-superficie p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <h2 className="text-lg font-bold text-tinta">Cliente</h2>
+                    {!cliente.es_cliente_generico && (
+                      <button type="button" onClick={() => setCliente(clienteGeneral)} className="h-10 px-1 text-[15px] font-semibold text-enlace">
+                        Volver a mostrador
                       </button>
                     )}
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {mostrarAltaRapida && (
-            <div className="space-y-2 rounded-xl border border-white/10 bg-[#1a2430] p-3">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Alta rápida — el producto quedará en Inventario › Por completar hasta que alguien complete sus datos</p>
-              <Input placeholder="Nombre del producto *" className="border-white/10 bg-[#111820] text-white placeholder:text-steel-500" value={altaRapida.nombre} onChange={e => setAltaRapida(p => ({ ...p, nombre: e.target.value }))} />
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Precio de venta *</label>
-                  <Input type="number" className="border-white/10 bg-[#111820] text-white" value={altaRapida.precio || ''} onChange={e => setAltaRapida(p => ({ ...p, precio: parseFloat(e.target.value) || 0 }))} />
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Margen %</label>
-                  <Input type="number" min={0} max={99} className="border-white/10 bg-[#111820] text-white" value={altaRapida.margen || ''} onChange={e => setAltaRapida(p => ({ ...p, margen: parseFloat(e.target.value) || 0 }))} />
-                </div>
-              </div>
-              {altaRapida.precio > 0 && (
-                <p className="text-xs text-steel-300">Costo calculado: ${Math.round(altaRapida.precio * (1 - altaRapida.margen / 100) / 1.19).toLocaleString('es-CO')}</p>
-              )}
-              <div className="flex gap-2">
-                <Button type="button" size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={guardarAltaRapida} disabled={guardandoAltaRapida}>
-                  {guardandoAltaRapida ? 'Creando…' : 'Crear y agregar'}
-                </Button>
-                <Button type="button" size="sm" variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => setMostrarAltaRapida(false)}>Cancelar</Button>
-              </div>
-            </div>
-          )}
-
-          {alertaStock && (
-            <div className="space-y-3 rounded-xl border border-brand-yellow/30 bg-brand-yellow/10 p-3">
-              <div className="flex gap-2">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-brand-yellow" />
-                <div className="text-sm">
-                  <p className="font-medium text-brand-yellow">{alertaStock.productoNombre}: stock insuficiente en Almacén</p>
-                  <p className="mt-0.5 text-xs text-brand-yellow/80">Disponible en Almacén: <strong>{alertaStock.stockAlmacen}</strong> · En Bodega: <strong>{alertaStock.stockBodega}</strong></p>
-                </div>
-              </div>
-              <div className="space-y-2 rounded-xl border border-white/10 bg-[#111820] p-3">
-                <p className="text-xs font-medium text-white">Transferir desde Bodega a Almacén</p>
-                <div className="flex items-center gap-2">
-                  <Input type="number" min={1} max={alertaStock.stockBodega} value={cantidadTransferir || ''} onChange={e => setCantidadTransferir(parseInt(e.target.value) || 0)} className="h-9 w-24 border-white/10 bg-[#1a2430] text-sm text-white" />
-                  <span className="text-xs text-steel-300">unidades (máx {alertaStock.stockBodega})</span>
-                  <Button type="button" size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={handleTransferirStock} disabled={transfiriendo}>
-                    <ArrowRightLeft className="mr-1 h-4 w-4" />
-                    {transfiriendo ? 'Transfiriendo…' : 'Transferir'}
-                  </Button>
-                </div>
-              </div>
-              <Button type="button" size="sm" variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => setAlertaStock(null)}>Cancelar</Button>
-            </div>
-          )}
-
-          {carrito.length > 0 && (
-            <div className="space-y-2">
-              {carrito.map((item, idx) => (
-                <div key={item.key} className="rounded-xl border border-white/10 bg-[#1a2430] p-3">
-                <div className="flex gap-3">
-                  <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-[#111820]">
-                    {item.imagen_url ? (
-                      <img src={item.imagen_url} alt={item.nombre} className="h-full w-full object-cover" />
-                    ) : (
-                      <Package className="size-6 text-brand-yellow/50" />
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1 space-y-2">
-                  <div className="flex justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-white">{item.nombre}</p>
-                      <div className="mt-0.5 flex flex-wrap gap-3">
-                        {item.ubicacion && <span className="inline-flex items-center gap-0.5 text-xs text-steel-300"><MapPin className="h-3 w-3" />{item.ubicacion}</span>}
-                        {!item.es_fraccionado && <span className="text-xs text-steel-300">Almacén: {item.stock_almacen} · Bodega: {item.stock_bodega}</span>}
-                        {item.es_fraccionado && <span className="text-xs text-steel-300">Fraccionado · {item.medida_venta}</span>}
-                      </div>
-                    </div>
-                    <button type="button" onClick={() => setCarrito(prev => prev.filter((_, i) => i !== idx))} className="shrink-0 text-steel-300 hover:text-brand-red">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-
-                  {item.es_fraccionado ? (
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Cantidad ({item.medida_venta}) — mín {item.cantidad_minima_venta}</label>
-                        <Input
-                          type="number"
-                          className="border-white/10 bg-[#111820] text-white"
-                          step={item.cantidad_minima_venta ?? 0.5}
-                          min={item.cantidad_minima_venta ?? 0.5}
-                          value={item.cantidad_fraccion || ''}
-                          onFocus={e => e.target.select()}
-                          onChange={e => {
-                            const val = parseFloat(e.target.value) || 0
-                            setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, cantidad_fraccion: val } : it))
-                          }}
-                        />
-                        {item.cantidad_minima_venta && item.cantidad_fraccion > 0 && item.cantidad_fraccion % item.cantidad_minima_venta !== 0 && (
-                          <p className="text-xs text-brand-red">Debe ser múltiplo de {item.cantidad_minima_venta}</p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Subtotal</label>
-                        <p className="mt-2 text-sm font-semibold text-white">${(item.precio_unitario * item.cantidad_fraccion).toLocaleString('es-CO')}</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-3 items-end gap-2">
-                      <div>
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Cantidad (máx {item.stock_almacen})</label>
-                        <Input
-                          type="number" min={1} max={item.stock_almacen}
-                          className="border-white/10 bg-[#111820] text-white"
-                          value={item.cantidad || ''}
-                          onFocus={e => e.target.select()}
-                          onChange={e => {
-                            const raw = e.target.value
-                            if (raw === '') { setCarrito(prev => prev.map((it, i) => i === idx ? conCantidad(it, 0) : it)); return }
-                            const val = parseInt(raw)
-                            if (isNaN(val) || val < 1) return
-                            cambiarCantidad(idx, item, val)
-                          }}
-                          onBlur={e => {
-                            if (!e.target.value || parseInt(e.target.value) < 1) {
-                              setCarrito(prev => prev.map((it, i) => i === idx ? conCantidad(it, 1) : it))
-                            }
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Precio unit.</label>
-                        <p className="mt-2 text-sm text-white">${item.precio_unitario.toLocaleString('es-CO')}</p>
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Subtotal</label>
-                        <p className="mt-2 text-sm font-semibold text-white">
-                          ${(item.precio_unitario * item.cantidad * (1 - (item.descuento_habilitado ? item.descuento_porcentaje / 100 : 0))).toLocaleString('es-CO')}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {!item.es_fraccionado && (
-                    <AvisoPrecioCantidad tramos={item.tramos} precioVenta={item.precio_base} cantidad={item.cantidad} />
-                  )}
-
-                  {!item.es_fraccionado && item.peso_unitario_g != null && item.peso_unitario_g > 0 && (
-                    <AyudaPesoVenta id={`peso-${item.key}`} pesoUnitario={item.peso_unitario_g} cantidad={item.cantidad}
-                      onCantidad={n => cambiarCantidad(idx, item, n)} />
-                  )}
-
-                  {descuentoHabilitado && !item.es_fraccionado && item.tramo_desde == null && (
-                    <div className="flex items-center gap-2 border-t border-white/8 pt-2">
-                      <Switch checked={item.descuento_habilitado} onCheckedChange={v => setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, descuento_habilitado: v, descuento_porcentaje: v ? 5 : 0 } : it))} />
-                      <span className="text-xs text-steel-300">Descuento</span>
-                      {item.descuento_habilitado && (
-                        <div className="ml-auto flex items-center gap-1">
-                          <Input type="number" min={0} max={10} className="h-8 w-16 border-white/10 bg-[#111820] text-xs text-white" value={item.descuento_porcentaje || ''}
-                            onChange={e => setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, descuento_porcentaje: validarDescuento(parseFloat(e.target.value) || 0) } : it))} />
-                          <span className="text-xs text-steel-300">% (máx 10)</span>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Search className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-tenue" aria-hidden />
+                      <Input
+                        value={queryCliente}
+                        aria-label="Buscar cliente"
+                        onChange={async (e) => { setQueryCliente(e.target.value); await buscarClientes(e.target.value) }}
+                        placeholder="Nombre, teléfono o documento"
+                        className={`${CAMPO} pl-10 text-base`}
+                      />
+                      {resultadosCliente.length > 0 && (
+                        <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-linea bg-superficie shadow-xl">
+                          {resultadosCliente.map(c => (
+                            <button key={c.id} type="button"
+                              className="flex min-h-12 w-full items-center justify-between gap-2 border-b border-linea px-3 text-left last:border-0 hover:bg-velo/5"
+                              onClick={() => {
+                                setCliente(c)
+                                setQueryCliente('')
+                                setResultadosCliente([])
+                                setMostrarCliente(false)
+                                if (facturaElectronica && (c as any).email) setEmailFactura((c as any).email)
+                              }}
+                            >
+                              <span className="font-semibold text-tinta">{c.nombre}</span>
+                              {c.telefono && <span className="text-sm text-suave">{c.telefono}</span>}
+                            </button>
+                          ))}
                         </div>
                       )}
                     </div>
-                  )}
+                    <Button type="button" variant="outline" className="h-12 border-linea bg-superficie font-semibold text-tinta" onClick={() => setMostrarNuevoCliente(v => !v)}>
+                      <Plus className="size-4" aria-hidden />Nuevo
+                    </Button>
                   </div>
-                </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {carrito.length === 0 && !mostrarAltaRapida && (
-            <div className="flex flex-col items-center gap-2 py-6 text-center">
-              <Package className="size-16 text-brand-yellow/50" />
-              <p className="text-sm text-steel-300">Busca un producto para agregarlo</p>
-            </div>
-          )}
-        </section>
-
-        {/* SERVICIOS */}
-        <section className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
-          <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow">
-              <span className="h-5 w-1 rounded-full bg-brand-yellow" />Servicios
-            </h2>
-            <Button type="button" variant="outline" size="sm" className="border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={() => setMostrarNuevoServicio(v => !v)}>
-              <Plus className="mr-1 h-4 w-4" />Nuevo servicio
-            </Button>
-          </div>
-
-          {catalogo.length > 0 && (
-            <Select
-              items={catalogo.map(s => ({ value: s.id, label: `${s.nombre} — $${s.precio.toLocaleString('es-CO')}` }))}
-              onValueChange={v => { if (!v) return; const servicio = catalogo.find(s => s.id === v); if (servicio) agregarServicio(servicio) }}
-              value=""
-            >
-              <SelectTrigger className="h-12 border-white/10 bg-[#1a2430] text-white"><SelectValue placeholder="Selecciona un servicio del catálogo…" /></SelectTrigger>
-              <SelectContent>
-                {catalogo.map(s => <SelectItem key={s.id} value={s.id}>{s.nombre} — ${s.precio.toLocaleString('es-CO')}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          )}
-
-          {mostrarNuevoServicio && (
-            <div className="space-y-2 rounded-xl border border-white/10 bg-[#1a2430] p-3">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Nuevo servicio</p>
-              <Input placeholder="Nombre *" className="border-white/10 bg-[#111820] text-white placeholder:text-steel-500" value={nuevoServicio.nombre} onChange={e => setNuevoServicio(p => ({ ...p, nombre: e.target.value }))} />
-              <Input placeholder="Descripción" className="border-white/10 bg-[#111820] text-white placeholder:text-steel-500" value={nuevoServicio.descripcion} onChange={e => setNuevoServicio(p => ({ ...p, descripcion: e.target.value }))} />
-              <div>
-                <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Precio *</label>
-                <Input type="number" className="border-white/10 bg-[#111820] text-white" value={nuevoServicio.precio || ''} onChange={e => setNuevoServicio(p => ({ ...p, precio: parseFloat(e.target.value) || 0 }))} />
-              </div>
-              <div className="flex gap-2">
-                <Button type="button" size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={guardarNuevoServicio} disabled={guardandoServicio}>
-                  {guardandoServicio ? 'Guardando…' : 'Guardar y agregar'}
-                </Button>
-                <Button type="button" size="sm" variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => setMostrarNuevoServicio(false)}>Cancelar</Button>
-              </div>
-            </div>
-          )}
-
-          {serviciosCarrito.length > 0 && (
-            <div className="space-y-1">
-              {serviciosCarrito.map((s, idx) => (
-                <div key={s.key} className="space-y-2 rounded-xl border border-white/10 bg-[#1a2430] px-3 py-2">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-sm font-semibold text-white">{s.nombre_servicio}</span>
-                      <span className="ml-2 text-sm text-steel-300">${s.precio_aplicado.toLocaleString('es-CO')}</span>
-                      {s.descuento_habilitado && s.descuento_porcentaje > 0 && (
-                        <span className="ml-2 text-xs text-emerald-400">-{s.descuento_porcentaje}% = ${(s.precio_aplicado * (1 - s.descuento_porcentaje / 100)).toLocaleString('es-CO')}</span>
-                      )}
-                    </div>
-                    <button type="button" onClick={() => setServiciosCarrito(prev => prev.filter((_, i) => i !== idx))} className="text-steel-300 hover:text-brand-red">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                  {descuentoHabilitado && (
-                    <div className="flex items-center gap-2 border-t border-white/8 pt-1">
-                      <Switch checked={s.descuento_habilitado} onCheckedChange={v => setServiciosCarrito(prev => prev.map((it, i) => i === idx ? { ...it, descuento_habilitado: v, descuento_porcentaje: v ? 5 : 0 } : it))} />
-                      <span className="text-xs text-steel-300">Descuento</span>
-                      {s.descuento_habilitado && (
-                        <div className="ml-auto flex items-center gap-1">
-                          <Input type="number" min={0} max={10} className="h-8 w-16 border-white/10 bg-[#111820] text-xs text-white" value={s.descuento_porcentaje || ''}
-                            onChange={e => setServiciosCarrito(prev => prev.map((it, i) => i === idx ? { ...it, descuento_porcentaje: validarDescuento(parseFloat(e.target.value) || 0) } : it))} />
-                          <span className="text-xs text-steel-300">%</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {serviciosCarrito.length === 0 && !mostrarNuevoServicio && (
-            <div className="flex flex-col items-center gap-2 py-4 text-center">
-              <Wrench className="size-12 text-brand-yellow/50" />
-              <p className="text-sm text-steel-300">Sin servicios agregados</p>
-            </div>
-          )}
-        </section>
-
-        {/* DESCUENTOS */}
-        <section className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
-          <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow">
-              <span className="h-5 w-1 rounded-full bg-brand-yellow" />Descuentos
-            </h2>
-            <div className="flex items-center gap-2">
-              <Switch checked={descuentoHabilitado} onCheckedChange={v => {
-                setDescuentoHabilitado(v)
-                if (!v) {
-                  setDescuentoTotalActivo(false); setEditandoTotalManual(false); setTotalManual('')
-                  setCarrito(prev => prev.map(it => ({ ...it, descuento_habilitado: false, descuento_porcentaje: 0 })))
-                  setServiciosCarrito(prev => prev.map(it => ({ ...it, descuento_habilitado: false, descuento_porcentaje: 0 })))
-                }
-              }} />
-              <span className={`text-sm font-semibold ${descuentoHabilitado ? 'text-brand-yellow' : 'text-steel-300'}`}>{descuentoHabilitado ? 'Habilitado' : 'Deshabilitado'}</span>
-            </div>
-          </div>
-
-          {descuentoHabilitado && (
-            <div className="space-y-2">
-              {hayPrecioCantidad && (
-                <p className="rounded-xl bg-brand-blue/10 p-2 text-xs text-steel-300">
-                  Esta venta tiene productos con precio por cantidad: no admite descuento sobre el total ni total editado. A los
-                  demás productos sí les puedes poner descuento en su línea.
-                </p>
-              )}
-              <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#1a2430] p-3">
-                <Switch checked={descuentoTotalVigente} disabled={hayPrecioCantidad}
-                  onCheckedChange={v => { setDescuentoTotalActivo(v); if (v) setEditandoTotalManual(false) }} />
-                <span className="text-sm text-white">Descuento sobre el total</span>
-                {descuentoTotalVigente && (
-                  <div className="ml-auto flex items-center gap-1">
-                    <Input type="number" min={0} max={10} className="h-8 w-16 border-white/10 bg-[#111820] text-xs text-white" value={descuentoTotalPct || ''}
-                      onChange={e => setDescuentoTotalPct(validarDescuento(parseFloat(e.target.value) || 0))} />
-                    <span className="text-xs text-steel-300">% (máx 10)</span>
-                  </div>
-                )}
-              </div>
-              <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#1a2430] p-3">
-                <Switch checked={totalManualVigente} disabled={hayPrecioCantidad} onCheckedChange={v => {
-                  setEditandoTotalManual(v)
-                  if (v) { setDescuentoTotalActivo(false); setTotalManual(String(totalRedondeado)) }
-                  else setTotalManual('')
-                }} />
-                <span className="text-sm text-white">Editar total manualmente</span>
-                {totalManualVigente && (
-                  <div className="ml-auto flex items-center gap-1">
-                    <span className="text-xs text-steel-300">$</span>
-                    <Input type="number" className="h-8 w-32 border-white/10 bg-[#111820] text-xs text-white" value={totalManual}
-                      onChange={e => setTotalManual(e.target.value)}
-                      onBlur={() => {
-                        const val = parseFloat(totalManual) || 0
-                        if (val < minPagoPermitido) {
-                          toast.error(`Mínimo a pagar: $${minPagoPermitido.toLocaleString('es-CO')} (descuento máx ${(maxDescuentoPct * 100).toFixed(0)}%)`)
-                          setTotalManual(String(minPagoPermitido))
-                        }
-                      }} />
-                  </div>
-                )}
-              </div>
-              <div className="flex justify-between rounded-xl border border-white/10 bg-[#1a2430] px-3 py-2 text-xs">
-                <span className="text-steel-300">
-                  Descuento acumulado: <strong className={descuentoAcumuladoPct > maxDescuentoPct ? 'text-brand-red' : 'text-white'}>{(descuentoAcumuladoPct * 100).toFixed(1)}%</strong> / {(maxDescuentoPct * 100).toFixed(0)}%
-                </span>
-                <span className="text-steel-300">Mín: <strong className="text-white">${minPagoPermitido.toLocaleString('es-CO')}</strong></span>
-              </div>
-              <p className="text-xs text-steel-500">Los descuentos por producto/servicio se activan en cada línea del carrito.</p>
-            </div>
-          )}
-        </section>
-
-        {/* PAGO */}
-        <section className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
-          <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow">
-              <span className="h-5 w-1 rounded-full bg-brand-yellow" />Método de pago
-            </h2>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={esCredito}
-                  onCheckedChange={v => {
-                    if (v && cliente.es_cliente_generico) {
-                      toast.error('Selecciona un cliente para registrar a crédito')
-                      return
-                    }
-                    setEsCredito(v)
-                  }}
-                />
-                <span className="text-sm text-steel-300">Venta a crédito</span>
-              </div>
-              {!esCredito && (
-                <div className="flex items-center gap-2">
-                  <Switch checked={esMixto} onCheckedChange={v => {
-                    setEsMixto(v)
-                    if (!v) setPagos([{ metodo: metodoPagoUnico, monto: totalRedondeado, monto_recibido: 0, vueltas: 0 }])
-                    else setPagos([{ metodo: 'efectivo', monto: 0, monto_recibido: 0, vueltas: 0 }])
-                  }} />
-                  <span className="text-sm text-steel-300">Pago mixto</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {esCredito ? (
-            <div className="space-y-3 rounded-xl border border-brand-blue/30 bg-brand-blue/10 p-3">
-              <p className="text-sm font-medium text-brand-blue">Venta a crédito — sin cobro inmediato</p>
-              <p className="text-xs text-brand-blue/80">
-                El inventario se descuenta normalmente. El saldo quedará pendiente en el perfil del cliente.
-              </p>
-              {cliente.es_cliente_generico && (
-                <p className="flex items-center gap-1 text-xs font-medium text-brand-red"><AlertTriangle className="h-3.5 w-3.5" /> Debes seleccionar un cliente específico para continuar</p>
-              )}
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Fecha de pago programada (opcional)</label>
-                <Input type="date" value={fechaPagoCredito} onChange={e => setFechaPagoCredito(e.target.value)} className="h-12 w-44 border-white/10 bg-[#111820] text-white" />
-              </div>
-            </div>
-          ) : !esMixto ? (
-            <div className="space-y-3">
-              <Select
-                items={METODOS.map(m => ({ value: m, label: METODO_LABEL[m] }))}
-                onValueChange={v => {
-                  if (!v) return
-                  setMetodoPagoUnico(v as MetodoPago)
-                  setPagos([{ metodo: v as MetodoPago, monto: totalRedondeado, monto_recibido: 0, vueltas: 0 }])
-                }}
-                value={metodoPagoUnico}
-              >
-                <SelectTrigger className="h-12 w-48 border-white/10 bg-[#1a2430] text-white"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {METODOS.map(m => <SelectItem key={m} value={m}>{METODO_LABEL[m]}</SelectItem>)}
-                </SelectContent>
-              </Select>
-
-              {metodoPagoUnico === 'efectivo' && (
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Monto recibido *</label>
-                    <Input type="number" className="h-12 border-white/10 bg-[#1a2430] text-white" value={pagos[0]?.monto_recibido || ''}
-                      onFocus={e => e.target.select()}
-                      onChange={e => {
-                        const recibido = parseFloat(e.target.value) || 0
-                        setPagos([{ metodo: 'efectivo', monto: totalRedondeado, monto_recibido: recibido, vueltas: Math.max(0, recibido - totalRedondeado) }])
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Vueltas</label>
-                    <p className="mt-2 font-display text-xl font-bold text-emerald-400">
-                      ${Math.max(0, (pagos[0]?.monto_recibido ?? 0) - totalRedondeado).toLocaleString('es-CO')}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {METODOS.map(m => {
-                const pagoActivo = pagos.find(p => p.metodo === m)
-                return (
-                  <div key={m} className="space-y-2 rounded-xl border border-white/10 bg-[#1a2430] p-3">
-                    <div className="flex items-center gap-2">
-                      <Switch checked={!!pagoActivo} onCheckedChange={() => toggleMetodoPago(m)} />
-                      <span className="text-sm font-medium text-white">{METODO_LABEL[m]}</span>
-                    </div>
-                    {pagoActivo && (
+                  {mostrarNuevoCliente && (
+                    <div className="space-y-2 rounded-xl bg-superficie-2 p-3">
+                      <p className={ETIQUETA}>Cliente nuevo</p>
+                      <Input placeholder="Nombre *" aria-label="Nombre" className={CAMPO} value={nuevoCliente.nombre} onChange={e => setNuevoCliente(p => ({ ...p, nombre: e.target.value }))} />
                       <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Monto</label>
-                          <Input type="number" className="border-white/10 bg-[#111820] text-white" value={pagoActivo.monto || ''} onFocus={e => e.target.select()} onChange={e => actualizarPago(m, 'monto', parseFloat(e.target.value) || 0)} />
+                        <Input placeholder="Teléfono" aria-label="Teléfono" inputMode="tel" className={CAMPO} value={nuevoCliente.telefono} onChange={e => setNuevoCliente(p => ({ ...p, telefono: e.target.value }))} />
+                        <Input placeholder="NIT o cédula" aria-label="NIT o cédula" className={CAMPO} value={nuevoCliente.nit_cc} onChange={e => setNuevoCliente(p => ({ ...p, nit_cc: e.target.value }))} />
+                      </div>
+                      <Input placeholder="Correo" aria-label="Correo" type="email" className={CAMPO} value={nuevoCliente.email} onChange={e => setNuevoCliente(p => ({ ...p, email: e.target.value }))} />
+                      <div className="flex gap-2">
+                        <Button type="button" className="h-11 bg-accion font-bold text-sobre-accion" onClick={guardarNuevoCliente} disabled={guardandoCliente}>
+                          {guardandoCliente ? 'Guardando…' : 'Guardar cliente'}
+                        </Button>
+                        <Button type="button" variant="outline" className="h-11 border-linea bg-transparent text-tinta" onClick={() => setMostrarNuevoCliente(false)}>Cancelar</Button>
+                      </div>
+                    </div>
+                  )}
+                </section>
+              )}
+
+              {/* BUSCAR PRODUCTO */}
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="pointer-events-none absolute left-3.5 top-1/2 size-[22px] -translate-y-1/2 text-tenue" strokeWidth={1.75} aria-hidden />
+                  <Input
+                    value={queryProducto}
+                    aria-label="Buscar producto"
+                    onChange={async e => { setQueryProducto(e.target.value); await buscarProductos(e.target.value) }}
+                    placeholder="Producto, medida o código"
+                    className="h-[52px] rounded-xl border-linea bg-superficie pl-11 text-[17px] text-tinta placeholder:text-tenue"
+                  />
+                  {resultadosProducto.length > 0 && (
+                    <ul className="absolute z-20 mt-1 max-h-[60vh] w-full overflow-y-auto rounded-2xl border border-linea bg-superficie shadow-2xl">
+                      {resultadosProducto.map(p => {
+                        const sinStock = p.stock_almacen <= 0 && p.stock_bodega <= 0
+                        const primero = (p.precios_cantidad ?? []).find(t => t.precio_unitario < p.precio_venta)
+                        return (
+                          <li key={p.id} className="border-b border-linea last:border-0">
+                            {p.vender_por_fraccion ? (
+                              <div className="space-y-2 p-3">
+                                <p className="font-semibold text-tinta">{p.nombre}</p>
+                                <div className="grid grid-cols-2 gap-2">
+                                  <button type="button" className="min-h-14 rounded-xl border border-linea px-3 py-2 text-left hover:bg-velo/5" onClick={() => agregarProducto(p, 'completo')}>
+                                    <span className="block text-[15px] font-semibold text-tinta">Unidad completa</span>
+                                    <span className="text-sm text-suave">{pesos(p.precio_venta)}, almacén {p.stock_almacen}</span>
+                                  </button>
+                                  <button type="button" className="min-h-14 rounded-xl border border-linea px-3 py-2 text-left hover:bg-velo/5" onClick={() => agregarProducto(p, 'fraccion')}>
+                                    <span className="block text-[15px] font-semibold text-tinta">Por {p.medida_venta}</span>
+                                    <span className="text-sm text-suave">{pesos(p.precio_por_unidad_medida ?? 0)} el {p.medida_venta}, quedan {p.remanente_fraccion}</span>
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <button type="button" disabled={sinStock} onClick={() => agregarProducto(p, 'completo')}
+                                className="flex min-h-16 w-full items-center gap-3 px-3 py-2 text-left hover:bg-velo/5 disabled:opacity-50">
+                                <MiniaturaProducto url={p.imagen_url} nombre={p.nombre} />
+                                <span className="min-w-0 flex-1">
+                                  <span className="block font-semibold leading-tight text-tinta">{p.nombre}</span>
+                                  <span className="mt-0.5 flex flex-wrap gap-x-2 text-sm text-suave">
+                                    {p.codigo && <span>{p.codigo}</span>}
+                                    {p.ubicacion && <span className="inline-flex items-center gap-0.5"><MapPin className="size-3.5" aria-hidden />{p.ubicacion}</span>}
+                                  </span>
+                                </span>
+                                <span className="shrink-0 text-right">
+                                  <span className="cifra block text-xl font-bold text-tinta">{pesos(p.precio_venta)}</span>
+                                  {primero && <span className="block text-xs font-semibold text-entra">Desde {primero.cantidad_minima}: {pesos(primero.precio_unitario)}</span>}
+                                  <span className={`block text-sm ${p.stock_almacen <= 0 ? 'font-semibold text-sale' : 'text-suave'}`}>
+                                    {p.stock_almacen <= 0 ? (p.stock_bodega > 0 ? `Solo en bodega: ${p.stock_bodega}` : 'Agotado') : `${p.stock_almacen} en almacén`}
+                                  </span>
+                                </span>
+                              </button>
+                            )}
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  )}
+                </div>
+                <button type="button" onClick={() => setMostrarAltaRapida(v => !v)} aria-expanded={mostrarAltaRapida} aria-label="Crear un producto que no está en el inventario"
+                  className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-xl border border-linea bg-superficie text-tinta hover:bg-velo/5">
+                  <PackagePlus className="size-6" strokeWidth={1.75} aria-hidden />
+                </button>
+              </div>
+
+              {mostrarAltaRapida && (
+                <section className="space-y-3 rounded-2xl bg-superficie p-4">
+                  <div>
+                    <h2 className="text-lg font-bold text-tinta">Producto que no está en el inventario</h2>
+                    <p className="text-sm text-suave">Queda en Inventario, Por completar, hasta que alguien complete sus datos.</p>
+                  </div>
+                  <Input placeholder="Nombre del producto *" aria-label="Nombre del producto" className={CAMPO} value={altaRapida.nombre} onChange={e => setAltaRapida(p => ({ ...p, nombre: e.target.value }))} />
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label htmlFor="alta-precio" className={ETIQUETA}>Precio de venta *</label>
+                      <Input id="alta-precio" type="number" inputMode="numeric" className={CAMPO} value={altaRapida.precio || ''} onChange={e => setAltaRapida(p => ({ ...p, precio: parseFloat(e.target.value) || 0 }))} />
+                    </div>
+                    <div className="space-y-1">
+                      <label htmlFor="alta-margen" className={ETIQUETA}>Margen %</label>
+                      <Input id="alta-margen" type="number" inputMode="numeric" min={0} max={99} className={CAMPO} value={altaRapida.margen || ''} onChange={e => setAltaRapida(p => ({ ...p, margen: parseFloat(e.target.value) || 0 }))} />
+                    </div>
+                  </div>
+                  {altaRapida.precio > 0 && (
+                    <p className="text-sm text-suave">Costo calculado: <span className="cifra text-base text-tinta">{pesos(altaRapida.precio * (1 - altaRapida.margen / 100) / 1.19)}</span></p>
+                  )}
+                  <div className="flex gap-2">
+                    <Button type="button" className="h-11 bg-accion font-bold text-sobre-accion" onClick={guardarAltaRapida} disabled={guardandoAltaRapida}>
+                      {guardandoAltaRapida ? 'Creando…' : 'Crear y agregar'}
+                    </Button>
+                    <Button type="button" variant="outline" className="h-11 border-linea bg-transparent text-tinta" onClick={() => setMostrarAltaRapida(false)}>Cancelar</Button>
+                  </div>
+                </section>
+              )}
+
+              {alertaStock && (
+                <section className="space-y-3 rounded-2xl bg-[color-mix(in_oklab,var(--aviso)_14%,transparent)] p-4">
+                  <div className="flex gap-3">
+                    <AlertTriangle className="mt-0.5 size-5 shrink-0 text-aviso" aria-hidden />
+                    <div>
+                      <p className="font-semibold text-tinta">No alcanza lo que hay en almacén de {alertaStock.productoNombre}</p>
+                      <p className="text-sm text-suave">En almacén hay {alertaStock.stockAlmacen} y en bodega {alertaStock.stockBodega}. Pasa unidades de bodega para venderlas.</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Input type="number" inputMode="numeric" aria-label="Unidades a pasar de bodega" min={1} max={alertaStock.stockBodega} value={cantidadTransferir || ''}
+                      onChange={e => setCantidadTransferir(parseInt(e.target.value) || 0)} className="h-11 w-24 border-linea bg-superficie text-tinta" />
+                    <span className="text-sm text-suave">de {alertaStock.stockBodega}</span>
+                    <Button type="button" className="h-11 bg-accion font-bold text-sobre-accion" onClick={handleTransferirStock} disabled={transfiriendo}>
+                      <ArrowRightLeft className="size-4" aria-hidden />{transfiriendo ? 'Pasando…' : 'Pasar a almacén'}
+                    </Button>
+                    <Button type="button" variant="outline" className="h-11 border-linea bg-transparent text-tinta" onClick={() => setAlertaStock(null)}>Ahora no</Button>
+                  </div>
+                </section>
+              )}
+
+              {/* EN LA VENTA */}
+              {lineas > 0 ? (
+                <section>
+                  <div className="flex items-baseline justify-between px-1 pb-2">
+                    <h2 className="text-[17px] font-semibold text-tinta">En la venta</h2>
+                    <button type="button" className="h-10 px-1 text-[15px] font-semibold text-enlace"
+                      onClick={() => { setCarrito([]); setServiciosCarrito([]) }}>Vaciar</button>
+                  </div>
+                  <ul className="overflow-hidden rounded-2xl bg-superficie">
+                    {carrito.map((item, idx) => {
+                      const salto = item.es_fraccionado ? (item.cantidad_minima_venta ?? 0.5) : 1
+                      const cantidad = item.es_fraccionado ? item.cantidad_fraccion : item.cantidad
+                      const subtotal = item.es_fraccionado
+                        ? item.precio_unitario * item.cantidad_fraccion
+                        : item.precio_unitario * item.cantidad * (1 - (item.descuento_habilitado ? item.descuento_porcentaje / 100 : 0))
+                      const cambiar = (n: number) => {
+                        if (item.es_fraccionado) {
+                          const v = Math.max(salto, Math.round(n * 1000) / 1000)
+                          setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, cantidad_fraccion: v } : it))
+                        } else if (n >= 1) cambiarCantidad(idx, item, n)
+                      }
+                      return (
+                        <li key={item.key} className="space-y-2.5 border-b border-linea p-3.5 last:border-0">
+                          <div className="flex items-start gap-3">
+                            <MiniaturaProducto url={item.imagen_url} nombre={item.nombre} grande />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[17px] font-semibold leading-tight text-tinta">{item.nombre}</p>
+                              <p className="mt-0.5 text-sm text-suave">
+                                {item.es_fraccionado ? `Por ${item.medida_venta}` : `${item.stock_almacen} en almacén`}
+                                {item.ubicacion ? `, ${item.ubicacion}` : ''}
+                              </p>
+                            </div>
+                            <p className="cifra shrink-0 text-[21px] font-bold text-tinta">{pesos(subtotal)}</p>
+                          </div>
+                          <div className="flex items-center gap-2.5">
+                            <div className="flex items-center overflow-hidden rounded-xl border border-linea">
+                              <button type="button" aria-label="Quitar uno" onClick={() => cambiar(cantidad - salto)} disabled={cantidad <= salto}
+                                className="flex h-11 w-12 items-center justify-center bg-superficie-2 text-tinta disabled:opacity-40">
+                                <Minus className="size-5" aria-hidden />
+                              </button>
+                              <input type="number" inputMode="decimal" aria-label={`Cantidad de ${item.nombre}`}
+                                step={salto} min={salto} max={item.es_fraccionado ? undefined : item.stock_almacen}
+                                value={cantidad || ''} onFocus={e => e.target.select()}
+                                onChange={e => {
+                                  const raw = e.target.value
+                                  if (item.es_fraccionado) {
+                                    setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, cantidad_fraccion: parseFloat(raw) || 0 } : it))
+                                    return
+                                  }
+                                  if (raw === '') { setCarrito(prev => prev.map((it, i) => i === idx ? conCantidad(it, 0) : it)); return }
+                                  const val = parseInt(raw)
+                                  if (!isNaN(val) && val >= 1) cambiarCantidad(idx, item, val)
+                                }}
+                                onBlur={e => {
+                                  if (!item.es_fraccionado && (!e.target.value || parseInt(e.target.value) < 1)) {
+                                    setCarrito(prev => prev.map((it, i) => i === idx ? conCantidad(it, 1) : it))
+                                  }
+                                }}
+                                className="cifra h-11 w-16 bg-transparent text-center text-xl font-bold text-tinta outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
+                              <button type="button" aria-label="Agregar uno" onClick={() => cambiar(cantidad + salto)}
+                                className="flex h-11 w-12 items-center justify-center bg-superficie-2 text-tinta">
+                                <Plus className="size-5" aria-hidden />
+                              </button>
+                            </div>
+                            <span className="flex-1 text-sm text-suave">
+                              {pesos(item.precio_unitario)} {item.es_fraccionado ? `el ${item.medida_venta}` : 'c/u'}
+                            </span>
+                            <button type="button" aria-label={`Quitar ${item.nombre} de la venta`} onClick={() => setCarrito(prev => prev.filter((_, i) => i !== idx))}
+                              className="flex size-11 items-center justify-center rounded-xl text-suave hover:bg-[color-mix(in_oklab,var(--sale)_12%,transparent)] hover:text-sale">
+                              <Trash2 className="size-5" strokeWidth={1.75} aria-hidden />
+                            </button>
+                          </div>
+                          {item.es_fraccionado && item.cantidad_minima_venta && item.cantidad_fraccion > 0 && !esMultiplo(item.cantidad_fraccion, item.cantidad_minima_venta) && (
+                            <p className="text-sm font-semibold text-sale">Debe ser múltiplo de {item.cantidad_minima_venta}</p>
+                          )}
+                          {!item.es_fraccionado && (
+                            <AvisoPrecioCantidad tramos={item.tramos} precioVenta={item.precio_base} cantidad={item.cantidad} />
+                          )}
+                          {!item.es_fraccionado && item.peso_unitario_g != null && item.peso_unitario_g > 0 && (
+                            <AyudaPesoVenta id={`peso-${item.key}`} pesoUnitario={item.peso_unitario_g} cantidad={item.cantidad}
+                              onCantidad={n => cambiarCantidad(idx, item, n)} />
+                          )}
+                          {descuentoHabilitado && !item.es_fraccionado && item.tramo_desde == null && (
+                            <div className="flex items-center gap-2 border-t border-linea pt-2">
+                              <Switch checked={item.descuento_habilitado} aria-label="Descuento en este producto"
+                                onCheckedChange={v => setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, descuento_habilitado: v, descuento_porcentaje: v ? 5 : 0 } : it))} />
+                              <span className="text-sm text-suave">Descuento</span>
+                              {item.descuento_habilitado && (
+                                <div className="ml-auto flex items-center gap-1">
+                                  <Input type="number" inputMode="numeric" min={0} max={10} aria-label="Porcentaje de descuento" className="h-10 w-16 border-linea bg-superficie-2 text-tinta" value={item.descuento_porcentaje || ''}
+                                    onChange={e => setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, descuento_porcentaje: validarDescuento(parseFloat(e.target.value) || 0) } : it))} />
+                                  <span className="text-sm text-suave">% (máx. 10)</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </li>
+                      )
+                    })}
+                    {serviciosCarrito.map((s, idx) => (
+                      <li key={s.key} className="space-y-2 border-b border-linea p-3.5 last:border-0">
+                        <div className="flex items-center gap-3">
+                          <span className="flex size-14 shrink-0 items-center justify-center rounded-[10px] bg-superficie-2 text-enlace">
+                            <Wrench className="size-6" strokeWidth={1.75} aria-hidden />
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[17px] font-semibold leading-tight text-tinta">{s.nombre_servicio}</p>
+                            <p className="text-sm text-suave">Servicio{s.descuento_habilitado && s.descuento_porcentaje > 0 ? `, ${s.descuento_porcentaje}% de descuento` : ''}</p>
+                          </div>
+                          <p className="cifra text-[21px] font-bold text-tinta">{pesos(s.precio_aplicado * (1 - (s.descuento_habilitado ? s.descuento_porcentaje / 100 : 0)))}</p>
+                          <button type="button" aria-label={`Quitar ${s.nombre_servicio}`} onClick={() => setServiciosCarrito(prev => prev.filter((_, i) => i !== idx))}
+                            className="flex size-11 items-center justify-center rounded-xl text-suave hover:text-sale">
+                            <Trash2 className="size-5" strokeWidth={1.75} aria-hidden />
+                          </button>
                         </div>
-                        {m === 'efectivo' && (
-                          <div>
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Monto recibido *</label>
-                            <Input type="number" className="border-white/10 bg-[#111820] text-white" value={pagoActivo.monto_recibido || ''} onFocus={e => e.target.select()} onChange={e => actualizarPago(m, 'monto_recibido', parseFloat(e.target.value) || 0)} />
+                        {descuentoHabilitado && (
+                          <div className="flex items-center gap-2 border-t border-linea pt-2">
+                            <Switch checked={s.descuento_habilitado} aria-label="Descuento en este servicio"
+                              onCheckedChange={v => setServiciosCarrito(prev => prev.map((it, i) => i === idx ? { ...it, descuento_habilitado: v, descuento_porcentaje: v ? 5 : 0 } : it))} />
+                            <span className="text-sm text-suave">Descuento</span>
+                            {s.descuento_habilitado && (
+                              <div className="ml-auto flex items-center gap-1">
+                                <Input type="number" inputMode="numeric" min={0} max={10} aria-label="Porcentaje de descuento" className="h-10 w-16 border-linea bg-superficie-2 text-tinta" value={s.descuento_porcentaje || ''}
+                                  onChange={e => setServiciosCarrito(prev => prev.map((it, i) => i === idx ? { ...it, descuento_porcentaje: validarDescuento(parseFloat(e.target.value) || 0) } : it))} />
+                                <span className="text-sm text-suave">%</span>
+                              </div>
+                            )}
                           </div>
                         )}
-                        {m === 'efectivo' && pagoActivo.vueltas > 0 && (
-                          <div className="col-span-2">
-                            <span className="text-xs text-steel-300">Vueltas: </span>
-                            <span className="font-bold text-emerald-400">${pagoActivo.vueltas.toLocaleString('es-CO')}</span>
-                          </div>
-                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : !mostrarAltaRapida && (
+                <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-linea-fuerte px-6 py-10 text-center">
+                  <ShoppingBasket className="size-12 text-tenue" strokeWidth={1.5} aria-hidden />
+                  <p className="text-[17px] font-semibold text-tinta">Busca el primer producto</p>
+                  <p className="text-[15px] text-suave">Escribe el nombre, la medida o el código. También puedes agregar un servicio.</p>
+                </div>
+              )}
+
+              {/* SERVICIO Y DESCUENTO */}
+              <div className="flex gap-2">
+                <button type="button" className={BOTON_LINEA} aria-expanded={mostrarServicios} onClick={() => setMostrarServicios(v => !v)}>
+                  <Wrench className="size-[18px]" strokeWidth={1.75} aria-hidden />Servicio
+                </button>
+                <button type="button" className={`${BOTON_LINEA} ${descuentoHabilitado ? 'border-solid border-accion bg-accion/10' : ''}`} aria-pressed={descuentoHabilitado}
+                  onClick={() => {
+                    const v = !descuentoHabilitado
+                    setDescuentoHabilitado(v)
+                    if (!v) {
+                      setDescuentoTotalActivo(false); setEditandoTotalManual(false); setTotalManual('')
+                      setCarrito(prev => prev.map(it => ({ ...it, descuento_habilitado: false, descuento_porcentaje: 0 })))
+                      setServiciosCarrito(prev => prev.map(it => ({ ...it, descuento_habilitado: false, descuento_porcentaje: 0 })))
+                    }
+                  }}>
+                  <Percent className="size-[18px]" strokeWidth={1.75} aria-hidden />Descuento
+                </button>
+              </div>
+
+              {mostrarServicios && (
+                <section className="space-y-3 rounded-2xl bg-superficie p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <h2 className="text-lg font-bold text-tinta">Agregar servicio</h2>
+                    <button type="button" className="h-10 px-1 text-[15px] font-semibold text-enlace" onClick={() => setMostrarNuevoServicio(v => !v)}>
+                      {mostrarNuevoServicio ? 'Elegir de la lista' : 'Servicio nuevo'}
+                    </button>
+                  </div>
+                  {!mostrarNuevoServicio && catalogo.length > 0 && (
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {catalogo.map(s => (
+                        <button key={s.id} type="button" onClick={() => agregarServicio(s)}
+                          className="flex min-h-12 items-center justify-between gap-2 rounded-xl border border-linea px-3 text-left hover:bg-velo/5">
+                          <span className="font-semibold text-tinta">{s.nombre}</span>
+                          <span className="cifra text-lg text-tinta">{pesos(s.precio)}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {(mostrarNuevoServicio || catalogo.length === 0) && (
+                    <div className="space-y-2">
+                      <Input placeholder="Nombre *" aria-label="Nombre del servicio" className={CAMPO} value={nuevoServicio.nombre} onChange={e => setNuevoServicio(p => ({ ...p, nombre: e.target.value }))} />
+                      <Input placeholder="Descripción" aria-label="Descripción" className={CAMPO} value={nuevoServicio.descripcion} onChange={e => setNuevoServicio(p => ({ ...p, descripcion: e.target.value }))} />
+                      <div className="space-y-1">
+                        <label htmlFor="serv-precio" className={ETIQUETA}>Precio *</label>
+                        <Input id="serv-precio" type="number" inputMode="numeric" className={CAMPO} value={nuevoServicio.precio || ''} onChange={e => setNuevoServicio(p => ({ ...p, precio: parseFloat(e.target.value) || 0 }))} />
+                      </div>
+                      <Button type="button" className="h-11 bg-accion font-bold text-sobre-accion" onClick={guardarNuevoServicio} disabled={guardandoServicio}>
+                        {guardandoServicio ? 'Guardando…' : 'Guardar y agregar'}
+                      </Button>
+                    </div>
+                  )}
+                </section>
+              )}
+
+              {descuentoHabilitado && (
+                <section className="space-y-3 rounded-2xl bg-superficie p-4">
+                  <h2 className="text-lg font-bold text-tinta">Descuento</h2>
+                  {hayPrecioCantidad && (
+                    <p className="rounded-xl bg-superficie-2 p-3 text-sm text-suave">
+                      Hay productos con precio por cantidad: la venta no admite descuento al total ni total escrito a mano. A los demás
+                      productos sí les puedes poner descuento en su línea.
+                    </p>
+                  )}
+                  <div className="flex min-h-12 items-center gap-3">
+                    <Switch checked={descuentoTotalVigente} disabled={hayPrecioCantidad} aria-label="Descuento al total"
+                      onCheckedChange={v => { setDescuentoTotalActivo(v); if (v) setEditandoTotalManual(false) }} />
+                    <span className="text-[15px] text-tinta">Descuento al total</span>
+                    {descuentoTotalVigente && (
+                      <div className="ml-auto flex items-center gap-1">
+                        <Input type="number" inputMode="numeric" min={0} max={10} aria-label="Porcentaje al total" className="h-10 w-16 border-linea bg-superficie-2 text-tinta" value={descuentoTotalPct || ''}
+                          onChange={e => setDescuentoTotalPct(validarDescuento(parseFloat(e.target.value) || 0))} />
+                        <span className="text-sm text-suave">%</span>
                       </div>
                     )}
                   </div>
-                )
-              })}
-              {Math.abs(diferenciaPago) > 1 && (
-                <p className="text-xs font-medium text-brand-red">
-                  {diferenciaPago > 0 ? `Falta asignar: $${diferenciaPago.toLocaleString('es-CO')}` : `Excede en: $${Math.abs(diferenciaPago).toLocaleString('es-CO')}`}
-                </p>
+                  <div className="flex min-h-12 items-center gap-3">
+                    <Switch checked={totalManualVigente} disabled={hayPrecioCantidad} aria-label="Escribir el total a mano" onCheckedChange={v => {
+                      setEditandoTotalManual(v)
+                      if (v) { setDescuentoTotalActivo(false); setTotalManual(String(totalRedondeado)) }
+                      else setTotalManual('')
+                    }} />
+                    <span className="text-[15px] text-tinta">Escribir el total a mano</span>
+                    {totalManualVigente && (
+                      <Input type="number" inputMode="numeric" aria-label="Total" className="ml-auto h-10 w-32 border-linea bg-superficie-2 text-tinta" value={totalManual}
+                        onChange={e => setTotalManual(e.target.value)}
+                        onBlur={() => {
+                          const val = parseFloat(totalManual) || 0
+                          if (val < minPagoPermitido) {
+                            toast.error(`El total no puede bajar de ${pesos(minPagoPermitido)} (descuento máximo ${(maxDescuentoPct * 100).toFixed(0)}%)`)
+                            setTotalManual(String(minPagoPermitido))
+                          }
+                        }} />
+                    )}
+                  </div>
+                  <p className="text-sm text-suave">
+                    Descuento de la venta: <strong className={descuentoAcumuladoPct > maxDescuentoPct ? 'text-sale' : 'text-tinta'}>{(descuentoAcumuladoPct * 100).toFixed(1)}%</strong> de
+                    {' '}{(maxDescuentoPct * 100).toFixed(0)}% permitido. El total no puede bajar de <strong className="text-tinta">{pesos(minPagoPermitido)}</strong>.
+                  </p>
+                </section>
               )}
-            </div>
-          )}
-        </section>
-
-        {/* FACTURA Y OBSERVACIONES */}
-        <section className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
-          <div className="flex items-center gap-2">
-            <Switch checked={facturaElectronica} onCheckedChange={v => {
-              setFacturaElectronica(v)
-              if (v && (cliente as any).email) setEmailFactura((cliente as any).email)
-            }} />
-            <span className="text-sm font-medium text-white">Factura electrónica</span>
-          </div>
-          {facturaElectronica && (
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">NIT cliente</label>
-                <Input value={cliente.nit_cc ?? ''} readOnly className="border-white/10 bg-[#1a2430] text-white" />
+            </>
+          ) : (
+            <>
+              {/* ─── COBRAR ─── */}
+              <div className="flex flex-col items-center gap-0.5 pt-2 text-center">
+                <p className="text-[15px] text-suave">
+                  {lineas} {lineas === 1 ? 'línea' : 'líneas'}, {cliente.es_cliente_generico ? 'cliente de mostrador' : cliente.nombre}
+                </p>
+                <p className="cifra text-[56px] font-bold leading-none text-tinta">{pesos(totalRedondeado)}</p>
               </div>
-              <div>
-                <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Email cliente</label>
-                <Input
-                  type="email"
-                  className="border-white/10 bg-[#111820] text-white placeholder:text-steel-500"
-                  placeholder="email@ejemplo.com"
-                  value={emailFactura}
-                  onChange={e => setEmailFactura(e.target.value)}
-                />
-              </div>
-            </div>
-          )}
-          <div>
-            <Label htmlFor="obs" className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Observaciones</Label>
-            <Textarea id="obs" className="mt-1 border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500" value={observaciones} onChange={e => setObservaciones(e.target.value)} rows={2} placeholder="Observaciones opcionales" />
-          </div>
-        </section>
 
-        {/* BOTONES */}
-        <div className="flex flex-col gap-2 pb-8">
-          <Button type="button" onClick={() => handleSubmit('con_recibo')} disabled={submitting} className="h-12 w-full bg-brand-yellow text-base font-bold text-steel-900 hover:bg-brand-yellow hover:brightness-105">
-            {submitting && submitAction === 'con_recibo' ? 'Guardando…' : esCredito ? 'Registrar venta a crédito y generar recibo' : 'Guardar y generar recibo'}
-          </Button>
-          <Button type="button" variant="outline" onClick={() => handleSubmit('sin_recibo')} disabled={submitting} className="h-12 w-full border-white/10 bg-[#1a2430] font-semibold text-white hover:bg-white/5 hover:text-white">
-            {submitting && submitAction === 'sin_recibo' ? 'Guardando…' : esCredito ? 'Registrar venta a crédito' : 'Guardar sin recibo'}
-          </Button>
-          <button type="button" onClick={() => volver('/dashboard/ventas')}
-            className={buttonVariants({ variant: 'outline', className: 'h-12 w-full border-white/10 bg-transparent text-steel-300 hover:bg-white/5 hover:text-white' })}>
-            Cancelar
-          </button>
+              <fieldset>
+                <legend className="mb-2.5 text-[17px] font-semibold text-tinta">¿Cómo paga?</legend>
+                <div className="grid grid-cols-3 gap-2">
+                  {MEDIOS_VENTA.map(m => {
+                    const activo = medioElegido === m.valor
+                    return (
+                      <button key={m.valor} type="button" aria-pressed={activo} onClick={() => elegirMedio(m.valor)}
+                        className={`flex h-[84px] flex-col items-center justify-center gap-2 rounded-[14px] border-2 text-[15px] font-semibold text-tinta transition-colors ${
+                          activo ? 'border-accion bg-accion/10' : 'border-linea bg-superficie hover:bg-velo/5'}`}>
+                        <MedioPagoIcono medio={m.valor} />
+                        {m.nombre}
+                      </button>
+                    )
+                  })}
+                </div>
+              </fieldset>
+
+              {medioElegido === 'efectivo' && (
+                <section className="space-y-2.5">
+                  <h2 className="text-[17px] font-semibold text-tinta">¿Con cuánto paga?</h2>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[totalRedondeado, ...billetes].map((v, i) => (
+                      <button key={v} type="button" aria-pressed={recibido === v} onClick={() => cambiarRecibido(v)}
+                        className={`cifra h-[52px] rounded-xl border-2 text-[22px] font-bold text-tinta ${recibido === v ? 'border-accion bg-accion/10' : 'border-linea bg-superficie'}`}>
+                        {i === 0 ? 'Exacto' : pesos(v)}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="space-y-1">
+                    <label htmlFor="recibido" className={ETIQUETA}>Otro valor</label>
+                    <Input id="recibido" type="number" inputMode="numeric" value={recibido || ''} onFocus={e => e.target.select()}
+                      onChange={e => cambiarRecibido(parseFloat(e.target.value) || 0)} placeholder="Lo que entrega el cliente"
+                      className={`${CAMPO} cifra text-xl`} />
+                  </div>
+                  <div className="flex items-center justify-between rounded-[14px] bg-[color-mix(in_oklab,var(--entra)_14%,transparent)] px-4 py-3.5">
+                    <span className="text-[17px] font-semibold text-tinta">Vuelto</span>
+                    <span className="cifra text-[34px] font-bold text-entra">{pesos(vueltas)}</span>
+                  </div>
+                </section>
+              )}
+
+              {(medioElegido === 'nequi' || medioElegido === 'daviplata' || medioElegido === 'tarjeta') && (
+                <p className="rounded-[14px] bg-superficie px-4 py-3.5 text-[15px] text-suave">Confirma que el pago llegó antes de registrar la venta.</p>
+              )}
+
+              {medioElegido === 'credito' && (
+                <section className="space-y-3 rounded-2xl bg-superficie p-4">
+                  <div>
+                    <h2 className="text-lg font-bold text-tinta">A crédito para {cliente.nombre}</h2>
+                    <p className="text-[15px] text-suave">El inventario se descuenta ya y el saldo queda en la cuenta del cliente.</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label htmlFor="fecha-credito" className={ETIQUETA}>Fecha en que pagará (opcional)</label>
+                    <Input id="fecha-credito" type="date" value={fechaPagoCredito} onChange={e => setFechaPagoCredito(e.target.value)} className={`${CAMPO} w-48`} />
+                  </div>
+                </section>
+              )}
+
+              {medioElegido === 'varios' && (
+                <section className="space-y-2">
+                  <h2 className="text-[17px] font-semibold text-tinta">Reparte el pago</h2>
+                  {METODOS.map(m => {
+                    const pagoActivo = pagos.find(p => p.metodo === m)
+                    return (
+                      <div key={m} className={`space-y-2 rounded-[14px] border-2 p-3 ${pagoActivo ? 'border-accion bg-superficie' : 'border-linea bg-superficie'}`}>
+                        <label className="flex min-h-10 items-center gap-3">
+                          <Switch checked={!!pagoActivo} onCheckedChange={() => toggleMetodoPago(m)} aria-label={METODO_LABEL[m]} />
+                          <MedioPagoIcono medio={m} className="h-6 w-9" />
+                          <span className="text-[15px] font-semibold text-tinta">{METODO_LABEL[m]}</span>
+                        </label>
+                        {pagoActivo && (
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-1">
+                              <label htmlFor={`monto-${m}`} className={ETIQUETA}>Monto</label>
+                              <Input id={`monto-${m}`} type="number" inputMode="numeric" className={`${CAMPO} cifra text-lg`} value={pagoActivo.monto || ''} onFocus={e => e.target.select()} onChange={e => actualizarPago(m, 'monto', parseFloat(e.target.value) || 0)} />
+                            </div>
+                            {m === 'efectivo' && (
+                              <div className="space-y-1">
+                                <label htmlFor="recibido-mixto" className={ETIQUETA}>Recibido *</label>
+                                <Input id="recibido-mixto" type="number" inputMode="numeric" className={`${CAMPO} cifra text-lg`} value={pagoActivo.monto_recibido || ''} onFocus={e => e.target.select()} onChange={e => actualizarPago(m, 'monto_recibido', parseFloat(e.target.value) || 0)} />
+                              </div>
+                            )}
+                            {m === 'efectivo' && pagoActivo.vueltas > 0 && (
+                              <p className="col-span-2 text-[15px] text-suave">Vuelto: <span className="cifra text-lg font-bold text-entra">{pesos(pagoActivo.vueltas)}</span></p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                  {Math.abs(diferenciaPago) > 1 && (
+                    <p className="text-[15px] font-semibold text-sale">
+                      {diferenciaPago > 0 ? `Falta repartir ${pesos(diferenciaPago)}` : `Sobran ${pesos(Math.abs(diferenciaPago))}`}
+                    </p>
+                  )}
+                </section>
+              )}
+
+              {/* Factura y observaciones */}
+              <details className="group rounded-2xl bg-superficie">
+                <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-4 text-[15px] font-semibold text-tinta">
+                  Factura electrónica y observaciones
+                  <ChevronDown className="size-5 text-suave transition-transform group-open:rotate-180" aria-hidden />
+                </summary>
+                <div className="space-y-3 px-4 pb-4">
+                  <label className="flex min-h-10 items-center gap-3">
+                    <Switch checked={facturaElectronica} onCheckedChange={v => {
+                      setFacturaElectronica(v)
+                      if (v && (cliente as any).email) setEmailFactura((cliente as any).email)
+                    }} aria-label="Factura electrónica" />
+                    <span className="text-[15px] text-tinta">Factura electrónica</span>
+                  </label>
+                  {facturaElectronica && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <label htmlFor="nit-fe" className={ETIQUETA}>NIT del cliente</label>
+                        <Input id="nit-fe" value={cliente.nit_cc ?? ''} readOnly className={`${CAMPO} bg-superficie-2`} />
+                      </div>
+                      <div className="space-y-1">
+                        <label htmlFor="email-fe" className={ETIQUETA}>Correo del cliente</label>
+                        <Input id="email-fe" type="email" className={CAMPO} placeholder="correo@ejemplo.com" value={emailFactura} onChange={e => setEmailFactura(e.target.value)} />
+                      </div>
+                    </div>
+                  )}
+                  <div className="space-y-1">
+                    <Label htmlFor="obs" className={ETIQUETA}>Observaciones</Label>
+                    <Textarea id="obs" className="border-linea bg-superficie-2 text-tinta placeholder:text-tenue" value={observaciones} onChange={e => setObservaciones(e.target.value)} rows={2} placeholder="Opcional" />
+                  </div>
+                </div>
+              </details>
+
+              <div className="rounded-2xl bg-superficie px-4 py-3 lg:hidden">{resumen}</div>
+
+              <Button type="button" variant="outline" onClick={() => handleSubmit('sin_recibo')} disabled={submitting}
+                className="h-12 w-full border-linea bg-superficie text-[15px] font-semibold text-tinta">
+                {submitting && submitAction === 'sin_recibo' ? 'Guardando…' : 'Registrar sin recibo'}
+              </Button>
+            </>
+          )}
         </div>
+
+        {/* PC: resumen y letrero en la columna derecha */}
+        <aside className="hidden lg:block lg:w-[380px] lg:shrink-0">
+          <div className="sticky top-20 space-y-3 rounded-[18px] bg-superficie p-4">
+            <h2 className="text-lg font-bold text-tinta">Resumen</h2>
+            {resumen}
+            {letrero}
+          </div>
+        </aside>
       </div>
 
-      {/* ── Resumen sticky ── */}
-      <div className="lg:w-72 lg:shrink-0">
-        <div className="sticky top-4 space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
-          <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow">
-            <span className="h-5 w-1 rounded-full bg-brand-yellow" />Resumen
-          </h2>
-          {esCredito && (
-            <div className="rounded-xl border border-brand-blue/30 bg-brand-blue/10 px-3 py-2">
-              <p className="text-xs font-medium text-brand-blue">Venta a crédito</p>
-              <p className="text-xs text-brand-blue/80">Cliente: {cliente.nombre}</p>
-            </div>
-          )}
-          <dl className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <dt className="text-steel-300">Subtotal bruto</dt>
-              <dd className="text-white">${subtotalProductosBruto.toLocaleString('es-CO')}</dd>
-            </div>
-            {descuentosPorProducto > 0 && (
-              <div className="flex justify-between text-emerald-400">
-                <dt>Desc. por producto</dt>
-                <dd>-${descuentosPorProducto.toLocaleString('es-CO')}</dd>
-              </div>
-            )}
-            {subtotalServicios > 0 && (
-              <div className="flex justify-between">
-                <dt className="text-steel-300">Servicios</dt>
-                <dd className="text-white">${subtotalServicios.toLocaleString('es-CO')}</dd>
-              </div>
-            )}
-            {descuentosPorServicio > 0 && (
-              <div className="flex justify-between text-emerald-400">
-                <dt>Desc. servicios</dt>
-                <dd>-${descuentosPorServicio.toLocaleString('es-CO')}</dd>
-              </div>
-            )}
-            {descuentoTotalMonto > 0 && (
-              <div className="flex justify-between text-emerald-400">
-                <dt>Desc. total ({descuentoTotalPct}%)</dt>
-                <dd>-${descuentoTotalMonto.toLocaleString('es-CO')}</dd>
-              </div>
-            )}
-            {ivaInformativo > 0 && (
-              <div className="mt-2 flex justify-between border-t border-white/8 pt-2 text-xs text-steel-500">
-                <dt>IVA incluido (informativo)</dt>
-                <dd>${Math.round(ivaInformativo).toLocaleString('es-CO')}</dd>
-              </div>
-            )}
-            <div className={`mt-2 flex items-center justify-between rounded-xl border px-3 py-2.5 ${totalAntesRedondeo > 0 ? 'border-white/10 bg-[#1a2430]' : 'border-white/10 bg-[#1a2430] opacity-60'}`}>
-              <dt className="text-sm font-medium text-white">{esCredito ? 'Total a crédito' : 'Total a cobrar'}</dt>
-              <dd className="font-display text-lg font-bold text-brand-yellow">${totalRedondeado.toLocaleString('es-CO')}</dd>
-            </div>
-            {totalRedondeado !== Math.round(totalAntesRedondeo) && totalAntesRedondeo > 0 && (
-              <p className="text-right text-xs text-steel-500">Redondeado desde ${Math.round(totalAntesRedondeo).toLocaleString('es-CO')}</p>
-            )}
-          </dl>
-
-          {hayEfectivo && (
-            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3">
-              <p className="text-xs font-medium text-emerald-400">Vueltas a entregar</p>
-              <p className="mt-0.5 font-display text-2xl font-bold text-emerald-400">
-                ${Math.max(0, esMixto ? (pagoEfectivo?.vueltas ?? 0) : (pagos[0]?.vueltas ?? 0)).toLocaleString('es-CO')}
-              </p>
-            </div>
-          )}
-        </div>
+      {/* Celular: letrero fijo abajo */}
+      <div className="fixed inset-x-0 bottom-0 z-30 bg-gradient-to-t from-fondo via-fondo/95 to-transparent px-3 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-6 lg:hidden">
+        {letrero}
       </div>
     </div>
+  )
+}
+
+type MedioVenta = MetodoPago | 'credito' | 'varios'
+const MEDIOS_VENTA: { valor: MedioVenta; nombre: string }[] = [
+  { valor: 'efectivo', nombre: 'Efectivo' },
+  { valor: 'nequi', nombre: 'Nequi' },
+  { valor: 'daviplata', nombre: 'Daviplata' },
+  { valor: 'tarjeta', nombre: 'Tarjeta' },
+  { valor: 'credito', nombre: 'Crédito' },
+  { valor: 'varios', nombre: 'Varios medios' },
+]
+
+/** Foto del producto sobre baldosa blanca (en los dos modos), entera y sin recortar */
+function MiniaturaProducto({ url, nombre, grande = false }: { url: string | null; nombre: string; grande?: boolean }) {
+  return (
+    <span className={`flex shrink-0 items-center justify-center overflow-hidden rounded-[10px] bg-white ring-1 ring-inset ring-[#12263a]/10 ${grande ? 'size-14' : 'size-12'}`}>
+      {url
+        ? <img src={url} alt="" loading="lazy" className="h-full w-full object-contain p-1" />
+        : <Package className={`${grande ? 'size-7' : 'size-6'} text-brand-blue`} strokeWidth={1.5} aria-label={nombre} />}
+    </span>
   )
 }

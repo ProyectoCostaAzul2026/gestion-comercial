@@ -27,6 +27,10 @@ nómina).
   el esquema real evolucionó directamente en Supabase.
 - zod, react-hook-form, recharts, jspdf (recibos y cotizaciones en PDF), sonner, lucide-react.
 - Sin tests ni CI. Comandos: `npm run dev`, `npm run build`, `npm run lint`.
+- **Skills del proyecto** (`.claude/skills/`, versiones fijas en `skills-lock.json`): `find-skills` (buscar e instalar
+  skills con `npx skills find` / `npx skills add <fuente> --skill <nombre> -a claude-code -y`), `frontend-design` (dirección
+  visual) y `web-design-guidelines` (revisión de interfaz contra las Web Interface Guidelines de Vercel). En la nube, el
+  entorno "ProyectoCostaAzul" permite `skills.sh` (registro de skills); GitHub ya era accesible.
 
 ## Infraestructura y acceso
 
@@ -116,7 +120,16 @@ nómina).
   `token_hash` + `type` (funciona en cualquier dispositivo) o `code` (solo en el navegador que pidió el enlace), deja la
   sesión y manda a `/auth/reset-password`. Si el enlace no sirve, `/login?error=enlace_invalido`. El proxy pasa a
   `/auth/confirm` cualquier página que reciba `code` o `token_hash`. `redirectTo` usa la dirección de la propia app.
-- La app **solo tiene tema oscuro** (`<html className="dark">`): no volver a depender del tema del sistema.
+- **Tema claro y oscuro** (desde el 2026-11-19): cada persona elige Claro, Oscuro o "Como el celular" en Mi perfil
+  (`selector-tema.tsx`, cookie `tema`, por defecto oscuro; `src/lib/tema.ts`). Los colores son variables en `globals.css`
+  (`:root` claro, `.dark` oscuro): usar `bg-fondo`, `bg-superficie`, `bg-superficie-2`, `text-tinta`, `text-suave`,
+  `text-tenue`, `border-linea`, `bg-accion`/`text-sobre-accion` (amarillo en oscuro, azul en claro; `brand-yellow` es lo
+  mismo), `text-enlace`, `text-entra`, `text-sale`, `text-aviso`. El amarillo del letrero en los dos modos es `bg-letrero`
+  con `text-tinta-fija` (total de la venta, Vender, logo). Nunca `text-white` ni colores fijos de fondo oscuro. Cifras de
+  dinero con la clase `cifra` (Barlow Condensed). Sin mayúsculas sostenidas ni franjas decorativas.
+- **Diseño** (lienzo aprobado el 2026-11-19): celular primero; las tareas (`RUTAS_TAREA` en `NavigationShell.tsx`, hoy
+  Nueva venta) ocupan toda la pantalla sin barras; listas con divisores en vez de tarjetas; avisos con fondo suave, ícono y
+  acción; medios de pago con `MedioPagoIcono`. Logo en `public/logo-costa-azul.webp`, íconos `public/icono-*.png`.
 - **Fechas**: "hoy" siempre con `hoyBogota()` / `bogotaEnDias()` de `src/lib/fechas.ts`. Nunca
   `new Date().toISOString().slice(0, 10)` (es UTC: desde las 7 p. m. de Bogotá ya es mañana).
 - `src/app/manifest.ts` e íconos `public/icono-*.png`: la app se puede instalar en la pantalla de inicio del celular.

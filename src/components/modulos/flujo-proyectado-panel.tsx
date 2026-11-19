@@ -88,13 +88,13 @@ export function FlujoProyectadoPanel({ hoy, disponible, cobros, pagos, promedios
 
   const Interruptor = ({ activo, onCambio, titulo, detalle }: { activo: boolean; onCambio: (v: boolean) => void; titulo: string; detalle: string }) => (
     <button type="button" role="switch" aria-checked={activo} onClick={() => onCambio(!activo)}
-      className={`flex items-start gap-3 rounded-xl border p-3 text-left ${activo ? 'border-brand-yellow/50 bg-brand-yellow/5' : 'border-white/10'}`}>
+      className={`flex items-start gap-3 rounded-xl border p-3 text-left ${activo ? 'border-brand-yellow/50 bg-brand-yellow/5' : 'border-linea'}`}>
       <span className={`mt-0.5 flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors ${activo ? 'bg-brand-yellow' : 'bg-steel-700'}`}>
         <span className={`h-4 w-4 rounded-full bg-white transition-transform ${activo ? 'translate-x-4' : ''}`} />
       </span>
       <span>
-        <span className="block text-sm font-semibold text-white">{titulo}</span>
-        <span className="block text-[11px] text-steel-500">{detalle}</span>
+        <span className="block text-sm font-semibold text-tinta">{titulo}</span>
+        <span className="block text-xs text-steel-500">{detalle}</span>
       </span>
     </button>
   )
@@ -102,30 +102,30 @@ export function FlujoProyectadoPanel({ hoy, disponible, cobros, pagos, promedios
   return (
     <div className="space-y-4">
       {/* Dinero de hoy */}
-      <section className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
+      <section className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
         <div className="flex items-baseline justify-between gap-2">
-          <p className="text-sm font-semibold text-white">Dinero disponible hoy</p>
+          <p className="text-sm font-semibold text-tinta">Dinero disponible hoy</p>
           <p className="font-display text-2xl font-bold text-emerald-400">{fmt(saldoHoy)}</p>
         </div>
         <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-5">
           {([['Efectivo', disponible.efectivo], ['Nequi', disponible.nequi], ['Daviplata', disponible.daviplata], ['Tarjeta', disponible.tarjeta], ['Caja mayor', disponible.cajaMayor]] as const).map(([n, v]) => (
-            <div key={n} className="rounded-lg bg-white/5 px-2.5 py-2">
+            <div key={n} className="rounded-lg bg-velo/5 px-2.5 py-2">
               <span className="block text-steel-300">{n}</span>
-              <span className="block font-display font-bold text-white">{fmt(v)}</span>
+              <span className="block font-display font-bold text-tinta">{fmt(v)}</span>
             </div>
           ))}
         </div>
-        <p className="text-[11px] text-steel-500">Sin contar la base de la caja menor. El efectivo es el que falta por cerrar en caja.</p>
+        <p className="text-xs text-steel-500">Sin contar la base de la caja menor. El efectivo es el que falta por cerrar en caja.</p>
       </section>
 
       {/* Supuestos */}
-      <section className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
+      <section className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm font-semibold text-white">Supuestos</p>
-          <div className="flex gap-1 rounded-xl bg-[#0b1117] p-1">
+          <p className="text-sm font-semibold text-tinta">Supuestos</p>
+          <div className="flex gap-1 rounded-xl bg-fondo p-1">
             {[4, 8, 12].map(n => (
               <button key={n} type="button" onClick={() => setSemanas(n)}
-                className={`h-9 rounded-lg px-3 text-xs font-bold ${semanas === n ? 'bg-brand-yellow text-steel-900' : 'text-steel-300 hover:text-white'}`}>
+                className={`h-9 rounded-lg px-3 text-xs font-bold ${semanas === n ? 'bg-brand-yellow text-steel-900' : 'text-steel-300 hover:text-tinta'}`}>
                 {n} semanas
               </button>
             ))}
@@ -140,12 +140,12 @@ export function FlujoProyectadoPanel({ hoy, disponible, cobros, pagos, promedios
         <label className="block space-y-1">
           <span className="flex justify-between text-xs text-steel-300">
             <span>Parte de los créditos que de verdad se cobra a tiempo</span>
-            <span className="font-bold text-white">{cobroProbable}%</span>
+            <span className="font-bold text-tinta">{cobroProbable}%</span>
           </span>
           <input type="range" min={0} max={100} step={10} value={cobroProbable} onChange={e => setCobroProbable(Number(e.target.value))}
-            className="w-full accent-[#ffce00]" />
+            className="w-full accent-accion" />
         </label>
-        <p className="text-[11px] text-steel-500">
+        <p className="text-xs text-steel-500">
           Promedios de los últimos {promedios.dias} días (desde el {promedios.desde}). Lo vencido se espera en la primera semana:
           por cobrar {fmt(vencidoCobrar)}, por pagar {fmt(vencidoPagar)}.
         </p>
@@ -153,7 +153,7 @@ export function FlujoProyectadoPanel({ hoy, disponible, cobros, pagos, promedios
 
       {/* Alerta */}
       {primeraNegativa ? (
-        <div className="flex items-start gap-2 rounded-2xl border border-brand-red/40 bg-brand-red/10 p-3 text-sm text-brand-red">
+        <div className="flex items-start gap-2 rounded-2xl border border-brand-red/40 bg-brand-red/10 p-3 text-sm text-sale">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>
             El dinero no alcanza en la semana del {corto(primeraNegativa.desde)} al {corto(primeraNegativa.hasta)}: faltarían {fmt(-primeraNegativa.saldoFinal)}.
@@ -167,8 +167,8 @@ export function FlujoProyectadoPanel({ hoy, disponible, cobros, pagos, promedios
       )}
 
       {/* Gráfica */}
-      <section className="rounded-2xl border border-white/10 bg-[#111820] p-4">
-        <p className="mb-3 text-sm font-semibold text-white">Saldo al final de cada semana</p>
+      <section className="rounded-2xl border border-linea bg-superficie p-4">
+        <p className="mb-3 text-sm font-semibold text-tinta">Saldo al final de cada semana</p>
         <ResponsiveContainer width="100%" height={240}>
           <ComposedChart data={proyeccion.map(s => ({ semana: corto(s.desde), entradas: s.entradas, salidas: -s.salidas, saldo: s.saldoFinal }))}
             margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
@@ -190,42 +190,42 @@ export function FlujoProyectadoPanel({ hoy, disponible, cobros, pagos, promedios
         {proyeccion.map(s => {
           const abiertaAqui = abierta === s.indice
           return (
-            <div key={s.indice} className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
+            <div key={s.indice} className="overflow-hidden rounded-2xl border border-linea bg-superficie">
               <button type="button" onClick={() => setAbierta(abiertaAqui ? null : s.indice)} aria-expanded={abiertaAqui}
-                className="flex w-full items-center gap-3 p-3 text-left hover:bg-white/5">
+                className="flex w-full items-center gap-3 p-3 text-left hover:bg-velo/5">
                 <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-bold text-white">{s.indice === 0 ? 'Esta semana' : `Semana ${s.indice + 1}`}</span>
-                  <span className="block text-[11px] text-steel-500">{corto(s.desde)} al {corto(s.hasta)}</span>
+                  <span className="block text-sm font-bold text-tinta">{s.indice === 0 ? 'Esta semana' : `Semana ${s.indice + 1}`}</span>
+                  <span className="block text-xs text-steel-500">{corto(s.desde)} al {corto(s.hasta)}</span>
                 </span>
-                <span className="text-right text-[11px]">
+                <span className="text-right text-xs">
                   <span className="block text-emerald-400">+{fmt(s.entradas)}</span>
-                  <span className="block text-brand-red">-{fmt(s.salidas)}</span>
+                  <span className="block text-sale">-{fmt(s.salidas)}</span>
                 </span>
                 <span className="w-28 text-right">
-                  <span className={`block font-display text-base font-bold ${s.saldoFinal < 0 ? 'text-brand-red' : 'text-white'}`}>{fmt(s.saldoFinal)}</span>
-                  <span className="block text-[10px] text-steel-500">al final</span>
+                  <span className={`block font-display text-base font-bold ${s.saldoFinal < 0 ? 'text-sale' : 'text-tinta'}`}>{fmt(s.saldoFinal)}</span>
+                  <span className="block text-xs text-steel-500">al final</span>
                 </span>
                 <ChevronDown className={`h-4 w-4 shrink-0 text-steel-500 transition-transform ${abiertaAqui ? 'rotate-180' : ''}`} />
               </button>
               {abiertaAqui && (
-                <div className="grid gap-3 border-t border-white/10 p-3 text-xs md:grid-cols-2">
+                <div className="grid gap-3 border-t border-linea p-3 text-xs md:grid-cols-2">
                   <div className="space-y-1">
-                    <p className="font-bold uppercase tracking-wide text-emerald-400">Entradas</p>
+                    <p className="font-bold text-emerald-400">Entradas</p>
                     <Linea texto={`Créditos por cobrar${cobroProbable < 100 ? ` (${cobroProbable}%)` : ''}`} valor={s.cobros} />
                     {s.docsCobro.map(d => <Detalle key={d.id} d={d} hoy={hoy} />)}
                     {conVentas && <Linea texto="Ventas de contado estimadas" valor={s.ventas} />}
                   </div>
                   <div className="space-y-1">
-                    <p className="font-bold uppercase tracking-wide text-brand-red">Salidas</p>
+                    <p className="font-bold text-sale">Salidas</p>
                     <Linea texto="Facturas de proveedores" valor={s.pagos} />
                     {s.docsPago.map(d => <Detalle key={d.id} d={d} hoy={hoy} />)}
                     {conVentas && <Linea texto="Reposición de mercancía" valor={s.reposicion} />}
                     {conGastos && <Linea texto="Gastos" valor={s.gastos} />}
                     {conGastos && <Linea texto="Nómina" valor={s.nomina} />}
                   </div>
-                  <div className="flex justify-between border-t border-white/10 pt-2 md:col-span-2">
+                  <div className="flex justify-between border-t border-linea pt-2 md:col-span-2">
                     <span className="text-steel-300">Empieza con {fmt(s.saldoInicial)} · neto {s.neto >= 0 ? '+' : ''}{fmt(s.neto)}</span>
-                    <span className="font-bold text-white">Termina con {fmt(s.saldoFinal)}</span>
+                    <span className="font-bold text-tinta">Termina con {fmt(s.saldoFinal)}</span>
                   </div>
                 </div>
               )}
@@ -241,14 +241,14 @@ function Linea({ texto, valor }: { texto: string; valor: number }) {
   return (
     <div className="flex justify-between gap-2">
       <span className="text-steel-300">{texto}</span>
-      <span className="font-semibold text-white">{fmt(valor)}</span>
+      <span className="font-semibold text-tinta">{fmt(valor)}</span>
     </div>
   )
 }
 
 function Detalle({ d, hoy }: { d: Documento; hoy: string }) {
   return (
-    <div className="flex justify-between gap-2 pl-3 text-[11px] text-steel-500">
+    <div className="flex justify-between gap-2 pl-3 text-xs text-steel-500">
       <span className="truncate">{d.nombre} · {d.referencia}{d.fecha < hoy ? ` · vencido ${d.fecha}` : ` · ${d.fecha}`}</span>
       <span>{fmt(d.monto)}</span>
     </div>

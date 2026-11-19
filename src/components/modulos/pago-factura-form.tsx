@@ -74,15 +74,15 @@ export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId, saldos
     }
   }
 
-  const inputCls = 'h-12 border-white/10 bg-[#1a2430] text-[16px] text-white placeholder:text-steel-500 focus:border-brand-yellow/60'
-  const labelCls = 'text-[10px] font-bold uppercase tracking-widest text-steel-300'
-  const triggerCls = 'border-white/10 bg-[#1a2430] text-white'
+  const inputCls = 'h-12 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60'
+  const labelCls = 'text-xs font-bold text-steel-300'
+  const triggerCls = 'border-linea bg-superficie-2 text-tinta'
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="rounded-2xl border border-white/10 bg-[#1a2430] p-3 text-sm">
+      <div className="rounded-2xl border border-linea bg-superficie-2 p-3 text-sm">
         <span className="text-steel-300">Saldo pendiente: </span>
-        <span className="font-display font-bold text-white">${saldoPendiente.toLocaleString('es-CO')}</span>
+        <span className="font-display font-bold text-tinta">${saldoPendiente.toLocaleString('es-CO')}</span>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -158,7 +158,7 @@ export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId, saldos
         <Label htmlFor="observaciones" className={labelCls}>Observaciones</Label>
         <Textarea
           id="observaciones"
-          className="border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500 focus:border-brand-yellow/60"
+          className="border-linea bg-superficie-2 text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60"
           value={observaciones}
           rows={2}
           onChange={e => setObservaciones(e.target.value)}
@@ -171,14 +171,14 @@ export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId, saldos
         </Button>
       ) : (
         <div className="space-y-2">
-          <p className="text-sm font-medium text-white">
+          <p className="text-sm font-medium text-tinta">
             ¿Confirmas el pago de ${monto.toLocaleString('es-CO')}?
           </p>
           <div className="flex gap-2">
             <Button type="submit" disabled={saving} className="h-12 flex-1 bg-brand-yellow font-bold text-steel-900 hover:brightness-105">
               {saving ? 'Registrando…' : 'Sí, registrar'}
             </Button>
-            <Button type="button" variant="outline" onClick={() => setConfirmar(false)} className="h-12 flex-1 border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white">
+            <Button type="button" variant="outline" onClick={() => setConfirmar(false)} className="h-12 flex-1 border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta">
               Cancelar
             </Button>
           </div>

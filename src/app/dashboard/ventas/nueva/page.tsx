@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { BotonAtras } from '@/components/ui/boton-atras'
 import { NuevaVentaForm } from '@/components/modulos/nueva-venta-form'
 
 export default async function NuevaVentaPage() {
@@ -33,13 +32,6 @@ export default async function NuevaVentaPage() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center gap-3">
-        <BotonAtras href="/dashboard/ventas" />
-        <div>
-          <h1 className="font-display text-2xl font-bold leading-tight text-white">Nueva <span className="text-brand-yellow">Venta</span></h1>
-          <p className="text-xs text-steel-300">Registra productos, servicios y cobro</p>
-        </div>
-      </div>
       <NuevaVentaForm
         clienteGeneral={clienteGeneral}
         catalogo={catalogo ?? []}

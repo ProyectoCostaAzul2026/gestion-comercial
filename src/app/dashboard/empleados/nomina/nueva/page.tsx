@@ -31,9 +31,9 @@ export default async function NuevaNominaPage({
     <div className="max-w-md">
       <div className="mb-6 flex items-center gap-3">
         <BotonAtras href="/dashboard/empleados/nomina" />
-        <h1 className="font-display text-2xl font-bold text-white">Registrar pago de nómina</h1>
+        <h1 className="font-display text-2xl font-bold text-tinta">Registrar pago de nómina</h1>
       </div>
-      <div className="rounded-2xl border border-white/10 bg-[#111820] p-6">
+      <div className="rounded-2xl border border-linea bg-superficie p-6">
         <NominaNuevaForm
           empleados={empleados ?? []}
           inicial={{

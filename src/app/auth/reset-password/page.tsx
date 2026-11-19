@@ -57,17 +57,17 @@ export default function ResetPasswordPage() {
     setTimeout(() => { router.push('/dashboard'); router.refresh() }, 1500)
   }
 
-  const CAMPO = 'w-full rounded-xl border border-white/10 bg-[#1a2430] px-4 py-3 pr-11 text-[16px] text-white placeholder:text-steel-500 focus:border-brand-yellow/60 focus:outline-none'
-  const ETIQUETA = 'mb-1 block text-[10px] font-bold uppercase tracking-widest text-steel-300'
+  const CAMPO = 'w-full rounded-xl border border-linea bg-superficie-2 px-4 py-3 pr-11 text-[16px] text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60 focus:outline-none'
+  const ETIQUETA = 'mb-1 block text-xs font-bold text-steel-300'
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-[#0a0e14] px-4 py-8 text-white">
-      <div className="w-full max-w-sm space-y-6 rounded-2xl border border-white/10 bg-[#111820] p-6 sm:p-8">
+    <div className="flex min-h-dvh items-center justify-center bg-fondo px-4 py-8 text-tinta">
+      <div className="w-full max-w-sm space-y-6 rounded-2xl border border-linea bg-superficie p-6 sm:p-8">
         <div className="space-y-2 text-center">
           <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-yellow text-steel-900">
             <KeyRound className="h-7 w-7" aria-hidden />
           </span>
-          <h1 className="font-display text-2xl font-bold text-brand-yellow">Crear contraseña</h1>
+          <h1 className="text-2xl font-bold text-tinta">Crear contraseña</h1>
           <p className="text-sm text-steel-300">Escribe la contraseña con la que vas a entrar al sistema</p>
         </div>
 
@@ -80,8 +80,8 @@ export default function ResetPasswordPage() {
 
         {estado === 'sin-sesion' && (
           <div className="space-y-4">
-            <p className="flex gap-2 rounded-xl border border-brand-red/40 bg-brand-red/10 p-3 text-sm text-white">
-              <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-brand-red" aria-hidden />
+            <p className="flex gap-2 rounded-xl border border-brand-red/40 bg-brand-red/10 p-3 text-sm text-tinta">
+              <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-sale" aria-hidden />
               <span>El enlace venció o ya se usó. Pide uno nuevo desde «¿Olvidaste tu contraseña?» y ábrelo apenas te llegue.</span>
             </p>
             <Link href="/login?recuperar=1" className="block w-full rounded-xl bg-brand-yellow px-4 py-3 text-center text-sm font-bold text-steel-900 hover:brightness-95">
@@ -91,7 +91,7 @@ export default function ResetPasswordPage() {
         )}
 
         {estado === 'guardado' && (
-          <p className="flex flex-col items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-center text-sm text-white" role="status">
+          <p className="flex flex-col items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-center text-sm text-tinta" role="status">
             <CheckCircle2 className="h-6 w-6 text-emerald-400" aria-hidden />
             Contraseña guardada. Entrando al sistema…
           </p>
@@ -105,7 +105,7 @@ export default function ResetPasswordPage() {
                 <input id="clave" type={ver ? 'text' : 'password'} required autoComplete="new-password" value={password}
                   onChange={e => setPassword(e.target.value)} className={CAMPO} placeholder="Mínimo 8 caracteres" />
                 <button type="button" onClick={() => setVer(v => !v)} aria-label={ver ? 'Ocultar contraseña' : 'Ver contraseña'}
-                  className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-steel-300 hover:text-white">
+                  className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-steel-300 hover:text-tinta">
                   {ver ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
@@ -115,7 +115,7 @@ export default function ResetPasswordPage() {
               <input id="confirmar" type={ver ? 'text' : 'password'} required autoComplete="new-password" value={confirmar}
                 onChange={e => setConfirmar(e.target.value)} className={CAMPO} />
             </div>
-            {error && <p className="text-sm text-brand-red" role="alert">{error}</p>}
+            {error && <p className="text-sm text-sale" role="alert">{error}</p>}
             <button type="submit" disabled={guardando}
               className="w-full rounded-xl bg-brand-yellow px-4 py-3 text-sm font-bold text-steel-900 hover:brightness-95 disabled:opacity-50">
               {guardando ? 'Guardando…' : 'Guardar y entrar'}

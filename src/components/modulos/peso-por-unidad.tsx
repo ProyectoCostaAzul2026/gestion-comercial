@@ -10,8 +10,8 @@ import { cantidadDePeso, formatearPeso, pesoDeCantidad, pesoUnitarioDeMuestra, r
 // Ayudas del peso por unidad: calcular el peso de una unidad con una muestra, contar el inventario por peso y saber
 // cuánto pesar al vender. Todo en gramos.
 
-const INPUT = 'h-10 border-white/10 bg-[#111820] text-[16px] text-white placeholder:text-steel-500'
-const ETIQUETA = 'text-[10px] font-bold uppercase tracking-widest text-steel-300'
+const INPUT = 'h-10 border-linea bg-superficie text-[16px] text-tinta placeholder:text-steel-500'
+const ETIQUETA = 'text-xs font-bold text-steel-300'
 
 const numero = (texto: string): number => {
   const n = Number(texto.replace(',', '.'))
@@ -25,7 +25,7 @@ export function CalculadoraPesoUnitario({ onUsar }: { onUsar: (pesoUnitario: num
   const resultado = pesoUnitarioDeMuestra(numero(pesoTotal), numero(unidades))
 
   return (
-    <div className="space-y-2 rounded-xl border border-white/10 bg-[#1a2430] p-3">
+    <div className="space-y-2 rounded-xl border border-linea bg-superficie-2 p-3">
       <p className="text-xs text-steel-300">Pesa varias unidades juntas (por ejemplo 50) y escribe cuántas son y cuánto pesaron.</p>
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1">
@@ -41,7 +41,7 @@ export function CalculadoraPesoUnitario({ onUsar }: { onUsar: (pesoUnitario: num
       </div>
       {resultado !== null && (
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm text-white">Cada unidad pesa <span className="font-semibold">{formatearPeso(resultado)}</span></p>
+          <p className="text-sm text-tinta">Cada unidad pesa <span className="font-semibold">{formatearPeso(resultado)}</span></p>
           <Button type="button" size="sm" onClick={() => onUsar(resultado)}
             className="bg-brand-blue font-semibold text-white hover:bg-brand-blue hover:brightness-110">
             Usar este peso
@@ -69,7 +69,7 @@ export function ContarPorPeso({ id, pesoUnitario, stockActual, lugar, onUsar }: 
   if (!abierto) {
     return (
       <button type="button" onClick={() => setAbierto(true)}
-        className="inline-flex items-center gap-1 text-xs font-semibold text-brand-blue hover:underline">
+        className="inline-flex items-center gap-1 text-xs font-semibold text-enlace hover:underline">
         <Scale className="h-3.5 w-3.5" aria-hidden />Contar por peso
       </button>
     )
@@ -89,15 +89,15 @@ export function ContarPorPeso({ id, pesoUnitario, stockActual, lugar, onUsar }: 
             placeholder="0" onChange={e => setRecipiente(e.target.value)} className={INPUT} />
         </div>
       </div>
-      <p className="text-[11px] text-steel-500">
+      <p className="text-xs text-steel-500">
         El stock actual ({stockActual}) debería pesar {formatearPeso(pesoDeCantidad(stockActual, pesoUnitario))} sin recipiente.
       </p>
       {unidades !== null && (
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm text-white">
+          <p className="text-sm text-tinta">
             Hay <span className="font-semibold">{unidades}</span> unidades
             {diferencia !== null && diferencia !== 0 && (
-              <span className={diferencia < 0 ? 'text-brand-red' : 'text-emerald-400'}>
+              <span className={diferencia < 0 ? 'text-sale' : 'text-emerald-400'}>
                 {' '}({diferencia > 0 ? '+' : ''}{diferencia} frente al stock actual)
               </span>
             )}
@@ -108,7 +108,7 @@ export function ContarPorPeso({ id, pesoUnitario, stockActual, lugar, onUsar }: 
           </Button>
         </div>
       )}
-      <button type="button" onClick={() => setAbierto(false)} className="text-[11px] text-steel-300 hover:underline">Cerrar</button>
+      <button type="button" onClick={() => setAbierto(false)} className="text-xs text-steel-300 hover:underline">Cerrar</button>
     </div>
   )
 }
@@ -125,12 +125,12 @@ export function AyudaPesoVenta({ id, pesoUnitario, cantidad, onCantidad }: {
   const calculada = cantidadDePeso(numero(pesoBascula), pesoUnitario)
 
   return (
-    <div className="space-y-1.5 rounded-lg border border-white/10 bg-[#111820] p-2">
+    <div className="space-y-1.5 rounded-lg border border-linea bg-superficie p-2">
       {rango && (
         <p className="flex items-start gap-1.5 text-xs text-steel-300">
-          <Scale className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-blue" aria-hidden />
+          <Scale className="mt-0.5 h-3.5 w-3.5 shrink-0 text-enlace" aria-hidden />
           <span>
-            Pesar <span className="font-semibold text-white">{formatearPeso(pesoDeCantidad(cantidad, pesoUnitario))}</span>
+            Pesar <span className="font-semibold text-tinta">{formatearPeso(pesoDeCantidad(cantidad, pesoUnitario))}</span>
             {' '}(entre {formatearPeso(rango[0])} y {formatearPeso(rango[1])} son {cantidad})
           </span>
         </p>
@@ -148,7 +148,7 @@ export function AyudaPesoVenta({ id, pesoUnitario, cantidad, onCantidad }: {
           </Button>
         )}
       </div>
-      <p className="text-[10px] text-steel-500">Pon la báscula en cero con la bolsa o el recipiente antes de pesar.</p>
+      <p className="text-xs text-steel-500">Pon la báscula en cero con la bolsa o el recipiente antes de pesar.</p>
     </div>
   )
 }

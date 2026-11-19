@@ -35,17 +35,17 @@ export default async function RecepcionPage() {
     <div className="max-w-3xl space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold text-white">Recepción de mercancía</h1>
+          <h1 className="font-display text-2xl font-bold text-tinta">Recepción de mercancía</h1>
           <p className="text-sm text-steel-300">Transcribe la factura, cuenta lo que llegó y deja todo en el inventario.</p>
         </div>
       </div>
 
       {administrador && <RecepcionNuevaForm proveedores={proveedores ?? []} hoy={hoyBogota()} />}
 
-      {error && <p className="text-sm text-brand-red">No se pudieron cargar las recepciones: {error.message}</p>}
+      {error && <p className="text-sm text-sale">No se pudieron cargar las recepciones: {error.message}</p>}
 
       {(recepciones ?? []).length === 0 ? (
-        <p className="rounded-2xl border border-white/10 bg-[#111820] p-4 text-sm text-steel-500">
+        <p className="rounded-2xl border border-linea bg-superficie p-4 text-sm text-steel-500">
           {administrador ? 'No hay recepciones. Abre una cuando llegue una factura.' : 'No hay recepciones por trabajar.'}
         </p>
       ) : (
@@ -59,10 +59,10 @@ export default async function RecepcionPage() {
             return (
               <li key={r.id}>
                 <Link href={`/dashboard/recepcion/${r.id}`}
-                  className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#111820] p-4 hover:bg-white/5">
+                  className="flex items-center justify-between gap-3 rounded-2xl border border-linea bg-superficie p-4 hover:bg-velo/5">
                   <div className="min-w-0 space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-semibold text-white">{r.proveedores?.nombre ?? 'Proveedor'}</p>
+                      <p className="font-semibold text-tinta">{r.proveedores?.nombre ?? 'Proveedor'}</p>
                       <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${CLASE_ESTADO_RECEPCION[estado]}`}>
                         {ETIQUETA_ESTADO_RECEPCION[estado]}
                       </span>
@@ -73,7 +73,7 @@ export default async function RecepcionPage() {
                     <p className="text-xs text-steel-300">
                       {renglones.length === 0 ? 'Sin renglones' : `Contados ${contados} de ${renglones.length}`}
                       {pendientes > 0 && <span className="text-brand-yellow"> · {pendientes} sin producto</span>}
-                      {diferencias > 0 && <span className="text-brand-red"> · {diferencias} con diferencia</span>}
+                      {diferencias > 0 && <span className="text-sale"> · {diferencias} con diferencia</span>}
                     </p>
                   </div>
                   <ChevronRight className="h-5 w-5 shrink-0 text-steel-500" />

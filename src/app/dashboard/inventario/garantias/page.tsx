@@ -21,7 +21,7 @@ export default async function GarantiasPage() {
       <div className="flex items-center gap-3">
         <BotonAtras href="/dashboard/inventario" />
         <div>
-          <h1 className="font-display text-2xl font-bold text-brand-yellow">Garantías</h1>
+          <h1 className="text-2xl font-bold text-tinta">Garantías</h1>
           <p className="text-xs text-steel-300">{(garantias as any[] ?? []).filter((g: any) => g.estado === 'pendiente').length} pendientes</p>
         </div>
       </div>

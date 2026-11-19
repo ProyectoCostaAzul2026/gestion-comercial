@@ -32,8 +32,8 @@ import { useNavegacion } from '@/lib/navegacion'
 // Lo único que se exige es una sola medida por producto (sin ";", que en Familias separa varias).
 export const MEDIDA_REGEX = /^[^;]+$/
 
-export const INPUT_CLS = 'border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500 focus:border-brand-yellow/60'
-export const LABEL_CLS = 'text-[10px] font-bold uppercase tracking-widest text-steel-300'
+export const INPUT_CLS = 'border-linea bg-superficie-2 text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60'
+export const LABEL_CLS = 'text-xs font-bold text-steel-300'
 
 interface ProveedorForm {
   id?: string
@@ -625,9 +625,9 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
     <form onSubmit={handleSubmit} className="space-y-6">
       {fijo && contexto && (
         <div className="rounded-xl border border-brand-yellow/30 bg-brand-yellow/5 px-3 py-2 text-xs text-steel-300">
-          Se creará en <span className="font-semibold text-white">{contexto.categoria}</span> › familia{' '}
-          <span className="font-semibold text-white">{contexto.familia}</span> › grupo{' '}
-          <span className="font-semibold text-white">{contexto.caracteristica}</span> ({contexto.marca}). Escribe la medida y los
+          Se creará en <span className="font-semibold text-tinta">{contexto.categoria}</span> › familia{' '}
+          <span className="font-semibold text-tinta">{contexto.familia}</span> › grupo{' '}
+          <span className="font-semibold text-tinta">{contexto.caracteristica}</span> ({contexto.marca}). Escribe la medida y los
           demás datos.
         </div>
       )}
@@ -635,7 +635,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
         <div className="space-y-2">
           <Label htmlFor="nombre" className={LABEL_CLS}>Nombre del producto *</Label>
           <Input id="nombre" className={INPUT_CLS} value={form.nombre} readOnly={fijo} onChange={(e) => handleChange('nombre', e.target.value)} />
-          {errors.nombre && <p className="text-xs text-brand-red">{errors.nombre}</p>}
+          {errors.nombre && <p className="text-xs text-sale">{errors.nombre}</p>}
           {(!esEdicion || !producto?.familia_id) && !fijo && (
             <p className="text-xs text-steel-500">
               {separarNombre(form.nombre)
@@ -695,7 +695,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
               onChange={(e) => setNuevaCategoriaNombre(e.target.value)}
             />
             <Button type="button" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={handleCrearCategoria} size="sm">Guardar</Button>
-            <Button type="button" variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => setMostrarNuevaCategoria(false)} size="sm">Cancelar</Button>
+            <Button type="button" variant="outline" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setMostrarNuevaCategoria(false)} size="sm">Cancelar</Button>
           </div>
         ) : (
           <Select
@@ -706,7 +706,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
             onValueChange={(v) => handleChange('categoria_id', v)}
             value={form.categoria_id}
           >
-            <SelectTrigger className="border-white/10 bg-[#1a2430] text-white">
+            <SelectTrigger className="border-linea bg-superficie-2 text-tinta">
               <SelectValue placeholder="Selecciona una categoría" />
             </SelectTrigger>
             <SelectContent>
@@ -729,7 +729,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
               onChange={(e) => handleChange('medida', e.target.value)}
               placeholder="Ej: 50 o 1/2"
             />
-            {errors.medida && <p className="text-xs text-brand-red">{errors.medida}</p>}
+            {errors.medida && <p className="text-xs text-sale">{errors.medida}</p>}
           </div>
           <div>
             {mostrarNuevaUnidad ? (
@@ -741,7 +741,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
                   onChange={(e) => setNuevaUnidadNombre(e.target.value)}
                 />
                 <Button type="button" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={handleCrearUnidad} size="sm">Guardar</Button>
-                <Button type="button" variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => setMostrarNuevaUnidad(false)} size="sm">Cancelar</Button>
+                <Button type="button" variant="outline" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setMostrarNuevaUnidad(false)} size="sm">Cancelar</Button>
               </div>
             ) : (
               <div className="flex gap-2">
@@ -750,7 +750,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
                   onValueChange={(v) => v && handleChange('unidad_medida_select', v)}
                   value={form.unidad_medida_select}
                 >
-                  <SelectTrigger className="border-white/10 bg-[#1a2430] text-white">
+                  <SelectTrigger className="border-linea bg-superficie-2 text-tinta">
                     <SelectValue placeholder="Unidad de medida" />
                   </SelectTrigger>
                   <SelectContent>
@@ -759,7 +759,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
                     ))}
                   </SelectContent>
                 </Select>
-                <Button type="button" variant="outline" size="sm" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => setMostrarNuevaUnidad(true)}>
+                <Button type="button" variant="outline" size="sm" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setMostrarNuevaUnidad(true)}>
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
@@ -773,17 +773,17 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
         <Textarea id="descripcion" className={INPUT_CLS} value={form.descripcion} onChange={(e) => handleChange('descripcion', e.target.value)} rows={2} />
       </div>
 
-      <div className="space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-4">
-        <h3 className="font-display font-bold text-white">Configuración de IVA</h3>
+      <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
+        <h3 className="font-display font-bold text-tinta">Configuración de IVA</h3>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Switch id="tiene_iva" checked={form.tiene_iva} onCheckedChange={(v) => handleChange('tiene_iva', v)} />
-            <Label htmlFor="tiene_iva" className="text-sm text-white">¿Aplica IVA?</Label>
+            <Label htmlFor="tiene_iva" className="text-sm text-tinta">¿Aplica IVA?</Label>
           </div>
           {form.tiene_iva && (
             <div className="flex items-center gap-2">
               <Switch id="iva_incluido" checked={form.iva_incluido} onCheckedChange={(v) => handleChange('iva_incluido', v)} />
-              <Label htmlFor="iva_incluido" className="text-sm text-white">IVA incluido en el costo</Label>
+              <Label htmlFor="iva_incluido" className="text-sm text-tinta">IVA incluido en el costo</Label>
             </div>
           )}
         </div>
@@ -803,17 +803,17 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
         )}
       </div>
 
-      <div className="space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-4">
+      <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-display font-bold text-white">Proveedores y Precios de Costo *</h3>
+          <h3 className="font-display font-bold text-tinta">Proveedores y Precios de Costo *</h3>
           <Button type="button" variant="outline" size="sm" className="border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={addProveedor}>
             <Plus className="mr-1 h-4 w-4" />
             Agregar proveedor
           </Button>
         </div>
-        {errors.proveedores && <p className="text-xs text-brand-red">{errors.proveedores}</p>}
+        {errors.proveedores && <p className="text-xs text-sale">{errors.proveedores}</p>}
         {form.proveedores.map((proveedor, index) => (
-          <div key={proveedor.id ?? index} className="grid grid-cols-1 items-end gap-3 border-b border-white/8 pb-3 last:border-0 md:grid-cols-12">
+          <div key={proveedor.id ?? index} className="grid grid-cols-1 items-end gap-3 border-b border-linea pb-3 last:border-0 md:grid-cols-12">
             <div className="space-y-1 md:col-span-4">
               <Label className={LABEL_CLS}>Proveedor</Label>
               <Select
@@ -821,7 +821,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
                 onValueChange={(v) => v && handleProveedorChange(index, 'proveedor_id', v)}
                 value={proveedor.proveedor_id}
               >
-                <SelectTrigger className="border-white/10 bg-[#1a2430] text-white">
+                <SelectTrigger className="border-linea bg-superficie-2 text-tinta">
                   <SelectValue placeholder="Selecciona proveedor" />
                 </SelectTrigger>
                 <SelectContent>
@@ -830,7 +830,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
                   ))}
                 </SelectContent>
               </Select>
-              {errors[`proveedor_${index}`] && <p className="text-xs text-brand-red">{errors[`proveedor_${index}`]}</p>}
+              {errors[`proveedor_${index}`] && <p className="text-xs text-sale">{errors[`proveedor_${index}`]}</p>}
             </div>
             <div className="space-y-1 md:col-span-3">
               <Label className={LABEL_CLS}>Precio de costo</Label>
@@ -842,7 +842,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
                 onFocus={e => e.target.select()}
                 onChange={(e) => handleProveedorChange(index, 'precio_costo', parseFloat(e.target.value) || 0)}
               />
-              {errors[`precio_${index}`] && <p className="text-xs text-brand-red">{errors[`precio_${index}`]}</p>}
+              {errors[`precio_${index}`] && <p className="text-xs text-sale">{errors[`precio_${index}`]}</p>}
             </div>
             <div className="space-y-1 md:col-span-4">
               <Label className={LABEL_CLS}>Referencia del proveedor</Label>
@@ -855,7 +855,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
             </div>
             <div className="flex justify-end md:col-span-1">
               {form.proveedores.length > 1 && (
-                <Button type="button" variant="ghost" size="icon-sm" className="text-steel-300 hover:text-brand-red" onClick={() => removeProveedor(index)}>
+                <Button type="button" variant="ghost" size="icon-sm" className="text-steel-300 hover:text-sale" onClick={() => removeProveedor(index)}>
                   <Trash2 className="h-4 w-4" />
                 </Button>
               )}
@@ -866,7 +866,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
                   type="checkbox"
                   checked={proveedor.esCostoBaseManual}
                   onChange={() => handleSeleccionarCostoBase(index)}
-                  className="size-4 rounded border-white/20 accent-brand-yellow"
+                  className="size-4 rounded border-linea-fuerte accent-brand-yellow"
                 />
                 <span className="text-xs text-steel-300">Usar el precio de este proveedor como costo base (en vez del más bajo automático)</span>
               </label>
@@ -896,11 +896,11 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
               value={form.precio_venta || ''}
               onChange={(e) => handleChange('precio_venta', parseFloat(e.target.value) || 0)}
             />
-            {errors.precio_venta && <p className="text-xs text-brand-red">{errors.precio_venta}</p>}
+            {errors.precio_venta && <p className="text-xs text-sale">{errors.precio_venta}</p>}
           </div>
         </div>
         {puedeCambiarPrecio ? (
-          <Button type="button" variant="outline" onClick={handleCalcularPrecio} className="w-full border-white/10 bg-[#1a2430] text-white hover:bg-white/5 hover:text-white md:w-auto">
+          <Button type="button" variant="outline" onClick={handleCalcularPrecio} className="w-full border-linea bg-superficie-2 text-tinta hover:bg-velo/5 hover:text-tinta md:w-auto">
             Calcular precio sugerido
           </Button>
         ) : (
@@ -914,8 +914,8 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
         )}
       </div>
 
-      <div className="space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-4">
-        <h3 className="font-display font-bold text-white">Stock</h3>
+      <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
+        <h3 className="font-display font-bold text-tinta">Stock</h3>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {!esEdicion && nuevoInicial?.stockDesdeRecepcion ? (
             <p className="text-sm text-steel-300 md:col-span-2">
@@ -967,7 +967,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
         </div>
 
         {esEdicion && (
-          <div className="space-y-2 rounded-xl bg-[#1a2430] p-3">
+          <div className="space-y-2 rounded-xl bg-superficie-2 p-3">
             <Label className="text-xs text-steel-300">Mover stock entre Bodega y Almacén</Label>
             <div className="flex flex-wrap items-end gap-2">
               <Select
@@ -978,7 +978,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
                 onValueChange={(v) => v && setMoverDireccion(v as typeof moverDireccion)}
                 value={moverDireccion}
               >
-                <SelectTrigger className="w-48 border-white/10 bg-[#111820] text-white">
+                <SelectTrigger className="w-48 border-linea bg-superficie text-tinta">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -988,13 +988,13 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
               </Select>
               <Input
                 type="number"
-                className="w-28 border-white/10 bg-[#111820] text-white"
+                className="w-28 border-linea bg-superficie text-tinta"
                 value={moverCantidad || ''}
                 onFocus={e => e.target.select()}
                 onChange={(e) => setMoverCantidad(parseInt(e.target.value) || 0)}
                 placeholder="Cantidad"
               />
-              <Button type="button" variant="outline" size="sm" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={handleMoverStock}>
+              <Button type="button" variant="outline" size="sm" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={handleMoverStock}>
                 <ArrowLeftRight className="mr-1 h-4 w-4" />
                 Mover
               </Button>
@@ -1017,7 +1017,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
             onValueChange={(v) => v && handleChange('prioridad', parseInt(v))}
             value={String(form.prioridad)}
           >
-            <SelectTrigger className="border-white/10 bg-[#1a2430] text-white">
+            <SelectTrigger className="border-linea bg-superficie-2 text-tinta">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -1031,9 +1031,9 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
         </div>
       </div>
 
-      <div className="space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-4">
+      <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-display font-bold text-white">Venta por fracción</h3>
+          <h3 className="font-display font-bold text-tinta">Venta por fracción</h3>
           <div className="flex items-center gap-2">
             <Switch
               id="vender_por_fraccion"
@@ -1116,10 +1116,10 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
       </div>
 
       {(puedeEditarTramos || preciosCantidad.length > 0) && (
-        <div className="space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-4">
+        <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h3 className="font-display font-bold text-white">Precios por cantidad</h3>
+              <h3 className="font-display font-bold text-tinta">Precios por cantidad</h3>
               <p className="text-xs text-steel-500">Desde cierta cantidad, cada unidad vale menos: un precio por paquete. Hasta 5.</p>
             </div>
             {puedeEditarTramos && (
@@ -1162,14 +1162,14 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
               <p className="text-xs text-steel-500">Solo un administrador cambia los precios por cantidad.</p>
             </>
           )}
-          {errors.tramos && <p className="text-xs text-brand-red">{errors.tramos}</p>}
+          {errors.tramos && <p className="text-xs text-sale">{errors.tramos}</p>}
         </div>
       )}
 
-      <div className="space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-4">
+      <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h3 className="font-display font-bold text-white">Peso por unidad</h3>
+            <h3 className="font-display font-bold text-tinta">Peso por unidad</h3>
             <p className="text-xs text-steel-500">Para contar pesando: en la venta muestra cuánto pesar y en el stock permite contar por peso.</p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
@@ -1200,7 +1200,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
                 onChange={(e) => handleChange('peso_unitario_g', parseFloat(e.target.value) || 0)}
                 placeholder="Ej: 2.35"
               />
-              {errors.peso_unitario_g && <p className="text-xs text-brand-red">{errors.peso_unitario_g}</p>}
+              {errors.peso_unitario_g && <p className="text-xs text-sale">{errors.peso_unitario_g}</p>}
             </div>
             <CalculadoraPesoUnitario onUsar={(peso) => handleChange('peso_unitario_g', peso)} />
           </div>
@@ -1221,7 +1221,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
           type="button"
           disabled={isDesactivando}
           onClick={handleDesactivar}
-          className={buttonVariants({ variant: 'outline', className: 'h-12 w-full border-brand-red/30 bg-brand-red/15 text-brand-red hover:bg-brand-red/25 hover:text-brand-red' })}
+          className={buttonVariants({ variant: 'outline', className: 'h-12 w-full border-brand-red/30 bg-brand-red/15 text-sale hover:bg-brand-red/25 hover:text-sale' })}
         >
           {isDesactivando ? 'Desactivando...' : 'Desactivar producto'}
         </button>

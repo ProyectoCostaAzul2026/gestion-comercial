@@ -101,12 +101,12 @@ export function RecepcionFamiliaForm({ renglonId, descripcion, productosProveedo
 
   return (
     <div className="space-y-3 rounded-xl border border-brand-blue/30 bg-brand-blue/5 p-3">
-      <p className="flex items-center gap-2 text-sm font-semibold text-white">
-        <Layers className="h-4 w-4 text-brand-blue" />Agregar a una familia o grupo de medidas
+      <p className="flex items-center gap-2 text-sm font-semibold text-tinta">
+        <Layers className="h-4 w-4 text-enlace" />Agregar a una familia o grupo de medidas
       </p>
       <p className="text-xs text-steel-300">
         Busca un producto de la misma familia (por ejemplo, la misma referencia en otra medida). El nuevo hereda su
-        categoría, IVA, imagen y proveedores. En la factura dice: <span className="text-white">{descripcion}</span>
+        categoría, IVA, imagen y proveedores. En la factura dice: <span className="text-tinta">{descripcion}</span>
       </p>
       <BuscadorProducto id={`familia-buscar-${renglonId}`} productosProveedor={productosProveedor} onElegir={elegirBase}
         placeholder="Producto de la familia" />
@@ -139,14 +139,14 @@ export function RecepcionFamiliaForm({ renglonId, descripcion, productosProveedo
             <div className="space-y-1">
               <Label className={LABEL_CLS}>Unidad</Label>
               <Select value={unidad} onValueChange={v => v && setUnidad(v)} items={opcionesUnidad.map(u => ({ value: u, label: u }))}>
-                <SelectTrigger className="w-full border-white/10 bg-[#1a2430] text-white"><SelectValue placeholder="Unidad" /></SelectTrigger>
+                <SelectTrigger className="w-full border-linea bg-superficie-2 text-tinta"><SelectValue placeholder="Unidad" /></SelectTrigger>
                 <SelectContent>{opcionesUnidad.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
               </Select>
             </div>
           </div>
-          <p className="rounded-lg border border-white/10 bg-[#111820] p-2 text-xs text-steel-300">
-            Se crea <span className="font-semibold text-white">{nombreFinal} {unidadMedida}</span> de marca{' '}
-            <span className="text-white">{marca.trim() || 'Generica'}</span>,{' '}
+          <p className="rounded-lg border border-linea bg-superficie p-2 text-xs text-steel-300">
+            Se crea <span className="font-semibold text-tinta">{nombreFinal} {unidadMedida}</span> de marca{' '}
+            <span className="text-tinta">{marca.trim() || 'Generica'}</span>,{' '}
             {mismoGrupo ? 'como otra medida del mismo grupo.' : 'como otra variante de la familia.'}
           </p>
           <Button type="button" onClick={crear} disabled={guardando}

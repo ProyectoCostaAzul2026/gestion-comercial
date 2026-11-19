@@ -110,8 +110,8 @@ export function ProveedorForm({ proveedor }: ProveedorFormProps) {
     volver('/dashboard/proveedores', { refrescar: true })
   }
 
-  const inputCls = 'h-12 border-white/10 bg-[#1a2430] text-[16px] text-white placeholder:text-steel-500 focus:border-brand-yellow/60'
-  const labelCls = 'text-[10px] font-bold uppercase tracking-widest text-steel-300'
+  const inputCls = 'h-12 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60'
+  const labelCls = 'text-xs font-bold text-steel-300'
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -155,14 +155,14 @@ export function ProveedorForm({ proveedor }: ProveedorFormProps) {
       </div>
       <div className="space-y-2">
         <Label htmlFor="notas" className={labelCls}>Notas</Label>
-        <Textarea id="notas" className="border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500 focus:border-brand-yellow/60" value={form.notas} onChange={e => handleChange('notas', e.target.value)} rows={3} />
+        <Textarea id="notas" className="border-linea bg-superficie-2 text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60" value={form.notas} onChange={e => handleChange('notas', e.target.value)} rows={3} />
       </div>
       <Button type="submit" disabled={saving} className="h-12 w-full bg-brand-yellow text-base font-bold text-steel-900 hover:bg-brand-yellow hover:brightness-105">
         {saving ? 'Guardando…' : esEdicion ? 'Guardar cambios' : 'Crear proveedor'}
       </Button>
       {esEdicion && (
         <button type="button" disabled={desactivando} onClick={handleDesactivar}
-          className={buttonVariants({ variant: 'outline', className: 'h-12 w-full border-brand-red/30 bg-brand-red/15 text-brand-red hover:bg-brand-red/25 hover:text-brand-red' })}>
+          className={buttonVariants({ variant: 'outline', className: 'h-12 w-full border-brand-red/30 bg-brand-red/15 text-sale hover:bg-brand-red/25 hover:text-sale' })}>
           {desactivando ? 'Desactivando…' : 'Desactivar proveedor'}
         </button>
       )}

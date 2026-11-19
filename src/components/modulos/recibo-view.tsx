@@ -76,7 +76,7 @@ export function ReciboView({ venta, items, servicios, pagos, config }: ReciboVie
     .title { font-size: 15px; font-weight: bold; text-align: center; letter-spacing: 2px; margin: 16px 0; color: #18222b; }
     .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
     .info-item { font-size: 11px; }
-    .info-label { color: #64748b; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .info-label { color: #64748b; font-size: 10px; text-transform: ; letter-spacing: 0.5px; }
     table { width: 100%; border-collapse: collapse; margin: 12px 0; }
     th { background: #18222b; color: #fff; padding: 6px 8px; text-align: left; font-size: 11px; }
     th:last-child { text-align: right; }
@@ -272,14 +272,14 @@ export function ReciboView({ venta, items, servicios, pagos, config }: ReciboVie
           <MessageCircle className="mr-2 h-4 w-4" />WhatsApp cliente
         </Button>
         {config?.whatsapp_negocio && (
-          <Button type="button" variant="outline" className="border-brand-blue/40 bg-transparent font-semibold text-brand-blue hover:bg-brand-blue/10 hover:text-brand-blue" onClick={handleWhatsAppNegocio}>
+          <Button type="button" variant="outline" className="border-brand-blue/40 bg-transparent font-semibold text-enlace hover:bg-brand-blue/10 hover:text-enlace" onClick={handleWhatsAppNegocio}>
             <MessageCircle className="mr-2 h-4 w-4" />Factura electrónica
           </Button>
         )}
       </div>
 
       {/* Vista previa recibo POS — papel claro centrado sobre el fondo oscuro */}
-      <div className="mx-auto max-w-xs rounded-2xl border border-white/10 bg-white p-4 font-mono text-xs text-slate-900 shadow-xl">
+      <div className="mx-auto max-w-xs rounded-2xl border border-linea bg-white p-4 font-mono text-xs text-slate-900 shadow-xl">
         <div className="mb-3 space-y-0.5 text-center">
           <p className="text-sm font-bold text-slate-900">{config?.nombre ?? 'Mi Negocio'}</p>
           {config?.regimen && <p className="text-slate-500">{config.regimen}</p>}

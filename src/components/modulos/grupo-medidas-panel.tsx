@@ -244,42 +244,42 @@ export function GrupoMedidasPanel({
       </p>
 
       {/* Lista de medidas */}
-      <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
-        <div className="grid grid-cols-[1fr_auto_auto] gap-3 border-b border-white/10 bg-[#1a2430] px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-steel-300">
+      <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+        <div className="grid grid-cols-[1fr_auto_auto] gap-3 border-b border-linea bg-superficie-2 px-4 py-2 text-xs font-bold text-steel-300">
           <span>Medida ({miembros.length})</span>
           <span className="w-14 text-right">Stock</span>
           <span className="w-20 text-right">{ordenEdicion ? 'Mover' : 'Precio'}</span>
         </div>
         {lista.map((m, i) => (
           <div key={m.id}
-            className={`grid grid-cols-[1fr_auto_auto] items-center gap-3 border-b border-white/5 px-4 py-2.5 last:border-0 ${m.id === productoActualId ? 'bg-brand-yellow/5' : ''}`}>
+            className={`grid grid-cols-[1fr_auto_auto] items-center gap-3 border-b border-linea px-4 py-2.5 last:border-0 ${m.id === productoActualId ? 'bg-brand-yellow/5' : ''}`}>
             <div className="min-w-0">
-              <Link href={`/dashboard/inventario/${m.id}`} className="text-sm font-medium text-white hover:underline">
+              <Link href={`/dashboard/inventario/${m.id}`} className="text-sm font-medium text-tinta hover:underline">
                 {m.unidad_medida || '—'}
               </Link>
-              {m.id === productoActualId && <span className="ml-2 text-[10px] font-bold uppercase text-brand-yellow">Actual</span>}
-              {!m.activo && <span className="ml-2 rounded-full bg-steel-700 px-2 py-0.5 text-[10px] font-bold uppercase text-steel-300">Inactivo</span>}
-              <p className="truncate font-mono text-[10px] text-steel-500">
+              {m.id === productoActualId && <span className="ml-2 text-xs font-bold text-brand-yellow">Actual</span>}
+              {!m.activo && <span className="ml-2 rounded-full bg-steel-700 px-2 py-0.5 text-xs font-bold text-steel-300">Inactivo</span>}
+              <p className="truncate font-mono text-xs text-steel-500">
                 {m.codigo ?? '—'}
                 {m.peso_unitario_g != null && <span className="font-sans"> · {formatearPeso(m.peso_unitario_g)} c/u</span>}
               </p>
             </div>
-            <span className={`w-14 text-right font-display text-sm font-bold ${m.stock_actual === 0 ? 'text-brand-red' : 'text-brand-yellow'}`}>
+            <span className={`w-14 text-right font-display text-sm font-bold ${m.stock_actual === 0 ? 'text-sale' : 'text-brand-yellow'}`}>
               {m.stock_actual}
             </span>
             {ordenEdicion ? (
               <span className="flex w-20 justify-end gap-1">
                 <Button type="button" variant="ghost" size="icon-sm" aria-label={`Subir ${m.unidad_medida ?? ''}`}
-                  disabled={i === 0} onClick={() => mover(i, -1)} className="text-steel-300 hover:text-white">
+                  disabled={i === 0} onClick={() => mover(i, -1)} className="text-steel-300 hover:text-tinta">
                   <ArrowUp className="h-4 w-4" />
                 </Button>
                 <Button type="button" variant="ghost" size="icon-sm" aria-label={`Bajar ${m.unidad_medida ?? ''}`}
-                  disabled={i === lista.length - 1} onClick={() => mover(i, 1)} className="text-steel-300 hover:text-white">
+                  disabled={i === lista.length - 1} onClick={() => mover(i, 1)} className="text-steel-300 hover:text-tinta">
                   <ArrowDown className="h-4 w-4" />
                 </Button>
               </span>
             ) : (
-              <span className="w-20 text-right text-sm text-white">{pesos(m.precio_venta)}</span>
+              <span className="w-20 text-right text-sm text-tinta">{pesos(m.precio_venta)}</span>
             )}
           </div>
         ))}
@@ -289,57 +289,57 @@ export function GrupoMedidasPanel({
       {!editando && !ordenEdicion && !editandoPesos && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <Button type="button" variant="outline" onClick={() => setOrdenEdicion(ordenados.map(m => m.id))}
-            className="h-11 rounded-xl border-white/15 bg-transparent font-bold text-white hover:bg-white/5 hover:text-white">
+            className="h-11 rounded-xl border-linea bg-transparent font-bold text-tinta hover:bg-velo/5 hover:text-tinta">
             <ListOrdered className="mr-2 h-4 w-4" />Ordenar medidas
           </Button>
           <Button type="button" variant="outline" onClick={abrirEdicion}
-            className="h-11 rounded-xl border-brand-blue/60 bg-transparent font-bold text-brand-blue hover:bg-brand-blue/10">
+            className="h-11 rounded-xl border-brand-blue/60 bg-transparent font-bold text-enlace hover:bg-brand-blue/10">
             <Settings2 className="mr-2 h-4 w-4" />Editar datos del grupo
           </Button>
           <Button type="button" variant="outline" onClick={abrirPesos}
-            className="h-11 rounded-xl border-white/15 bg-transparent font-bold text-white hover:bg-white/5 hover:text-white">
+            className="h-11 rounded-xl border-linea bg-transparent font-bold text-tinta hover:bg-velo/5 hover:text-tinta">
             <Scale className="mr-2 h-4 w-4" />Pesos por unidad
           </Button>
         </div>
       )}
 
       {editandoPesos && (
-        <div className="space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-4">
+        <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <h3 className="font-display font-bold text-white">Peso por unidad</h3>
+              <h3 className="font-display font-bold text-tinta">Peso por unidad</h3>
               <p className="text-xs text-steel-500">
                 Escribe cuánto pesa una unidad de cada medida, en gramos. Con eso la venta muestra cuánto pesar y el stock se
                 puede contar por peso. Déjalo vacío para no usar el peso en esa medida.
               </p>
             </div>
-            <Button type="button" variant="ghost" size="icon-sm" aria-label="Cerrar" className="text-steel-300 hover:text-white"
+            <Button type="button" variant="ghost" size="icon-sm" aria-label="Cerrar" className="text-steel-300 hover:text-tinta"
               onClick={() => setEditandoPesos(false)}>
               <X className="h-4 w-4" />
             </Button>
           </div>
 
-          <div className="overflow-hidden rounded-xl border border-white/10">
+          <div className="overflow-hidden rounded-xl border border-linea">
             {ordenados.map(m => {
               const peso = leerPeso(pesosEdicion[m.id])
               return (
-                <div key={m.id} className="space-y-2 border-b border-white/5 px-3 py-2.5 last:border-0">
+                <div key={m.id} className="space-y-2 border-b border-linea px-3 py-2.5 last:border-0">
                   <div className="flex items-center gap-3">
-                    <span className="min-w-0 flex-1 text-sm text-white">
+                    <span className="min-w-0 flex-1 text-sm text-tinta">
                       {m.unidad_medida || '—'}
-                      {!m.activo && <span className="ml-2 text-[10px] font-bold uppercase text-steel-500">Inactivo</span>}
+                      {!m.activo && <span className="ml-2 text-xs font-bold text-steel-500">Inactivo</span>}
                     </span>
                     <Input type="number" inputMode="decimal" min={0} step="0.001" placeholder="g"
                       aria-label={`Peso de una unidad de ${m.unidad_medida ?? 'esta medida'}, en gramos`}
                       value={pesosEdicion[m.id] ?? ''} onChange={e => setPesosEdicion(prev => ({ ...prev, [m.id]: e.target.value }))}
                       className={`${INPUT_CLS} h-9 w-28 text-[16px] ${peso === undefined ? 'border-brand-red/60' : ''}`} />
                     <button type="button" onClick={() => setCalculandoPara(calculandoPara === m.id ? null : m.id)}
-                      className="shrink-0 text-xs font-semibold text-brand-blue hover:underline">
+                      className="shrink-0 text-xs font-semibold text-enlace hover:underline">
                       Pesar varias
                     </button>
                   </div>
                   {typeof peso === 'number' && (
-                    <p className="text-[11px] text-steel-500">100 unidades pesan {formatearPeso(pesoDeCantidad(100, peso))}</p>
+                    <p className="text-xs text-steel-500">100 unidades pesan {formatearPeso(pesoDeCantidad(100, peso))}</p>
                   )}
                   {calculandoPara === m.id && (
                     <CalculadoraPesoUnitario onUsar={p => { setPesosEdicion(prev => ({ ...prev, [m.id]: String(p) })); setCalculandoPara(null) }} />
@@ -350,7 +350,7 @@ export function GrupoMedidasPanel({
           </div>
 
           {pesosInvalidos > 0 && (
-            <p className="text-xs text-brand-red">Revisa los pesos en rojo: deben ser mayores que 0, o quedar vacíos.</p>
+            <p className="text-xs text-sale">Revisa los pesos en rojo: deben ser mayores que 0, o quedar vacíos.</p>
           )}
           <Button type="button" disabled={guardandoPesos || cambiosPeso.length === 0 || pesosInvalidos > 0} onClick={guardarPesos}
             className="h-11 w-full rounded-xl bg-brand-blue font-bold text-white hover:bg-brand-blue hover:brightness-110">
@@ -367,60 +367,60 @@ export function GrupoMedidasPanel({
               {guardandoOrden ? 'Guardando…' : 'Guardar orden'}
             </Button>
             <Button type="button" variant="outline" disabled={guardandoOrden || !tieneOrdenManual} onClick={() => guardarOrden(true)}
-              className="h-11 rounded-xl border-white/15 bg-transparent font-semibold text-white hover:bg-white/5 hover:text-white">
+              className="h-11 rounded-xl border-linea bg-transparent font-semibold text-tinta hover:bg-velo/5 hover:text-tinta">
               Volver al orden por tamaño
             </Button>
             <Button type="button" variant="ghost" onClick={() => setOrdenEdicion(null)}
-              className="h-11 rounded-xl text-steel-300 hover:text-white">
+              className="h-11 rounded-xl text-steel-300 hover:text-tinta">
               Cancelar
             </Button>
           </div>
-          <p className="text-[11px] text-steel-500">Usa las flechas para mover una medida. El orden se guarda para todo el grupo.</p>
+          <p className="text-xs text-steel-500">Usa las flechas para mover una medida. El orden se guarda para todo el grupo.</p>
         </div>
       )}
 
       {/* Editar datos en bloque: lo mismo de "Editar Datos" de familias, más ubicación y stock mínimo. No toca precios. */}
       {editando && (
-        <div className="space-y-5 rounded-2xl border border-white/10 bg-[#111820] p-4">
+        <div className="space-y-5 rounded-2xl border border-linea bg-superficie p-4">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <h3 className="font-display font-bold text-white">Editar datos del grupo</h3>
+              <h3 className="font-display font-bold text-tinta">Editar datos del grupo</h3>
               <p className="text-xs text-steel-500">Elige las medidas y llena solo lo que quieras cambiar; lo vacío se deja como está.</p>
             </div>
-            <Button type="button" variant="ghost" size="icon-sm" aria-label="Cerrar" className="text-steel-300 hover:text-white"
+            <Button type="button" variant="ghost" size="icon-sm" aria-label="Cerrar" className="text-steel-300 hover:text-tinta"
               onClick={() => setEditando(false)}>
               <X className="h-4 w-4" />
             </Button>
           </div>
 
-          <div className="overflow-hidden rounded-xl border border-white/10">
-            <div className="flex items-center justify-between border-b border-white/10 bg-[#1a2430] px-3 py-2">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-steel-300">
+          <div className="overflow-hidden rounded-xl border border-linea">
+            <div className="flex items-center justify-between border-b border-linea bg-superficie-2 px-3 py-2">
+              <span className="text-xs font-bold text-steel-300">
                 Medidas ({seleccionados.size} de {miembros.length})
               </span>
-              <div className="flex gap-3 text-[11px] font-semibold">
-                <button type="button" className="text-brand-blue hover:underline" onClick={() => setSeleccionados(new Set(miembros.map(m => m.id)))}>Todas</button>
+              <div className="flex gap-3 text-xs font-semibold">
+                <button type="button" className="text-enlace hover:underline" onClick={() => setSeleccionados(new Set(miembros.map(m => m.id)))}>Todas</button>
                 <button type="button" className="text-steel-300 hover:underline" onClick={() => setSeleccionados(new Set())}>Ninguna</button>
               </div>
             </div>
             <div className="max-h-64 overflow-y-auto">
               {ordenados.map(m => (
-                <label key={m.id} className="flex cursor-pointer items-center gap-3 border-b border-white/5 px-3 py-2 last:border-0 hover:bg-white/5">
+                <label key={m.id} className="flex cursor-pointer items-center gap-3 border-b border-linea px-3 py-2 last:border-0 hover:bg-velo/5">
                   <input type="checkbox" checked={seleccionados.has(m.id)} onChange={() => alternarSeleccion(m.id)}
-                    className="size-4 rounded border-white/20 accent-brand-yellow" />
-                  <span className="flex-1 text-sm text-white">{m.unidad_medida || '—'}</span>
-                  {!m.activo && <span className="text-[10px] font-bold uppercase text-steel-500">Inactivo</span>}
+                    className="size-4 rounded border-linea-fuerte accent-brand-yellow" />
+                  <span className="flex-1 text-sm text-tinta">{m.unidad_medida || '—'}</span>
+                  {!m.activo && <span className="text-xs font-bold text-steel-500">Inactivo</span>}
                 </label>
               ))}
             </div>
           </div>
 
-          <div className="space-y-4 border-t border-white/10 pt-4">
+          <div className="space-y-4 border-t border-linea pt-4">
             <div className="space-y-1">
               <Label className={LABEL_CLS}>Categoría</Label>
               <Select value={datos.categoria_id} onValueChange={v => v && setDatos(prev => ({ ...prev, categoria_id: v }))}
                 items={categorias.map(c => ({ value: c.id, label: c.nombre }))}>
-                <SelectTrigger className="w-full border-white/10 bg-[#1a2430] text-white">
+                <SelectTrigger className="w-full border-linea bg-superficie-2 text-tinta">
                   <SelectValue placeholder="Sin cambiar" />
                 </SelectTrigger>
                 <SelectContent>
@@ -458,7 +458,7 @@ export function GrupoMedidasPanel({
               <Label className={LABEL_CLS}>IVA incluido en el costo</Label>
               <Select value={datos.ivaIncluido} onValueChange={v => v && setDatos(prev => ({ ...prev, ivaIncluido: v as typeof prev.ivaIncluido }))}
                 items={OPCIONES_CAMBIO}>
-                <SelectTrigger className="w-full border-white/10 bg-[#1a2430] text-white">
+                <SelectTrigger className="w-full border-linea bg-superficie-2 text-tinta">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -472,12 +472,12 @@ export function GrupoMedidasPanel({
             <div className="space-y-2">
               <Label className={LABEL_CLS}>Proveedores asociados</Label>
               {proveedoresAAsignar.map(p => (
-                <div key={p.key} className="flex items-end gap-2 rounded-lg border border-white/10 bg-[#1a2430] p-2">
+                <div key={p.key} className="flex items-end gap-2 rounded-lg border border-linea bg-superficie-2 p-2">
                   <div className="flex-1">
                     <Select value={p.proveedor_id}
                       onValueChange={v => v && setProveedoresAAsignar(prev => prev.map(x => x.key === p.key ? { ...x, proveedor_id: v } : x))}
                       items={proveedoresDisponibles.map(pr => ({ value: pr.id, label: pr.nombre }))}>
-                      <SelectTrigger className="w-full border-white/10 bg-[#111820] text-white">
+                      <SelectTrigger className="w-full border-linea bg-superficie text-tinta">
                         <SelectValue placeholder="Selecciona proveedor…" />
                       </SelectTrigger>
                       <SelectContent>
@@ -489,18 +489,18 @@ export function GrupoMedidasPanel({
                     <Input value={p.codigo} placeholder="Código del proveedor (opcional)" className={INPUT_CLS}
                       onChange={e => setProveedoresAAsignar(prev => prev.map(x => x.key === p.key ? { ...x, codigo: e.target.value } : x))} />
                   </div>
-                  <Button type="button" variant="ghost" size="icon-sm" aria-label="Quitar proveedor" className="text-steel-300 hover:text-brand-red"
+                  <Button type="button" variant="ghost" size="icon-sm" aria-label="Quitar proveedor" className="text-steel-300 hover:text-sale"
                     onClick={() => setProveedoresAAsignar(prev => prev.filter(x => x.key !== p.key))}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               ))}
               <Button type="button" variant="outline" size="sm"
-                className="border-brand-blue/60 bg-transparent font-semibold text-brand-blue hover:bg-brand-blue/10"
+                className="border-brand-blue/60 bg-transparent font-semibold text-enlace hover:bg-brand-blue/10"
                 onClick={() => setProveedoresAAsignar(prev => [...prev, { key: crypto.randomUUID(), proveedor_id: '', codigo: '' }])}>
                 <Plus className="mr-1 h-4 w-4" />Proveedor
               </Button>
-              <p className="text-[11px] text-steel-500">El costo de estos proveedores queda en $0; ajústalo luego en cada producto.</p>
+              <p className="text-xs text-steel-500">El costo de estos proveedores queda en $0; ajústalo luego en cada producto.</p>
             </div>
           </div>
 
@@ -518,13 +518,13 @@ export function GrupoMedidasPanel({
             <Tags className="h-5 w-5" aria-hidden />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block font-display font-bold text-white">Escala de precios</span>
+            <span className="block font-display font-bold text-tinta">Escala de precios</span>
             <span className="block text-xs text-steel-300">Cambia los precios de las {miembros.length} medidas con un margen, redondeo y sugeridos</span>
           </span>
           <ChevronRight className="h-5 w-5 shrink-0 text-brand-yellow" aria-hidden />
         </Link>
       ) : (
-        <p className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#111820] px-4 py-3 text-xs text-steel-300">
+        <p className="flex items-center gap-2 rounded-xl border border-linea bg-superficie px-4 py-3 text-xs text-steel-300">
           <Pencil className="h-3.5 w-3.5 shrink-0" aria-hidden />
           La escala de precios y los cambios de precio son solo para administradores.
         </p>

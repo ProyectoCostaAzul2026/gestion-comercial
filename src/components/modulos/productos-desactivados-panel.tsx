@@ -50,7 +50,7 @@ function Lista({
 
   return (
     <div className="space-y-3">
-      <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+      <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
         {titulo} ({productos.length})
       </h2>
 
@@ -60,14 +60,14 @@ function Lista({
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="Buscar por nombre, código, marca o medida…"
-          className="h-11 border-white/10 bg-[#1a2430] pl-9 text-[16px] text-white placeholder:text-steel-500"
+          className="h-11 border-linea bg-superficie-2 pl-9 text-[16px] text-tinta placeholder:text-steel-500"
         />
       </div>
 
       {filtrados.length === 0 ? (
         <p className="text-sm text-steel-500">Sin productos en esta lista.</p>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
+        <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -83,9 +83,9 @@ function Lista({
               </TableHeader>
               <TableBody>
                 {filtrados.map(p => (
-                  <TableRow key={p.id} className="border-white/8 hover:bg-white/5">
+                  <TableRow key={p.id} className="border-linea hover:bg-velo/5">
                     <TableCell className="font-mono text-xs text-brand-yellow">{p.codigo ?? '—'}</TableCell>
-                    <TableCell className="text-xs font-medium text-white">
+                    <TableCell className="text-xs font-medium text-tinta">
                       <Link href={`/dashboard/inventario/${p.id}`} className="hover:underline">{p.nombre}</Link>
                     </TableCell>
                     <TableCell className="text-xs text-steel-300">{p.unidad_medida ?? '—'}</TableCell>
@@ -101,7 +101,7 @@ function Lista({
                     {mostrarEliminar && (
                       <TableCell className="text-right">
                         <Button type="button" variant="ghost" size="sm"
-                          className="text-brand-red hover:bg-brand-red/15 hover:text-brand-red"
+                          className="text-sale hover:bg-brand-red/15 hover:text-sale"
                           onClick={() => onEliminar?.(p)}>
                           <Trash2 className="mr-1 h-3.5 w-3.5" />Eliminar
                         </Button>

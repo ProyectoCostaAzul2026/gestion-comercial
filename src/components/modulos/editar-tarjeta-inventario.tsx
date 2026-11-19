@@ -83,14 +83,14 @@ export function EditarTarjetaInventario({ tarjeta, categorias, onCerrar, onGrupo
     router.refresh()
   }
 
-  const CAMPO = 'h-11 border-white/10 bg-[#1a2430] text-[16px] text-white placeholder:text-steel-500'
+  const CAMPO = 'h-11 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-steel-500'
   const etiquetaNombre = tarjeta.tipo === 'grupo' ? 'Característica del grupo' : tarjeta.tipo === 'familia' ? 'Nombre de la familia' : 'Nombre de la categoría'
 
   return (
     <Sheet open onOpenChange={abierto => { if (!abierto) onCerrar() }}>
       <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto rounded-t-2xl p-4 sm:mx-auto sm:max-w-lg">
         <SheetHeader className="p-0 pr-8">
-          <SheetTitle className="text-base text-white">{TITULOS[tarjeta.tipo]}</SheetTitle>
+          <SheetTitle className="text-base text-tinta">{TITULOS[tarjeta.tipo]}</SheetTitle>
           <SheetDescription className="text-xs text-steel-300">{DESCRIPCIONES[tarjeta.tipo]}</SheetDescription>
         </SheetHeader>
         <form className="space-y-3" onSubmit={e => { e.preventDefault(); guardar() }}>
@@ -99,8 +99,8 @@ export function EditarTarjetaInventario({ tarjeta, categorias, onCerrar, onGrupo
             <Input id="tarjeta-nombre" value={nombre} onChange={e => setNombre(e.target.value)} className={CAMPO} autoComplete="off" />
           </div>
           {tarjeta.tipo === 'grupo' && (
-            <p className="rounded-lg border border-white/10 bg-[#111820] px-3 py-2 text-xs text-steel-300">
-              Los productos se llamarán: <span className="font-semibold text-white">{tarjeta.familia} - {limpiarTexto(nombre) || '…'}</span>
+            <p className="rounded-lg border border-linea bg-superficie px-3 py-2 text-xs text-steel-300">
+              Los productos se llamarán: <span className="font-semibold text-tinta">{tarjeta.familia} - {limpiarTexto(nombre) || '…'}</span>
               {' '}({tarjeta.marca ?? 'sin marca'}, {tarjeta.medidas} medida{tarjeta.medidas === 1 ? '' : 's'})
             </p>
           )}
@@ -108,9 +108,9 @@ export function EditarTarjetaInventario({ tarjeta, categorias, onCerrar, onGrupo
             <Label htmlFor="tarjeta-imagen" className="text-xs text-steel-300">URL de la imagen</Label>
             <Input id="tarjeta-imagen" type="url" inputMode="url" value={imagen} onChange={e => setImagen(e.target.value)}
               placeholder="https://…" className={CAMPO} autoComplete="off" />
-            {imagenLimpia && errorImagen && <p className="text-[11px] text-brand-red">{errorImagen}</p>}
+            {imagenLimpia && errorImagen && <p className="text-xs text-sale">{errorImagen}</p>}
             {tarjeta.tipo === 'grupo' && (
-              <p className="text-[11px] text-steel-500">Déjala vacía para quitar la imagen de todas las medidas. Si no la cambias, cada medida conserva la suya.</p>
+              <p className="text-xs text-steel-500">Déjala vacía para quitar la imagen de todas las medidas. Si no la cambias, cada medida conserva la suya.</p>
             )}
           </div>
           {imagenLimpia && !errorImagen && (

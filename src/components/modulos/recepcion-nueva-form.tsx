@@ -60,16 +60,16 @@ export function RecepcionNuevaForm({ proveedores, hoy }: { proveedores: { id: st
   }
 
   return (
-    <div className="space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-4">
+    <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
       <div className="flex items-center justify-between">
-        <h2 className="font-display font-bold text-white">Nueva recepción</h2>
-        <button type="button" onClick={() => setAbierto(false)} aria-label="Cerrar" className="text-steel-300 hover:text-white"><X className="h-5 w-5" /></button>
+        <h2 className="font-display font-bold text-tinta">Nueva recepción</h2>
+        <button type="button" onClick={() => setAbierto(false)} aria-label="Cerrar" className="text-steel-300 hover:text-tinta"><X className="h-5 w-5" /></button>
       </div>
       <p className="text-xs text-steel-300">Crea la factura en Proveedores (los pagos van por allá, como siempre) y la deja lista para que los empleados la transcriban y cuenten.</p>
       <div className="space-y-1">
         <Label className={LABEL_CLS}>Proveedor</Label>
         <Select value={proveedorId} onValueChange={v => v && setProveedorId(v)} items={proveedores.map(p => ({ value: p.id, label: p.nombre }))}>
-          <SelectTrigger className="h-11 w-full border-white/10 bg-[#1a2430] text-white"><SelectValue placeholder="Elige el proveedor…" /></SelectTrigger>
+          <SelectTrigger className="h-11 w-full border-linea bg-superficie-2 text-tinta"><SelectValue placeholder="Elige el proveedor…" /></SelectTrigger>
           <SelectContent>{proveedores.map(p => <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>)}</SelectContent>
         </Select>
       </div>
@@ -93,12 +93,12 @@ export function RecepcionNuevaForm({ proveedores, hoy }: { proveedores: { id: st
       </div>
       <div className="flex items-center gap-2">
         <Switch id="recepcion-con-iva" checked={conIva} onCheckedChange={v => setConIva(v)} />
-        <Label htmlFor="recepcion-con-iva" className="text-sm text-white">Los costos de los renglones vienen con IVA</Label>
+        <Label htmlFor="recepcion-con-iva" className="text-sm text-tinta">Los costos de los renglones vienen con IVA</Label>
       </div>
       <div className="space-y-1">
         <Label htmlFor="recepcion-notas" className={LABEL_CLS}>Notas</Label>
         <Textarea id="recepcion-notas" rows={2} value={notas} onChange={e => setNotas(e.target.value)}
-          className="border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500 focus:border-brand-yellow/60" />
+          className="border-linea bg-superficie-2 text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60" />
       </div>
       <Button type="button" onClick={abrir} disabled={guardando}
         className="h-12 w-full bg-brand-yellow text-base font-bold text-steel-900 hover:bg-brand-yellow hover:brightness-105">

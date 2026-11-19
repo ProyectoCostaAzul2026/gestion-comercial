@@ -17,15 +17,15 @@ const badgeVariants = cva(
           "border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow [a]:hover:bg-brand-yellow/30",
         // Anulada / Con deuda / Error
         destructive:
-          "border-brand-red/30 bg-brand-red/20 text-brand-red [a]:hover:bg-brand-red/30",
+          "border-brand-red/30 bg-brand-red/20 text-sale [a]:hover:bg-brand-red/30",
         // Programado / Información
         info:
-          "border-brand-blue/30 bg-brand-blue/20 text-brand-blue [a]:hover:bg-brand-blue/30",
+          "border-brand-blue/30 bg-brand-blue/20 text-enlace [a]:hover:bg-brand-blue/30",
         outline:
-          "border-white/10 bg-steel-700 text-steel-300 [a]:hover:bg-white/5",
+          "border-linea bg-steel-700 text-steel-300 [a]:hover:bg-velo/5",
         ghost:
-          "border-transparent hover:bg-white/5 hover:text-white",
-        link: "border-transparent text-brand-blue underline-offset-4 hover:underline",
+          "border-transparent hover:bg-velo/5 hover:text-tinta",
+        link: "border-transparent text-enlace underline-offset-4 hover:underline",
       },
     },
     defaultVariants: {

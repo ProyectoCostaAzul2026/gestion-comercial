@@ -147,7 +147,7 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy, permisos 
   }
 
   const festivosSemana = dias.filter(d => d.festivo && d.dia !== 'domingo')
-  const CAMPO_HORA = 'h-10 w-full rounded-lg border border-white/10 bg-[#111820] px-2 text-sm text-white'
+  const CAMPO_HORA = 'h-10 w-full rounded-lg border border-linea bg-superficie px-2 text-sm text-tinta'
 
   return (
     <div className="space-y-4">
@@ -155,7 +155,7 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy, permisos 
         {(['semanal', 'empleado'] as const).map(v => (
           <button key={v} onClick={() => setVistaActiva(v)}
             className={`h-10 rounded-xl px-4 text-sm font-semibold transition-colors ${
-              vistaActiva === v ? 'bg-brand-yellow text-steel-900' : 'border border-white/10 bg-[#1a2430] text-steel-300 hover:bg-white/5 hover:text-white'
+              vistaActiva === v ? 'bg-brand-yellow text-steel-900' : 'border border-linea bg-superficie-2 text-steel-300 hover:bg-velo/5 hover:text-tinta'
             }`}>
             {v === 'semanal' ? 'Vista semanal' : 'Por empleado'}
           </button>
@@ -163,30 +163,30 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy, permisos 
       </div>
 
       {/* Semana que se está viendo */}
-      <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-[#111820] p-2">
+      <div className="flex items-center gap-2 rounded-2xl border border-linea bg-superficie p-2">
         <button type="button" onClick={() => setSemana(s => s - 1)} disabled={semana <= 0} aria-label="Semana anterior"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 text-white hover:bg-white/5 disabled:opacity-30">
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-linea text-tinta hover:bg-velo/5 disabled:opacity-30">
           <ChevronLeft className="h-5 w-5" />
         </button>
         <div className="min-w-0 flex-1 text-center">
-          <p className="truncate text-sm font-bold text-white">
+          <p className="truncate text-sm font-bold text-tinta">
             {semana === 0 ? 'Esta semana' : semana === 1 ? 'Próxima semana' : `En ${semana} semanas`}
           </p>
           <p className="truncate text-xs text-steel-300">{fechaLarga(lunes)} al {fechaLarga(sumarDias(lunes, 6))}</p>
         </div>
         {semana > 0 && (
-          <button type="button" onClick={() => setSemana(0)} className="h-10 shrink-0 rounded-xl border border-white/10 px-3 text-xs font-bold text-brand-yellow hover:bg-white/5">
+          <button type="button" onClick={() => setSemana(0)} className="h-10 shrink-0 rounded-xl border border-linea px-3 text-xs font-bold text-brand-yellow hover:bg-velo/5">
             Hoy
           </button>
         )}
         <button type="button" onClick={() => setSemana(s => s + 1)} disabled={semana >= SEMANAS_ADELANTE} aria-label="Semana siguiente"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 text-white hover:bg-white/5 disabled:opacity-30">
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-linea text-tinta hover:bg-velo/5 disabled:opacity-30">
           <ChevronRight className="h-5 w-5" />
         </button>
       </div>
 
       {festivosSemana.length > 0 && (
-        <p className="flex gap-2 rounded-xl border border-brand-yellow/30 bg-brand-yellow/10 px-3 py-2 text-xs text-white">
+        <p className="flex gap-2 rounded-xl border border-brand-yellow/30 bg-brand-yellow/10 px-3 py-2 text-xs text-tinta">
           <PartyPopper className="mt-0.5 h-4 w-4 shrink-0 text-brand-yellow" aria-hidden />
           <span>
             {festivosSemana.map(d => `${fechaLarga(d.fecha)} es festivo (${d.festivo})`).join('; ')}.
@@ -201,7 +201,7 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy, permisos 
             const reducido = dia === 'domingo' || !!festivo
             const delDia = turnosPorDia(dia)
             return (
-              <div key={dia} className={`rounded-2xl border bg-[#111820] ${esHoy ? 'border-brand-yellow/60' : 'border-white/10'}`}>
+              <div key={dia} className={`rounded-2xl border bg-superficie ${esHoy ? 'border-brand-yellow/60' : 'border-linea'}`}>
                 <button type="button" disabled={!esAdmin} onClick={() => handleClickDia(dia)}
                   aria-expanded={esAdmin ? diaActivo === dia : undefined}
                   className={`flex w-full items-center justify-between gap-2 rounded-t-2xl px-3 py-2 text-left text-sm font-semibold transition-colors md:flex-col md:justify-center md:gap-0 md:text-center ${
@@ -209,21 +209,21 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy, permisos 
                       ? 'bg-brand-yellow text-steel-900'
                       : reducido
                         ? 'bg-brand-yellow/10 text-brand-yellow enabled:hover:bg-brand-yellow/20'
-                        : 'bg-steel-700 text-steel-300 enabled:hover:bg-white/5'
+                        : 'bg-steel-700 text-steel-300 enabled:hover:bg-velo/5'
                   }`}>
                   <span>
                     {DIAS_LABEL[dia]} {numero}
-                    {esHoy && <span className="ml-1.5 rounded-full bg-brand-yellow px-1.5 py-0.5 text-[10px] font-bold text-steel-900">Hoy</span>}
+                    {esHoy && <span className="ml-1.5 rounded-full bg-brand-yellow px-1.5 py-0.5 text-xs font-bold text-steel-900">Hoy</span>}
                   </span>
                   <span className="flex items-center gap-2 text-xs font-normal">
                     {festivo && <span className="md:block">Festivo</span>}
                     {esAdmin && diaActivo !== dia && <Plus className="h-4 w-4 md:hidden" aria-hidden />}
                   </span>
                 </button>
-                {festivo && <p className="truncate px-3 pt-1.5 text-[11px] text-brand-yellow" title={festivo}>{festivo}</p>}
+                {festivo && <p className="truncate px-3 pt-1.5 text-xs text-brand-yellow" title={festivo}>{festivo}</p>}
                 <div className="min-h-14 space-y-1 p-2">
                   {permisosDelDia(fecha).map(p => (
-                    <div key={p.id} className="rounded-xl border border-brand-red/30 bg-brand-red/10 px-2 py-1 text-xs text-brand-red">
+                    <div key={p.id} className="rounded-xl border border-brand-red/30 bg-brand-red/10 px-2 py-1 text-xs text-sale">
                       <p className="font-medium leading-tight">{p.nombre.split(' ')[0]}</p>
                       <p>Permiso: no asiste</p>
                     </div>
@@ -231,21 +231,21 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy, permisos 
                   {delDia.map(t => {
                     const real = turnoEnFecha(fecha, t.hora_inicio, t.hora_fin)
                     return (
-                      <div key={t.id} className={`rounded-xl border border-white/10 bg-[#1a2430] px-2 py-1 text-xs ${tienePermiso(fecha, t.empleado_id) ? 'opacity-40 line-through' : ''}`}>
+                      <div key={t.id} className={`rounded-xl border border-linea bg-superficie-2 px-2 py-1 text-xs ${tienePermiso(fecha, t.empleado_id) ? 'opacity-40 line-through' : ''}`}>
                         <div className="flex items-start justify-between gap-1">
                           <div className="min-w-0">
-                            <p className="truncate font-medium leading-tight text-white">
+                            <p className="truncate font-medium leading-tight text-tinta">
                               {t.profiles?.nombre_completo?.split(' ')[0] ?? '?'}
                             </p>
                             <p className={real.ajustado ? 'font-semibold text-brand-yellow' : 'text-steel-300'}>{real.inicio} – {real.fin}</p>
                             {real.ajustado && (
-                              <p className="text-[10px] text-steel-500">Habitual {t.hora_inicio.slice(0, 5)} – {t.hora_fin.slice(0, 5)}</p>
+                              <p className="text-xs text-steel-500">Habitual {t.hora_inicio.slice(0, 5)} – {t.hora_fin.slice(0, 5)}</p>
                             )}
                           </div>
                           {esAdmin && (
                             <button type="button" onClick={() => handleEliminarTurno(t)}
                               disabled={eliminando === t.id} aria-label="Quitar turno"
-                              className="-mr-1 -mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-steel-300 hover:bg-white/5 hover:text-brand-red">
+                              className="-mr-1 -mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-steel-300 hover:bg-velo/5 hover:text-sale">
                               <Trash2 className="h-3.5 w-3.5" />
                             </button>
                           )}
@@ -259,14 +259,14 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy, permisos 
                 </div>
 
                 {esAdmin && diaActivo === dia && (
-                  <div className="space-y-2 rounded-b-2xl border-t border-white/10 bg-[#1a2430] p-2">
+                  <div className="space-y-2 rounded-b-2xl border-t border-linea bg-superficie-2 p-2">
                     <p className="text-xs font-medium text-steel-300">
                       Agregar turno para todos los {DIAS_LABEL[dia]}
                     </p>
                     <Select items={empleados.map(e => ({ value: e.id, label: e.nombre_completo }))}
                       onValueChange={v => v && setNuevoTurno(p => ({ ...p, empleado_id: v }))}
                       value={nuevoTurno.empleado_id}>
-                      <SelectTrigger className="h-10 w-full border-white/10 bg-[#111820] text-sm text-white"><SelectValue placeholder="Empleado" /></SelectTrigger>
+                      <SelectTrigger className="h-10 w-full border-linea bg-superficie text-sm text-tinta"><SelectValue placeholder="Empleado" /></SelectTrigger>
                       <SelectContent>
                         {empleados.map(e => <SelectItem key={e.id} value={e.id}>{e.nombre_completo}</SelectItem>)}
                       </SelectContent>
@@ -286,7 +286,7 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy, permisos 
                       </div>
                     </div>
                     {festivo && (
-                      <p className="text-[11px] text-steel-500">
+                      <p className="text-xs text-steel-500">
                         Escribe el horario habitual: en los festivos la app ya lo recorta a {JORNADA_FESTIVO.inicio} – {JORNADA_FESTIVO.fin}.
                       </p>
                     )}
@@ -308,9 +308,9 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy, permisos 
             const turnosEmp = turnos.filter(t => t.empleado_id === emp.id)
             const horasSemanales = horasPorEmpleado(emp.id)
             return (
-              <div key={emp.id} className="rounded-2xl border border-white/10 bg-[#111820] p-4">
+              <div key={emp.id} className="rounded-2xl border border-linea bg-superficie p-4">
                 <div className="mb-2 flex items-center justify-between gap-2">
-                  <h3 className="min-w-0 truncate font-medium text-white">{emp.nombre_completo}</h3>
+                  <h3 className="min-w-0 truncate font-medium text-tinta">{emp.nombre_completo}</h3>
                   <span className="inline-flex shrink-0 items-center rounded-full border border-brand-yellow/30 bg-brand-yellow/20 px-2.5 py-0.5 text-xs font-semibold text-brand-yellow">{horasSemanales.toFixed(1)}h esta semana</span>
                 </div>
                 {turnosEmp.length === 0 ? (
@@ -322,10 +322,10 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy, permisos 
                         const real = turnoEnFecha(fecha, t.hora_inicio, t.hora_fin)
                         const conPermiso = tienePermiso(fecha, emp.id)
                         return (
-                          <div key={t.id} className={`rounded-xl border px-3 py-1.5 text-xs ${conPermiso ? 'border-brand-red/30 bg-brand-red/10' : 'border-white/10 bg-[#1a2430]'}`}>
-                            <span className="font-medium text-white">{DIAS_LABEL[dia]} {numero}</span>
+                          <div key={t.id} className={`rounded-xl border px-3 py-1.5 text-xs ${conPermiso ? 'border-brand-red/30 bg-brand-red/10' : 'border-linea bg-superficie-2'}`}>
+                            <span className="font-medium text-tinta">{DIAS_LABEL[dia]} {numero}</span>
                             {conPermiso
-                              ? <span className="ml-2 text-brand-red">Permiso</span>
+                              ? <span className="ml-2 text-sale">Permiso</span>
                               : (
                                 <>
                                   <span className={`ml-2 ${real.ajustado ? 'text-brand-yellow' : 'text-steel-300'}`}>{real.inicio} – {real.fin}</span>
@@ -344,7 +344,7 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy, permisos 
         </div>
       )}
 
-      <p className="text-[11px] text-steel-500">
+      <p className="text-xs text-steel-500">
         Los turnos se repiten cada semana. Los festivos de Colombia se reconocen solos y ese día el turno se muestra con la jornada de festivo.
       </p>
     </div>
