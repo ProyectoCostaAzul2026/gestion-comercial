@@ -3,6 +3,8 @@ import { telefonoMarcable } from '@/components/modulos/avatar-iniciales'
 import { traerTodo } from '@/lib/supabase/traer-todo'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
+import { CalendarClock, Pencil } from 'lucide-react'
+import { Aviso } from '@/components/ui/aviso'
 import { BotonAtras } from '@/components/ui/boton-atras'
 import { AvatarIniciales } from '@/components/modulos/avatar-iniciales'
 import { PerfilProveedorAcciones } from '@/components/modulos/perfil-proveedor-acciones'
@@ -69,69 +71,77 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
     ).map(p => ({ ...p, factura: f }))
   ).sort((a, b) => a.fecha_programada.localeCompare(b.fecha_programada))
 
+  const pesos = (n: number) => `$${Math.round(n).toLocaleString('es-CO')}`
+  const ENLACE = 'text-enlace underline-offset-2 hover:underline'
+  const facturasAbiertas = (facturas ?? []).filter((f: any) => f.estado !== 'pagada' && Number(f.saldo_pendiente) > 0)
+  const deuda = facturasAbiertas.reduce((s: number, f: any) => s + Number(f.saldo_pendiente), 0)
+  const vencidas = facturasAbiertas.filter((f: any) => f.fecha_vencimiento && f.fecha_vencimiento < hoy).length
+  const datos: [string, React.ReactNode][] = [
+    ['Contacto', proveedor.contacto],
+    ['Teléfono', proveedor.telefono ? <a href={`tel:${telefonoMarcable(proveedor.telefono)}`} className={ENLACE}>{proveedor.telefono}</a> : null],
+    ['Correo', proveedor.email ? <a href={`mailto:${proveedor.email}`} className={ENLACE}>{proveedor.email}</a> : null],
+    ['NIT', proveedor.nit_ruc],
+    ['Dirección', proveedor.direccion],
+    ['Sitio web', proveedor.sitio_web
+      ? <a href={proveedor.sitio_web.startsWith('http') ? proveedor.sitio_web : `https://${proveedor.sitio_web}`} target="_blank" rel="noopener noreferrer" className={ENLACE}>
+          {proveedor.sitio_web.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+        </a>
+      : null],
+    ['Notas', proveedor.notas],
+  ]
+
   return (
-    <div className="max-w-3xl space-y-6">
-      <div className="flex items-center gap-3">
+    <div className="-m-4 md:-m-6">
+      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 flex items-center gap-3 bg-fondo/95 px-2 py-2 backdrop-blur lg:top-0 md:px-4">
         <BotonAtras href="/dashboard/proveedores" />
-        <AvatarIniciales nombre={proveedor.nombre} foto={proveedor.logo_url} logo className="h-14 w-14 text-lg" />
+        <AvatarIniciales nombre={proveedor.nombre} foto={proveedor.logo_url} logo className="size-11 text-base" />
         <div className="min-w-0 flex-1">
-          <h1 className="font-display text-2xl font-bold text-tinta">{proveedor.nombre}</h1>
-          {proveedor.sitio_web && (
-            <a href={proveedor.sitio_web.startsWith('http') ? proveedor.sitio_web : `https://${proveedor.sitio_web}`}
-              target="_blank" rel="noopener noreferrer" className="text-xs text-enlace hover:underline">
-              {proveedor.sitio_web.replace(/^https?:\/\//, '').replace(/\/$/, '')}
-            </a>
-          )}
-          {!proveedor.activo && <span className="inline-flex items-center rounded-full border border-linea bg-steel-700 px-2.5 py-0.5 text-xs font-semibold text-steel-300">Inactivo</span>}
+          <h1 className="truncate text-xl font-bold text-tinta">{proveedor.nombre}</h1>
+          <p className="text-sm text-suave">Proveedor{!proveedor.activo ? ', inactivo' : ''}</p>
         </div>
         <Link href={`/dashboard/proveedores/${id}/editar`}
-          className="rounded-xl border border-linea bg-superficie-2 px-3 py-2 text-sm text-tinta hover:bg-velo/5">
-          Editar
+          className="mr-2 inline-flex h-10 items-center gap-1.5 rounded-xl border border-linea bg-superficie px-3 text-[15px] font-semibold text-tinta hover:bg-superficie-2">
+          <Pencil className="size-4" strokeWidth={1.75} aria-hidden />Editar
         </Link>
       </div>
 
-      {/* Datos */}
-      <div className="rounded-2xl border border-linea bg-superficie p-4">
-        <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-tinta">Información</h2>
-        <dl className="grid grid-cols-2 gap-3 text-sm">
-          {[
-            ['Contacto', proveedor.contacto],
-            ['NIT/RUC', proveedor.nit_ruc],
-            ['Teléfono', proveedor.telefono],
-            ['Email', proveedor.email],
-            ['Dirección', proveedor.direccion],
-            ['Notas', proveedor.notas],
-          ].map(([label, value]) => value ? (
-            <div key={label as string}>
-              <dt className="text-sm font-semibold text-suave">{label}</dt>
-              <dd className="font-medium text-tinta">
-                {label === 'Teléfono' ? <a href={`tel:${telefonoMarcable(String(value))}`} className="text-enlace underline-offset-2 hover:underline">{value}</a>
-                  : label === 'Email' ? <a href={`mailto:${value}`} className="text-enlace underline-offset-2 hover:underline">{value}</a> : value}
-              </dd>
-            </div>
-          ) : null)}
-        </dl>
+      <div className="mx-auto max-w-5xl space-y-6 px-4 pb-8 md:px-6">
+      <div className="grid gap-6 lg:grid-cols-2">
+        <section className="rounded-[18px] bg-superficie p-5">
+          <p className="text-[15px] font-semibold text-suave">Le debes</p>
+          <p className={`cifra text-[48px] font-bold leading-none ${deuda > 0 ? 'text-sale' : 'text-tinta'}`}>{pesos(deuda)}</p>
+          <p className="mt-1 text-[15px] text-suave">
+            {deuda > 0
+              ? `En ${facturasAbiertas.length} ${facturasAbiertas.length === 1 ? 'factura' : 'facturas'}${vencidas > 0 ? `, ${vencidas} ${vencidas === 1 ? 'vencida' : 'vencidas'}` : ''}. Paga desde cada factura, abajo.`
+              : 'Todas las facturas están pagadas.'}
+          </p>
+        </section>
+
+        <section className="space-y-2.5">
+          <dl className="overflow-hidden rounded-2xl bg-superficie">
+            {datos.filter(([, v]) => v).map(([etiqueta, valor]) => (
+              <div key={etiqueta} className="flex justify-between gap-4 border-b border-linea px-4 py-3 last:border-0">
+                <dt className="text-[15px] text-suave">{etiqueta}</dt>
+                <dd className="min-w-0 break-words text-right text-[15px] font-semibold text-tinta">{valor}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
       </div>
 
-      {/* Alertas de pagos próximos */}
       {pagosPendientes.length > 0 && (
-        <div className="space-y-2 rounded-2xl border border-brand-yellow/30 bg-brand-yellow/10 p-4">
-          <h2 className="text-lg font-bold text-tinta">Pagos programados próximos o vencidos</h2>
-          {pagosPendientes.map((p: any) => (
-            <div key={p.id} className="flex justify-between rounded-xl border border-linea bg-superficie-2 p-2 text-sm">
-              <div>
-                <span className={p.fecha_programada < hoy ? 'font-medium text-sale' : 'text-steel-300'}>
-                  {p.fecha_programada < hoy ? '⚠ Vencido — ' : ''}{p.fecha_programada}
+        <Aviso icono={CalendarClock} titulo={`${pagosPendientes.length} ${pagosPendientes.length === 1 ? 'pago programado' : 'pagos programados'} para esta semana o vencidos`}>
+          <ul className="space-y-1">
+            {pagosPendientes.map((p: any) => (
+              <li key={p.id} className="flex justify-between gap-3">
+                <span className={p.fecha_programada < hoy ? 'font-semibold text-sale' : ''}>
+                  {p.fecha_programada < hoy ? 'Vencido, ' : ''}{p.fecha_programada}, factura {(p.factura as any).numero_factura ?? 'sin número'}{p.nota ? `: ${p.nota}` : ''}
                 </span>
-                {p.nota && <span className="ml-2 text-steel-500">{p.nota}</span>}
-                <span className="ml-2 text-xs text-steel-500">
-                  Factura #{(p.factura as any).numero_factura ?? 'S/N'}
-                </span>
-              </div>
-              <span className="font-display font-bold text-tinta">${Number(p.monto).toLocaleString('es-CO')}</span>
-            </div>
-          ))}
-        </div>
+                <span className="cifra text-base font-bold text-tinta">{pesos(Number(p.monto))}</span>
+              </li>
+            ))}
+          </ul>
+        </Aviso>
       )}
 
       {/* Productos asociados */}
@@ -277,6 +287,7 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
           />
         </div>
       )}
+      </div>
     </div>
   )
 }

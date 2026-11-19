@@ -23,23 +23,25 @@ export function EmpleadoFiltros({ desdeKey, hastaKey, desdeValue, hastaValue }: 
   }
 
   return (
-    <div className="flex flex-wrap gap-3">
+    <div className="grid grid-cols-2 gap-2">
       <div className="space-y-1">
-        <label className="text-sm font-semibold text-suave">Desde</label>
+        <label htmlFor={desdeKey} className="text-sm font-semibold text-suave">Desde</label>
         <Input
+          id={desdeKey}
           type="date"
           value={desdeValue}
           onChange={e => actualizar(desdeKey, e.target.value)}
-          className="h-8 w-36 border-linea bg-superficie-2 text-xs text-tinta"
+          className="h-11 w-full border-linea bg-superficie text-[15px] text-tinta"
         />
       </div>
       <div className="space-y-1">
-        <label className="text-sm font-semibold text-suave">Hasta</label>
+        <label htmlFor={hastaKey} className="text-sm font-semibold text-suave">Hasta</label>
         <Input
+          id={hastaKey}
           type="date"
           value={hastaValue}
           onChange={e => actualizar(hastaKey, e.target.value)}
-          className="h-8 w-36 border-linea bg-superficie-2 text-xs text-tinta"
+          className="h-11 w-full border-linea bg-superficie text-[15px] text-tinta"
         />
       </div>
     </div>

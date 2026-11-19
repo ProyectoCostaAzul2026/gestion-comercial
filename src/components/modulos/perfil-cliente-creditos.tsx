@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -10,7 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Plus, Trash2, ChevronDown, ChevronUp, MessageCircle } from 'lucide-react'
+import { AlertTriangle, Plus, Trash2, ChevronDown, ChevronUp, MessageCircle } from 'lucide-react'
 import { hoyBogota } from '@/lib/fechas'
 import { enlaceWhatsApp, textoRecordatorioCredito } from '@/lib/whatsapp'
 
@@ -126,30 +127,31 @@ function CreditoCard({ credito }: { credito: Credito }) {
   const vencido = credito.fecha_pago_programada && credito.fecha_pago_programada < hoy && !cerrado
 
   return (
-    <div className={`space-y-3 rounded-2xl border p-4 ${cerrado ? 'border-linea bg-superficie-2 opacity-70' : vencido ? 'border-brand-red/30 bg-brand-red/10' : 'border-linea bg-superficie'}`}>
+    <div className={`space-y-3 rounded-2xl p-4 ${cerrado ? 'bg-superficie-2 opacity-70' : 'bg-superficie'}`}>
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-medium text-tinta">
-              Ticket #{credito.ventas?.numero_ticket ?? '—'}
-            </span>
-            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${esPagado ? 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400' : credito.estado === 'anulado' ? 'border-linea-fuerte bg-velo/10 text-steel-300' : credito.estado === 'parcial' ? 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow' : 'border-brand-red/30 bg-brand-red/20 text-sale'}`}>
+            {credito.ventas?.id
+              ? <Link href={`/dashboard/ventas/${credito.ventas.id}`} className="text-[16px] font-semibold text-tinta underline-offset-2 hover:text-enlace hover:underline">Ticket {credito.ventas.numero_ticket}</Link>
+              : <span className="text-[16px] font-semibold text-tinta">Ticket {credito.ventas?.numero_ticket ?? '—'}</span>}
+            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-sm font-semibold ${esPagado ? 'bg-[color-mix(in_oklab,var(--entra)_13%,transparent)] text-entra' : credito.estado === 'anulado' ? 'bg-realce text-suave' : 'bg-[color-mix(in_oklab,var(--aviso)_14%,transparent)] text-aviso'}`}>
               {ESTADO_LABEL[credito.estado] ?? credito.estado}
             </span>
-            {vencido && <span className="inline-flex items-center rounded-full border border-brand-red/30 bg-brand-red/20 px-2.5 py-0.5 text-xs font-semibold text-sale">Vencido</span>}
+            {vencido && <span className="inline-flex items-center gap-1 rounded-full bg-[color-mix(in_oklab,var(--sale)_12%,transparent)] px-2.5 py-0.5 text-sm font-semibold text-sale"><AlertTriangle className="size-3.5" aria-hidden />Vencido</span>}
           </div>
-          <p className="mt-0.5 text-xs text-steel-300">
-            {credito.ventas?.fecha} · Original: {fmt(credito.monto_original)}
-            {credito.fecha_pago_programada && ` · Vence: ${credito.fecha_pago_programada}`}
+          <p className="mt-0.5 text-sm text-suave">
+            {credito.ventas?.fecha}, de {fmt(credito.monto_original)}
+            {credito.fecha_pago_programada && `, vence el ${credito.fecha_pago_programada}`}
           </p>
         </div>
         <div className="shrink-0 text-right">
           {!cerrado && (
-            <p className="font-display text-lg font-bold text-sale">{fmt(credito.saldo_pendiente)}</p>
+            <p className="cifra text-[22px] font-bold text-sale">{fmt(credito.saldo_pendiente)}</p>
           )}
-          <button type="button" onClick={() => setExpandido(v => !v)} className="mt-1 text-steel-300 hover:text-tinta">
-            {expandido ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          <button type="button" onClick={() => setExpandido(v => !v)} aria-expanded={expandido} aria-label={expandido ? 'Ocultar detalle' : 'Ver abonos y acciones'}
+            className="mt-1 flex size-10 items-center justify-center rounded-xl text-suave hover:bg-velo/5 hover:text-tinta">
+            {expandido ? <ChevronUp className="size-5" /> : <ChevronDown className="size-5" />}
           </button>
         </div>
       </div>
@@ -330,16 +332,10 @@ export function PerfilClienteCreditos({ creditos, cliente, negocio }: {
       )}
 
       {activos.length > 0 && cliente && (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-linea bg-superficie px-4 py-3">
-          <div>
-            <p className="text-xs text-steel-300">Debe en total</p>
-            <p className="font-display text-xl font-bold text-sale">{fmt(activos.reduce((s, c) => s + Number(c.saldo_pendiente), 0))}</p>
-          </div>
-          <button type="button" onClick={recordar}
-            className="inline-flex h-11 items-center gap-2 rounded-xl border border-emerald-500/40 px-4 text-sm font-bold text-emerald-400 hover:bg-emerald-500/10">
-            <MessageCircle className="h-4 w-4" /> Recordar por WhatsApp
-          </button>
-        </div>
+        <button type="button" onClick={recordar}
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-linea bg-superficie text-[15px] font-semibold text-tinta hover:bg-superficie-2">
+          <MessageCircle className="size-5 text-entra" strokeWidth={1.75} aria-hidden /> Recordarle el pago por WhatsApp ({fmt(activos.reduce((s, c) => s + Number(c.saldo_pendiente), 0))})
+        </button>
       )}
 
       {activos.map(c => <CreditoCard key={c.id} credito={c} />)}
