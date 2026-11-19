@@ -30,7 +30,7 @@ interface Semana {
 
 const fmt = (n: number) => `${n < 0 ? '-' : ''}$${Math.abs(Math.round(n)).toLocaleString('es-CO')}`
 const corto = (f: string) => `${Number(f.slice(8))}/${Number(f.slice(5, 7))}`
-const AXIS_TICK = { fontSize: 9, fill: 'var(--suave)' }
+const AXIS_TICK = { fontSize: 11, fill: 'var(--suave)' }
 const TOOLTIP_STYLE = { backgroundColor: 'var(--sup2)', border: '1px solid var(--linea)', borderRadius: 12, color: 'var(--tinta)', fontSize: 12 }
 
 /**
@@ -172,10 +172,10 @@ export function FlujoProyectadoPanel({ hoy, disponible, cobros, pagos, promedios
         <ResponsiveContainer width="100%" height={240}>
           <ComposedChart data={proyeccion.map(s => ({ semana: corto(s.desde), entradas: s.entradas, salidas: -s.salidas, saldo: s.saldoFinal }))}
             margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--linea)" />
             <XAxis dataKey="semana" tick={{ fontSize: 10, fill: 'var(--suave)' }} />
             <YAxis tick={AXIS_TICK} tickFormatter={v => `$${(v / 1000).toFixed(0)}K`} width={50} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'color-mix(in oklab, var(--velo) 6%, transparent)' }}
               formatter={(v: any, name: any) => [fmt(Math.abs(Number(v))), name === 'entradas' ? 'Entradas' : name === 'salidas' ? 'Salidas' : 'Saldo final']} />
             <ReferenceLine y={0} stroke="var(--sale)" strokeDasharray="4 4" />
             <Bar dataKey="entradas" fill="var(--entra)" radius={[3, 3, 0, 0]} />
