@@ -91,14 +91,14 @@ export function CrearNivelInventario({
     router.push(`/dashboard/inventario/nuevo?${sp.toString()}`)
   }
 
-  const CAMPO = 'h-11 border-white/10 bg-[#1a2430] text-[16px] text-white placeholder:text-steel-500'
+  const CAMPO = 'h-11 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-steel-500'
   const nombreFinal = `${familiaExistente?.nombre_base ?? (limpiar(familia) || '…')}${SEPARADOR}${limpiar(caracteristica) || '…'}`
 
   return (
     <Sheet open onOpenChange={abierto => { if (!abierto) onCerrar() }}>
       <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto rounded-t-2xl p-4 sm:mx-auto sm:max-w-lg">
         <SheetHeader className="p-0 pr-8">
-          <SheetTitle className="text-base text-white">{TEXTOS[tipo].titulo}</SheetTitle>
+          <SheetTitle className="text-base text-tinta">{TEXTOS[tipo].titulo}</SheetTitle>
           <SheetDescription className="text-xs text-steel-300">{TEXTOS[tipo].descripcion}</SheetDescription>
         </SheetHeader>
 
@@ -121,11 +121,11 @@ export function CrearNivelInventario({
                 <Input id="nivel-familia" list="nivel-familias" value={familia} onChange={e => setFamilia(e.target.value)} placeholder="Ej: Codo" className={CAMPO} autoFocus autoComplete="off" />
                 <datalist id="nivel-familias">{familias.map(f => <option key={f.id} value={f.nombre_base} />)}</datalist>
                 {familiaExistente && (
-                  <p className="text-[11px] text-brand-yellow">Esa familia ya existe (quizás en otra categoría): el producto se agregará a ella en esta categoría.</p>
+                  <p className="text-xs text-brand-yellow">Esa familia ya existe (quizás en otra categoría): el producto se agregará a ella en esta categoría.</p>
                 )}
               </div>
             ) : (
-              <p className="text-xs text-steel-300">Familia: <span className="font-semibold text-white">{familiaFija}</span></p>
+              <p className="text-xs text-steel-300">Familia: <span className="font-semibold text-tinta">{familiaFija}</span></p>
             )}
             <div className="space-y-1">
               <Label htmlFor="nivel-caracteristica" className="text-xs text-steel-300">Característica del grupo</Label>
@@ -136,8 +136,8 @@ export function CrearNivelInventario({
               <Input id="nivel-marca" list="nivel-marcas" value={marca} onChange={e => setMarca(e.target.value)} className={CAMPO} autoComplete="off" />
               <datalist id="nivel-marcas">{marcas.map(m => <option key={m} value={m} />)}</datalist>
             </div>
-            <p className="rounded-lg border border-white/10 bg-[#111820] px-3 py-2 text-xs text-steel-300">
-              Los productos se llamarán: <span className="font-semibold text-white">{nombreFinal}</span>
+            <p className="rounded-lg border border-linea bg-superficie px-3 py-2 text-xs text-steel-300">
+              Los productos se llamarán: <span className="font-semibold text-tinta">{nombreFinal}</span>
             </p>
             <button type="submit"
               className="h-11 w-full rounded-xl bg-brand-yellow text-sm font-bold text-steel-900 hover:brightness-105">

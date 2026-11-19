@@ -45,7 +45,7 @@ const MEDIO_ESTILO: Record<string, { icono: any; texto: string; borde: string; f
   efectivo:  { icono: Banknote,   texto: 'text-emerald-400', borde: 'border-emerald-500/30', fondo: 'bg-emerald-500/10', anillo: 'bg-emerald-500/20' },
   nequi:     { icono: Smartphone, texto: 'text-purple-400',  borde: 'border-purple-500/30',  fondo: 'bg-purple-500/10',  anillo: 'bg-purple-500/20' },
   daviplata: { icono: Smartphone, texto: 'text-red-400',     borde: 'border-red-500/30',     fondo: 'bg-red-500/10',     anillo: 'bg-red-500/20' },
-  tarjeta:   { icono: CreditCard, texto: 'text-brand-blue',  borde: 'border-brand-blue/30',  fondo: 'bg-brand-blue/10',  anillo: 'bg-brand-blue/20' },
+  tarjeta:   { icono: CreditCard, texto: 'text-enlace',  borde: 'border-brand-blue/30',  fondo: 'bg-brand-blue/10',  anillo: 'bg-brand-blue/20' },
   credito:   { icono: Coins,      texto: 'text-amber-400',   borde: 'border-amber-500/30',   fondo: 'bg-amber-500/10',   anillo: 'bg-amber-500/20' },
 }
 
@@ -67,10 +67,10 @@ function SelectorModoGrafico({ modo, onChange }: { modo: ModoGrafico; onChange: 
           key={m}
           type="button"
           onClick={() => onChange(m)}
-          className={`rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide transition-colors ${
+          className={`rounded-full border px-2.5 py-1 text-xs font-bold transition-colors ${
             modo === m
               ? 'border-brand-yellow bg-brand-yellow/15 text-brand-yellow'
-              : 'border-white/10 text-steel-300 hover:border-white/20'
+              : 'border-linea text-steel-300 hover:border-linea-fuerte'
           }`}
         >
           {ETIQUETA_MODO[m]}
@@ -86,9 +86,9 @@ function KPICard({ label, valor, sub, color, comparacion }: {
   comparacion?: React.ReactNode
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
-      <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">{label}</p>
-      <p className={`mt-1 font-display text-lg font-bold ${color ?? 'text-white'}`}>{valor}</p>
+    <div className="rounded-2xl border border-linea bg-superficie p-4">
+      <p className="text-xs font-bold text-steel-300">{label}</p>
+      <p className={`mt-1 font-display text-lg font-bold ${color ?? 'text-tinta'}`}>{valor}</p>
       {comparacion && <div className="mt-0.5">{comparacion}</div>}
       {sub && <p className="mt-0.5 text-xs text-steel-500">{sub}</p>}
     </div>
@@ -109,22 +109,22 @@ function TablaUtilidad({ porCategoria, porFamilia, desde, hasta }: {
   const mostradas = verTodo ? filas : filas.slice(0, 15)
   const total = filas.reduce((t, f) => ({ ingresos: t.ingresos + f.ingresos, costo: t.costo + f.costo }), { ingresos: 0, costo: 0 })
   return (
-    <div className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
+    <div className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p className="font-semibold text-white">Utilidad por {vista === 'categoria' ? 'categoría' : 'familia'}</p>
+          <p className="font-semibold text-tinta">Utilidad por {vista === 'categoria' ? 'categoría' : 'familia'}</p>
           <p className="text-xs text-steel-500">Ventas menos costo (con el IVA pagado al proveedor). Ordenado por utilidad.</p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex gap-1 rounded-xl bg-[#0b1117] p-1">
+          <div className="flex gap-1 rounded-xl bg-fondo p-1">
             {(['categoria', 'familia'] as const).map(v => (
               <button key={v} type="button" onClick={() => { setVista(v); setVerTodo(false) }}
-                className={`h-9 rounded-lg px-3 text-xs font-bold ${vista === v ? 'bg-brand-yellow text-steel-900' : 'text-steel-300 hover:text-white'}`}>
+                className={`h-9 rounded-lg px-3 text-xs font-bold ${vista === v ? 'bg-brand-yellow text-steel-900' : 'text-steel-300 hover:text-tinta'}`}>
                 {v === 'categoria' ? 'Categoría' : 'Familia'}
               </button>
             ))}
           </div>
-          <Button size="sm" variant="outline" className="border-white/10 text-steel-300 hover:text-white"
+          <Button size="sm" variant="outline" className="border-linea text-steel-300 hover:text-tinta"
             onClick={() => exportarTopPDF(`Utilidad por ${vista === 'categoria' ? 'categoria' : 'familia'}`,
               ['Nombre', 'Unidades', 'Ventas', 'Costo', 'Utilidad', 'Margen'],
               filas.map(f => [f.nombre, Math.round(f.unidades * 100) / 100, fmt(f.ingresos), fmt(f.costo), fmt(f.utilidad), pct(f.margen)]),
@@ -145,33 +145,33 @@ function TablaUtilidad({ porCategoria, porFamilia, desde, hasta }: {
         </TableHeader>
         <TableBody>
           {mostradas.map(f => (
-            <TableRow key={f.nombre} className="border-white/8 hover:bg-white/5">
-              <TableCell className="text-xs font-medium text-white">
+            <TableRow key={f.nombre} className="border-linea hover:bg-velo/5">
+              <TableCell className="text-xs font-medium text-tinta">
                 {f.nombre}
-                <span className="block text-[11px] font-normal text-steel-500">{f.productos} producto{f.productos === 1 ? '' : 's'}</span>
+                <span className="block text-xs font-normal text-steel-500">{f.productos} producto{f.productos === 1 ? '' : 's'}</span>
               </TableCell>
               <TableCell className="text-right text-xs text-steel-300">{fmt(f.ingresos)}</TableCell>
               <TableCell className="text-right text-xs text-steel-300">{fmt(f.costo)}</TableCell>
-              <TableCell className={`text-right font-display font-bold ${f.utilidad >= 0 ? 'text-emerald-400' : 'text-brand-red'}`}>{fmt(f.utilidad)}</TableCell>
-              <TableCell className={`text-right text-xs font-semibold ${f.margen >= 30 ? 'text-emerald-400' : f.margen >= 15 ? 'text-amber-400' : 'text-brand-red'}`}>{pct(f.margen)}</TableCell>
+              <TableCell className={`text-right font-display font-bold ${f.utilidad >= 0 ? 'text-emerald-400' : 'text-sale'}`}>{fmt(f.utilidad)}</TableCell>
+              <TableCell className={`text-right text-xs font-semibold ${f.margen >= 30 ? 'text-emerald-400' : f.margen >= 15 ? 'text-amber-400' : 'text-sale'}`}>{pct(f.margen)}</TableCell>
             </TableRow>
           ))}
           {filas.length === 0 && (
-            <TableRow className="border-white/8"><TableCell colSpan={5} className="py-6 text-center text-steel-500">Sin ventas en el periodo</TableCell></TableRow>
+            <TableRow className="border-linea"><TableCell colSpan={5} className="py-6 text-center text-steel-500">Sin ventas en el periodo</TableCell></TableRow>
           )}
           {filas.length > 0 && (
             <TableRow className="bg-steel-700 hover:bg-steel-700">
               <TableCell className="font-bold text-brand-yellow">Total</TableCell>
-              <TableCell className="text-right text-xs font-bold text-white">{fmt(total.ingresos)}</TableCell>
-              <TableCell className="text-right text-xs font-bold text-white">{fmt(total.costo)}</TableCell>
+              <TableCell className="text-right text-xs font-bold text-tinta">{fmt(total.ingresos)}</TableCell>
+              <TableCell className="text-right text-xs font-bold text-tinta">{fmt(total.costo)}</TableCell>
               <TableCell className="text-right font-display font-bold text-brand-yellow">{fmt(total.ingresos - total.costo)}</TableCell>
-              <TableCell className="text-right text-xs font-bold text-white">{total.ingresos > 0 ? pct(((total.ingresos - total.costo) / total.ingresos) * 100) : '—'}</TableCell>
+              <TableCell className="text-right text-xs font-bold text-tinta">{total.ingresos > 0 ? pct(((total.ingresos - total.costo) / total.ingresos) * 100) : '—'}</TableCell>
             </TableRow>
           )}
         </TableBody>
       </Table>
       {filas.length > 15 && (
-        <button type="button" onClick={() => setVerTodo(v => !v)} className="w-full text-center text-xs font-medium text-brand-blue hover:underline">
+        <button type="button" onClick={() => setVerTodo(v => !v)} className="w-full text-center text-xs font-medium text-enlace hover:underline">
           {verTodo ? 'Ver menos' : `Ver las ${filas.length}`}
         </button>
       )}
@@ -283,12 +283,8 @@ export function ReportesPanel({
   return (
     <div className="space-y-6 md:space-y-8">
       {/* Header diagonal */}
-      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] py-3 pl-4 pr-14 md:py-4 md:pr-28">
-        <h1 className="font-display text-2xl font-bold text-brand-yellow md:text-3xl">Reportes</h1>
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-12 overflow-hidden md:w-24">
-          <div className="absolute inset-y-0 right-0 w-9 -skew-x-12 translate-x-4 bg-brand-yellow/80 md:w-20 md:translate-x-8" />
-          <div className="absolute inset-y-0 right-0 w-3 -skew-x-12 translate-x-1 bg-brand-blue md:w-7" />
-        </div>
+      <div className="relative py-1">
+        <h1 className="text-2xl font-bold text-tinta md:text-3xl">Reportes</h1>
       </div>
 
       {/* ── SELECTOR DE PERÍODO ── */}
@@ -303,13 +299,13 @@ export function ReportesPanel({
           { href: `/dashboard/contabilidad/exportar?desde=${desde}&hasta=${hasta}`, icono: FileSpreadsheet, titulo: 'Excel para el contador', sub: 'Del periodo elegido', descarga: true },
         ].map(v => {
           const Icono = v.icono
-          const clase = 'flex min-h-16 items-center gap-3 rounded-2xl border border-white/10 bg-[#111820] p-3 transition-colors hover:border-brand-yellow/50'
+          const clase = 'flex min-h-16 items-center gap-3 rounded-2xl border border-linea bg-superficie p-3 transition-colors hover:border-brand-yellow/50'
           const contenido = (
             <>
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-yellow/10 text-brand-yellow"><Icono className="h-5 w-5" /></span>
               <span className="min-w-0">
-                <span className="block text-sm font-bold leading-tight text-white">{v.titulo}</span>
-                <span className="block text-[11px] text-steel-500">{v.sub}</span>
+                <span className="block text-sm font-bold leading-tight text-tinta">{v.titulo}</span>
+                <span className="block text-xs text-steel-500">{v.sub}</span>
               </span>
             </>
           )
@@ -321,7 +317,7 @@ export function ReportesPanel({
 
       {/* ── KPIs PERÍODO ── */}
       <section className="space-y-4">
-        <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+        <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
           Resumen del periodo
         </h2>
 
@@ -337,12 +333,12 @@ export function ReportesPanel({
             sub={`Promedio/día: ${kpisPeriodo.ticketsPromedioDiarios.toFixed(1)}`} />
           <KPICard label="Resultado" valor={fmt(kpisPeriodo.resultado)}
             comparacion={<Variacion actual={kpisPeriodo.resultado} anterior={ant.resultado} compacto />}
-            color={kpisPeriodo.resultado >= 0 ? 'text-brand-yellow' : 'text-brand-red'} />
+            color={kpisPeriodo.resultado >= 0 ? 'text-brand-yellow' : 'text-sale'} />
         </div>
 
         {/* Saldos por medio período */}
         {Object.keys(mediosPeriodoStats).length > 0 && (
-          <div className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
+          <div className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
             <p className="text-xs font-medium text-steel-300">Ingresos por medio de pago — período</p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
               {MEDIOS_ORDEN.filter(m => mediosPeriodoStats[m]).map(medio => {
@@ -356,7 +352,7 @@ export function ReportesPanel({
                     </span>
                     <p className="text-xs font-medium text-steel-300">{METODO_LABEL[medio]}</p>
                     <p className={`mt-1 font-display font-bold ${est.texto}`}>{fmt(stat.total)}</p>
-                    <p className="mt-0.5 text-[11px] text-steel-500">
+                    <p className="mt-0.5 text-xs text-steel-500">
                       Prom: {stat.count > 0 ? fmt(stat.total / stat.count) : '$0'}/tx
                     </p>
                   </div>
@@ -368,7 +364,7 @@ export function ReportesPanel({
                 </span>
                 <p className="text-xs font-medium text-steel-300">Gran Total</p>
                 <p className="mt-1 font-display font-bold text-brand-yellow">{fmt(granTotalMediosPeriodo)}</p>
-                <p className="mt-0.5 text-[11px] text-steel-500">
+                <p className="mt-0.5 text-xs text-steel-500">
                   Prom: {totalTxMediosPeriodo > 0 ? fmt(granTotalMediosPeriodo / totalTxMediosPeriodo) : '$0'}/tx
                 </p>
               </div>
@@ -377,39 +373,39 @@ export function ReportesPanel({
         )}
 
         {/* Estado de resultados */}
-        <div className="space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-4">
+        <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
           <p className="text-xs font-medium text-steel-300">Estado de resultados</p>
 
           {/* Tabla */}
           <div className="space-y-1">
-            <div className="flex items-center justify-between border-b border-white/8 py-1.5">
-              <span className="text-sm font-semibold text-white">Ingresos</span>
+            <div className="flex items-center justify-between border-b border-linea py-1.5">
+              <span className="text-sm font-semibold text-tinta">Ingresos</span>
               <span className="font-display font-bold text-emerald-400">{fmt(kpisPeriodo.totalIngresos)}</span>
             </div>
             <div className="flex items-center justify-between py-1 pl-4">
               <span className="text-sm text-steel-300">— CMV</span>
-              <span className="text-sm text-brand-red">({fmt(kpisPeriodo.totalCMV)})</span>
+              <span className="text-sm text-sale">({fmt(kpisPeriodo.totalCMV)})</span>
             </div>
             <div className="flex items-center justify-between py-1 pl-4">
               <span className="text-sm text-steel-300">— Gastos</span>
-              <span className="text-sm text-brand-red">({fmt(kpisPeriodo.totalGastos)})</span>
+              <span className="text-sm text-sale">({fmt(kpisPeriodo.totalGastos)})</span>
             </div>
-            <div className="flex items-center justify-between border-b border-white/8 py-1 pl-4">
+            <div className="flex items-center justify-between border-b border-linea py-1 pl-4">
               <span className="text-sm text-steel-300">— Nóminas</span>
-              <span className="text-sm text-brand-red">({fmt(kpisPeriodo.totalNominas)})</span>
+              <span className="text-sm text-sale">({fmt(kpisPeriodo.totalNominas)})</span>
             </div>
-            <div className="flex items-center justify-between border-b border-white/8 py-1.5">
+            <div className="flex items-center justify-between border-b border-linea py-1.5">
               <span className="text-sm font-medium text-steel-300">= Ganancia bruta</span>
-              <span className={`font-display font-bold ${kpisPeriodo.gananciaBruta >= 0 ? 'text-emerald-400' : 'text-brand-red'}`}>
+              <span className={`font-display font-bold ${kpisPeriodo.gananciaBruta >= 0 ? 'text-emerald-400' : 'text-sale'}`}>
                 {fmt(kpisPeriodo.gananciaBruta)}
               </span>
             </div>
             <div className="mt-1 flex items-center justify-between rounded-xl border-2 border-brand-yellow px-3 py-2">
               <div>
-                <span className="text-base font-bold text-white">= Resultado del período</span>
+                <span className="text-base font-bold text-tinta">= Resultado del período</span>
                 <p className="text-xs text-steel-500">Margen bruto: {pct(kpisPeriodo.margenBruto)}</p>
               </div>
-              <p className={`font-display text-2xl font-black ${kpisPeriodo.resultado >= 0 ? 'text-emerald-400' : 'text-brand-red'}`}>
+              <p className={`font-display text-2xl font-bold ${kpisPeriodo.resultado >= 0 ? 'text-emerald-400' : 'text-sale'}`}>
                 {fmt(kpisPeriodo.resultado)}
               </p>
             </div>
@@ -452,10 +448,10 @@ export function ReportesPanel({
 
       {/* ── COMPARACIÓN CON EL PERIODO ANTERIOR ── */}
       <section className="space-y-3">
-        <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+        <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
           Contra el periodo anterior
         </h2>
-        <div className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
+        <div className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
           <Table>
             <TableHeader>
               <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
@@ -477,22 +473,22 @@ export function ReportesPanel({
                 ['Descuentos dados', descuentos.total, ant.descuentos, true, true],
                 ['Resultado', kpisPeriodo.resultado, ant.resultado, false, true],
               ] as [string, number, number, boolean, boolean][]).map(([nombre, actual, previo, inverso, dinero]) => (
-                <TableRow key={nombre} className={`border-white/8 hover:bg-white/5 ${nombre === 'Resultado' ? 'bg-brand-yellow/5' : ''}`}>
-                  <TableCell className={`text-xs ${nombre === 'Resultado' ? 'font-bold text-brand-yellow' : 'font-medium text-white'}`}>{nombre}</TableCell>
-                  <TableCell className="text-right font-display text-sm font-bold text-white">{dinero ? fmt(actual) : actual.toLocaleString('es-CO')}</TableCell>
+                <TableRow key={nombre} className={`border-linea hover:bg-velo/5 ${nombre === 'Resultado' ? 'bg-brand-yellow/5' : ''}`}>
+                  <TableCell className={`text-xs ${nombre === 'Resultado' ? 'font-bold text-brand-yellow' : 'font-medium text-tinta'}`}>{nombre}</TableCell>
+                  <TableCell className="text-right font-display text-sm font-bold text-tinta">{dinero ? fmt(actual) : actual.toLocaleString('es-CO')}</TableCell>
                   <TableCell className="text-right text-xs text-steel-300">{dinero ? fmt(previo) : previo.toLocaleString('es-CO')}</TableCell>
                   <TableCell className="text-right"><Variacion actual={actual} anterior={previo} inverso={inverso} compacto /></TableCell>
                 </TableRow>
               ))}
-              <TableRow className="border-white/8 hover:bg-white/5">
-                <TableCell className="text-xs font-medium text-white">Margen bruto</TableCell>
-                <TableCell className="text-right font-display text-sm font-bold text-white">{pct(kpisPeriodo.margenBruto)}</TableCell>
+              <TableRow className="border-linea hover:bg-velo/5">
+                <TableCell className="text-xs font-medium text-tinta">Margen bruto</TableCell>
+                <TableCell className="text-right font-display text-sm font-bold text-tinta">{pct(kpisPeriodo.margenBruto)}</TableCell>
                 <TableCell className="text-right text-xs text-steel-300">{pct(ant.margenBruto)}</TableCell>
-                <TableCell className="text-right text-[11px] font-semibold">
+                <TableCell className="text-right text-xs font-semibold">
                   {Math.abs(kpisPeriodo.margenBruto - ant.margenBruto) < 0.05 ? (
                     <span className="text-steel-300">= 0.0 pts</span>
                   ) : (
-                    <span className={kpisPeriodo.margenBruto > ant.margenBruto ? 'text-emerald-400' : 'text-brand-red'}>
+                    <span className={kpisPeriodo.margenBruto > ant.margenBruto ? 'text-emerald-400' : 'text-sale'}>
                       {kpisPeriodo.margenBruto > ant.margenBruto ? '▲' : '▼'} {Math.abs(kpisPeriodo.margenBruto - ant.margenBruto).toFixed(1)} pts
                     </span>
                   )}
@@ -519,16 +515,16 @@ export function ReportesPanel({
               <Bar dataKey="actual" fill="#ffce00" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-          <p className="text-center text-[11px] text-steel-500">
+          <p className="text-center text-xs text-steel-500">
             <span className="mr-1 inline-block h-2 w-2 rounded-sm bg-brand-yellow" />Este periodo
-            <span className="ml-3 mr-1 inline-block h-2 w-2 rounded-sm bg-[#5b6b76]" />{anterior.etiqueta}
+            <span className="ml-3 mr-1 inline-block h-2 w-2 rounded-sm bg-tenue" />{anterior.etiqueta}
           </p>
         </div>
       </section>
 
       {/* ── DESCUENTOS EN EL TIEMPO ── */}
       <section className="space-y-3">
-        <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+        <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
           Descuentos
         </h2>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
@@ -540,8 +536,8 @@ export function ReportesPanel({
           <KPICard label="Ventas con descuento" valor={String(descuentos.ventasConDescuento)}
             sub={kpisPeriodo.numVentas > 0 ? `${pct((descuentos.ventasConDescuento / kpisPeriodo.numVentas) * 100)} de los tickets` : undefined} />
         </div>
-        <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
-          <p className="mb-1 text-sm font-semibold text-white">Descuentos en el tiempo</p>
+        <div className="rounded-2xl border border-linea bg-superficie p-4">
+          <p className="mb-1 text-sm font-semibold text-tinta">Descuentos en el tiempo</p>
           <p className="mb-4 text-xs text-steel-500">{diasPeriodo > 92 ? 'Por mes' : 'Por día'}. Incluye descuentos por línea, descuento total y total editado a mano.</p>
           {descuentos.total > 0 ? (
             <ResponsiveContainer width="100%" height={220}>
@@ -564,12 +560,12 @@ export function ReportesPanel({
 
       {/* ── FLUJO DE CAJA ── */}
       <section className="space-y-4">
-        <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+        <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
           Análisis de ventas
         </h2>
 
-        <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
-          <p className="mb-1 text-sm font-semibold text-white">Flujo de caja</p>
+        <div className="rounded-2xl border border-linea bg-superficie p-4">
+          <p className="mb-1 text-sm font-semibold text-tinta">Flujo de caja</p>
           <p className="mb-4 text-xs text-steel-500">
             {diasPeriodo > 30 ? 'Agrupado por mes' : 'Por día'}
           </p>
@@ -603,8 +599,8 @@ export function ReportesPanel({
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {/* Medios de pago */}
-          <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
-            <p className="mb-4 text-sm font-semibold text-white">Por medio de pago</p>
+          <div className="rounded-2xl border border-linea bg-superficie p-4">
+            <p className="mb-4 text-sm font-semibold text-tinta">Por medio de pago</p>
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
                 <Pie
@@ -626,8 +622,8 @@ export function ReportesPanel({
           </div>
 
           {/* Ventas por hora */}
-          <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
-            <p className="mb-1 text-sm font-semibold text-white">Ventas por hora del día</p>
+          <div className="rounded-2xl border border-linea bg-superficie p-4">
+            <p className="mb-1 text-sm font-semibold text-tinta">Ventas por hora del día</p>
             <SelectorModoGrafico modo={modoHoras} onChange={setModoHoras} />
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={datosHorasMostrados} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
@@ -647,8 +643,8 @@ export function ReportesPanel({
         </div>
 
         {/* Ventas promedio por día de la semana */}
-        <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
-          <p className="mb-1 text-sm font-semibold text-white">Ventas promedio por día de la semana</p>
+        <div className="rounded-2xl border border-linea bg-superficie p-4">
+          <p className="mb-1 text-sm font-semibold text-tinta">Ventas promedio por día de la semana</p>
           <p className="mb-3 text-xs text-steel-500">Lunes a domingo · promedio sobre el período seleccionado</p>
           <SelectorModoGrafico modo={modoDias} onChange={setModoDias} />
           <ResponsiveContainer width="100%" height={220}>
@@ -669,8 +665,8 @@ export function ReportesPanel({
 
         {/* Ventas por empleado */}
         {graficaEmpleados.length > 0 && (
-          <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
-            <p className="mb-4 text-sm font-semibold text-white">Ventas por empleado</p>
+          <div className="rounded-2xl border border-linea bg-superficie p-4">
+            <p className="mb-4 text-sm font-semibold text-tinta">Ventas por empleado</p>
             <ResponsiveContainer width="100%" height={Math.max(120, graficaEmpleados.length * 40)}>
               <BarChart data={graficaEmpleados} layout="vertical"
                 margin={{ top: 5, right: 60, left: 20, bottom: 5 }}>
@@ -707,13 +703,13 @@ export function ReportesPanel({
       {/* ── TOP PRODUCTOS ── */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
             Análisis de productos
           </h2>
           <div className="flex items-center gap-2">
             <label className="text-xs text-steel-300">Mostrar:</label>
             <Select items={TOP_OPCIONES} onValueChange={v => v && setTopN(parseInt(v))} value={String(topN)}>
-              <SelectTrigger className="h-8 w-28 border-white/10 bg-[#1a2430] text-xs text-white"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-8 w-28 border-linea bg-superficie-2 text-xs text-tinta"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {TOP_OPCIONES.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
               </SelectContent>
@@ -722,9 +718,9 @@ export function ReportesPanel({
         </div>
 
         {/* Top por cantidad */}
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
-          <div className="flex items-center justify-between border-b border-white/8 px-4 py-3">
-            <p className="font-semibold text-white">Top {topN} — Más vendidos por cantidad</p>
+        <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+          <div className="flex items-center justify-between border-b border-linea px-4 py-3">
+            <p className="font-semibold text-tinta">Top {topN} — Más vendidos por cantidad</p>
             <Button variant="outline" size="sm" className="border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={() =>
               exportarTopPDF(`Top ${topN} Más Vendidos`,
                 ['#', 'Código', 'Nombre', 'Marca', 'Medida', 'Cantidad', 'Ingreso', '% Ganancia', 'N° Tickets'],
@@ -752,22 +748,22 @@ export function ReportesPanel({
               </TableHeader>
               <TableBody>
                 {topPorCantidad.map((p, i) => (
-                  <TableRow key={p.producto_id} className="border-white/8 hover:bg-white/5">
+                  <TableRow key={p.producto_id} className="border-linea hover:bg-velo/5">
                     <TableCell className="text-xs text-steel-500">{i + 1}</TableCell>
                     <TableCell className="font-mono text-xs text-brand-yellow">{p.codigo}</TableCell>
-                    <TableCell className="text-xs font-medium text-white">{p.nombre}</TableCell>
+                    <TableCell className="text-xs font-medium text-tinta">{p.nombre}</TableCell>
                     <TableCell className="text-xs text-steel-300">{p.marca ?? '—'}</TableCell>
                     <TableCell className="text-xs text-steel-300">{p.unidad_medida ?? '—'}</TableCell>
-                    <TableCell className="text-right font-display font-bold text-white">{p.cantidad}</TableCell>
+                    <TableCell className="text-right font-display font-bold text-tinta">{p.cantidad}</TableCell>
                     <TableCell className="text-right text-emerald-400">{fmt(p.ingresos)}</TableCell>
-                    <TableCell className={`text-right text-xs ${p.pct_ganancia >= 0 ? 'text-emerald-400' : 'text-brand-red'}`}>
+                    <TableCell className={`text-right text-xs ${p.pct_ganancia >= 0 ? 'text-emerald-400' : 'text-sale'}`}>
                       {pct(p.pct_ganancia)}
                     </TableCell>
                     <TableCell className="text-right text-steel-300">{p.tickets}</TableCell>
                   </TableRow>
                 ))}
                 {topPorCantidad.length === 0 && (
-                  <TableRow className="border-white/8"><TableCell colSpan={9} className="py-6 text-center text-steel-500">Sin datos</TableCell></TableRow>
+                  <TableRow className="border-linea"><TableCell colSpan={9} className="py-6 text-center text-steel-500">Sin datos</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>
@@ -775,9 +771,9 @@ export function ReportesPanel({
         </div>
 
         {/* Top por ingresos */}
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
-          <div className="flex items-center justify-between border-b border-white/8 px-4 py-3">
-            <p className="font-semibold text-white">Top {topN} — Mayor ingreso generado</p>
+        <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+          <div className="flex items-center justify-between border-b border-linea px-4 py-3">
+            <p className="font-semibold text-tinta">Top {topN} — Mayor ingreso generado</p>
             <Button variant="outline" size="sm" className="border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={() =>
               exportarTopPDF(`Top ${topN} Mayor Ingreso`,
                 ['#', 'Código', 'Nombre', 'Marca', 'Medida', 'Ingreso', '% Ganancia', 'Margen bruto'],
@@ -806,24 +802,24 @@ export function ReportesPanel({
                 {topPorIngresos.map((p, i) => {
                   const margen = p.ingresos - p.costo
                   return (
-                    <TableRow key={p.producto_id} className="border-white/8 hover:bg-white/5">
+                    <TableRow key={p.producto_id} className="border-linea hover:bg-velo/5">
                       <TableCell className="text-xs text-steel-500">{i + 1}</TableCell>
                       <TableCell className="font-mono text-xs text-brand-yellow">{p.codigo}</TableCell>
-                      <TableCell className="text-xs font-medium text-white">{p.nombre}</TableCell>
+                      <TableCell className="text-xs font-medium text-tinta">{p.nombre}</TableCell>
                       <TableCell className="text-xs text-steel-300">{p.marca ?? '—'}</TableCell>
                       <TableCell className="text-xs text-steel-300">{p.unidad_medida ?? '—'}</TableCell>
                       <TableCell className="text-right font-display font-bold text-emerald-400">{fmt(p.ingresos)}</TableCell>
-                      <TableCell className={`text-right text-xs ${p.pct_ganancia >= 0 ? 'text-emerald-400' : 'text-brand-red'}`}>
+                      <TableCell className={`text-right text-xs ${p.pct_ganancia >= 0 ? 'text-emerald-400' : 'text-sale'}`}>
                         {pct(p.pct_ganancia)}
                       </TableCell>
-                      <TableCell className={`text-right font-medium ${margen >= 0 ? 'text-emerald-400' : 'text-brand-red'}`}>
+                      <TableCell className={`text-right font-medium ${margen >= 0 ? 'text-emerald-400' : 'text-sale'}`}>
                         {fmt(margen)}
                       </TableCell>
                     </TableRow>
                   )
                 })}
                 {topPorIngresos.length === 0 && (
-                  <TableRow className="border-white/8"><TableCell colSpan={8} className="py-6 text-center text-steel-500">Sin datos</TableCell></TableRow>
+                  <TableRow className="border-linea"><TableCell colSpan={8} className="py-6 text-center text-steel-500">Sin datos</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>
@@ -831,9 +827,9 @@ export function ReportesPanel({
         </div>
 
         {/* Top por rotación */}
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
-          <div className="flex items-center justify-between border-b border-white/8 px-4 py-3">
-            <p className="font-semibold text-white">Top {topN} — Mayor rotación</p>
+        <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+          <div className="flex items-center justify-between border-b border-linea px-4 py-3">
+            <p className="font-semibold text-tinta">Top {topN} — Mayor rotación</p>
             <Button variant="outline" size="sm" className="border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={() =>
               exportarTopPDF(`Top ${topN} Mayor Rotación`,
                 ['#', 'Código', 'Nombre', 'Marca', 'Medida', 'Ingreso', '% Ganancia', 'Und/día'],
@@ -860,21 +856,21 @@ export function ReportesPanel({
               </TableHeader>
               <TableBody>
                 {topPorFrecuencia.map((p, i) => (
-                  <TableRow key={p.producto_id} className="border-white/8 hover:bg-white/5">
+                  <TableRow key={p.producto_id} className="border-linea hover:bg-velo/5">
                     <TableCell className="text-xs text-steel-500">{i + 1}</TableCell>
                     <TableCell className="font-mono text-xs text-brand-yellow">{p.codigo}</TableCell>
-                    <TableCell className="text-xs font-medium text-white">{p.nombre}</TableCell>
+                    <TableCell className="text-xs font-medium text-tinta">{p.nombre}</TableCell>
                     <TableCell className="text-xs text-steel-300">{p.marca ?? '—'}</TableCell>
                     <TableCell className="text-xs text-steel-300">{p.unidad_medida ?? '—'}</TableCell>
                     <TableCell className="text-right text-emerald-400">{fmt(p.ingresos)}</TableCell>
-                    <TableCell className={`text-right text-xs ${p.pct_ganancia >= 0 ? 'text-emerald-400' : 'text-brand-red'}`}>
+                    <TableCell className={`text-right text-xs ${p.pct_ganancia >= 0 ? 'text-emerald-400' : 'text-sale'}`}>
                       {pct(p.pct_ganancia)}
                     </TableCell>
-                    <TableCell className="text-right font-display font-bold text-white">{p.unidades_por_dia.toFixed(2)}</TableCell>
+                    <TableCell className="text-right font-display font-bold text-tinta">{p.unidades_por_dia.toFixed(2)}</TableCell>
                   </TableRow>
                 ))}
                 {topPorFrecuencia.length === 0 && (
-                  <TableRow className="border-white/8"><TableCell colSpan={8} className="py-6 text-center text-steel-500">Sin datos</TableCell></TableRow>
+                  <TableRow className="border-linea"><TableCell colSpan={8} className="py-6 text-center text-steel-500">Sin datos</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>
@@ -884,7 +880,7 @@ export function ReportesPanel({
 
       {/* ── UTILIDAD POR CATEGORÍA Y FAMILIA ── */}
       <section className="space-y-3">
-        <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+        <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
           Utilidad real
         </h2>
         <TablaUtilidad porCategoria={utilidadPorCategoria} porFamilia={utilidadPorFamilia} desde={desde} hasta={hasta} />
@@ -892,27 +888,27 @@ export function ReportesPanel({
 
       {/* ── INVENTARIO Y PROVEEDORES ── */}
       <section className="space-y-4">
-        <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+        <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
           Inventario y proveedores
         </h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <KPICard label="Valor inventario a costo"
-            valor={fmt(inventario.valorCosto)} sub="Stock actual × precio de compra" color="text-brand-blue" />
+            valor={fmt(inventario.valorCosto)} sub="Stock actual × precio de compra" color="text-enlace" />
           <KPICard label="Valor inventario a precio de venta"
             valor={fmt(inventario.valorVenta)} sub="Stock actual × precio de venta" color="text-emerald-400" />
         </div>
-        <div className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
+        <div className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
           <div className="flex items-center justify-between">
-            <p className="font-semibold text-white">Deuda con proveedores</p>
-            <span className="font-display text-lg font-bold text-brand-red">{fmt(deudaProveedores.total)}</span>
+            <p className="font-semibold text-tinta">Deuda con proveedores</p>
+            <span className="font-display text-lg font-bold text-sale">{fmt(deudaProveedores.total)}</span>
           </div>
           {deudaProveedores.top5.length > 0 && (
             <div className="space-y-1">
               <p className="mb-2 text-xs text-steel-300">Top 5 con mayor deuda</p>
               {deudaProveedores.top5.map(d => (
-                <div key={d.nombre} className="flex justify-between border-b border-white/8 pb-1 text-sm last:border-0">
+                <div key={d.nombre} className="flex justify-between border-b border-linea pb-1 text-sm last:border-0">
                   <span className="text-steel-300">{d.nombre}</span>
-                  <span className="font-medium text-brand-red">{fmt(d.deuda)}</span>
+                  <span className="font-medium text-sale">{fmt(d.deuda)}</span>
                 </div>
               ))}
             </div>
@@ -923,10 +919,10 @@ export function ReportesPanel({
       {/* ── NÓMINA ── */}
       {nominaPeriodo.length > 0 && (
         <section className="space-y-3">
-          <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
             Nómina del período
           </h2>
-          <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
+          <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -939,10 +935,10 @@ export function ReportesPanel({
                 </TableHeader>
                 <TableBody>
                   {[...nominaPeriodo].sort((a, b) => b.total - a.total).map(n => (
-                    <TableRow key={n.nombre} className="border-white/8 hover:bg-white/5">
-                      <TableCell className="text-xs font-medium text-white">{n.nombre}</TableCell>
+                    <TableRow key={n.nombre} className="border-linea hover:bg-velo/5">
+                      <TableCell className="text-xs font-medium text-tinta">{n.nombre}</TableCell>
                       <TableCell className="text-right text-xs text-steel-300">{n.dias}</TableCell>
-                      <TableCell className="text-right font-display font-bold text-white">{fmt(n.total)}</TableCell>
+                      <TableCell className="text-right font-display font-bold text-tinta">{fmt(n.total)}</TableCell>
                       <TableCell className="text-right text-xs text-steel-300">
                         {n.dias > 0 ? fmt(n.total / n.dias) : '—'}
                       </TableCell>

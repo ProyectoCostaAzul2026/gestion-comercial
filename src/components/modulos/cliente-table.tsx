@@ -46,17 +46,17 @@ export function ClienteTable({ clientes }: { clientes: ClienteListItem[] }) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Buscar por nombre, teléfono o documento…"
-          className="h-12 border-white/10 bg-[#1a2430] pl-9 text-[16px] text-white placeholder:text-steel-500"
+          className="h-12 border-linea bg-superficie-2 pl-9 text-[16px] text-tinta placeholder:text-steel-500"
         />
       </div>
 
       {/* Celular: una tarjeta por cliente */}
       <ul className="space-y-2 md:hidden">
         {filtrados.map((cliente) => (
-          <li key={cliente.id} className="flex items-stretch overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
-            <Link href={`/dashboard/clientes/${cliente.id}`} className="flex min-w-0 flex-1 items-center gap-2 px-3 py-3 active:bg-white/5">
+          <li key={cliente.id} className="flex items-stretch overflow-hidden rounded-2xl border border-linea bg-superficie">
+            <Link href={`/dashboard/clientes/${cliente.id}`} className="flex min-w-0 flex-1 items-center gap-2 px-3 py-3 active:bg-velo/5">
               <div className="min-w-0 flex-1">
-                <p className="flex items-center gap-2 text-sm font-bold text-white">
+                <p className="flex items-center gap-2 text-sm font-bold text-tinta">
                   <span className="truncate">{cliente.nombre}</span>
                   {cliente.es_cliente_generico && (
                     <Badge variant="outline" className="shrink-0 rounded-full border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow">General</Badge>
@@ -66,7 +66,7 @@ export function ClienteTable({ clientes }: { clientes: ClienteListItem[] }) {
                   {[cliente.telefono, cliente.nit_cc].filter(Boolean).join(' · ') || 'Sin teléfono ni documento'}
                 </p>
                 {!!cliente.numCompras && (
-                  <p className="text-[11px] text-steel-500">
+                  <p className="text-xs text-steel-500">
                     {cliente.numCompras} compra{cliente.numCompras === 1 ? '' : 's'}
                     {cliente.totalCompras ? ` · $${cliente.totalCompras.toLocaleString('es-CO')}` : ''}
                     {cliente.ultimaCompra ? ` · última ${cliente.ultimaCompra}` : ''}
@@ -77,7 +77,7 @@ export function ClienteTable({ clientes }: { clientes: ClienteListItem[] }) {
             </Link>
             {cliente.telefono && (
               <a href={`tel:${cliente.telefono.replace(/[^0-9+]/g, '')}`} aria-label={`Llamar a ${cliente.nombre}`}
-                className="flex w-12 shrink-0 items-center justify-center border-l border-white/10 text-brand-blue active:bg-white/5">
+                className="flex w-12 shrink-0 items-center justify-center border-l border-linea text-enlace active:bg-velo/5">
                 <Phone className="h-4 w-4" />
               </a>
             )}
@@ -85,12 +85,12 @@ export function ClienteTable({ clientes }: { clientes: ClienteListItem[] }) {
         ))}
       </ul>
       {filtrados.length === 0 && (
-        <p className="rounded-2xl border border-white/10 bg-[#111820] p-8 text-center text-sm text-steel-500 md:hidden">
+        <p className="rounded-2xl border border-linea bg-superficie p-8 text-center text-sm text-steel-500 md:hidden">
           {clientes.length === 0 ? 'No hay clientes registrados todavía.' : 'No se encontraron clientes con esa búsqueda.'}
         </p>
       )}
 
-      <div className="hidden overflow-hidden rounded-2xl border border-white/10 bg-[#111820] md:block">
+      <div className="hidden overflow-hidden rounded-2xl border border-linea bg-superficie md:block">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -108,10 +108,10 @@ export function ClienteTable({ clientes }: { clientes: ClienteListItem[] }) {
               {filtrados.map((cliente) => (
                 <TableRow
                   key={cliente.id}
-                  className="cursor-pointer border-white/8 hover:bg-white/5"
+                  className="cursor-pointer border-linea hover:bg-velo/5"
                   onClick={() => router.push(`/dashboard/clientes/${cliente.id}`)}
                 >
-                  <TableCell className="text-xs font-medium text-white">
+                  <TableCell className="text-xs font-medium text-tinta">
                     {cliente.nombre}
                     {cliente.es_cliente_generico && (
                       <Badge variant="outline" className="ml-2 rounded-full border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow">General</Badge>
@@ -121,7 +121,7 @@ export function ClienteTable({ clientes }: { clientes: ClienteListItem[] }) {
                   <TableCell className="text-xs text-steel-300">{cliente.email ?? '—'}</TableCell>
                   <TableCell className="text-xs text-steel-300">{cliente.nit_cc ?? '—'}</TableCell>
                   {/* Estas 3 columnas se calculan desde `ventas`, que todavía no existe */}
-                  <TableCell className="text-right font-display text-sm font-bold text-white">
+                  <TableCell className="text-right font-display text-sm font-bold text-tinta">
                     {cliente.totalCompras ? `$${cliente.totalCompras.toLocaleString('es-CO')}` : '—'}
                   </TableCell>
                   <TableCell className="text-right text-xs text-steel-300">

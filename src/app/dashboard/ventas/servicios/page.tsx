@@ -38,13 +38,13 @@ export default async function ServiciosPage({
       <div className="mb-6 flex items-center gap-3">
         <BotonAtras href="/dashboard/ventas" />
         <div>
-          <h1 className="font-display text-2xl font-bold text-brand-yellow">Servicios realizados</h1>
+          <h1 className="text-2xl font-bold text-tinta">Servicios realizados</h1>
           <p className="mt-0.5 text-xs text-steel-300">{servicios?.length ?? 0} servicios en el período</p>
         </div>
       </div>
 
       {error && (
-        <p className="mb-4 rounded-2xl border border-brand-red/30 bg-brand-red/10 p-4 text-sm text-brand-red">
+        <p className="mb-4 rounded-2xl border border-brand-red/30 bg-brand-red/10 p-4 text-sm text-sale">
           Error al cargar servicios: {error.message}
         </p>
       )}

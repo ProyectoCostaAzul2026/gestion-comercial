@@ -192,9 +192,9 @@ export function ProductosProveedorTable({
   }
 
   return (
-    <div className="space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-4">
+    <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+        <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
           Productos asociados ({productosFiltrados.length}{familiaSeleccionada ? ` de ${productos.length}` : ''})
         </h2>
         {!modoPedido && (
@@ -213,20 +213,20 @@ export function ProductosProveedorTable({
             onChange={e => { setQueryFamilia(e.target.value); setFamiliaSeleccionada(null); setMostrarOpcionesFamilia(true) }}
             onFocus={() => setMostrarOpcionesFamilia(true)}
             placeholder="Filtrar por familia…"
-            className="h-9 border-white/10 bg-[#1a2430] pl-9 pr-8 text-sm text-white placeholder:text-steel-500"
+            className="h-9 border-linea bg-superficie-2 pl-9 pr-8 text-sm text-tinta placeholder:text-steel-500"
           />
           {(familiaSeleccionada || queryFamilia) && (
             <button type="button"
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-steel-500 hover:text-white"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-steel-500 hover:text-tinta"
               onClick={() => { setFamiliaSeleccionada(null); setQueryFamilia(''); setMostrarOpcionesFamilia(false) }}>
               <X className="h-4 w-4" />
             </button>
           )}
           {mostrarOpcionesFamilia && opcionesFamiliaFiltradas.length > 0 && (
-            <div className="absolute z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-white/10 bg-[#111820] shadow-xl">
+            <div className="absolute z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-linea bg-superficie shadow-xl">
               {opcionesFamiliaFiltradas.map(op => (
                 <button key={op.id} type="button"
-                  className="block w-full px-3 py-2 text-left text-sm text-white hover:bg-white/5"
+                  className="block w-full px-3 py-2 text-left text-sm text-tinta hover:bg-velo/5"
                   onClick={() => { setFamiliaSeleccionada(op); setQueryFamilia(''); setMostrarOpcionesFamilia(false) }}>
                   {op.nombre}
                 </button>
@@ -247,7 +247,7 @@ export function ProductosProveedorTable({
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-white/8 text-xs text-steel-300">
+                  <tr className="border-b border-linea text-xs text-steel-300">
                     <th className="pb-2 pr-3 text-left">Cód. proveedor</th>
                     <th className="pb-2 pr-3 text-left">Nombre</th>
                     <th className="pb-2 pr-3 text-right">Stock</th>
@@ -258,7 +258,7 @@ export function ProductosProveedorTable({
                   {productosFiltrados.map(pp => {
                     const stockBajo = pp.producto.stock_actual <= pp.producto.stock_minimo
                     return (
-                      <tr key={pp.id} className="border-b border-white/8 last:border-0">
+                      <tr key={pp.id} className="border-b border-linea last:border-0">
                         <td className="py-2 pr-3 font-mono text-xs text-brand-yellow">
                           {pp.referencia_proveedor ?? '—'}
                         </td>
@@ -269,12 +269,12 @@ export function ProductosProveedorTable({
                               <Link
                                 href={`/dashboard/inventario/${pp.producto.id}`}
                                 prefetch={false}
-                                className={`underline-offset-2 hover:text-brand-yellow hover:underline ${!pp.producto.activo ? 'text-steel-500' : 'text-white'}`}
+                                className={`underline-offset-2 hover:text-brand-yellow hover:underline ${!pp.producto.activo ? 'text-steel-500' : 'text-tinta'}`}
                               >
                                 {pp.producto.nombre}
                               </Link>
                             ) : (
-                              <span className={!pp.producto.activo ? 'text-steel-500' : 'text-white'}>
+                              <span className={!pp.producto.activo ? 'text-steel-500' : 'text-tinta'}>
                                 {pp.producto.nombre}
                               </span>
                             )}
@@ -293,11 +293,11 @@ export function ProductosProveedorTable({
                           )}
                         </td>
                         <td className="py-2 pr-3 text-right">
-                          <span className={stockBajo ? 'font-medium text-brand-red' : 'text-white'}>
+                          <span className={stockBajo ? 'font-medium text-sale' : 'text-tinta'}>
                             {pp.producto.stock_actual}
                           </span>
                           {stockBajo && (
-                            <span className="ml-2 inline-flex items-center rounded-full border border-brand-red/30 bg-brand-red/20 px-2 py-0.5 text-xs font-semibold text-brand-red">Stock bajo</span>
+                            <span className="ml-2 inline-flex items-center rounded-full border border-brand-red/30 bg-brand-red/20 px-2 py-0.5 text-xs font-semibold text-sale">Stock bajo</span>
                           )}
                         </td>
                         <td className="py-2 text-right text-steel-300">
@@ -317,10 +317,10 @@ export function ProductosProveedorTable({
       {modoPedido && (
         <div className="space-y-4">
           {/* Configuración días */}
-          <div className="space-y-3 rounded-xl border border-white/10 bg-[#1a2430] p-3">
+          <div className="space-y-3 rounded-xl border border-linea bg-superficie-2 p-3">
             <div className="flex flex-wrap items-end gap-3">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">
+                <label className="text-xs font-bold text-steel-300">
                   Días hasta el próximo pedido
                 </label>
                 <Input
@@ -332,7 +332,7 @@ export function ProductosProveedorTable({
                     setDiasPedido(parseInt(e.target.value) || 0)
                     setCalculado(false)
                   }}
-                  className="h-8 w-24 border-white/10 bg-[#111820] text-sm text-white"
+                  className="h-8 w-24 border-linea bg-superficie text-sm text-tinta"
                 />
               </div>
               <Button
@@ -359,7 +359,7 @@ export function ProductosProveedorTable({
                 </p>
               ) : (
                 <>
-                  <div className="grid grid-cols-12 gap-2 border-b border-white/8 px-2 pb-1 text-xs text-steel-300">
+                  <div className="grid grid-cols-12 gap-2 border-b border-linea px-2 pb-1 text-xs text-steel-300">
                     <span className="col-span-1">Pos.</span>
                     <span className="col-span-3">Cód. proveedor</span>
                     <span className="col-span-4">Nombre</span>
@@ -368,16 +368,16 @@ export function ProductosProveedorTable({
                     <span className="col-span-1"></span>
                   </div>
                   {pedido.map((item, idx) => (
-                    <div key={item.id} className="grid grid-cols-12 items-center gap-2 rounded-xl border border-white/10 bg-[#1a2430] p-2">
+                    <div key={item.id} className="grid grid-cols-12 items-center gap-2 rounded-xl border border-linea bg-superficie-2 p-2">
                       <span className="col-span-1 text-center text-xs text-steel-500">{item.posicion}</span>
                       <span className="col-span-3 truncate font-mono text-xs text-brand-yellow">
                         {item.referencia_proveedor ?? '—'}
                       </span>
                       <div className="col-span-4 min-w-0">
-                        <p className="truncate text-sm font-medium text-white">{item.nombre}</p>
+                        <p className="truncate text-sm font-medium text-tinta">{item.nombre}</p>
                         <p className="text-xs text-steel-500">
                           {item.marca ?? ''}{item.unidad_medida ? ` · ${item.unidad_medida}` : ''}
-                          {' · '}Stock: <span className={item.stock_actual <= item.stock_minimo ? 'text-brand-red' : 'text-steel-300'}>{item.stock_actual}</span>
+                          {' · '}Stock: <span className={item.stock_actual <= item.stock_minimo ? 'text-sale' : 'text-steel-300'}>{item.stock_actual}</span>
                         </p>
                       </div>
                       <span className="col-span-2 text-right text-xs text-steel-300">
@@ -392,14 +392,14 @@ export function ProductosProveedorTable({
                           onChange={e => setPedido(prev => prev.map((it, i) =>
                             i === idx ? { ...it, cantidad_pedir: parseInt(e.target.value) || 0 } : it
                           ))}
-                          className="h-7 w-full border-white/10 bg-[#111820] text-right text-xs text-white"
+                          className="h-7 w-full border-linea bg-superficie text-right text-xs text-tinta"
                         />
                       </div>
                       <div className="col-span-1 flex justify-end">
                         <button
                           type="button"
                           onClick={() => setPedido(prev => prev.filter((_, i) => i !== idx))}
-                          className="text-steel-300 hover:text-brand-red"
+                          className="text-steel-300 hover:text-sale"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -427,7 +427,7 @@ export function ProductosProveedorTable({
               type="button"
               variant="outline"
               size="sm"
-              className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white"
+              className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta"
               onClick={() => { setModoPedido(false); setPedido([]); setCalculado(false) }}
             >
               Cancelar

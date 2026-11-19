@@ -71,14 +71,14 @@ function FilaConteo({ renglon, onListo }: { renglon: RenglonVista; onListo: () =
         </div>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-        <p className={validacion && !validacion.ok ? 'text-brand-red' : 'text-steel-300'}>
+        <p className={validacion && !validacion.ok ? 'text-sale' : 'text-steel-300'}>
           {validacion == null ? 'Lo que no vaya al almacén entra a la bodega.'
             : validacion.ok ? `Entran ${textoReparto(validacion.reparto)}.` : validacion.error}
         </p>
         {buenas > 0 && (
           <span className="flex gap-3">
-            <button type="button" onClick={() => setAlmacen(String(buenas))} className="font-semibold text-brand-blue hover:underline">Todo al almacén</button>
-            <button type="button" onClick={() => setAlmacen('')} className="font-semibold text-brand-blue hover:underline">Todo a bodega</button>
+            <button type="button" onClick={() => setAlmacen(String(buenas))} className="font-semibold text-enlace hover:underline">Todo al almacén</button>
+            <button type="button" onClick={() => setAlmacen('')} className="font-semibold text-enlace hover:underline">Todo a bodega</button>
           </span>
         )}
       </div>
@@ -94,14 +94,14 @@ function Encabezado({ renglon }: { renglon: RenglonVista }) {
   return (
     <div className="min-w-0">
       <div className="flex flex-wrap items-center gap-2">
-        <p className="text-sm font-semibold text-white">{renglon.producto ? nombreConMedida(renglon.producto) : renglon.descripcion}</p>
-        {!renglon.producto_id && <span className="rounded-full border border-brand-yellow/40 px-2 py-0.5 text-[10px] font-semibold text-brand-yellow">Pendiente</span>}
+        <p className="text-sm font-semibold text-tinta">{renglon.producto ? nombreConMedida(renglon.producto) : renglon.descripcion}</p>
+        {!renglon.producto_id && <span className="rounded-full border border-brand-yellow/40 px-2 py-0.5 text-xs font-semibold text-brand-yellow">Pendiente</span>}
       </div>
       <p className="text-xs text-steel-300">
         {[renglon.producto?.marca, renglon.referencia ? `Ref. ${renglon.referencia}` : null].filter(Boolean).join(' · ')}
       </p>
       {renglon.precio_aprobado != null && (
-        <p className="text-xs text-white">Precio de venta <span className="font-bold text-brand-yellow">{pesos(renglon.precio_aprobado)}</span></p>
+        <p className="text-xs text-tinta">Precio de venta <span className="font-bold text-brand-yellow">{pesos(renglon.precio_aprobado)}</span></p>
       )}
     </div>
   )
@@ -135,20 +135,20 @@ export function RecepcionConteo({ recepcion, renglones, esAdmin }: {
 
   // Corregir un conteo también exige el precio aprobado (si cambió el costo del renglón, se vuelve a aprobar)
   const botonCorregir = (r: RenglonVista) => editable && corrigiendo !== r.id && motivoNoContable(r) === null && (
-    <button type="button" onClick={() => setCorrigiendo(r.id)} className="shrink-0 text-xs font-semibold text-brand-blue hover:underline">Corregir</button>
+    <button type="button" onClick={() => setCorrigiendo(r.id)} className="shrink-0 text-xs font-semibold text-enlace hover:underline">Corregir</button>
   )
 
   return (
     <div className="space-y-5">
       {recepcion.estado === 'reclamacion' && (
-        <p className="rounded-xl border border-brand-blue/30 bg-brand-blue/10 p-3 text-sm text-brand-blue">
+        <p className="rounded-xl border border-brand-blue/30 bg-brand-blue/10 p-3 text-sm text-enlace">
           La recepción tiene una reclamación pendiente. Si llega mercancía que faltaba, corrige aquí su conteo y entra al inventario.
         </p>
       )}
 
       {conDiferencia.length > 0 && (
         <section className="space-y-2">
-          <h3 className="flex items-center gap-2 font-display text-sm font-bold uppercase tracking-wide text-brand-red">
+          <h3 className="flex items-center gap-2 font-display text-sm font-bold text-sale">
             <AlertTriangle className="h-4 w-4" />Diferencias ({conDiferencia.length})
           </h3>
           <ul className="space-y-2">
@@ -161,14 +161,14 @@ export function RecepcionConteo({ recepcion, renglones, esAdmin }: {
                     {botonCorregir(r)}
                   </div>
                   {esAdmin ? (
-                    <p className="text-xs text-white">
+                    <p className="text-xs text-tinta">
                       Facturadas {r.cantidad_facturada} · Contadas {r.cantidad_contada}
-                      {d.faltan > 0 && <span className="text-brand-red"> · Faltan {d.faltan}</span>}
+                      {d.faltan > 0 && <span className="text-sale"> · Faltan {d.faltan}</span>}
                       {d.sobran > 0 && <span className="text-brand-yellow"> · Sobran {d.sobran}</span>}
-                      {d.averiadas > 0 && <span className="text-brand-red"> · Averiadas {d.averiadas}</span>}
+                      {d.averiadas > 0 && <span className="text-sale"> · Averiadas {d.averiadas}</span>}
                     </p>
                   ) : (
-                    <p className="text-xs text-white">
+                    <p className="text-xs text-tinta">
                       {d.faltan > 0 || d.sobran > 0 ? 'No cuadra con la factura: vuelve a contarlo y corrige si hace falta.' : 'Tiene unidades averiadas.'}
                       {' '}{resumenContado(r)}
                     </p>
@@ -182,7 +182,7 @@ export function RecepcionConteo({ recepcion, renglones, esAdmin }: {
       )}
 
       <section className="space-y-2">
-        <h3 className="font-display text-sm font-bold uppercase tracking-wide text-brand-yellow">Por contar ({porContar.length})</h3>
+        <h3 className="font-display text-sm font-bold text-brand-yellow">Por contar ({porContar.length})</h3>
         {porContar.length === 0 ? (
           <p className="text-sm text-steel-500">
             {renglones.length === 0 ? 'Primero agrega los renglones de la factura.'
@@ -191,7 +191,7 @@ export function RecepcionConteo({ recepcion, renglones, esAdmin }: {
         ) : (
           <ul className="space-y-2">
             {porContar.map(r => (
-              <li key={r.id} className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-3">
+              <li key={r.id} className="space-y-3 rounded-2xl border border-linea bg-superficie p-3">
                 <Encabezado renglon={r} />
                 {editable ? <FilaConteo renglon={r} onListo={() => {}} /> : <p className="text-xs text-steel-500">Sin contar</p>}
               </li>
@@ -202,7 +202,7 @@ export function RecepcionConteo({ recepcion, renglones, esAdmin }: {
 
       {esperandoPrecio.length > 0 && (
         <section className="space-y-2">
-          <h3 className="flex items-center gap-2 font-display text-sm font-bold uppercase tracking-wide text-steel-300">
+          <h3 className="flex items-center gap-2 font-display text-sm font-bold text-steel-300">
             <Clock className="h-4 w-4" />Esperando precio ({esperandoPrecio.length})
           </h3>
           <p className="text-xs text-steel-500">
@@ -210,7 +210,7 @@ export function RecepcionConteo({ recepcion, renglones, esAdmin }: {
           </p>
           <ul className="space-y-2">
             {esperandoPrecio.map(r => (
-              <li key={r.id} className="space-y-1 rounded-2xl border border-white/10 bg-[#111820] p-3 opacity-80">
+              <li key={r.id} className="space-y-1 rounded-2xl border border-linea bg-superficie p-3 opacity-80">
                 <Encabezado renglon={r} />
                 <p className="text-xs text-steel-500">{motivoNoContable(r)}</p>
               </li>
@@ -221,10 +221,10 @@ export function RecepcionConteo({ recepcion, renglones, esAdmin }: {
 
       {contados.length > 0 && (
         <section className="space-y-2">
-          <h3 className="font-display text-sm font-bold uppercase tracking-wide text-emerald-400">Contados ({contados.length})</h3>
+          <h3 className="font-display text-sm font-bold text-emerald-400">Contados ({contados.length})</h3>
           <ul className="space-y-2">
             {contados.map(r => (
-              <li key={r.id} className="space-y-2 rounded-2xl border border-emerald-500/20 bg-[#111820] p-3">
+              <li key={r.id} className="space-y-2 rounded-2xl border border-emerald-500/20 bg-superficie p-3">
                 <div className="flex items-start justify-between gap-2">
                   <Encabezado renglon={r} />
                   {botonCorregir(r)}

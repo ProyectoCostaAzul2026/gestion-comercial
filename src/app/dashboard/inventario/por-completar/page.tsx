@@ -37,7 +37,7 @@ export default async function PorCompletarPage() {
       <div className="flex items-center gap-3">
         <BotonAtras href="/dashboard/inventario" etiqueta="Volver al inventario" />
         <div>
-          <h1 className="flex items-center gap-2 font-display text-lg font-bold text-white">
+          <h1 className="flex items-center gap-2 font-display text-lg font-bold text-tinta">
             <ClipboardList className="h-5 w-5 text-brand-yellow" />Productos por completar
           </h1>
           <p className="text-xs text-steel-300">{productos.length} producto{productos.length === 1 ? '' : 's'} de alta rápida</p>
@@ -49,20 +49,20 @@ export default async function PorCompletarPage() {
         elige la categoría y agrega el proveedor con su costo: al guardar, el producto sale de esta lista.
       </p>
 
-      {error && <p className="text-sm text-brand-red">No se pudieron cargar: {error.message}</p>}
+      {error && <p className="text-sm text-sale">No se pudieron cargar: {error.message}</p>}
 
       {productos.length === 0 ? (
-        <p className="rounded-2xl border border-white/10 bg-[#111820] p-8 text-center text-sm text-steel-500">No hay productos por completar.</p>
+        <p className="rounded-2xl border border-linea bg-superficie p-8 text-center text-sm text-steel-500">No hay productos por completar.</p>
       ) : (
-        <ul className="divide-y divide-white/5 overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
+        <ul className="divide-y divide-linea overflow-hidden rounded-2xl border border-linea bg-superficie">
           {productos.map(p => (
             <li key={p.id} className="flex items-center gap-3 px-3 py-3">
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-bold text-white">{p.nombre}</p>
-                <p className="text-[11px] text-steel-300">
+                <p className="truncate text-sm font-bold text-tinta">{p.nombre}</p>
+                <p className="text-xs text-steel-300">
                   <span className="font-mono text-brand-yellow">{p.codigo ?? '—'}</span> · ${Number(p.precio_venta).toLocaleString('es-CO')} · Stock {p.stock_actual}
                 </p>
-                <p className="text-[11px] text-brand-red">Falta: {p.faltan.join(', ')}</p>
+                <p className="text-xs text-sale">Falta: {p.faltan.join(', ')}</p>
               </div>
               <Link href={`/dashboard/inventario/${p.id}/editar?volver=por-completar`}
                 className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-brand-yellow px-3 text-sm font-bold text-steel-900 hover:brightness-105">

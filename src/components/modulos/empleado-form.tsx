@@ -114,8 +114,8 @@ export function EmpleadoForm({ empleado }: EmpleadoFormProps) {
     }
   }
 
-  const inputCls = 'h-12 border-white/10 bg-[#1a2430] text-[16px] text-white placeholder:text-steel-500 focus:border-brand-yellow/60'
-  const labelCls = 'text-[10px] font-bold uppercase tracking-widest text-steel-300'
+  const inputCls = 'h-12 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60'
+  const labelCls = 'text-xs font-bold text-steel-300'
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -166,7 +166,7 @@ export function EmpleadoForm({ empleado }: EmpleadoFormProps) {
             onValueChange={v => v && handleChange('rol', v)}
             value={form.rol}
           >
-            <SelectTrigger className="h-12 border-white/10 bg-[#1a2430] text-white"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-12 border-linea bg-superficie-2 text-tinta"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="empleado">Empleado</SelectItem>
               <SelectItem value="administrador">Administrador</SelectItem>
@@ -222,7 +222,7 @@ export function EmpleadoForm({ empleado }: EmpleadoFormProps) {
             type="button"
             disabled={accionando}
             onClick={handleDesactivar}
-            className={buttonVariants({ variant: 'outline', className: 'h-12 w-full border-brand-red/30 bg-brand-red/15 text-brand-red hover:bg-brand-red/25 hover:text-brand-red' })}
+            className={buttonVariants({ variant: 'outline', className: 'h-12 w-full border-brand-red/30 bg-brand-red/15 text-sale hover:bg-brand-red/25 hover:text-sale' })}
           >
             {accionando ? 'Desactivando…' : 'Desactivar empleado'}
           </button>

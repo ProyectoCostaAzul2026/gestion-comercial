@@ -36,11 +36,11 @@ export interface ProveedorListItem {
 }
 
 const ESTADO_CONFIG: Record<ProveedorListItem['estado'], { label: string; className: string; priority: number }> = {
-  factura_vencida: { label: 'Factura vencida', className: 'border-brand-red/30 bg-brand-red/20 text-brand-red', priority: 1 },
+  factura_vencida: { label: 'Factura vencida', className: 'border-brand-red/30 bg-brand-red/20 text-sale', priority: 1 },
   factura_proxima: { label: 'Próxima a vencer', className: 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow', priority: 2 },
-  con_deuda: { label: 'Con deuda', className: 'border-brand-red/30 bg-brand-red/20 text-brand-red', priority: 3 },
+  con_deuda: { label: 'Con deuda', className: 'border-brand-red/30 bg-brand-red/20 text-sale', priority: 3 },
   pago_programado_vencido: { label: 'Pago vencido', className: 'border-amber-500/30 bg-amber-500/20 text-amber-400', priority: 4 },
-  pago_programado_proximo: { label: 'Pago próximo', className: 'border-brand-blue/30 bg-brand-blue/20 text-brand-blue', priority: 5 },
+  pago_programado_proximo: { label: 'Pago próximo', className: 'border-brand-blue/30 bg-brand-blue/20 text-enlace', priority: 5 },
   al_dia: { label: 'Al día', className: 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400', priority: 6 },
 }
 
@@ -101,12 +101,12 @@ export function ProveedoresTable({
             <div className="space-y-2 rounded-2xl bg-brand-yellow p-4 text-steel-900">
               <div className="flex items-center justify-between">
                 <h3 className="font-display text-xl font-bold">Pagos para hoy</h3>
-                <span className="font-display text-2xl font-black">${totalHoy.toLocaleString('es-CO')}</span>
+                <span className="font-display text-2xl font-bold">${totalHoy.toLocaleString('es-CO')}</span>
               </div>
               {eventosHoy.map((e, i) => (
                 <div key={i} className="flex justify-between rounded-xl bg-black/10 px-3 py-1.5 text-xs">
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center rounded-full bg-black/20 px-2 py-0.5 text-[10px] font-bold">
+                    <span className="inline-flex items-center rounded-full bg-black/20 px-2 py-0.5 text-xs font-bold">
                       {e.tipo === 'factura' ? 'Factura' : 'Programado'}
                     </span>
                     <span>{e.descripcion}</span>
@@ -121,8 +121,8 @@ export function ProveedoresTable({
           {eventos7Dias.length > 0 && (
             <div className="space-y-2 rounded-2xl border border-brand-yellow/30 bg-brand-yellow/10 p-4">
               <div className="flex items-center justify-between">
-                <h3 className="font-display text-lg font-bold text-brand-yellow">Próximos 7 días</h3>
-                <span className="font-display text-xl font-black text-brand-yellow">${total7Dias.toLocaleString('es-CO')}</span>
+                <h3 className="text-lg font-bold text-tinta">Próximos 7 días</h3>
+                <span className="font-display text-xl font-bold text-brand-yellow">${total7Dias.toLocaleString('es-CO')}</span>
               </div>
               {Object.entries(eventosPorFecha)
                 .sort(([a], [b]) => a.localeCompare(b))
@@ -137,14 +137,14 @@ export function ProveedoresTable({
                       </span>
                     </div>
                     {evs.map((e, i) => (
-                      <div key={i} className="flex justify-between rounded-xl border border-white/10 bg-[#1a2430] px-3 py-1 text-xs">
+                      <div key={i} className="flex justify-between rounded-xl border border-linea bg-superficie-2 px-3 py-1 text-xs">
                         <div className="flex items-center gap-2">
-                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${e.tipo === 'factura' ? 'bg-brand-blue/20 text-brand-blue' : 'bg-brand-yellow/20 text-brand-yellow'}`}>
+                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${e.tipo === 'factura' ? 'bg-brand-blue/20 text-enlace' : 'bg-brand-yellow/20 text-brand-yellow'}`}>
                             {e.tipo === 'factura' ? 'Factura' : 'Programado'}
                           </span>
                           <span className="text-steel-300">{e.descripcion}</span>
                         </div>
-                        <span className="font-medium text-white">${e.monto.toLocaleString('es-CO')}</span>
+                        <span className="font-medium text-tinta">${e.monto.toLocaleString('es-CO')}</span>
                       </div>
                     ))}
                   </div>
@@ -162,7 +162,7 @@ export function ProveedoresTable({
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Buscar por nombre, contacto o NIT…"
-            className="h-12 border-white/10 bg-[#1a2430] pl-9 text-[16px] text-white placeholder:text-steel-500"
+            className="h-12 border-linea bg-superficie-2 pl-9 text-[16px] text-tinta placeholder:text-steel-500"
           />
         </div>
         <Select
@@ -178,7 +178,7 @@ export function ProveedoresTable({
           onValueChange={v => v && setFiltroEstado(v)}
           value={filtroEstado}
         >
-          <SelectTrigger className="h-12 w-56 border-white/10 bg-[#1a2430] text-white"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-12 w-56 border-linea bg-superficie-2 text-tinta"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos los estados</SelectItem>
             <SelectItem value="factura_vencida">Factura vencida</SelectItem>
@@ -201,16 +201,16 @@ export function ProveedoresTable({
 
           return (
             <div key={p.id}
-              className={`relative flex flex-col gap-3 rounded-2xl border bg-[#111820] p-4 transition hover:border-brand-yellow/50 ${p.estado === 'factura_vencida' ? 'border-brand-red/40' : 'border-white/10'}`}>
+              className={`relative flex flex-col gap-3 rounded-2xl border bg-superficie p-4 transition hover:border-brand-yellow/50 ${p.estado === 'factura_vencida' ? 'border-brand-red/40' : 'border-linea'}`}>
               <div className="flex items-start gap-3">
                 <AvatarIniciales nombre={p.nombre} foto={p.logo_url} logo />
                 <div className="min-w-0 flex-1">
                   {/* El enlace cubre toda la tarjeta; el teléfono queda encima para poder llamar */}
                   <Link href={`/dashboard/proveedores/${p.id}`}
-                    className="line-clamp-2 text-sm font-bold text-white after:absolute after:inset-0 after:rounded-2xl">
+                    className="line-clamp-2 text-sm font-bold text-tinta after:absolute after:inset-0 after:rounded-2xl">
                     {p.nombre}
                   </Link>
-                  <span className={`mt-1 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${cfg.className}`}>
+                  <span className={`mt-1 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold ${cfg.className}`}>
                     {alerta && <AlertTriangle className="h-3 w-3" aria-hidden />}
                     {cfg.label}
                     {esProximoPago && dias !== null && ` (${dias} día${dias !== 1 ? 's' : ''})`}
@@ -222,20 +222,20 @@ export function ProveedoresTable({
                 {p.contacto && <p className="flex items-center gap-1.5"><User className="h-3.5 w-3.5 shrink-0" aria-hidden />{p.contacto}</p>}
                 {p.telefono && (
                   <a href={`tel:${telefonoMarcable(p.telefono)}`}
-                    className="relative z-10 inline-flex items-center gap-1.5 text-brand-blue hover:underline">
+                    className="relative z-10 inline-flex items-center gap-1.5 text-enlace hover:underline">
                     <Phone className="h-3.5 w-3.5 shrink-0" aria-hidden />{p.telefono}
                   </a>
                 )}
                 {p.nit_ruc && <p>NIT {p.nit_ruc}</p>}
               </div>
 
-              <div className="mt-auto grid grid-cols-2 gap-2 border-t border-white/10 pt-3">
+              <div className="mt-auto grid grid-cols-2 gap-2 border-t border-linea pt-3">
                 <div>
-                  <p className="text-[10px] uppercase tracking-wide text-steel-500">Facturas activas</p>
-                  <p className="font-display text-lg font-bold text-white">{p.facturasActivas}</p>
+                  <p className="text-xs text-steel-500">Facturas activas</p>
+                  <p className="font-display text-lg font-bold text-tinta">{p.facturasActivas}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] uppercase tracking-wide text-steel-500">Deuda</p>
+                  <p className="text-xs text-steel-500">Deuda</p>
                   <p className={`font-display text-lg font-bold ${p.deudaTotal > 0 ? 'text-brand-yellow' : 'text-steel-300'}`}>
                     {p.deudaTotal > 0 ? `$${p.deudaTotal.toLocaleString('es-CO')}` : '—'}
                   </p>
@@ -246,7 +246,7 @@ export function ProveedoresTable({
         })}
       </div>
       {filtrados.length === 0 && (
-        <p className="rounded-2xl border border-white/10 bg-[#111820] p-8 text-center text-sm text-steel-500">
+        <p className="rounded-2xl border border-linea bg-superficie p-8 text-center text-sm text-steel-500">
           {proveedores.length === 0 ? 'No hay proveedores registrados.' : 'Sin resultados para este filtro.'}
         </p>
       )}

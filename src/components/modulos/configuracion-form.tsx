@@ -89,11 +89,11 @@ export function ConfiguracionForm({ config }: { config: ConfigNegocio | null }) 
     }
   }
 
-  const inputCls = 'h-12 border-white/10 bg-[#1a2430] text-[16px] text-white placeholder:text-steel-500 focus:border-brand-yellow/60'
-  const labelCls = 'text-[10px] font-bold uppercase tracking-widest text-steel-300'
+  const inputCls = 'h-12 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60'
+  const labelCls = 'text-xs font-bold text-steel-300'
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-6">
+    <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-linea bg-superficie p-6">
       <div className="space-y-2">
         <Label htmlFor="nombre" className={labelCls}>Nombre del negocio *</Label>
         <Input id="nombre" className={inputCls} value={form.nombre} onChange={e => handleChange('nombre', e.target.value)} />
@@ -145,7 +145,7 @@ export function ConfiguracionForm({ config }: { config: ConfigNegocio | null }) 
 
       <div className="space-y-2">
         <Label htmlFor="mensaje_pie" className={labelCls}>Mensaje al pie del recibo</Label>
-        <Textarea id="mensaje_pie" className="border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500 focus:border-brand-yellow/60" value={form.mensaje_pie}
+        <Textarea id="mensaje_pie" className="border-linea bg-superficie-2 text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60" value={form.mensaje_pie}
           onChange={e => handleChange('mensaje_pie', e.target.value)} rows={2} />
       </div>
 
@@ -155,42 +155,42 @@ export function ConfiguracionForm({ config }: { config: ConfigNegocio | null }) 
           onChange={e => handleChange('logo_url', e.target.value)}
           placeholder="https://ejemplo.com/logo.png" />
         {form.logo_url && (
-          <img src={form.logo_url} alt="Logo" className="h-16 w-auto rounded-xl border border-white/10 object-contain p-1" />
+          <img src={form.logo_url} alt="Logo" className="h-16 w-auto rounded-xl border border-linea object-contain p-1" />
         )}
       </div>
 
-      <div className="space-y-3 rounded-2xl border border-white/10 bg-[#1a2430] p-4">
-        <p className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+      <div className="space-y-3 rounded-2xl border border-linea bg-superficie-2 p-4">
+        <p className="flex items-center gap-2 text-lg font-bold text-tinta">
           Configuración de caja y descuentos
         </p>
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <div className="space-y-2">
             <Label htmlFor="monto_base_caja_menor" className={labelCls}>Base caja menor</Label>
-            <Input id="monto_base_caja_menor" type="number" className="h-12 border-white/10 bg-[#111820] text-[16px] text-white"
+            <Input id="monto_base_caja_menor" type="number" className="h-12 border-linea bg-superficie text-[16px] text-tinta"
               value={form.monto_base_caja_menor ?? 300000}
               onChange={e => handleChange('monto_base_caja_menor', e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="monto_inicial_monedas" className={labelCls}>Monto monedas</Label>
-            <Input id="monto_inicial_monedas" type="number" className="h-12 border-white/10 bg-[#111820] text-[16px] text-white"
+            <Input id="monto_inicial_monedas" type="number" className="h-12 border-linea bg-superficie text-[16px] text-tinta"
               value={form.monto_inicial_monedas ?? 400000}
               onChange={e => handleChange('monto_inicial_monedas', e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="monto_inicial_sencillo" className={labelCls}>Monto sencillo</Label>
-            <Input id="monto_inicial_sencillo" type="number" className="h-12 border-white/10 bg-[#111820] text-[16px] text-white"
+            <Input id="monto_inicial_sencillo" type="number" className="h-12 border-linea bg-superficie text-[16px] text-tinta"
               value={form.monto_inicial_sencillo ?? 800000}
               onChange={e => handleChange('monto_inicial_sencillo', e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="margen_default" className={labelCls}>Margen por defecto %</Label>
-            <Input id="margen_default" type="number" min={0} max={100} step={0.1} className="h-12 border-white/10 bg-[#111820] text-[16px] text-white"
+            <Input id="margen_default" type="number" min={0} max={100} step={0.1} className="h-12 border-linea bg-superficie text-[16px] text-tinta"
               value={(form as any).margen_default ?? 40}
               onChange={e => handleChange('margen_default' as any, e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="max_descuento_porcentaje" className={labelCls}>Descuento máximo %</Label>
-            <Input id="max_descuento_porcentaje" type="number" min={0} max={100} step={0.1} className="h-12 border-white/10 bg-[#111820] text-[16px] text-white"
+            <Input id="max_descuento_porcentaje" type="number" min={0} max={100} step={0.1} className="h-12 border-linea bg-superficie text-[16px] text-tinta"
               value={form.max_descuento_porcentaje}
               onChange={e => handleChange('max_descuento_porcentaje', e.target.value)} />
           </div>

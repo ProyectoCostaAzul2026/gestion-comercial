@@ -87,13 +87,13 @@ export function BuscadorProducto({ id, productosProveedor, onElegir, placeholder
           placeholder={placeholder ?? 'Nombre, código o referencia'} className={`h-11 pl-9 ${INPUT_CLS}`} autoComplete="off" />
       </div>
       {hayResultados && (
-        <ul className="max-h-72 overflow-y-auto rounded-xl border border-white/10 bg-[#0d131a]">
+        <ul className="max-h-72 overflow-y-auto rounded-xl border border-linea bg-fondo">
           {delProveedor.map(p => (
             <li key={p.id}>
               <button type="button" onClick={() => elegir({ ...p, referencia: p.referencia, costo: p.costo })}
-                className="flex w-full items-start justify-between gap-3 border-b border-white/5 px-3 py-2 text-left hover:bg-white/5">
+                className="flex w-full items-start justify-between gap-3 border-b border-linea px-3 py-2 text-left hover:bg-velo/5">
                 <span className="min-w-0">
-                  <span className="block text-sm font-medium text-white">{nombreConMedida(p)}</span>
+                  <span className="block text-sm font-medium text-tinta">{nombreConMedida(p)}</span>
                   <span className="block text-xs text-steel-300">
                     {[p.activo ? null : 'Inactivo', p.marca, p.referencia ? `Ref. ${p.referencia}` : null, p.codigo].filter(Boolean).join(' · ')}
                   </span>
@@ -105,12 +105,12 @@ export function BuscadorProducto({ id, productosProveedor, onElegir, placeholder
           {otrosVisibles.map(p => (
             <li key={p.id}>
               <button type="button" onClick={() => elegir(p)}
-                className="flex w-full items-start justify-between gap-3 border-b border-white/5 px-3 py-2 text-left hover:bg-white/5">
+                className="flex w-full items-start justify-between gap-3 border-b border-linea px-3 py-2 text-left hover:bg-velo/5">
                 <span className="min-w-0">
-                  <span className="block text-sm font-medium text-white">{nombreConMedida(p)}</span>
+                  <span className="block text-sm font-medium text-tinta">{nombreConMedida(p)}</span>
                   <span className="block text-xs text-steel-300">{[p.marca, p.codigo].filter(Boolean).join(' · ')}</span>
                 </span>
-                <span className="shrink-0 rounded-full border border-white/10 px-2 py-0.5 text-[10px] text-steel-300">De otro proveedor</span>
+                <span className="shrink-0 rounded-full border border-linea px-2 py-0.5 text-xs text-steel-300">De otro proveedor</span>
               </button>
             </li>
           ))}

@@ -17,8 +17,8 @@ import {
 export type TipoMovimientoCaja = 'gasto' | 'retiro' | 'traslado'
 
 const pesos = (n: number) => `$${Math.round(n).toLocaleString('es-CO')}`
-const CAMPO = 'h-11 border-white/10 bg-[#1a2430] text-white'
-const ETIQUETA = 'text-[10px] font-bold uppercase tracking-widest text-steel-300'
+const CAMPO = 'h-11 border-linea bg-superficie-2 text-tinta'
+const ETIQUETA = 'text-xs font-bold text-steel-300'
 
 /**
  * Formulario de Caja en vista propia: registrar un gasto, un retiro de dinero o un traslado entre medios.
@@ -91,7 +91,7 @@ export function MovimientoCajaForm({ tipo, saldos, categoriasGasto = [], proveed
     : `${tipo === 'gasto' ? 'Gasto' : 'Retiro'} de ${pesos(monto)}${fuentes.length > 1 ? ` desde ${fuentes.length} medios` : ` desde ${FUENTES_DISPONIBLES.find(f => f.value === fuentes[0].fuente)?.label}`}`
 
   return (
-    <div className="space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-4">
+    <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
       {tipo === 'gasto' && (
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1">
@@ -137,7 +137,7 @@ export function MovimientoCajaForm({ tipo, saldos, categoriasGasto = [], proveed
                 <SelectTrigger className={`${CAMPO} w-full`}><SelectValue /></SelectTrigger>
                 <SelectContent>{FUENTES_DISPONIBLES.map(f => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}</SelectContent>
               </Select>
-              <p className="text-[11px] text-steel-500">Hay {pesos(saldos[medioDeFuente(valor)] ?? 0)}</p>
+              <p className="text-xs text-steel-500">Hay {pesos(saldos[medioDeFuente(valor)] ?? 0)}</p>
             </div>
           )).flatMap((el, i) => (i === 0 ? [el, <ArrowRight key="flecha" className="mb-8 h-5 w-5 text-steel-500" />] : [el]))}
         </div>
@@ -149,7 +149,7 @@ export function MovimientoCajaForm({ tipo, saldos, categoriasGasto = [], proveed
         <Label htmlFor="mc-notas" className={ETIQUETA}>{tipo === 'retiro' ? 'Motivo *' : 'Notas'}</Label>
         <Textarea id="mc-notas" value={notas} onChange={e => setNotas(e.target.value)} rows={2}
           placeholder={tipo === 'retiro' ? 'Ej: retiro del dueño, consignación al banco' : 'Opcional'}
-          className="border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500" />
+          className="border-linea bg-superficie-2 text-tinta placeholder:text-steel-500" />
       </div>
 
       {!confirmando ? (
@@ -159,12 +159,12 @@ export function MovimientoCajaForm({ tipo, saldos, categoriasGasto = [], proveed
         </Button>
       ) : (
         <div className="space-y-3 rounded-xl border border-brand-yellow/40 bg-brand-yellow/5 p-3">
-          <p className="text-sm font-semibold text-white">{resumen}. ¿Confirmas?</p>
+          <p className="text-sm font-semibold text-tinta">{resumen}. ¿Confirmas?</p>
           <div className="flex gap-2">
             <Button onClick={guardar} disabled={guardando} className="h-11 flex-1 bg-brand-yellow font-bold text-steel-900 hover:brightness-105">
               {guardando ? 'Guardando…' : 'Sí, registrar'}
             </Button>
-            <Button variant="outline" onClick={() => setConfirmando(false)} className="h-11 border-white/10 bg-transparent text-white hover:bg-white/5">Revisar</Button>
+            <Button variant="outline" onClick={() => setConfirmando(false)} className="h-11 border-linea bg-transparent text-tinta hover:bg-velo/5">Revisar</Button>
           </div>
         </div>
       )}

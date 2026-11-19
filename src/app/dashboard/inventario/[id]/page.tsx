@@ -72,11 +72,11 @@ export default async function DetalleProductoPage({
 
   return (
     <div className="-m-4 md:-m-6">
-      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 border-b lg:top-0 border-white/10 bg-[#0a0e14] px-4 py-3">
+      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 border-b lg:top-0 border-linea bg-fondo px-4 py-3">
         <div className="flex items-center gap-3">
           <BotonAtras href="/dashboard/inventario" />
           <div>
-            <h1 className="font-display text-lg font-bold text-white">{producto.nombre}</h1>
+            <h1 className="font-display text-lg font-bold text-tinta">{producto.nombre}</h1>
             <p className="text-xs text-steel-300">Detalle del producto</p>
           </div>
         </div>
@@ -87,26 +87,26 @@ export default async function DetalleProductoPage({
           <img
             src={producto.imagen_url}
             alt={producto.nombre}
-            className="mx-auto h-48 w-48 rounded-2xl border border-white/10 object-cover"
+            className="mx-auto h-48 w-48 rounded-2xl border border-linea object-cover"
           />
         ) : (
-          <div className="mx-auto flex h-48 w-48 items-center justify-center rounded-2xl border border-white/10 bg-[#1a2430]">
+          <div className="mx-auto flex h-48 w-48 items-center justify-center rounded-2xl border border-linea bg-superficie-2">
             <Package className="size-16 text-brand-yellow/50" />
           </div>
         )}
 
         <dl className="space-y-3 text-sm">
           {filas.map(([label, value]) => (
-            <div key={label} className="flex justify-between gap-4 border-b border-white/8 pb-2">
+            <div key={label} className="flex justify-between gap-4 border-b border-linea pb-2">
               <dt className="text-steel-300">{label}</dt>
-              <dd className="text-right font-medium text-white">{value}</dd>
+              <dd className="text-right font-medium text-tinta">{value}</dd>
             </div>
           ))}
         </dl>
 
         {preciosCantidad.length > 0 && (
           <div className="space-y-2">
-            <h2 className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Precios por cantidad</h2>
+            <h2 className="text-xs font-bold text-steel-300">Precios por cantidad</h2>
             <ListaPreciosCantidad tramos={preciosCantidad} precioVenta={Number(producto.precio_venta)} />
           </div>
         )}
@@ -120,13 +120,13 @@ export default async function DetalleProductoPage({
           </Link>
           <Link
             href={`/dashboard/inventario/${producto.id}/familia`}
-            className="block w-full rounded-xl border border-brand-blue/60 px-4 py-3 text-center text-sm font-bold text-brand-blue hover:bg-brand-blue/10"
+            className="block w-full rounded-xl border border-brand-blue/60 px-4 py-3 text-center text-sm font-bold text-enlace hover:bg-brand-blue/10"
           >
             Familia de productos
           </Link>
           <Link
             href={`/dashboard/inventario/${producto.id}/grupo`}
-            className="block w-full rounded-xl border border-white/20 px-4 py-3 text-center text-sm font-bold text-white hover:bg-white/5"
+            className="block w-full rounded-xl border border-linea-fuerte px-4 py-3 text-center text-sm font-bold text-tinta hover:bg-velo/5"
           >
             Grupo de medidas
           </Link>
@@ -143,13 +143,13 @@ export default async function DetalleProductoPage({
 
         {(cambiosPrecio ?? []).length > 0 && (
           <div className="space-y-2">
-            <h2 className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Últimos cambios de precio</h2>
-            <ul className="divide-y divide-white/5 overflow-hidden rounded-xl border border-white/10 bg-[#111820]">
+            <h2 className="text-xs font-bold text-steel-300">Últimos cambios de precio</h2>
+            <ul className="divide-y divide-linea overflow-hidden rounded-xl border border-linea bg-superficie">
               {cambiosPrecio!.map(c => {
                 const usuario = c.usuario as { nombre_completo: string } | null
                 return (
                   <li key={c.id} className="px-3 py-2 text-xs">
-                    <p className="text-white">
+                    <p className="text-tinta">
                       {c.campo === 'precio_cantidad'
                         ? `Precio desde ${c.cantidad_minima ?? '?'} unidades`
                         : ETIQUETA_CAMPO[c.campo] ?? c.campo}: de{' '}

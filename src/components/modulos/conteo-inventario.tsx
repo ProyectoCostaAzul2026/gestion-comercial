@@ -115,8 +115,8 @@ export function ConteoInventario({ productos, categorias, inicial }: Props) {
     router.refresh()
   }
 
-  const SELECT = 'h-11 w-full rounded-lg border border-white/10 bg-[#1a2430] px-3 text-[16px] text-white'
-  const CAMPO = 'h-11 border-white/10 bg-[#1a2430] text-center text-[16px] font-bold text-white placeholder:font-normal placeholder:text-steel-500'
+  const SELECT = 'h-11 w-full rounded-lg border border-linea bg-superficie-2 px-3 text-[16px] text-tinta'
+  const CAMPO = 'h-11 border-linea bg-superficie-2 text-center text-[16px] font-bold text-tinta placeholder:font-normal placeholder:text-steel-500'
 
   return (
     <div className="space-y-3 pb-24">
@@ -124,10 +124,10 @@ export function ConteoInventario({ productos, categorias, inicial }: Props) {
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-500" />
         <Input value={texto} onChange={e => { setTexto(e.target.value); setLimite(POR_PAGINA) }}
           placeholder="Buscar por nombre, código, marca o medida…"
-          className="h-12 border-white/10 bg-[#1a2430] pl-9 pr-10 text-[16px] text-white placeholder:text-steel-500" />
+          className="h-12 border-linea bg-superficie-2 pl-9 pr-10 text-[16px] text-tinta placeholder:text-steel-500" />
         {texto && (
           <button type="button" onClick={() => setTexto('')} aria-label="Borrar búsqueda"
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-steel-300 hover:bg-white/10">
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-steel-300 hover:bg-velo/10">
             <X className="h-4 w-4" />
           </button>
         )}
@@ -149,7 +149,7 @@ export function ConteoInventario({ productos, categorias, inicial }: Props) {
       </label>
 
       {!hayFiltro ? (
-        <div className="rounded-2xl border border-white/10 bg-[#111820] p-6 text-center text-sm text-steel-300">
+        <div className="rounded-2xl border border-linea bg-superficie p-6 text-center text-sm text-steel-300">
           <ClipboardCheck className="mx-auto mb-2 h-8 w-8 text-brand-yellow/60" aria-hidden />
           Elige una ubicación o una categoría, o busca un producto, para empezar a contar.
           <p className="mt-1 text-xs text-steel-500">Deja en blanco lo que no cuentes: su stock no cambia.</p>
@@ -165,22 +165,22 @@ export function ConteoInventario({ productos, categorias, inicial }: Props) {
               const contado = almacen !== null || bodega !== null
               const diferencia = (almacen === null ? 0 : almacen - p.stock_almacen) + (bodega === null ? 0 : bodega - p.stock_bodega)
               return (
-                <li key={p.id} className={`rounded-2xl border bg-[#111820] p-3 ${contado ? (diferencia === 0 ? 'border-emerald-500/40' : 'border-brand-yellow/50') : 'border-white/10'}`}>
+                <li key={p.id} className={`rounded-2xl border bg-superficie p-3 ${contado ? (diferencia === 0 ? 'border-emerald-500/40' : 'border-brand-yellow/50') : 'border-linea'}`}>
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-sm font-bold leading-tight text-white">{p.nombre} <span className="text-brand-yellow">{p.unidad_medida ?? ''}</span></p>
-                      <p className="truncate text-[11px] text-steel-300">
+                      <p className="text-sm font-bold leading-tight text-tinta">{p.nombre} <span className="text-brand-yellow">{p.unidad_medida ?? ''}</span></p>
+                      <p className="truncate text-xs text-steel-300">
                         <span className="font-mono">{p.codigo ?? '—'}</span>
                         {p.marca ? ` · ${p.marca}` : ''}{p.ubicacion ? ` · ${p.ubicacion}` : ''}
                       </p>
                     </div>
                     {contado && (
                       <div className="flex shrink-0 items-center gap-1">
-                        <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${diferencia === 0 ? 'bg-emerald-500/20 text-emerald-400' : diferencia > 0 ? 'bg-brand-yellow/20 text-brand-yellow' : 'bg-brand-red/20 text-brand-red'}`}>
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${diferencia === 0 ? 'bg-emerald-500/20 text-emerald-400' : diferencia > 0 ? 'bg-brand-yellow/20 text-brand-yellow' : 'bg-brand-red/20 text-sale'}`}>
                           {diferencia === 0 ? <Check className="inline h-3 w-3" aria-label="Coincide" /> : `${diferencia > 0 ? '+' : ''}${diferencia}`}
                         </span>
                         <button type="button" onClick={() => quitar(p.id)} aria-label={`Borrar lo contado de ${p.nombre}`}
-                          className="flex h-8 w-8 items-center justify-center rounded-lg text-steel-300 hover:bg-white/10 hover:text-brand-red">
+                          className="flex h-8 w-8 items-center justify-center rounded-lg text-steel-300 hover:bg-velo/10 hover:text-sale">
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
@@ -195,8 +195,8 @@ export function ConteoInventario({ productos, categorias, inicial }: Props) {
                         const nombreLugar = lugar === 'almacen' ? 'Almacén' : 'Bodega'
                         return (
                           <div key={lugar} className="space-y-1">
-                            <label htmlFor={`${lugar}-${p.id}`} className="flex justify-between text-[11px] text-steel-300">
-                              <span>{nombreLugar}</span><span>Sistema: <b className="text-white">{sistema}</b></span>
+                            <label htmlFor={`${lugar}-${p.id}`} className="flex justify-between text-xs text-steel-300">
+                              <span>{nombreLugar}</span><span>Sistema: <b className="text-tinta">{sistema}</b></span>
                             </label>
                             <Input id={`${lugar}-${p.id}`} inputMode="numeric" pattern="[0-9]*" value={c[lugar]} placeholder="Sin contar"
                               onChange={e => escribir(p.id, lugar, e.target.value)} className={CAMPO} autoComplete="off" />
@@ -215,7 +215,7 @@ export function ConteoInventario({ productos, categorias, inicial }: Props) {
           </ul>
           {filtrados.length > limite && (
             <button type="button" onClick={() => setLimite(l => l + POR_PAGINA)}
-              className="h-11 w-full rounded-xl border border-white/15 text-sm font-bold text-white hover:bg-white/5">
+              className="h-11 w-full rounded-xl border border-linea text-sm font-bold text-tinta hover:bg-velo/5">
               Mostrar más ({filtrados.length - limite} restantes)
             </button>
           )}
@@ -225,13 +225,13 @@ export function ConteoInventario({ productos, categorias, inicial }: Props) {
 
       {/* Barra del conteo: siempre a la vista, encima de la barra de navegación del celular */}
       {lineas.length > 0 && (
-        <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 border-t border-white/10 bg-[#111820]/95 px-4 py-2 backdrop-blur lg:bottom-0 lg:left-64">
+        <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 border-t border-linea bg-superficie/95 px-4 py-2 backdrop-blur lg:bottom-0 lg:left-64">
           <div className="mx-auto flex max-w-3xl items-center gap-2">
             <div className="min-w-0 flex-1 text-xs text-steel-300">
-              <p className="font-bold text-white">{lineas.length} contado{lineas.length === 1 ? '' : 's'}</p>
+              <p className="font-bold text-tinta">{lineas.length} contado{lineas.length === 1 ? '' : 's'}</p>
               <p>{conDiferencia.length === 0 ? 'Todo coincide' : `${conDiferencia.length} con diferencia`}</p>
             </div>
-            <button type="button" onClick={descartar} className="h-11 rounded-xl border border-white/15 px-3 text-sm font-bold text-white hover:bg-white/5">Descartar</button>
+            <button type="button" onClick={descartar} className="h-11 rounded-xl border border-linea px-3 text-sm font-bold text-tinta hover:bg-velo/5">Descartar</button>
             <button type="button" onClick={() => setRevisando(true)} className="h-11 rounded-xl bg-brand-yellow px-4 text-sm font-bold text-steel-900 hover:brightness-105">Revisar y guardar</button>
           </div>
         </div>
@@ -241,19 +241,19 @@ export function ConteoInventario({ productos, categorias, inicial }: Props) {
         <Sheet open onOpenChange={abierto => { if (!abierto && !guardando) setRevisando(false) }}>
           <SheetContent side="bottom" className="max-h-[88dvh] overflow-y-auto rounded-t-2xl p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:mx-auto sm:max-w-lg">
             <SheetHeader className="p-0 pr-8">
-              <SheetTitle className="text-base text-white">Guardar conteo</SheetTitle>
+              <SheetTitle className="text-base text-tinta">Guardar conteo</SheetTitle>
               <SheetDescription className="text-xs text-steel-300">
                 {lineas.length} producto{lineas.length === 1 ? '' : 's'} contado{lineas.length === 1 ? '' : 's'} · {carga.length} con ajuste de stock
               </SheetDescription>
             </SheetHeader>
             {carga.length === 0 ? (
-              <p className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm text-white">Todo lo contado coincide con el sistema: no hay ajustes que guardar.</p>
+              <p className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm text-tinta">Todo lo contado coincide con el sistema: no hay ajustes que guardar.</p>
             ) : (
-              <ul className="divide-y divide-white/5 rounded-xl border border-white/10 text-xs">
+              <ul className="divide-y divide-linea rounded-xl border border-linea text-xs">
                 {lineas.filter(l => carga.some(x => x.producto_id === l.producto.id)).map(l => (
                   <li key={l.producto.id} className="flex items-center justify-between gap-2 px-3 py-2">
                     <div className="min-w-0">
-                      <p className="truncate font-semibold text-white">{l.producto.nombre} {l.producto.unidad_medida ?? ''}</p>
+                      <p className="truncate font-semibold text-tinta">{l.producto.nombre} {l.producto.unidad_medida ?? ''}</p>
                       <p className="text-steel-300">
                         {l.almacen !== null && l.almacen !== l.producto.stock_almacen && `Almacén ${l.producto.stock_almacen} → ${l.almacen}`}
                         {l.almacen !== null && l.almacen !== l.producto.stock_almacen && l.bodega !== null && l.bodega !== l.producto.stock_bodega && ' · '}
@@ -261,19 +261,19 @@ export function ConteoInventario({ productos, categorias, inicial }: Props) {
                         {l.porPeso && ' · por peso'}
                       </p>
                     </div>
-                    <span className={`shrink-0 font-display text-sm font-bold ${l.diferencia > 0 ? 'text-brand-yellow' : l.diferencia < 0 ? 'text-brand-red' : 'text-steel-300'}`}>
+                    <span className={`shrink-0 font-display text-sm font-bold ${l.diferencia > 0 ? 'text-brand-yellow' : l.diferencia < 0 ? 'text-sale' : 'text-steel-300'}`}>
                       {l.diferencia > 0 ? '+' : ''}{l.diferencia}
                     </span>
                   </li>
                 ))}
               </ul>
             )}
-            <p className="text-[11px] text-steel-500">
+            <p className="text-xs text-steel-500">
               Cada ajuste queda en el historial de movimientos con tu usuario. Si un producto se vendió o se recibió mientras contabas, no se ajusta y te avisa para contarlo de nuevo.
             </p>
             <div className="flex gap-2">
               <button type="button" onClick={() => setRevisando(false)} disabled={guardando}
-                className="h-12 flex-1 rounded-xl border border-white/15 text-sm font-bold text-white hover:bg-white/5 disabled:opacity-50">Seguir contando</button>
+                className="h-12 flex-1 rounded-xl border border-linea text-sm font-bold text-tinta hover:bg-velo/5 disabled:opacity-50">Seguir contando</button>
               {carga.length > 0 && (
                 <button type="button" onClick={guardar} disabled={guardando}
                   className="h-12 flex-[1.4] rounded-xl bg-brand-yellow text-sm font-bold text-steel-900 hover:brightness-105 disabled:opacity-50">

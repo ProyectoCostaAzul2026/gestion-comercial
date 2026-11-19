@@ -14,7 +14,7 @@ import { LABEL_CLS } from './producto-form'
 import { nombreConMedida, pesos, type RecepcionVista, type RenglonVista } from './recepcion-tipos'
 
 const ESTADO_PAGO: Record<string, string> = { pendiente: 'Pendiente de pago', parcial: 'Pago parcial', pagada: 'Pagada' }
-const AREA_CLS = 'border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500 focus:border-brand-yellow/60'
+const AREA_CLS = 'border-linea bg-superficie-2 text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60'
 
 /**
  * Pestaña "Cierre" (solo administrador): revisa la suma de la factura, lo que falta, las diferencias y cierra la
@@ -65,18 +65,18 @@ export function RecepcionCierre({ recepcion, renglones, totalFactura, estadoPago
 
   return (
     <div className="space-y-4">
-      <div className="space-y-2 rounded-2xl border border-white/10 bg-[#111820] p-4">
+      <div className="space-y-2 rounded-2xl border border-linea bg-superficie p-4">
         <div className="flex items-center justify-between gap-2">
-          <h3 className="font-display font-bold text-white">Factura</h3>
-          <Link href={`/dashboard/proveedores/${recepcion.proveedor_id}`} className="inline-flex items-center gap-1 text-xs font-semibold text-brand-blue hover:underline">
+          <h3 className="font-display font-bold text-tinta">Factura</h3>
+          <Link href={`/dashboard/proveedores/${recepcion.proveedor_id}`} className="inline-flex items-center gap-1 text-xs font-semibold text-enlace hover:underline">
             {ESTADO_PAGO[estadoPago] ?? estadoPago}: ver pagos <ExternalLink className="h-3 w-3" />
           </Link>
         </div>
         <dl className="grid grid-cols-2 gap-2 text-sm">
-          <div><dt className={LABEL_CLS}>Total de la factura</dt><dd className="text-white">{pesos(totalFactura)}</dd></div>
+          <div><dt className={LABEL_CLS}>Total de la factura</dt><dd className="text-tinta">{pesos(totalFactura)}</dd></div>
           <div>
             <dt className={LABEL_CLS}>Suma de renglones{recepcion.costos_con_iva ? '' : ' con IVA'}</dt>
-            <dd className="text-white">{pesos(suma.conIva)}</dd>
+            <dd className="text-tinta">{pesos(suma.conIva)}</dd>
           </div>
         </dl>
         {!recepcion.costos_con_iva && (
@@ -90,14 +90,14 @@ export function RecepcionCierre({ recepcion, renglones, totalFactura, estadoPago
 
       {lineasConDiferencia.length > 0 && (
         <div className="space-y-2 rounded-2xl border border-brand-red/30 bg-brand-red/5 p-4">
-          <h3 className="font-display font-bold text-white">Diferencias</h3>
+          <h3 className="font-display font-bold text-tinta">Diferencias</h3>
           <ul className="space-y-1 text-sm">
             {lineasConDiferencia.map(r => {
               const d = diferenciaRenglon(r)!
               const partes = [d.faltan > 0 && `faltan ${d.faltan}`, d.sobran > 0 && `sobran ${d.sobran}`, d.averiadas > 0 && `${d.averiadas} averiadas`].filter(Boolean)
               return (
                 <li key={r.id} className="text-steel-300">
-                  <span className="text-white">{r.producto ? nombreConMedida(r.producto) : r.descripcion}</span>: {partes.join(', ')}
+                  <span className="text-tinta">{r.producto ? nombreConMedida(r.producto) : r.descripcion}</span>: {partes.join(', ')}
                 </li>
               )
             })}
@@ -106,7 +106,7 @@ export function RecepcionCierre({ recepcion, renglones, totalFactura, estadoPago
       )}
 
       {recepcion.estado === 'abierta' && (
-        <div className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
+        <div className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
           {pendientes.length > 0 ? (
             <ul className="space-y-1">
               {pendientes.map(p => (
@@ -133,7 +133,7 @@ export function RecepcionCierre({ recepcion, renglones, totalFactura, estadoPago
       {recepcion.estado === 'reclamacion' && (
         <div className="space-y-3 rounded-2xl border border-brand-yellow/30 bg-brand-yellow/5 p-4">
           <h3 className="font-display font-bold text-brand-yellow">Reclamación pendiente</h3>
-          <p className="whitespace-pre-line text-sm text-white">{recepcion.nota_cierre}</p>
+          <p className="whitespace-pre-line text-sm text-tinta">{recepcion.nota_cierre}</p>
           <p className="text-xs text-steel-300">Si llega lo que faltaba, corrígelo en Conteo. Cuando el proveedor responda (nota crédito, reposición o devolución), márcala resuelta.</p>
           <div className="space-y-1">
             <Label htmlFor="recepcion-resolucion" className={LABEL_CLS}>Cómo se resolvió</Label>
@@ -149,8 +149,8 @@ export function RecepcionCierre({ recepcion, renglones, totalFactura, estadoPago
       {recepcion.estado === 'cerrada' && (
         <div className="space-y-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-4 text-sm">
           <p className="flex items-center gap-1.5 font-semibold text-emerald-400"><CheckCircle2 className="h-4 w-4" />Recepción cerrada</p>
-          {recepcion.nota_cierre && <p className="whitespace-pre-line text-white"><span className="text-steel-300">Nota: </span>{recepcion.nota_cierre}</p>}
-          {recepcion.nota_resolucion && <p className="whitespace-pre-line text-white"><span className="text-steel-300">Resolución: </span>{recepcion.nota_resolucion}</p>}
+          {recepcion.nota_cierre && <p className="whitespace-pre-line text-tinta"><span className="text-steel-300">Nota: </span>{recepcion.nota_cierre}</p>}
+          {recepcion.nota_resolucion && <p className="whitespace-pre-line text-tinta"><span className="text-steel-300">Resolución: </span>{recepcion.nota_resolucion}</p>}
         </div>
       )}
     </div>

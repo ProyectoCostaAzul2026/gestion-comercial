@@ -30,11 +30,11 @@ function TablaConteo({ titulo, items, onChange, totalEsperado }: {
     onChange(items.map((it, i) => i === idx ? { ...it, cantidad, subtotal: cantidad * it.denominacion } : it))
   }
   return (
-    <div className="space-y-3 rounded-xl border border-white/10 bg-[#1a2430] p-4">
-      <h3 className="font-display font-bold text-white">{titulo}</h3>
+    <div className="space-y-3 rounded-xl border border-linea bg-superficie-2 p-4">
+      <h3 className="font-display font-bold text-tinta">{titulo}</h3>
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-white/8 text-xs text-steel-300">
+          <tr className="border-b border-linea text-xs text-steel-300">
             <th className="pb-1 text-left">Denominación</th>
             <th className="pb-1 text-right">Cantidad</th>
             <th className="pb-1 text-right">Subtotal</th>
@@ -42,7 +42,7 @@ function TablaConteo({ titulo, items, onChange, totalEsperado }: {
         </thead>
         <tbody>
           {items.map((item, idx) => (
-            <tr key={`${item.es_moneda}-${item.denominacion}`} className="border-b border-white/8 last:border-0">
+            <tr key={`${item.es_moneda}-${item.denominacion}`} className="border-b border-linea last:border-0">
               <td className="py-1 text-steel-300">
                 <span className="inline-flex items-center gap-1.5">
                   {item.es_moneda ? <Coins className="h-3.5 w-3.5 text-amber-400" /> : <Banknote className="h-3.5 w-3.5 text-emerald-400" />}
@@ -52,24 +52,24 @@ function TablaConteo({ titulo, items, onChange, totalEsperado }: {
               <td className="py-1 text-right">
                 <Input type="number" min={0} value={item.cantidad || ''}
                   onChange={e => actualizar(idx, parseInt(e.target.value) || 0)}
-                  className="ml-auto h-7 w-20 border-white/10 bg-[#111820] text-right text-xs text-white" />
+                  className="ml-auto h-7 w-20 border-linea bg-superficie text-right text-xs text-tinta" />
               </td>
-              <td className="py-1 text-right font-medium text-white">${item.subtotal.toLocaleString('es-CO')}</td>
+              <td className="py-1 text-right font-medium text-tinta">${item.subtotal.toLocaleString('es-CO')}</td>
             </tr>
           ))}
         </tbody>
         <tfoot>
-          <tr className="border-t border-white/8 font-bold">
-            <td className="pt-2 text-white">Total</td>
+          <tr className="border-t border-linea font-bold">
+            <td className="pt-2 text-tinta">Total</td>
             <td></td>
-            <td className={`pt-2 text-right font-display ${diferencia === null ? 'text-white' : Math.abs(diferencia) < 1 ? 'text-emerald-400' : 'text-brand-red'}`}>
+            <td className={`pt-2 text-right font-display ${diferencia === null ? 'text-tinta' : Math.abs(diferencia) < 1 ? 'text-emerald-400' : 'text-sale'}`}>
               ${total.toLocaleString('es-CO')}
             </td>
           </tr>
           {totalEsperado !== undefined && (
             <tr className="text-xs">
               <td colSpan={2} className="pt-1 text-steel-300">Esperado: ${totalEsperado.toLocaleString('es-CO')}</td>
-              <td className={`pt-1 text-right font-medium ${Math.abs(diferencia ?? 0) < 1 ? 'text-emerald-400' : 'text-brand-red'}`}>
+              <td className={`pt-1 text-right font-medium ${Math.abs(diferencia ?? 0) < 1 ? 'text-emerald-400' : 'text-sale'}`}>
                 {diferencia === null ? '' : diferencia > 0 ? `+$${diferencia.toLocaleString('es-CO')}` : diferencia < 0 ? `-$${Math.abs(diferencia).toLocaleString('es-CO')}` : '✓ Cuadrada'}
               </td>
             </tr>
@@ -150,33 +150,33 @@ export function ArqueoPanel({ ingresosEfectivo, egresosEfectivo, saldoEfectivo, 
   return (
     <div className="space-y-4 rounded-2xl border border-brand-red/30 bg-brand-red/10 p-4">
       <div className="flex items-center justify-between">
-        <h2 className="font-display font-bold text-brand-red">Arqueo y Cierre de Caja — {fechaHoy}</h2>
-        {onCerrar && <button type="button" onClick={onCerrar} className="text-xs text-brand-red hover:underline">Cancelar</button>}
+        <h2 className="font-display font-bold text-sale">Arqueo y Cierre de Caja — {fechaHoy}</h2>
+        {onCerrar && <button type="button" onClick={onCerrar} className="text-xs text-sale hover:underline">Cancelar</button>}
       </div>
 
-      <div className="space-y-1 rounded-xl border border-white/10 bg-[#111820] p-3 text-sm">
+      <div className="space-y-1 rounded-xl border border-linea bg-superficie p-3 text-sm">
         <p className="mb-1 font-medium text-steel-300">Saldo calculado por el sistema</p>
         <div className="flex justify-between">
           <span className="text-steel-300">Entradas de hoy en efectivo</span>
-          <span className="text-white">${ingresosEfectivo.toLocaleString('es-CO')}</span>
+          <span className="text-tinta">${ingresosEfectivo.toLocaleString('es-CO')}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-steel-300">Salidas de hoy en efectivo</span>
-          <span className="text-white">-${egresosEfectivo.toLocaleString('es-CO')}</span>
+          <span className="text-tinta">-${egresosEfectivo.toLocaleString('es-CO')}</span>
         </div>
         {Math.abs(arrastre) >= 1 && (
           <div className="flex justify-between">
             <span className="text-steel-300">De días anteriores sin cerrar</span>
-            <span className="text-white">{arrastre < 0 ? '-' : ''}${Math.abs(arrastre).toLocaleString('es-CO')}</span>
+            <span className="text-tinta">{arrastre < 0 ? '-' : ''}${Math.abs(arrastre).toLocaleString('es-CO')}</span>
           </div>
         )}
-        <div className="flex justify-between border-t border-white/8 pt-1 font-bold">
-          <span className="text-white">Debe haber sobre la base</span>
-          <span className="font-display text-white">${saldoSistema.toLocaleString('es-CO')}</span>
+        <div className="flex justify-between border-t border-linea pt-1 font-bold">
+          <span className="text-tinta">Debe haber sobre la base</span>
+          <span className="font-display text-tinta">${saldoSistema.toLocaleString('es-CO')}</span>
         </div>
       </div>
 
-      <p className="rounded-xl bg-brand-red/10 p-2 text-xs text-brand-red">
+      <p className="rounded-xl bg-brand-red/10 p-2 text-xs text-sale">
         <strong>Instrucciones:</strong> Cuenta todo el efectivo disponible. Separa ${montoBase.toLocaleString('es-CO')} para la caja base del próximo día y regístralos en el primer recuadro. El resto es el sobrante — regístralo en el segundo recuadro.
       </p>
 
@@ -201,7 +201,7 @@ export function ArqueoPanel({ ingresosEfectivo, egresosEfectivo, saldoEfectivo, 
           <div className="space-y-1">
             <label className="text-xs font-medium text-brand-yellow">Observación obligatoria</label>
             <Textarea value={observacion} onChange={e => setObservacion(e.target.value)}
-              rows={2} placeholder="Explica el motivo de la diferencia…" className="border-white/10 bg-[#111820] text-white placeholder:text-steel-500" />
+              rows={2} placeholder="Explica el motivo de la diferencia…" className="border-linea bg-superficie text-tinta placeholder:text-steel-500" />
           </div>
         </div>
       )}
@@ -213,8 +213,8 @@ export function ArqueoPanel({ ingresosEfectivo, egresosEfectivo, saldoEfectivo, 
           Proceder al cierre
         </Button>
       ) : (
-        <div className="space-y-3 rounded-xl border border-white/10 bg-[#111820] p-3">
-          <p className="text-sm font-medium text-white">¿Confirmas el cierre de caja?</p>
+        <div className="space-y-3 rounded-xl border border-linea bg-superficie p-3">
+          <p className="text-sm font-medium text-tinta">¿Confirmas el cierre de caja?</p>
           <ul className="space-y-0.5 text-xs text-steel-300">
             <li>• Base para mañana: ${totalBase.toLocaleString('es-CO')}</li>
             <li>• Sobrante a Caja Mayor: ${totalSobrante.toLocaleString('es-CO')}</li>
@@ -224,7 +224,7 @@ export function ArqueoPanel({ ingresosEfectivo, egresosEfectivo, saldoEfectivo, 
             <Button onClick={handleCerrar} disabled={cerrando} className="bg-brand-red font-bold text-white hover:bg-brand-red hover:brightness-95">
               {cerrando ? 'Cerrando…' : 'Sí, cerrar caja'}
             </Button>
-            <Button variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => setConfirmando(false)}>Cancelar</Button>
+            <Button variant="outline" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setConfirmando(false)}>Cancelar</Button>
           </div>
         </div>
       )}

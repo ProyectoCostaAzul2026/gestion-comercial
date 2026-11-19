@@ -61,8 +61,8 @@ function fmtFecha(f: string) {
   return `${d}/${meses[parseInt(m)-1]}/${y}`
 }
 
-const INPUT_CLS = 'border-white/10 bg-[#1a2430] text-white placeholder:text-steel-500 focus:border-brand-yellow/60'
-const LABEL_CLS = 'text-[10px] font-bold uppercase tracking-widest text-steel-300'
+const INPUT_CLS = 'border-linea bg-superficie-2 text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60'
+const LABEL_CLS = 'text-xs font-bold text-steel-300'
 
 export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
   catalogo: ServicioSearch[]
@@ -248,7 +248,7 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
     .hr-light { border: none; border-top: 1px solid #e2e8f0; margin: 10px 0; }
     .title { font-size: 15px; font-weight: bold; text-align: center; letter-spacing: 2px; margin: 16px 0; color: #0f172a; }
     .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
-    .info-item { font-size: 11px; } .info-label { color: #64748b; font-size: 10px; text-transform: uppercase; }
+    .info-item { font-size: 11px; } .info-label { color: #64748b; font-size: 10px; text-transform: ; }
     table { width: 100%; border-collapse: collapse; margin: 12px 0; }
     th { background: #0f172a; color: #fff; padding: 6px 8px; text-align: left; font-size: 11px; }
     th:last-child { text-align: right; } td { padding: 5px 8px; border-bottom: 1px solid #f1f5f9; font-size: 11px; }
@@ -304,19 +304,15 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
       <div className="min-w-0 flex-1 space-y-5">
 
         {/* Header diagonal */}
-        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] py-3 pl-4 pr-14 md:py-4 md:pr-28">
-          <h1 className="font-display text-2xl font-bold text-white md:text-3xl">Nueva <span className="text-brand-yellow">Cotización</span></h1>
+        <div className="relative py-1">
+          <h1 className="font-display text-2xl font-bold text-tinta md:text-3xl">Nueva <span className="text-brand-yellow">Cotización</span></h1>
           <p className="mt-0.5 text-xs text-steel-300">Productos, servicios y total para el cliente</p>
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-12 overflow-hidden md:w-24">
-            <div className="absolute inset-y-0 right-0 w-9 -skew-x-12 translate-x-4 bg-brand-yellow/80 md:w-20 md:translate-x-8" />
-            <div className="absolute inset-y-0 right-0 w-3 -skew-x-12 translate-x-1 bg-brand-blue md:w-7" />
-          </div>
         </div>
 
         {/* Datos del cotizante */}
-        <section className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
-          <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow">
-            <span className="h-5 w-1 rounded-full bg-brand-yellow" />Datos del cliente
+        <section className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
+            Datos del cliente
           </h2>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
@@ -336,9 +332,9 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
         </section>
 
         {/* Productos */}
-        <section className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
-          <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow">
-            <span className="h-5 w-1 rounded-full bg-brand-yellow" />Productos
+        <section className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
+            Productos
           </h2>
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-500" />
@@ -346,12 +342,12 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
               onChange={async e => { setQueryProducto(e.target.value); await buscarProductos(e.target.value) }}
               placeholder="Buscar producto…" className={`h-12 pl-9 ${INPUT_CLS}`} />
             {resultadosProducto.length > 0 && (
-              <div className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-xl border border-white/10 bg-[#111820] shadow-xl">
+              <div className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-xl border border-linea bg-superficie shadow-xl">
                 {resultadosProducto.map((p: any) => (
                   <button key={p.id} type="button"
-                    className="flex w-full justify-between px-3 py-2 text-left text-sm hover:bg-white/5"
+                    className="flex w-full justify-between px-3 py-2 text-left text-sm hover:bg-velo/5"
                     onClick={() => agregarProducto(p)}>
-                    <span className="font-medium text-white">{p.nombre}{p.stock_almacen <= 0 ? <span className="ml-2 text-xs text-brand-yellow">(agotado)</span> : null}</span>
+                    <span className="font-medium text-tinta">{p.nombre}{p.stock_almacen <= 0 ? <span className="ml-2 text-xs text-brand-yellow">(agotado)</span> : null}</span>
                     <span className="text-xs text-steel-300">{fmt(p.precio_venta)}</span>
                   </button>
                 ))}
@@ -360,44 +356,44 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
           </div>
 
           {carrito.map((item, idx) => (
-            <div key={item.key} className="space-y-2 rounded-xl border border-white/10 bg-[#1a2430] p-3">
+            <div key={item.key} className="space-y-2 rounded-xl border border-linea bg-superficie-2 p-3">
               <div className="flex items-center justify-between gap-2">
                 <div>
-                  <p className="text-sm font-semibold text-white">{item.nombre}</p>
+                  <p className="text-sm font-semibold text-tinta">{item.nombre}</p>
                   {item.agotado && <p className="text-xs text-brand-yellow">⚠ Producto agotado</p>}
                 </div>
                 <button type="button" onClick={() => setCarrito(prev => prev.filter((_, i) => i !== idx))}
-                  className="text-steel-300 hover:text-brand-red">
+                  className="text-steel-300 hover:text-sale">
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Cantidad</label>
-                  <Input type="number" min={1} value={item.cantidad} className="border-white/10 bg-[#111820] text-white"
+                  <label className="text-xs font-bold text-steel-300">Cantidad</label>
+                  <Input type="number" min={1} value={item.cantidad} className="border-linea bg-superficie text-tinta"
                     onChange={e => setCarrito(prev => prev.map((it, i) => i === idx ? conCantidad(it, parseInt(e.target.value) || 1) : it))} />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Precio</label>
-                  <Input type="number" value={item.precio_unitario} className="border-white/10 bg-[#111820] text-white"
+                  <label className="text-xs font-bold text-steel-300">Precio</label>
+                  <Input type="number" value={item.precio_unitario} className="border-linea bg-superficie text-tinta"
                     onChange={e => setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, precio_unitario: parseFloat(e.target.value) || 0 } : it))} />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Subtotal</label>
-                  <p className="mt-2 text-sm font-semibold text-white">
+                  <label className="text-xs font-bold text-steel-300">Subtotal</label>
+                  <p className="mt-2 text-sm font-semibold text-tinta">
                     {fmt(item.precio_unitario * item.cantidad * (1 - (item.descuento_habilitado ? item.descuento_porcentaje / 100 : 0)))}
                   </p>
                 </div>
               </div>
               <AvisoPrecioCantidad tramos={item.tramos} precioVenta={item.precio_base} cantidad={item.cantidad} />
               {descuentoHabilitado && item.tramo_desde == null && (
-                <div className="flex items-center gap-2 border-t border-white/8 pt-2">
+                <div className="flex items-center gap-2 border-t border-linea pt-2">
                   <Switch checked={item.descuento_habilitado}
                     onCheckedChange={v => setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, descuento_habilitado: v, descuento_porcentaje: v ? 5 : 0 } : it))} />
                   <span className="text-xs text-steel-300">Descuento</span>
                   {item.descuento_habilitado && (
                     <div className="ml-auto flex items-center gap-1">
-                      <Input type="number" min={0} max={10} className="h-7 w-16 border-white/10 bg-[#111820] text-xs text-white" value={item.descuento_porcentaje}
+                      <Input type="number" min={0} max={10} className="h-7 w-16 border-linea bg-superficie text-xs text-tinta" value={item.descuento_porcentaje}
                         onChange={e => setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, descuento_porcentaje: validarDesc(parseFloat(e.target.value) || 0) } : it))} />
                       <span className="text-xs text-steel-500">%</span>
                     </div>
@@ -415,26 +411,26 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
         </section>
 
         {/* Servicios */}
-        <section className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
-          <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow">
-            <span className="h-5 w-1 rounded-full bg-brand-yellow" />Servicios
+        <section className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
+            Servicios
           </h2>
           {catalogo.length > 0 && (
             <Select items={catalogo.map(s => ({ value: s.id, label: `${s.nombre} — ${fmt(s.precio)}` }))}
               onValueChange={v => { if (!v) return; const sv = catalogo.find(s => s.id === v); if (sv) agregarServicio(sv) }} value="">
-              <SelectTrigger className="h-12 border-white/10 bg-[#1a2430] text-white"><SelectValue placeholder="Selecciona un servicio…" /></SelectTrigger>
+              <SelectTrigger className="h-12 border-linea bg-superficie-2 text-tinta"><SelectValue placeholder="Selecciona un servicio…" /></SelectTrigger>
               <SelectContent>
                 {catalogo.map(s => <SelectItem key={s.id} value={s.id}>{s.nombre} — {fmt(s.precio)}</SelectItem>)}
               </SelectContent>
             </Select>
           )}
           {serviciosCarrito.map((s, idx) => (
-            <div key={s.key} className="flex items-center justify-between rounded-xl border border-white/10 bg-[#1a2430] px-3 py-2">
-              <span className="text-sm font-medium text-white">{s.nombre_servicio}</span>
+            <div key={s.key} className="flex items-center justify-between rounded-xl border border-linea bg-superficie-2 px-3 py-2">
+              <span className="text-sm font-medium text-tinta">{s.nombre_servicio}</span>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-white">{fmt(s.precio_aplicado)}</span>
+                <span className="text-sm text-tinta">{fmt(s.precio_aplicado)}</span>
                 <button type="button" onClick={() => setServiciosCarrito(prev => prev.filter((_, i) => i !== idx))}
-                  className="text-steel-300 hover:text-brand-red">
+                  className="text-steel-300 hover:text-sale">
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
@@ -443,10 +439,10 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
         </section>
 
         {/* Descuentos */}
-        <section className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
+        <section className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
           <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow">
-              <span className="h-5 w-1 rounded-full bg-brand-yellow" />Descuentos
+            <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
+              Descuentos
             </h2>
             <div className="flex items-center gap-2">
               <Switch checked={descuentoHabilitado} onCheckedChange={v => {
@@ -464,29 +460,29 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
                   productos sí les puedes poner descuento en su línea.
                 </p>
               )}
-              <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#1a2430] p-3">
+              <div className="flex items-center gap-3 rounded-xl border border-linea bg-superficie-2 p-3">
                 <Switch checked={descuentoTotalVigente} disabled={hayPrecioCantidad}
                   onCheckedChange={v => { setDescuentoTotalActivo(v); if (v) setEditandoTotalManual(false) }} />
-                <span className="text-sm text-white">Descuento sobre el total</span>
+                <span className="text-sm text-tinta">Descuento sobre el total</span>
                 {descuentoTotalVigente && (
                   <div className="ml-auto flex items-center gap-1">
-                    <Input type="number" min={0} max={10} className="h-7 w-16 border-white/10 bg-[#111820] text-xs text-white" value={descuentoTotalPct}
+                    <Input type="number" min={0} max={10} className="h-7 w-16 border-linea bg-superficie text-xs text-tinta" value={descuentoTotalPct}
                       onChange={e => setDescuentoTotalPct(validarDesc(parseFloat(e.target.value) || 0))} />
                     <span className="text-xs text-steel-500">%</span>
                   </div>
                 )}
               </div>
-              <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#1a2430] p-3">
+              <div className="flex items-center gap-3 rounded-xl border border-linea bg-superficie-2 p-3">
                 <Switch checked={totalManualVigente} disabled={hayPrecioCantidad} onCheckedChange={v => {
                   setEditandoTotalManual(v)
                   if (v) { setDescuentoTotalActivo(false); setTotalManual(String(totalRedondeado)) }
                   else setTotalManual('')
                 }} />
-                <span className="text-sm text-white">Editar total manualmente</span>
+                <span className="text-sm text-tinta">Editar total manualmente</span>
                 {totalManualVigente && (
                   <div className="ml-auto flex items-center gap-1">
                     <span className="text-xs text-steel-300">$</span>
-                    <Input type="number" className="h-7 w-32 border-white/10 bg-[#111820] text-xs text-white" value={totalManual}
+                    <Input type="number" className="h-7 w-32 border-linea bg-superficie text-xs text-tinta" value={totalManual}
                       onChange={e => setTotalManual(e.target.value)}
                       onBlur={() => {
                         const val = parseFloat(totalManual) || 0
@@ -495,18 +491,18 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
                   </div>
                 )}
               </div>
-              <div className="flex justify-between rounded-xl border border-white/10 bg-[#1a2430] px-3 py-2 text-xs">
-                <span className="text-steel-300">Descuento acumulado: <strong className={descuentoAcumuladoPct > maxDescuentoPct ? 'text-brand-red' : 'text-white'}>{(descuentoAcumuladoPct * 100).toFixed(1)}%</strong> / {(maxDescuentoPct * 100).toFixed(0)}%</span>
-                <span className="text-steel-300">Mín: <strong className="text-white">{fmt(minPagoPermitido)}</strong></span>
+              <div className="flex justify-between rounded-xl border border-linea bg-superficie-2 px-3 py-2 text-xs">
+                <span className="text-steel-300">Descuento acumulado: <strong className={descuentoAcumuladoPct > maxDescuentoPct ? 'text-sale' : 'text-tinta'}>{(descuentoAcumuladoPct * 100).toFixed(1)}%</strong> / {(maxDescuentoPct * 100).toFixed(0)}%</span>
+                <span className="text-steel-300">Mín: <strong className="text-tinta">{fmt(minPagoPermitido)}</strong></span>
               </div>
             </div>
           )}
         </section>
 
         {/* Observaciones */}
-        <section className="space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
-          <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow">
-            <span className="h-5 w-1 rounded-full bg-brand-yellow" />Observaciones
+        <section className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
+            Observaciones
           </h2>
           <Textarea value={observaciones} onChange={e => setObservaciones(e.target.value)} rows={2} placeholder="Condiciones, notas especiales…" className={INPUT_CLS} />
         </section>
@@ -522,7 +518,7 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
           <Button type="button" variant="outline" className="border-emerald-500/40 bg-transparent font-semibold text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-400" onClick={handleWhatsApp}>
             <MessageCircle className="mr-2 h-4 w-4" />Enviar WhatsApp
           </Button>
-          <Button type="button" variant="outline" className="border-white/10 bg-transparent text-steel-300 hover:bg-white/5 hover:text-white" onClick={() => volver('/dashboard/ventas')}>
+          <Button type="button" variant="outline" className="border-linea bg-transparent text-steel-300 hover:bg-velo/5 hover:text-tinta" onClick={() => volver('/dashboard/ventas')}>
             Cancelar
           </Button>
         </div>
@@ -530,14 +526,14 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
 
       {/* Resumen sticky */}
       <div className="lg:w-72 lg:shrink-0">
-        <div className="sticky top-4 space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-4">
-          <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow">
-            <span className="h-5 w-1 rounded-full bg-brand-yellow" />Resumen
+        <div className="sticky top-4 space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
+            Resumen
           </h2>
           <dl className="space-y-2 text-sm">
             <div className="flex justify-between">
               <dt className="text-steel-300">Subtotal bruto</dt>
-              <dd className="text-white">{fmt(subtotalBruto)}</dd>
+              <dd className="text-tinta">{fmt(subtotalBruto)}</dd>
             </div>
             {descuentosPorItem > 0 && (
               <div className="flex justify-between text-emerald-400">
@@ -551,12 +547,12 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
                 <dd>-{fmt(descuentoTotal)}</dd>
               </div>
             )}
-            <div className="mt-2 flex items-center justify-between rounded-xl border border-white/10 bg-[#1a2430] px-3 py-2.5">
-              <dt className="text-sm font-medium text-white">Total cotizado</dt>
-              <dd className="font-display text-lg font-bold text-brand-yellow">{fmt(totalRedondeado)}</dd>
+            <div className="mt-2 flex items-center justify-between rounded-xl border border-linea bg-superficie-2 px-3 py-2.5">
+              <dt className="text-sm font-medium text-tinta">Total cotizado</dt>
+              <dd className="text-lg font-bold text-tinta">{fmt(totalRedondeado)}</dd>
             </div>
           </dl>
-          {nombreCotizante && <p className="text-xs text-steel-300">Para: <strong className="text-white">{nombreCotizante}</strong></p>}
+          {nombreCotizante && <p className="text-xs text-steel-300">Para: <strong className="text-tinta">{nombreCotizante}</strong></p>}
           <p className="text-xs text-steel-500">Válida hasta: {fmtFecha(fechaVencimiento)}</p>
         </div>
       </div>

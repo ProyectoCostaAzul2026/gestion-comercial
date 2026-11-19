@@ -73,18 +73,18 @@ export function GarantiasPanel({ garantias, proveedores, soloProveedor }: Garant
       {!soloProveedor && (
         <div className="flex flex-wrap gap-3">
           <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Desde</label>
-            <Input type="date" value={filtroDesde} onChange={e => setFiltroDesde(e.target.value)} className="w-36 border-white/10 bg-[#1a2430] text-white" />
+            <label className="text-xs font-bold text-steel-300">Desde</label>
+            <Input type="date" value={filtroDesde} onChange={e => setFiltroDesde(e.target.value)} className="w-36 border-linea bg-superficie-2 text-tinta" />
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Hasta</label>
-            <Input type="date" value={filtroHasta} onChange={e => setFiltroHasta(e.target.value)} className="w-36 border-white/10 bg-[#1a2430] text-white" />
+            <label className="text-xs font-bold text-steel-300">Hasta</label>
+            <Input type="date" value={filtroHasta} onChange={e => setFiltroHasta(e.target.value)} className="w-36 border-linea bg-superficie-2 text-tinta" />
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Proveedor</label>
+            <label className="text-xs font-bold text-steel-300">Proveedor</label>
             <Select items={[{ value: 'todos', label: 'Todos' }, ...proveedores.map(p => ({ value: p.nombre, label: p.nombre }))]}
               value={filtroProveedor} onValueChange={v => v && setFiltroProveedor(v)}>
-              <SelectTrigger className="w-48 border-white/10 bg-[#1a2430] text-white"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-48 border-linea bg-superficie-2 text-tinta"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos</SelectItem>
                 {proveedores.map(p => <SelectItem key={p.id} value={p.nombre}>{p.nombre}</SelectItem>)}
@@ -95,8 +95,8 @@ export function GarantiasPanel({ garantias, proveedores, soloProveedor }: Garant
       )}
 
       {/* Pendientes */}
-      <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
-        <div className="flex items-center justify-between border-b border-white/10 bg-brand-yellow/10 px-4 py-3">
+      <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+        <div className="flex items-center justify-between border-b border-linea bg-brand-yellow/10 px-4 py-3">
           <p className="flex items-center gap-2 font-display font-bold text-brand-yellow">
             <ShieldCheck className="h-4 w-4" />Garantías pendientes ({pendientes.length})
           </p>
@@ -115,16 +115,16 @@ export function GarantiasPanel({ garantias, proveedores, soloProveedor }: Garant
             </TableHeader>
             <TableBody>
               {pendientes.map(g => (
-                <TableRow key={g.id} className="border-white/8 hover:bg-white/5">
+                <TableRow key={g.id} className="border-linea hover:bg-velo/5">
                   <TableCell className="text-xs text-steel-300">{g.fecha_registro}</TableCell>
-                  <TableCell className="text-xs font-medium text-white">{g.nombre_producto}</TableCell>
+                  <TableCell className="text-xs font-medium text-tinta">{g.nombre_producto}</TableCell>
                   <TableCell className="text-xs text-steel-300">{g.proveedores?.nombre ?? '—'}</TableCell>
                   <TableCell className="text-xs text-steel-300">{g.observaciones ?? '—'}</TableCell>
                   <TableCell>
                     <select
                       value={destino[g.id] ?? 'almacen'}
                       onChange={e => setDestino(prev => ({ ...prev, [g.id]: e.target.value }))}
-                      className="rounded-lg border border-white/10 bg-[#1a2430] px-2 py-1 text-xs text-white"
+                      className="rounded-lg border border-linea bg-superficie-2 px-2 py-1 text-xs text-tinta"
                     >
                       <option value="almacen">Almacén</option>
                       <option value="bodega">Bodega</option>
@@ -138,7 +138,7 @@ export function GarantiasPanel({ garantias, proveedores, soloProveedor }: Garant
                           className="h-7 bg-emerald-500 text-xs font-bold text-white hover:brightness-105">
                           {recibiendoId === g.id ? 'Registrando…' : 'Sí'}
                         </Button>
-                        <Button size="sm" variant="outline" onClick={() => setConfirmandoId(null)} className="h-7 border-white/10 bg-transparent text-xs text-white hover:bg-white/5 hover:text-white">No</Button>
+                        <Button size="sm" variant="outline" onClick={() => setConfirmandoId(null)} className="h-7 border-linea bg-transparent text-xs text-tinta hover:bg-velo/5 hover:text-tinta">No</Button>
                       </div>
                     ) : (
                       <Button size="sm" variant="outline" onClick={() => setConfirmandoId(g.id)}
@@ -150,7 +150,7 @@ export function GarantiasPanel({ garantias, proveedores, soloProveedor }: Garant
                 </TableRow>
               ))}
               {pendientes.length === 0 && (
-                <TableRow className="border-white/8"><TableCell colSpan={6} className="py-6 text-center text-steel-500">Sin garantías pendientes</TableCell></TableRow>
+                <TableRow className="border-linea"><TableCell colSpan={6} className="py-6 text-center text-steel-500">Sin garantías pendientes</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
@@ -159,8 +159,8 @@ export function GarantiasPanel({ garantias, proveedores, soloProveedor }: Garant
 
       {/* Recibidas */}
       {recibidas.length > 0 && (
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
-          <div className="border-b border-white/10 bg-emerald-500/10 px-4 py-3">
+        <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+          <div className="border-b border-linea bg-emerald-500/10 px-4 py-3">
             <p className="font-display font-bold text-emerald-400">Garantías recibidas ({recibidas.length})</p>
           </div>
           <div className="overflow-x-auto">
@@ -176,9 +176,9 @@ export function GarantiasPanel({ garantias, proveedores, soloProveedor }: Garant
               </TableHeader>
               <TableBody>
                 {recibidas.map(g => (
-                  <TableRow key={g.id} className="border-white/8 hover:bg-white/5">
+                  <TableRow key={g.id} className="border-linea hover:bg-velo/5">
                     <TableCell className="text-xs text-steel-300">{g.fecha_registro}</TableCell>
-                    <TableCell className="text-xs font-medium text-white">{g.nombre_producto}</TableCell>
+                    <TableCell className="text-xs font-medium text-tinta">{g.nombre_producto}</TableCell>
                     <TableCell className="text-xs text-steel-300">{g.proveedores?.nombre ?? '—'}</TableCell>
                     <TableCell className="text-xs text-steel-300">{g.observaciones ?? '—'}</TableCell>
                     <TableCell><span className="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-400">Recibida</span></TableCell>

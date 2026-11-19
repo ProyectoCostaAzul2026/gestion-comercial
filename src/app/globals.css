@@ -48,99 +48,145 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
 
-  /* Paleta Costa Azul */
-  --color-brand-yellow: #ffce00;
-  --color-brand-yellow-dark: #e0b400;
-  --color-brand-yellow-soft: #fff4d6;
-  --color-brand-blue: #1c6cb4;
-  --color-brand-blue-dark: #134e86;
-  --color-brand-blue-soft: #e7f1fa;
-  --color-brand-red: #e8453f;
-  --color-brand-red-soft: #fde6e4;
-  --color-steel-900: #18222b;
-  --color-steel-700: #2c3a45;
-  --color-steel-500: #5b6b76;
-  --color-steel-300: #9aa7b0;
+  /* Paleta Costa Azul (colores del logo). El amarillo "brand-yellow" es la ACCIÓN: amarillo en oscuro y azul en
+     claro. Para el amarillo del letrero en los dos modos (total, Cobrar, Vender, logo) usar "letrero". */
+  --color-letrero: #fedb03;
+  --color-tinta-fija: #12263a;
+  --color-brand-yellow: var(--accion);
+  --color-brand-yellow-dark: var(--accion-fuerte);
+  --color-brand-yellow-soft: #fff3d1;
+  --color-brand-blue: #0368b6;
+  --color-brand-blue-dark: #024f8c;
+  --color-brand-blue-soft: #e6f0f9;
+  --color-brand-red: #ce0d00;
+  --color-brand-red-soft: #fce9e7;
+  /* Texto sobre la acción: tinta sobre amarillo, blanco sobre azul */
+  --color-steel-900: var(--sobre-accion);
+  --color-steel-700: var(--realce);
+  --color-steel-500: var(--tenue);
+  --color-steel-300: var(--suave);
 
-  /* Capas de profundidad (negros) */
-  --color-base-900: #0a0e14;
-  --color-layer-800: #111820;
-  --color-layer-700: #1a2430;
+  /* Superficies y texto (cambian con el modo) */
+  --color-fondo: var(--fondo);
+  --color-superficie: var(--sup);
+  --color-superficie-2: var(--sup2);
+  --color-realce: var(--realce);
+  --color-linea: var(--linea);
+  --color-linea-fuerte: var(--linea-fuerte);
+  --color-tinta: var(--tinta);
+  --color-suave: var(--suave);
+  --color-tenue: var(--tenue);
+  --color-velo: var(--velo);
+  --color-accion: var(--accion);
+  --color-sobre-accion: var(--sobre-accion);
+  --color-enlace: var(--enlace);
+  --color-entra: var(--entra);
+  --color-sale: var(--sale);
+  --color-aviso: var(--aviso);
+  --color-violeta: var(--violeta);
+  --color-emerald-400: var(--entra);
+  --color-amber-400: var(--aviso);
+  --color-red-400: var(--sale);
+  --color-purple-400: var(--violeta);
+  --color-base-900: var(--fondo);
+  --color-layer-800: var(--sup);
+  --color-layer-700: var(--sup2);
+
+  --font-cifra: var(--font-barlow-cond), var(--font-barlow), sans-serif;
 }
 
+/* Modo claro: gris concreto, superficies blancas, texto tinta y acción azul */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --fondo: #eef1f4;
+  --sup: #ffffff;
+  --sup2: #f4f6f9;
+  --realce: #e3e9ef;
+  --linea: #d5dce3;
+  --linea-fuerte: #b7c3cf;
+  --tinta: #12263a;
+  --suave: #4e5d6c;
+  --tenue: #5f6e7d;
+  --velo: #12263a;
+  --accion: #0368b6;
+  --accion-fuerte: #024f8c;
+  --sobre-accion: #ffffff;
+  --enlace: #0368b6;
+  --entra: #0f7b4c;
+  --sale: #c0261c;
+  --aviso: #8a5200;
+  --violeta: #6d3fc0;
+
+  --background: var(--fondo);
+  --foreground: var(--tinta);
+  --card: var(--sup);
+  --card-foreground: var(--tinta);
+  --popover: var(--sup);
+  --popover-foreground: var(--tinta);
+  --primary: var(--accion);
+  --primary-foreground: var(--sobre-accion);
+  --secondary: var(--sup2);
+  --secondary-foreground: var(--tinta);
+  --muted: var(--sup2);
+  --muted-foreground: var(--suave);
+  --accent: var(--realce);
+  --accent-foreground: var(--tinta);
+  --destructive: var(--sale);
+  --border: var(--linea);
+  --input: var(--linea);
+  --ring: var(--accion);
+  --chart-1: #0368b6;
+  --chart-2: #e0a800;
+  --chart-3: #0f7b4c;
+  --chart-4: #c0261c;
+  --chart-5: #6d3fc0;
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: #12263a;
+  --sidebar-foreground: #c9d6e3;
+  --sidebar-primary: #fedb03;
+  --sidebar-primary-foreground: #12263a;
+  --sidebar-accent: #1e3a56;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgb(255 255 255 / 10%);
+  --sidebar-ring: #fedb03;
 }
 
+/* Modo oscuro: noche azul tinta (no negro) y acción amarilla */
 .dark {
-  /* Capas de profundidad mapeadas a tokens semÃ¡nticos shadcn */
-  --background: #0a0e14;       /* base â€” negro casi puro */
-  --foreground: #f4f6f8;
-  --card: #111820;             /* capa de tarjetas */
-  --card-foreground: #f4f6f8;
-  --popover: #111820;
-  --popover-foreground: #f4f6f8;
-  --primary: #ffce00;          /* brand-yellow */
-  --primary-foreground: #18222b;
-  --secondary: #1a2430;        /* capa de items */
-  --secondary-foreground: #f4f6f8;
-  --muted: #1a2430;
-  --muted-foreground: #9aa7b0; /* steel-300 */
-  --accent: #2c3a45;           /* steel-700 */
-  --accent-foreground: #f4f6f8;
-  --destructive: #e8453f;      /* brand-red */
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: #ffce00;
-  --chart-1: #ffce00;
-  --chart-2: #1c6cb4;
-  --chart-3: #34d399;
-  --chart-4: #e8453f;
-  --chart-5: #a78bfa;
-  --sidebar: #111820;
-  --sidebar-foreground: #f4f6f8;
-  --sidebar-primary: #ffce00;
-  --sidebar-primary-foreground: #18222b;
-  --sidebar-accent: #1a2430;
-  --sidebar-accent-foreground: #f4f6f8;
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: #ffce00;
+  --fondo: #0c1621;
+  --sup: #142233;
+  --sup2: #1b2d41;
+  --realce: #223852;
+  --linea: #27405a;
+  --linea-fuerte: #36597c;
+  --tinta: #ecf1f6;
+  --suave: #9cb0c3;
+  --tenue: #8297ab;
+  --velo: #ffffff;
+  --accion: #fedb03;
+  --accion-fuerte: #e5c400;
+  --sobre-accion: #12263a;
+  --enlace: #6db3f2;
+  --entra: #46d08e;
+  --sale: #ff7a6e;
+  --aviso: #f5b84a;
+  --violeta: #b59af5;
+
+  --chart-1: #fedb03;
+  --chart-2: #6db3f2;
+  --chart-3: #46d08e;
+  --chart-4: #ff7a6e;
+  --chart-5: #b59af5;
+  --sidebar: #08111a;
+  --sidebar-foreground: #9cb0c3;
+  --sidebar-accent: #1b2d41;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
+  }
+  html {
+    color-scheme: light;
   }
   html.dark {
     color-scheme: dark;
@@ -202,13 +248,11 @@
     content: attr(data-etiqueta);
     display: block;
     margin-bottom: 0.125rem;
-    color: var(--color-steel-500);
+    color: var(--tenue);
     font-family: var(--font-sans);
-    font-size: 0.625rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+    font-weight: 600;
     line-height: 1.2;
-    text-transform: uppercase;
   }
   /* La primera celda nombra la fila: ocupa todo el ancho, igual que las celdas sin título (acciones) */
   table[data-apilar] td:first-child,
@@ -219,4 +263,45 @@
   table[data-apilar] td[colspan] {
     text-align: center;
   }
+}
+
+/* Cifras de dinero: Barlow Condensed con números alineados */
+.cifra {
+  font-family: var(--font-cifra);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Login: el letrero cae, la cinta métrica sale de su carcasa y luego aparece el formulario */
+@keyframes letrero-colgar {
+  from { transform: translateY(-24px) rotate(-2deg); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes cinta-sacar {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+@keyframes cinta-girar {
+  from { transform: rotate(-540deg); }
+  to { transform: none; }
+}
+@keyframes formulario-aparecer {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+.anim-letrero { animation: letrero-colgar .7s cubic-bezier(.2,.9,.3,1.2) both; transform-origin: 50% 0; }
+.anim-cinta { animation: cinta-sacar 1.1s cubic-bezier(.3,.8,.3,1) .45s both; }
+.anim-carcasa { animation: cinta-girar 1.1s cubic-bezier(.3,.8,.3,1) .45s both; }
+.anim-formulario { animation: formulario-aparecer .5s ease-out 1.35s both; }
+.regla-mm {
+  background-image: repeating-linear-gradient(90deg, #12263a 0 1.5px, transparent 1.5px 6px);
+  background-size: 100% 9px;
+  background-repeat: no-repeat;
+}
+.regla-cm {
+  background-image: repeating-linear-gradient(90deg, #12263a 0 2px, transparent 2px 30px);
+  background-size: 100% 16px;
+  background-repeat: no-repeat;
+}
+@media (prefers-reduced-motion: reduce) {
+  .anim-letrero, .anim-cinta, .anim-carcasa, .anim-formulario { animation: none; }
 }

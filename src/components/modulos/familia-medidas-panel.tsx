@@ -544,7 +544,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
       {/* Botón de ayuda */}
       <div className="flex justify-end">
         <button type="button" onClick={() => setMostrarAyuda(v => !v)}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-blue hover:underline">
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-enlace hover:underline">
           <HelpCircle className="h-3.5 w-3.5" />
           {mostrarAyuda ? 'Ocultar instrucciones' : '¿Cómo funciona "Añadir Miembro"?'}
         </button>
@@ -552,14 +552,14 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
 
       {mostrarAyuda && temaAyuda && (
         <div className="space-y-4 rounded-2xl border border-brand-blue/30 bg-brand-blue/5 p-4">
-          <h3 className="font-display font-bold text-white">{temaAyuda.titulo}</h3>
+          <h3 className="font-display font-bold text-tinta">{temaAyuda.titulo}</h3>
           {temaAyuda.secciones.map((sec, i) => (
             <div key={i} className="space-y-2">
-              {sec.subtitulo && <p className="text-sm font-semibold text-brand-blue">{sec.subtitulo}</p>}
+              {sec.subtitulo && <p className="text-sm font-semibold text-enlace">{sec.subtitulo}</p>}
               <ol className="space-y-1.5">
                 {sec.pasos.map((paso, j) => (
                   <li key={j} className="flex gap-2 text-xs text-steel-300">
-                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-white/10 text-[10px] font-bold text-white">
+                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-velo/10 text-xs font-bold text-tinta">
                       {j + 1}
                     </span>
                     <span>{paso}</span>
@@ -574,14 +574,14 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
       {/* Encabezado — datos compartidos de la familia, no editables aquí */}
       <div className="space-y-3 text-center">
         {producto.imagen_url ? (
-          <img src={producto.imagen_url} alt={nombreBase} className="mx-auto h-40 w-40 rounded-2xl border border-white/10 object-cover" />
+          <img src={producto.imagen_url} alt={nombreBase} className="mx-auto h-40 w-40 rounded-2xl border border-linea object-cover" />
         ) : (
-          <div className="mx-auto flex h-40 w-40 items-center justify-center rounded-2xl border border-white/10 bg-[#1a2430]">
+          <div className="mx-auto flex h-40 w-40 items-center justify-center rounded-2xl border border-linea bg-superficie-2">
             <Package className="size-14 text-brand-yellow/50" />
           </div>
         )}
         <div>
-          <p className="font-display text-xl font-bold text-white">{nombreBase}</p>
+          <p className="font-display text-xl font-bold text-tinta">{nombreBase}</p>
           <p className="mt-0.5 text-sm text-steel-300">
             {[producto.marca, producto.categoriaNombre].filter(Boolean).join(' · ') || '—'}
           </p>
@@ -590,31 +590,31 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
       </div>
 
       {/* Lista de miembros de la familia */}
-      <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
-        <div className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 border-b border-white/10 bg-[#1a2430] px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-steel-300">
+      <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+        <div className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 border-b border-linea bg-superficie-2 px-4 py-2 text-xs font-bold text-steel-300">
           <span>Característica</span>
           <span>Medida</span>
           <span>Marca</span>
           <span className="w-16 text-right">—</span>
         </div>
         {miembros.map(m => (
-          <div key={m.id} className={`grid grid-cols-[1fr_1fr_1fr_auto] items-center gap-2 border-b border-white/5 px-4 py-3 last:border-0 ${m.id === productoActualId ? 'bg-brand-yellow/5' : ''}`}>
-            <span className="text-sm text-white">
+          <div key={m.id} className={`grid grid-cols-[1fr_1fr_1fr_auto] items-center gap-2 border-b border-linea px-4 py-3 last:border-0 ${m.id === productoActualId ? 'bg-brand-yellow/5' : ''}`}>
+            <span className="text-sm text-tinta">
               {m.caracteristica || '—'}
-              {m.id === productoActualId && <span className="ml-2 text-[10px] font-bold uppercase text-brand-yellow">Actual</span>}
-              {!m.activo && <span className="ml-2 rounded-full bg-steel-700 px-2 py-0.5 text-[10px] font-bold uppercase text-steel-300">Inactivo</span>}
+              {m.id === productoActualId && <span className="ml-2 text-xs font-bold text-brand-yellow">Actual</span>}
+              {!m.activo && <span className="ml-2 rounded-full bg-steel-700 px-2 py-0.5 text-xs font-bold text-steel-300">Inactivo</span>}
             </span>
             <span className="text-sm text-steel-300">{m.unidad_medida || '—'}</span>
             <span className="text-sm text-steel-300">
               {m.marca || '—'}
               {m.sinActualizar && (
-                <span className="ml-2 inline-block rounded-full bg-brand-red/20 px-2 py-0.5 text-[10px] font-bold text-brand-red">
+                <span className="ml-2 inline-block rounded-full bg-brand-red/20 px-2 py-0.5 text-xs font-bold text-sale">
                   Sin actualizar
                 </span>
               )}
             </span>
             <span className="w-16 text-right">
-              <Link href={`/dashboard/inventario/${m.id}/editar?volver=familia&origen=${productoActualId}`} className="inline-flex items-center gap-1 text-xs font-semibold text-brand-blue hover:underline">
+              <Link href={`/dashboard/inventario/${m.id}/editar?volver=familia&origen=${productoActualId}`} className="inline-flex items-center gap-1 text-xs font-semibold text-enlace hover:underline">
                 <Pencil className="h-3 w-3" />Editar
               </Link>
             </span>
@@ -630,7 +630,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
             <Plus className="mr-2 h-4 w-4" />Añadir Miembro
           </Button>
           <Button type="button" variant="outline" onClick={abrirEditarDatos}
-            className="h-11 rounded-xl border-brand-blue/60 bg-transparent font-bold text-brand-blue hover:bg-brand-blue/10">
+            className="h-11 rounded-xl border-brand-blue/60 bg-transparent font-bold text-enlace hover:bg-brand-blue/10">
             <Settings2 className="mr-2 h-4 w-4" />Editar Datos
           </Button>
         </div>
@@ -639,31 +639,31 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
       {/* Editar Datos: prellena datos compartidos (categoría, descripción, imagen, IVA, fracción, proveedores)
           en varios productos seleccionados a la vez. No los activa — eso solo lo hace "Editar producto". */}
       {modoEditarDatos && (
-        <div className="space-y-5 rounded-2xl border border-white/10 bg-[#111820] p-4">
+        <div className="space-y-5 rounded-2xl border border-linea bg-superficie p-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-display font-bold text-white">Editar Datos</h3>
+              <h3 className="font-display font-bold text-tinta">Editar Datos</h3>
               <p className="text-xs text-steel-500">Selecciona una o más ramas y prellena los datos que compartan. Todo es opcional — deja vacío lo que no aplique.</p>
             </div>
-            <Button type="button" variant="ghost" size="icon-sm" className="text-steel-300 hover:text-white" onClick={cerrarEditarDatos}>
+            <Button type="button" variant="ghost" size="icon-sm" className="text-steel-300 hover:text-tinta" onClick={cerrarEditarDatos}>
               <X className="h-4 w-4" />
             </Button>
           </div>
 
           {/* Lista de ramas con checkbox */}
-          <div className="overflow-hidden rounded-xl border border-white/10">
-            <div className="flex items-center justify-between border-b border-white/10 bg-[#1a2430] px-3 py-2">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Ramas ({seleccionados.size} de {miembros.length} seleccionadas)</span>
-              <div className="flex gap-3 text-[11px] font-semibold">
-                <button type="button" className="text-brand-blue hover:underline" onClick={seleccionarTodos}>Todas</button>
+          <div className="overflow-hidden rounded-xl border border-linea">
+            <div className="flex items-center justify-between border-b border-linea bg-superficie-2 px-3 py-2">
+              <span className="text-xs font-bold text-steel-300">Ramas ({seleccionados.size} de {miembros.length} seleccionadas)</span>
+              <div className="flex gap-3 text-xs font-semibold">
+                <button type="button" className="text-enlace hover:underline" onClick={seleccionarTodos}>Todas</button>
                 <button type="button" className="text-steel-300 hover:underline" onClick={deseleccionarTodos}>Ninguna</button>
               </div>
             </div>
             {miembros.map(m => (
-              <label key={m.id} className="flex cursor-pointer items-center gap-3 border-b border-white/5 px-3 py-2 last:border-0 hover:bg-white/5">
+              <label key={m.id} className="flex cursor-pointer items-center gap-3 border-b border-linea px-3 py-2 last:border-0 hover:bg-velo/5">
                 <input type="checkbox" checked={seleccionados.has(m.id)} onChange={() => toggleSeleccion(m.id)}
-                  className="size-4 rounded border-white/20 accent-brand-yellow" />
-                <span className="flex-1 text-sm text-white">{m.caracteristica || '—'}</span>
+                  className="size-4 rounded border-linea-fuerte accent-brand-yellow" />
+                <span className="flex-1 text-sm text-tinta">{m.caracteristica || '—'}</span>
                 <span className="text-sm text-steel-300">{m.unidad_medida || '—'}</span>
                 <span className="text-sm text-steel-300">{m.marca || '—'}</span>
               </label>
@@ -671,12 +671,12 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
           </div>
 
           {/* Datos compartidos */}
-          <div className="space-y-4 border-t border-white/10 pt-4">
+          <div className="space-y-4 border-t border-linea pt-4">
             <div className="space-y-1">
               <Label className={LABEL_CLS}>Categoría</Label>
               <Select value={datosCompartidos.categoria_id} onValueChange={v => v && setDatosCompartidos(prev => ({ ...prev, categoria_id: v }))}
                 items={categorias.map(c => ({ value: c.id, label: c.nombre }))}>
-                <SelectTrigger className="w-full border-white/10 bg-[#1a2430] text-white">
+                <SelectTrigger className="w-full border-linea bg-superficie-2 text-tinta">
                   <SelectValue placeholder="Sin cambiar" />
                 </SelectTrigger>
                 <SelectContent>
@@ -701,7 +701,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
               <Label className={LABEL_CLS}>IVA incluido en el costo</Label>
               <Select value={datosCompartidos.ivaIncluido} onValueChange={v => v && setDatosCompartidos(prev => ({ ...prev, ivaIncluido: v as any }))}
                 items={OPCIONES_CAMBIO}>
-                <SelectTrigger className="w-full border-white/10 bg-[#1a2430] text-white">
+                <SelectTrigger className="w-full border-linea bg-superficie-2 text-tinta">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -716,7 +716,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
               <Label className={LABEL_CLS}>Vender por fracción</Label>
               <Select value={datosCompartidos.venderPorFraccion} onValueChange={v => v && setDatosCompartidos(prev => ({ ...prev, venderPorFraccion: v as any }))}
                 items={OPCIONES_CAMBIO}>
-                <SelectTrigger className="w-full border-white/10 bg-[#1a2430] text-white">
+                <SelectTrigger className="w-full border-linea bg-superficie-2 text-tinta">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -747,7 +747,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
                     <Input type="number" value={datosCompartidos.precio_por_unidad_medida} onChange={e => setDatosCompartidos(prev => ({ ...prev, precio_por_unidad_medida: e.target.value }))} className={INPUT_CLS} />
                   </div>
                 ) : (
-                  <p className="col-span-2 text-[11px] text-steel-500">El precio por unidad de medida lo pone un administrador.</p>
+                  <p className="col-span-2 text-xs text-steel-500">El precio por unidad de medida lo pone un administrador.</p>
                 )}
               </div>
             )}
@@ -755,11 +755,11 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
             <div className="space-y-2">
               <Label className={LABEL_CLS}>Proveedores asociados</Label>
               {proveedoresAAsignar.map(p => (
-                <div key={p.key} className="flex items-end gap-2 rounded-lg border border-white/10 bg-[#1a2430] p-2">
+                <div key={p.key} className="flex items-end gap-2 rounded-lg border border-linea bg-superficie-2 p-2">
                   <div className="flex-1 space-y-1">
                     <Select value={p.proveedor_id} onValueChange={v => v && actualizarProveedorAAsignar(p.key, 'proveedor_id', v)}
                       items={proveedoresDisponibles.map(pr => ({ value: pr.id, label: pr.nombre }))}>
-                      <SelectTrigger className="w-full border-white/10 bg-[#111820] text-white">
+                      <SelectTrigger className="w-full border-linea bg-superficie text-tinta">
                         <SelectValue placeholder="Selecciona proveedor…" />
                       </SelectTrigger>
                       <SelectContent>
@@ -771,18 +771,18 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
                     <Input value={p.codigo} onChange={e => actualizarProveedorAAsignar(p.key, 'codigo', e.target.value)}
                       placeholder="Código del proveedor (opcional)" className={INPUT_CLS} />
                   </div>
-                  <Button type="button" variant="ghost" size="icon-sm" className="text-steel-300 hover:text-brand-red"
+                  <Button type="button" variant="ghost" size="icon-sm" className="text-steel-300 hover:text-sale"
                     onClick={() => quitarProveedorAAsignar(p.key)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               ))}
               <Button type="button" variant="outline" size="sm"
-                className="border-brand-blue/60 bg-transparent font-semibold text-brand-blue hover:bg-brand-blue/10"
+                className="border-brand-blue/60 bg-transparent font-semibold text-enlace hover:bg-brand-blue/10"
                 onClick={agregarProveedorAAsignar}>
                 <Plus className="mr-1 h-4 w-4" />Proveedor
               </Button>
-              <p className="text-[11px] text-steel-500">El costo de estos proveedores queda en $0 — ajústalo luego desde "Editar producto".</p>
+              <p className="text-xs text-steel-500">El costo de estos proveedores queda en $0 — ajústalo luego desde "Editar producto".</p>
             </div>
           </div>
 
@@ -795,10 +795,10 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
 
       {/* Árbol Característica → Medida → Marca */}
       {modoArbol && (
-        <div className="space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-4">
+        <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-display font-bold text-white">Familia de productos</h3>
-            <Button type="button" variant="ghost" size="icon-sm" className="text-steel-300 hover:text-white" onClick={cerrarArbol}>
+            <h3 className="font-display font-bold text-tinta">Familia de productos</h3>
+            <Button type="button" variant="ghost" size="icon-sm" className="text-steel-300 hover:text-tinta" onClick={cerrarArbol}>
               <X className="h-4 w-4" />
             </Button>
           </div>
@@ -813,11 +813,11 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
                     onBlur={() => expandirCaracteristicaSiAplica(car.key)} />
                 </div>
                 <Button type="button" variant="outline" size="sm"
-                  className="border-brand-blue/60 bg-transparent font-semibold text-brand-blue hover:bg-brand-blue/10"
+                  className="border-brand-blue/60 bg-transparent font-semibold text-enlace hover:bg-brand-blue/10"
                   onClick={() => agregarMedida(car.key)}>
                   <Plus className="mr-1 h-4 w-4" />Medida
                 </Button>
-                <Button type="button" variant="ghost" size="icon-sm" className="text-steel-300 hover:text-brand-red"
+                <Button type="button" variant="ghost" size="icon-sm" className="text-steel-300 hover:text-sale"
                   onClick={() => quitarCaracteristica(car.key)}>
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -830,9 +830,9 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
                       <Label className={LABEL_CLS}>Medida</Label>
                       <Input className={`${INPUT_CLS} h-11 w-full text-base`} placeholder="Ej: 3/4, 2.6, Corto;Mediano;Grande" value={med.medida}
                         onChange={e => actualizarMedida(car.key, med.key, 'medida', e.target.value)} />
-                      <p className="text-[11px] text-steel-500">Separa varias con &quot;;&quot; para crear un producto por cada una.</p>
+                      <p className="text-xs text-steel-500">Separa varias con &quot;;&quot; para crear un producto por cada una.</p>
                     </div>
-                    <Button type="button" variant="ghost" size="icon-sm" className="mt-5 shrink-0 text-steel-300 hover:text-brand-red"
+                    <Button type="button" variant="ghost" size="icon-sm" className="mt-5 shrink-0 text-steel-300 hover:text-sale"
                       onClick={() => quitarMedida(car.key, med.key)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -840,7 +840,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
                   <div className="w-full space-y-1">
                     <Label className={LABEL_CLS}>Unidad</Label>
                     <Select value={med.unidad} onValueChange={v => v && actualizarMedida(car.key, med.key, 'unidad', v)}>
-                      <SelectTrigger className="h-11 w-full border-white/10 bg-[#1a2430] text-white">
+                      <SelectTrigger className="h-11 w-full border-linea bg-superficie-2 text-tinta">
                         <SelectValue placeholder="Selecciona…" />
                       </SelectTrigger>
                       <SelectContent>
@@ -861,7 +861,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
                         <Input className={INPUT_CLS} placeholder="Generica (o varias separadas por ;)" value={mar.marca}
                           onChange={e => actualizarMarca(car.key, med.key, mar.key, e.target.value)} />
                       </div>
-                      <Button type="button" variant="ghost" size="icon-sm" className="text-steel-300 hover:text-brand-red"
+                      <Button type="button" variant="ghost" size="icon-sm" className="text-steel-300 hover:text-sale"
                         onClick={() => quitarMarca(car.key, med.key, mar.key)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -873,7 +873,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
           ))}
 
           <Button type="button" variant="outline" size="sm"
-            className="border-white/20 bg-transparent font-semibold text-white hover:bg-white/10"
+            className="border-linea-fuerte bg-transparent font-semibold text-tinta hover:bg-velo/10"
             onClick={agregarCaracteristica}>
             <Plus className="mr-1 h-4 w-4" />Característica
           </Button>

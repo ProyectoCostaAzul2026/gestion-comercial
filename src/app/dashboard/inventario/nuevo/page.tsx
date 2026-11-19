@@ -88,11 +88,11 @@ export default async function NuevoProductoPage({ searchParams }: { searchParams
 
   return (
     <div className="-m-4 md:-m-6">
-      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 border-b lg:top-0 border-white/10 bg-[#0a0e14] px-4 py-3">
+      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 border-b lg:top-0 border-linea bg-fondo px-4 py-3">
         <div className="flex items-center gap-3">
           <BotonAtras href={volver} />
           <div>
-            <h1 className="font-display text-lg font-bold text-white">Nuevo Producto</h1>
+            <h1 className="font-display text-lg font-bold text-tinta">Nuevo Producto</h1>
           </div>
         </div>
       </div>
@@ -111,7 +111,7 @@ export default async function NuevoProductoPage({ searchParams }: { searchParams
             contexto={contexto}
           />
         ) : (
-          <div className="mx-auto max-w-md space-y-3 rounded-2xl border border-white/10 bg-[#111820] p-6 text-center">
+          <div className="mx-auto max-w-md space-y-3 rounded-2xl border border-linea bg-superficie p-6 text-center">
             <p className="text-sm text-steel-300">{problema}</p>
             <Link href={volver} className="inline-flex h-10 items-center rounded-xl bg-brand-yellow px-4 text-sm font-bold text-steel-900 hover:brightness-105">
               Ir al inventario

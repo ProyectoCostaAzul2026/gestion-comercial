@@ -39,7 +39,7 @@ export default async function CierreCajaPage() {
             ${Number(arqueoHoy.total_contado_sobrante).toLocaleString('es-CO')}
             {Number(arqueoHoy.diferencia) !== 0 ? ` (diferencia de $${Number(arqueoHoy.diferencia).toLocaleString('es-CO')})` : ', sin diferencia'}.
           </p>
-          <Link href="/dashboard/caja" className="inline-flex h-11 items-center rounded-xl border border-white/10 px-4 font-semibold text-white hover:bg-white/5">
+          <Link href="/dashboard/caja" className="inline-flex h-11 items-center rounded-xl border border-linea px-4 font-semibold text-tinta hover:bg-velo/5">
             Volver a Caja
           </Link>
         </div>

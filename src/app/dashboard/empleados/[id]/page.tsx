@@ -90,30 +90,30 @@ export default async function PerfilEmpleadoPage({
         <BotonAtras href="/dashboard/empleados" />
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="font-display text-2xl font-bold text-white">{empleado.nombre_completo}</h1>
-            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${empleado.activo ? 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400' : 'border-white/10 bg-steel-700 text-steel-300'}`}>
+            <h1 className="font-display text-2xl font-bold text-tinta">{empleado.nombre_completo}</h1>
+            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${empleado.activo ? 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400' : 'border-linea bg-steel-700 text-steel-300'}`}>
               {empleado.activo ? 'Activo' : 'Inactivo'}
             </span>
           </div>
           <p className="text-xs capitalize text-steel-300">{empleado.rol}</p>
         </div>
         <Link href={`/dashboard/empleados/${id}/editar`}
-          className="rounded-xl border border-white/10 bg-[#1a2430] px-3 py-2 text-sm text-white hover:bg-white/5">
+          className="rounded-xl border border-linea bg-superficie-2 px-3 py-2 text-sm text-tinta hover:bg-velo/5">
           Editar
         </Link>
       </div>
 
       {/* Datos */}
-      <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
-        <h2 className="mb-3 flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">Información</h2>
+      <div className="rounded-2xl border border-linea bg-superficie p-4">
+        <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-tinta">Información</h2>
         <dl className="grid grid-cols-2 gap-3 text-sm">
           <div>
-            <dt className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Teléfono</dt>
-            <dd className="font-medium text-white">{empleado.telefono ?? '—'}</dd>
+            <dt className="text-xs font-bold text-steel-300">Teléfono</dt>
+            <dd className="font-medium text-tinta">{empleado.telefono ?? '—'}</dd>
           </div>
           <div>
-            <dt className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Salario base diario</dt>
-            <dd className="font-medium text-white">
+            <dt className="text-xs font-bold text-steel-300">Salario base diario</dt>
+            <dd className="font-medium text-tinta">
               {empleado.salario_base
                 ? `$${Number(empleado.salario_base).toLocaleString('es-CO')}`
                 : '—'}
@@ -124,16 +124,16 @@ export default async function PerfilEmpleadoPage({
 
       {/* KPIs de ventas */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-2xl border border-white/10 border-l-4 border-l-brand-yellow bg-[#111820] p-4">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Ventas hoy</p>
-          <p className="mt-1 font-display text-2xl font-black text-white">
+        <div className="rounded-2xl border border-linea border-l-4 border-l-brand-yellow bg-superficie p-4">
+          <p className="text-xs font-bold text-steel-300">Ventas hoy</p>
+          <p className="mt-1 font-display text-2xl font-bold text-tinta">
             ${totalVentasHoy.toLocaleString('es-CO')}
           </p>
           <p className="text-xs text-steel-300">{numVentasHoy} transacciones</p>
         </div>
-        <div className="rounded-2xl border border-white/10 border-l-4 border-l-brand-blue bg-[#111820] p-4">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Ventas este mes</p>
-          <p className="mt-1 font-display text-2xl font-black text-white">
+        <div className="rounded-2xl border border-linea border-l-4 border-l-brand-blue bg-superficie p-4">
+          <p className="text-xs font-bold text-steel-300">Ventas este mes</p>
+          <p className="mt-1 font-display text-2xl font-bold text-tinta">
             ${totalVentasMes.toLocaleString('es-CO')}
           </p>
           <p className="text-xs text-steel-300">{numVentasMes} transacciones</p>
@@ -141,8 +141,8 @@ export default async function PerfilEmpleadoPage({
       </div>
 
       {/* Historial de ventas con filtros */}
-      <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
-        <h2 className="mb-3 flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+      <div className="rounded-2xl border border-linea bg-superficie p-4">
+        <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-tinta">
           Ventas ({(ventas ?? []).length})
         </h2>
         <EmpleadoFiltros
@@ -167,18 +167,18 @@ export default async function PerfilEmpleadoPage({
               </TableHeader>
               <TableBody>
                 {(ventas ?? []).map(v => (
-                  <TableRow key={v.id} className="border-white/8 hover:bg-white/5">
+                  <TableRow key={v.id} className="border-linea hover:bg-velo/5">
                     <TableCell>
                       <Link href={`/dashboard/ventas/${v.id}`}
-                        className="text-xs text-brand-blue hover:underline">
+                        className="text-xs text-enlace hover:underline">
                         #{v.numero_ticket}
                       </Link>
                     </TableCell>
                     <TableCell className="text-xs text-steel-300">{v.fecha}</TableCell>
-                    <TableCell className="text-right font-display text-sm font-bold text-white">${Number(v.total).toLocaleString('es-CO')}</TableCell>
+                    <TableCell className="text-right font-display text-sm font-bold text-tinta">${Number(v.total).toLocaleString('es-CO')}</TableCell>
                     <TableCell className="text-xs capitalize text-steel-300">{v.tipo_pago}</TableCell>
                     <TableCell>
-                      <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize ${v.estado === 'anulada' ? 'border-brand-red/30 bg-brand-red/20 text-brand-red' : 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400'}`}>
+                      <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize ${v.estado === 'anulada' ? 'border-brand-red/30 bg-brand-red/20 text-sale' : 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400'}`}>
                         {v.estado}
                       </span>
                     </TableCell>
@@ -191,8 +191,8 @@ export default async function PerfilEmpleadoPage({
       </div>
 
       {/* Historial de nóminas con filtros */}
-      <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
-        <h2 className="mb-3 flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+      <div className="rounded-2xl border border-linea bg-superficie p-4">
+        <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-tinta">
           Nóminas ({(nominas ?? []).length})
         </h2>
         <EmpleadoFiltros
@@ -216,12 +216,12 @@ export default async function PerfilEmpleadoPage({
               </TableHeader>
               <TableBody>
                 {(nominas ?? []).map(n => (
-                  <TableRow key={n.id} className="border-white/8 hover:bg-white/5">
+                  <TableRow key={n.id} className="border-linea hover:bg-velo/5">
                     <TableCell className="text-xs text-steel-300">{n.periodo_inicio}</TableCell>
                     <TableCell className="text-right text-xs text-steel-300">
                       {n.horas_trabajadas != null ? `${n.horas_trabajadas}h` : '—'}
                     </TableCell>
-                    <TableCell className="text-right font-display text-sm font-bold text-white">
+                    <TableCell className="text-right font-display text-sm font-bold text-tinta">
                       ${Number(n.total_pago).toLocaleString('es-CO')}
                     </TableCell>
                     <TableCell>

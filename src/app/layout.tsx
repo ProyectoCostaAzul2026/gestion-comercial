@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next"
-import { Geist_Mono, Barlow, Barlow_Semi_Condensed } from "next/font/google"
-import { Toaster } from "sonner"
+import { cookies } from "next/headers"
+import { Geist_Mono, Barlow, Barlow_Condensed, Barlow_Semi_Condensed } from "next/font/google"
+import { ToasterTema } from "@/components/tema/toaster-tema"
+import { COLOR_BARRA, COOKIE_TEMA, leerTema, SCRIPT_TEMA_SISTEMA } from "@/lib/tema"
 import "./globals.css"
 
 const barlow = Barlow({
@@ -15,6 +17,13 @@ const barlowSemi = Barlow_Semi_Condensed({
   variable: '--font-barlow-semi',
 })
 
+// Cifras de dinero
+const barlowCond = Barlow_Condensed({
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+  variable: '--font-barlow-cond',
+})
+
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
@@ -27,25 +36,31 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, title: "Costa Azul", statusBarStyle: "black-translucent" },
 }
 
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  viewportFit: 'cover',
-  themeColor: '#111820',
-  colorScheme: 'dark',
+export async function generateViewport(): Promise<Viewport> {
+  const tema = leerTema((await cookies()).get(COOKIE_TEMA)?.value)
+  return {
+    width: 'device-width',
+    initialScale: 1,
+    viewportFit: 'cover',
+    themeColor: tema === 'claro' ? COLOR_BARRA.claro : COLOR_BARRA.oscuro,
+  }
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // Claro, oscuro o el del celular (cookie "tema"; por defecto oscuro). Con "sistema", el script decide antes de pintar.
+  const tema = leerTema((await cookies()).get(COOKIE_TEMA)?.value)
   return (
-    // La app solo tiene tema oscuro: los colores de las pantallas están escritos para fondo oscuro
-    <html lang="es" className="dark">
-      <body className={`${barlow.variable} ${barlowSemi.variable} ${geistMono.variable} min-h-full flex flex-col antialiased font-sans`}>
+    <html lang="es" className={tema === 'claro' ? undefined : 'dark'} suppressHydrationWarning>
+      <head>
+        {tema === 'sistema' && <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA_SISTEMA }} />}
+      </head>
+      <body className={`${barlow.variable} ${barlowSemi.variable} ${barlowCond.variable} ${geistMono.variable} min-h-full flex flex-col antialiased font-sans`}>
         {children}
-        <Toaster position="top-center" richColors theme="dark" />
+        <ToasterTema />
       </body>
     </html>
   )

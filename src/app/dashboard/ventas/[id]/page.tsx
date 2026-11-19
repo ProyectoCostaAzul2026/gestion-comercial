@@ -107,7 +107,7 @@ export default async function VentaDetallePage({
   const creditoVenta = credito ? { saldoPendiente: Number(credito.saldo_pendiente), abonado } : null
 
   const estadoBadge =
-    venta.estado === 'anulada' ? 'border-brand-red/30 bg-brand-red/20 text-brand-red'
+    venta.estado === 'anulada' ? 'border-brand-red/30 bg-brand-red/20 text-sale'
     : venta.estado === 'modificada' || venta.estado === 'credito' ? 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow'
     : 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400'
 
@@ -167,7 +167,7 @@ export default async function VentaDetallePage({
         <div className="flex items-center gap-3">
           <BotonAtras href={`/dashboard/ventas/${id}`} />
           <div className="min-w-0 flex-1">
-            <h1 className="font-display text-2xl font-bold text-white">{TITULOS_ACCION[accionVista]}</h1>
+            <h1 className="font-display text-2xl font-bold text-tinta">{TITULOS_ACCION[accionVista]}</h1>
             <p className="text-xs text-steel-300">
               Ticket #{venta.numero_ticket} · {venta.fecha} · ${Number(venta.total).toLocaleString('es-CO')} · {METODO_LABEL[venta.tipo_pago] ?? venta.tipo_pago}
               {cliente?.nombre ? ` · ${cliente.nombre}` : ''}
@@ -185,7 +185,7 @@ export default async function VentaDetallePage({
         <BotonAtras href="/dashboard/ventas" />
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="font-display text-2xl font-bold text-white">Ticket #{venta.numero_ticket}</h1>
+            <h1 className="font-display text-2xl font-bold text-tinta">Ticket #{venta.numero_ticket}</h1>
             <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${estadoBadge}`}>
               {venta.estado === 'anulada' ? 'Anulada' :
                venta.estado === 'modificada' ? 'Modificada' :
@@ -204,29 +204,29 @@ export default async function VentaDetallePage({
       </div>
 
       {/* Info general */}
-      <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
-        <h2 className="mb-3 flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">Información general</h2>
+      <div className="rounded-2xl border border-linea bg-superficie p-4">
+        <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-tinta">Información general</h2>
         <dl className="grid grid-cols-2 gap-3 text-sm">
           <div>
-            <dt className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Cliente</dt>
-            <dd className="font-medium text-white">{cliente?.nombre ?? '—'}</dd>
+            <dt className="text-xs font-bold text-steel-300">Cliente</dt>
+            <dd className="font-medium text-tinta">{cliente?.nombre ?? '—'}</dd>
             {cliente?.telefono && <dd className="text-xs text-steel-500">{cliente.telefono}</dd>}
           </div>
           <div>
-            <dt className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Empleado</dt>
-            <dd className="text-white">{empleado?.nombre_completo ?? '—'}</dd>
+            <dt className="text-xs font-bold text-steel-300">Empleado</dt>
+            <dd className="text-tinta">{empleado?.nombre_completo ?? '—'}</dd>
           </div>
           <div>
-            <dt className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Tipo de pago</dt>
-            <dd className="text-white">{METODO_LABEL[venta.tipo_pago] ?? venta.tipo_pago}</dd>
+            <dt className="text-xs font-bold text-steel-300">Tipo de pago</dt>
+            <dd className="text-tinta">{METODO_LABEL[venta.tipo_pago] ?? venta.tipo_pago}</dd>
           </div>
           <div>
-            <dt className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Factura electrónica</dt>
-            <dd className="text-white">{venta.factura_electronica ? 'Sí' : 'No'}</dd>
+            <dt className="text-xs font-bold text-steel-300">Factura electrónica</dt>
+            <dd className="text-tinta">{venta.factura_electronica ? 'Sí' : 'No'}</dd>
           </div>
           {venta.observaciones && (
             <div className="col-span-2">
-              <dt className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Observaciones</dt>
+              <dt className="text-xs font-bold text-steel-300">Observaciones</dt>
               <dd className="text-steel-300">{venta.observaciones}</dd>
             </div>
           )}
@@ -234,13 +234,13 @@ export default async function VentaDetallePage({
       </div>
 
       {/* Productos */}
-      <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
-        <h2 className="mb-3 flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">Productos</h2>
+      <div className="rounded-2xl border border-linea bg-superficie p-4">
+        <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-tinta">Productos</h2>
         <div className="space-y-2">
           {(items ?? []).map((item) => (
-            <div key={item.id} className="flex items-start justify-between border-b border-white/8 py-2 text-sm last:border-0">
+            <div key={item.id} className="flex items-start justify-between border-b border-linea py-2 text-sm last:border-0">
               <div>
-                <p className="font-semibold text-white">{item.nombre_producto}</p>
+                <p className="font-semibold text-tinta">{item.nombre_producto}</p>
                 <p className="text-xs text-brand-yellow">
                   {item.es_fraccionado
                     ? `${item.cantidad_fraccion} (fraccionado)`
@@ -260,7 +260,7 @@ export default async function VentaDetallePage({
                   </p>
                 )}
               </div>
-              <p className="shrink-0 font-display font-bold text-white">
+              <p className="shrink-0 font-display font-bold text-tinta">
                 ${Number(item.subtotal_linea).toLocaleString('es-CO')}
               </p>
             </div>
@@ -273,13 +273,13 @@ export default async function VentaDetallePage({
 
       {/* Servicios */}
       {(servicios ?? []).length > 0 && (
-        <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
-          <h2 className="mb-3 flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">Servicios</h2>
+        <div className="rounded-2xl border border-linea bg-superficie p-4">
+          <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-tinta">Servicios</h2>
           <div className="space-y-2">
             {servicios!.map((s) => (
-              <div key={s.id} className="flex justify-between border-b border-white/8 py-2 text-sm last:border-0">
-                <span className="text-white">{s.nombre_servicio}</span>
-                <span className="font-display font-bold text-white">${Number(s.precio_aplicado).toLocaleString('es-CO')}</span>
+              <div key={s.id} className="flex justify-between border-b border-linea py-2 text-sm last:border-0">
+                <span className="text-tinta">{s.nombre_servicio}</span>
+                <span className="font-display font-bold text-tinta">${Number(s.precio_aplicado).toLocaleString('es-CO')}</span>
               </div>
             ))}
           </div>
@@ -287,13 +287,13 @@ export default async function VentaDetallePage({
       )}
 
       {/* Pagos */}
-      <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
-        <h2 className="mb-3 flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">Pagos</h2>
+      <div className="rounded-2xl border border-linea bg-superficie p-4">
+        <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-tinta">Pagos</h2>
         <div className="space-y-2">
           {(pagos ?? []).map((p) => (
-            <div key={p.id} className="flex items-start justify-between border-b border-white/8 py-2 text-sm last:border-0">
+            <div key={p.id} className="flex items-start justify-between border-b border-linea py-2 text-sm last:border-0">
               <div>
-                <p className="font-medium text-white">{METODO_LABEL[p.metodo] ?? p.metodo}</p>
+                <p className="font-medium text-tinta">{METODO_LABEL[p.metodo] ?? p.metodo}</p>
                 {p.monto_recibido != null && (
                   <p className="text-xs text-steel-300">
                     Recibido: ${Number(p.monto_recibido).toLocaleString('es-CO')}
@@ -303,18 +303,18 @@ export default async function VentaDetallePage({
                   </p>
                 )}
               </div>
-              <span className="font-display font-bold text-white">${Number(p.monto).toLocaleString('es-CO')}</span>
+              <span className="font-display font-bold text-tinta">${Number(p.monto).toLocaleString('es-CO')}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Totales */}
-      <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
+      <div className="rounded-2xl border border-linea bg-superficie p-4">
         <dl className="space-y-2 text-sm">
           <div className="flex justify-between">
             <dt className="text-steel-300">Subtotal</dt>
-            <dd className="text-white">${Number(venta.subtotal).toLocaleString('es-CO')}</dd>
+            <dd className="text-tinta">${Number(venta.subtotal).toLocaleString('es-CO')}</dd>
           </div>
           {Number(venta.total_descuentos) > 0 && (
             <div className="flex justify-between text-emerald-400">
@@ -329,12 +329,12 @@ export default async function VentaDetallePage({
             </div>
           )}
           {Number(venta.monto_devolucion ?? 0) > 0 && (
-            <div className="flex justify-between text-brand-red">
+            <div className="flex justify-between text-sale">
               <dt>Monto devuelto</dt>
               <dd>-${Number(venta.monto_devolucion).toLocaleString('es-CO')}</dd>
             </div>
           )}
-          <div className="flex justify-between border-t border-white/8 pt-2 text-lg font-bold text-brand-yellow">
+          <div className="flex justify-between border-t border-linea pt-2 text-lg font-bold text-brand-yellow">
             <dt>Total</dt>
             <dd className="font-display">${Number(venta.total).toLocaleString('es-CO')}</dd>
           </div>
@@ -343,7 +343,7 @@ export default async function VentaDetallePage({
               <dt className="text-steel-300">
                 Deuda pendiente{credito?.estado === 'anulado' ? ' (crédito anulado)' : ''}
               </dt>
-              <dd className="font-display font-bold text-brand-red">${creditoVenta.saldoPendiente.toLocaleString('es-CO')}</dd>
+              <dd className="font-display font-bold text-sale">${creditoVenta.saldoPendiente.toLocaleString('es-CO')}</dd>
             </div>
           )}
         </dl>
@@ -351,13 +351,13 @@ export default async function VentaDetallePage({
 
       {/* Historial devoluciones */}
       {(devoluciones ?? []).length > 0 && (
-        <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
-          <h2 className="mb-3 flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">Historial de ajustes</h2>
+        <div className="rounded-2xl border border-linea bg-superficie p-4">
+          <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-tinta">Historial de ajustes</h2>
           <div className="space-y-2">
             {devoluciones!.map((d) => (
-              <div key={d.id} className="space-y-1 rounded-xl border border-white/10 bg-[#1a2430] p-3 text-sm">
+              <div key={d.id} className="space-y-1 rounded-xl border border-linea bg-superficie-2 p-3 text-sm">
                 <div className="flex items-center justify-between">
-                  <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${d.tipo === 'total' ? 'border-brand-red/30 bg-brand-red/20 text-brand-red' : 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow'}`}>
+                  <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${d.tipo === 'total' ? 'border-brand-red/30 bg-brand-red/20 text-sale' : 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow'}`}>
                     {d.tipo === 'total' ? 'Devolución total' : d.tipo === 'parcial' ? 'Devolución parcial' : 'Cambio'}
                   </span>
                   <span className="text-xs text-steel-500">
@@ -366,7 +366,7 @@ export default async function VentaDetallePage({
                 </div>
                 <p className="text-steel-300">{d.observacion}</p>
                 {Number(d.monto_devuelto) > 0 && (
-                  <p className="text-xs text-brand-red">Devuelto: ${Number(d.monto_devuelto).toLocaleString('es-CO')}</p>
+                  <p className="text-xs text-sale">Devuelto: ${Number(d.monto_devuelto).toLocaleString('es-CO')}</p>
                 )}
                 {Number(d.monto_cobrado) > 0 && (
                   <p className="text-xs text-emerald-400">Cobrado adicional: ${Number(d.monto_cobrado).toLocaleString('es-CO')}</p>

@@ -30,7 +30,7 @@ const PAGINA_BUSQUEDA = 60
 function Imagen({ src, alt, className = '' }: { src: string | null; alt: string; className?: string }) {
   if (!src) {
     return (
-      <div className={`flex items-center justify-center bg-[#1a2430] ${className}`}>
+      <div className={`flex items-center justify-center bg-superficie-2 ${className}`}>
         <Package className="h-10 w-10 text-brand-yellow/40" aria-hidden />
       </div>
     )
@@ -41,13 +41,13 @@ function Imagen({ src, alt, className = '' }: { src: string | null; alt: string;
 
 function Estadisticas({ resumen, detalle }: { resumen: Resumen; detalle: string }) {
   return (
-    <div className="space-y-0.5 text-[11px] text-steel-300">
+    <div className="space-y-0.5 text-xs text-steel-300">
       <p>{detalle}</p>
       <p>
         Stock <span className="font-bold text-brand-yellow">{resumen.stock}</span>
-        {resumen.agotados > 0 && <span className="text-brand-red"> · {resumen.agotados} agotado{resumen.agotados === 1 ? '' : 's'}</span>}
+        {resumen.agotados > 0 && <span className="text-sale"> · {resumen.agotados} agotado{resumen.agotados === 1 ? '' : 's'}</span>}
       </p>
-      <p className="text-white">{rangoPrecios(resumen)}</p>
+      <p className="text-tinta">{rangoPrecios(resumen)}</p>
     </div>
   )
 }
@@ -78,15 +78,15 @@ function Tarjeta({ titulo, imagen, children, onAbrir, onMenu, onEditar, arrastre
 }) {
   return (
     <div {...arrastre}
-      className={`group relative flex flex-col overflow-hidden rounded-2xl border bg-[#111820] transition ${arrastre ? 'arrastrable' : ''} ${
+      className={`group relative flex flex-col overflow-hidden rounded-2xl border bg-superficie transition ${arrastre ? 'arrastrable' : ''} ${
         estado === 'destino' ? 'scale-[1.03] border-brand-yellow ring-2 ring-brand-yellow'
-          : estado === 'origen' ? 'border-white/10 opacity-40'
-            : 'border-white/10 hover:border-brand-yellow/50'
+          : estado === 'origen' ? 'border-linea opacity-40'
+            : 'border-linea hover:border-brand-yellow/50'
       }`}>
       <button type="button" onClick={onAbrir} className="flex flex-1 flex-col text-left">
         <Imagen src={imagen} alt={titulo} className="aspect-[4/3] w-full" />
         <div className="flex flex-1 flex-col gap-1 p-3">
-          <h3 className={`line-clamp-2 text-sm font-bold text-white ${onMenu ? 'pr-6' : ''}`}>{titulo}</h3>
+          <h3 className={`line-clamp-2 text-sm font-bold text-tinta ${onMenu ? 'pr-6' : ''}`}>{titulo}</h3>
           {children}
         </div>
       </button>
@@ -97,13 +97,13 @@ function Tarjeta({ titulo, imagen, children, onAbrir, onMenu, onEditar, arrastre
       )}
       {onEditar && !estado && (
         <button type="button" onClick={onEditar} data-sin-arrastre aria-label={`Editar nombre e imagen de ${titulo}`}
-          className="absolute right-1.5 top-1.5 flex h-10 w-10 items-center justify-center rounded-xl bg-[#111820]/85 text-steel-300 shadow hover:bg-[#111820] hover:text-brand-yellow">
+          className="absolute right-1.5 top-1.5 flex h-10 w-10 items-center justify-center rounded-xl bg-superficie/85 text-steel-300 shadow hover:bg-superficie hover:text-brand-yellow">
           <Pencil className="h-4 w-4" />
         </button>
       )}
       {onMenu && (
         <button type="button" onClick={onMenu} data-sin-arrastre aria-label={`Acciones de ${titulo}`}
-          className="absolute bottom-1 right-0.5 flex h-10 w-9 items-center justify-center rounded-lg text-steel-300 hover:bg-white/10 hover:text-white">
+          className="absolute bottom-1 right-0.5 flex h-10 w-9 items-center justify-center rounded-lg text-steel-300 hover:bg-velo/10 hover:text-tinta">
           <EllipsisVertical className="h-4 w-4" />
         </button>
       )}
@@ -188,7 +188,7 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
   if (grupo) migas.push({ texto: [grupo.caracteristica, grupo.marca].filter(Boolean).join(' · ') || grupo.nombre, nivel: { cat, fam, g } })
 
   const BOTON_AGREGAR = 'inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-brand-yellow/60 px-3 text-sm font-bold text-brand-yellow hover:bg-brand-yellow/10'
-  const BOTON_EDITAR = 'inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-white/15 px-3 text-sm font-bold text-white hover:bg-white/5'
+  const BOTON_EDITAR = 'inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-linea px-3 text-sm font-bold text-tinta hover:bg-velo/5'
   const volver = `volver=${encodeURIComponent(rutaActual)}`
   const tarjetaGrupo = (familiaId: string, x: NivelGrupo): TarjetaEditable => ({
     tipo: 'grupo', familiaId, familia: nombreFamilia(familiaId), caracteristica: x.caracteristica, marca: x.marca,
@@ -203,11 +203,11 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
           value={query}
           onChange={(e) => { setQuery(e.target.value); setLimite(PAGINA_BUSQUEDA) }}
           placeholder="Buscar por nombre, código, marca, medida o ubicación…"
-          className="h-12 border-white/10 bg-[#1a2430] pl-9 pr-10 text-[16px] text-white placeholder:text-steel-500"
+          className="h-12 border-linea bg-superficie-2 pl-9 pr-10 text-[16px] text-tinta placeholder:text-steel-500"
         />
         {buscando && (
           <button type="button" onClick={() => setQuery('')} aria-label="Borrar búsqueda"
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-steel-300 hover:bg-white/10">
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-steel-300 hover:bg-velo/10">
             <X className="h-4 w-4" />
           </button>
         )}
@@ -223,18 +223,18 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
               <Tarjeta key={p.id} titulo={p.nombre} imagen={p.imagen_url}
                 onAbrir={() => router.push(`${RUTA}/${p.id}`)}
                 onMenu={() => abrirAcciones({ tipo: 'producto', producto: p })}>
-                <div className="space-y-0.5 text-[11px] text-steel-300">
-                  <p className="font-semibold text-white">{p.unidad_medida ?? '—'}{p.marca ? ` · ${p.marca}` : ''}</p>
+                <div className="space-y-0.5 text-xs text-steel-300">
+                  <p className="font-semibold text-tinta">{p.unidad_medida ?? '—'}{p.marca ? ` · ${p.marca}` : ''}</p>
                   <p className="font-mono text-brand-yellow">{p.codigo ?? '—'}</p>
-                  <p>Stock <span className={`font-bold ${p.stock_actual <= 0 ? 'text-brand-red' : 'text-brand-yellow'}`}>{p.stock_actual}</span>{p.ubicacion ? ` · ${p.ubicacion}` : ''}</p>
-                  <p className="text-white">{pesos(p.precio_venta)}</p>
+                  <p>Stock <span className={`font-bold ${p.stock_actual <= 0 ? 'text-sale' : 'text-brand-yellow'}`}>{p.stock_actual}</span>{p.ubicacion ? ` · ${p.ubicacion}` : ''}</p>
+                  <p className="text-tinta">{pesos(p.precio_venta)}</p>
                 </div>
               </Tarjeta>
             ))}
           </div>
           {resultados.length > limite && (
             <button type="button" onClick={() => setLimite(l => l + PAGINA_BUSQUEDA)}
-              className="h-11 w-full rounded-xl border border-white/15 text-sm font-bold text-white hover:bg-white/5">
+              className="h-11 w-full rounded-xl border border-linea text-sm font-bold text-tinta hover:bg-velo/5">
               Mostrar más ({resultados.length - limite} restantes)
             </button>
           )}
@@ -246,8 +246,8 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
               <span key={i} className="inline-flex items-center gap-1">
                 {i > 0 && <ChevronRight className="h-3 w-3 text-steel-500" aria-hidden />}
                 {i === migas.length - 1
-                  ? <span className="font-semibold text-white">{m.texto}</span>
-                  : <button type="button" onClick={() => ir(m.nivel)} className="text-brand-blue hover:underline">{m.texto}</button>}
+                  ? <span className="font-semibold text-tinta">{m.texto}</span>
+                  : <button type="button" onClick={() => ir(m.nivel)} className="text-enlace hover:underline">{m.texto}</button>}
               </span>
             ))}
           </nav>
@@ -269,7 +269,7 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
           {cat && !fam && (
             <section className="space-y-3">
               <div className="flex items-center justify-between gap-2">
-                <h2 className="font-display text-xl font-bold text-white">{nombreCategoria(cat)}</h2>
+                <h2 className="font-display text-xl font-bold text-tinta">{nombreCategoria(cat)}</h2>
                 {cat !== SIN && (
                   <button type="button" onClick={() => setEditar({ tipo: 'categoria', id: cat, nombre: nombreCategoria(cat), imagen: imagenCategoria(cat) })}
                     className={BOTON_EDITAR}><Pencil className="h-4 w-4" /> Editar</button>
@@ -294,14 +294,14 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
           {cat && fam && !g && (
             <section className="space-y-3">
               <div className="flex items-center justify-between gap-2">
-                <h2 className="font-display text-xl font-bold text-white">{nombreFamilia(fam)}</h2>
+                <h2 className="font-display text-xl font-bold text-tinta">{nombreFamilia(fam)}</h2>
                 {fam !== SIN && (
                   <button type="button" onClick={() => setEditar({ tipo: 'familia', id: fam, nombre: nombreFamilia(fam), imagen: imagenFamilia(fam) })}
                     className={BOTON_EDITAR}><Pencil className="h-4 w-4" /> Editar</button>
                 )}
               </div>
               {fam !== SIN && listaGrupos.length > 1 && (
-                <p className="flex items-center gap-1.5 text-[11px] text-steel-500">
+                <p className="flex items-center gap-1.5 text-xs text-steel-500">
                   <Hand className="h-3.5 w-3.5 shrink-0" aria-hidden />
                   Mantén presionado un grupo y arrástralo sobre otro para unirlos.
                 </p>
@@ -329,11 +329,11 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
           {/* Nivel 4: el grupo de medidas con su imagen y la lista de productos */}
           {cat && fam && g && (grupo ? (
             <section className="space-y-4">
-              <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820] sm:flex">
+              <div className="overflow-hidden rounded-2xl border border-linea bg-superficie sm:flex">
                 <Imagen src={grupo.resumen.imagen} alt={grupo.nombre} className="h-56 w-full sm:h-48 sm:w-64 sm:shrink-0" />
                 <div className="flex flex-1 flex-col gap-2 p-4">
                   <div>
-                    <h2 className="font-display text-xl font-bold text-white">{grupo.nombre}</h2>
+                    <h2 className="font-display text-xl font-bold text-tinta">{grupo.nombre}</h2>
                     <p className="text-xs text-steel-300">
                       {grupo.marca ?? 'Sin marca'} · {grupo.items.length} medida{grupo.items.length === 1 ? '' : 's'} · Stock{' '}
                       <span className="font-bold text-brand-yellow">{grupo.resumen.stock}</span> · {rangoPrecios(grupo.resumen)}
@@ -356,7 +356,7 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
                     )}
                     {fam !== SIN && (
                       <Link href={`${RUTA}/${grupo.items[0].id}/grupo`}
-                        className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-white/15 px-3 text-sm font-bold text-white hover:bg-white/5">
+                        className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-linea px-3 text-sm font-bold text-tinta hover:bg-velo/5">
                         <SlidersHorizontal className="h-4 w-4" /> Orden y pesos
                       </Link>
                     )}
@@ -367,30 +367,30 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
                       onClick={() => abrirAcciones(grupo.items.length === 1
                         ? { tipo: 'producto', producto: grupo.items[0] }
                         : { tipo: 'grupo', nombre: grupo.nombre, productos: grupo.items })}
-                      className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-white/15 px-3 text-sm font-bold text-white hover:bg-white/5">
+                      className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-linea px-3 text-sm font-bold text-tinta hover:bg-velo/5">
                       <EllipsisVertical className="h-4 w-4" /> {grupo.items.length === 1 ? 'Acciones' : 'Mover grupo'}
                     </button>
                   </div>
                 </div>
               </div>
 
-              <ul className="divide-y divide-white/5 overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
+              <ul className="divide-y divide-linea overflow-hidden rounded-2xl border border-linea bg-superficie">
                 {grupo.items.map(p => (
-                  <li key={p.id} className="flex items-center gap-2 pr-1 hover:bg-white/5">
+                  <li key={p.id} className="flex items-center gap-2 pr-1 hover:bg-velo/5">
                     <button type="button" onClick={() => router.push(`${RUTA}/${p.id}`)} className="flex min-w-0 flex-1 items-center gap-3 px-3 py-3 text-left">
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-bold text-white">{p.unidad_medida ?? '—'}</p>
-                        <p className="truncate text-[11px] text-steel-300">
+                        <p className="truncate text-sm font-bold text-tinta">{p.unidad_medida ?? '—'}</p>
+                        <p className="truncate text-xs text-steel-300">
                           <span className="font-mono text-brand-yellow">{p.codigo ?? '—'}</span>{p.ubicacion ? ` · ${p.ubicacion}` : ''}
                         </p>
                       </div>
                       <div className="shrink-0 text-right">
-                        <p className={`font-display text-sm font-bold ${p.stock_actual <= 0 ? 'text-brand-red' : 'text-brand-yellow'}`}>{p.stock_actual}</p>
-                        <p className="text-[11px] text-white">{pesos(p.precio_venta)}</p>
+                        <p className={`font-display text-sm font-bold ${p.stock_actual <= 0 ? 'text-sale' : 'text-brand-yellow'}`}>{p.stock_actual}</p>
+                        <p className="text-xs text-tinta">{pesos(p.precio_venta)}</p>
                       </div>
                     </button>
                     <button type="button" onClick={() => abrirAcciones({ tipo: 'producto', producto: p })} aria-label={`Acciones de ${p.nombre} ${p.unidad_medida ?? ''}`}
-                      className="shrink-0 rounded-lg p-2 text-steel-300 hover:bg-white/10 hover:text-white">
+                      className="shrink-0 rounded-lg p-2 text-steel-300 hover:bg-velo/10 hover:text-tinta">
                       <EllipsisVertical className="h-4 w-4" />
                     </button>
                   </li>
@@ -430,11 +430,11 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
 
       {/* Lo que se lleva en el dedo mientras se arrastra un grupo */}
       {arrastre.estado && grupoArrastrado && (
-        <div aria-hidden className="pointer-events-none fixed z-50 w-40 -translate-x-1/2 overflow-hidden rounded-xl border-2 border-brand-yellow bg-[#111820] shadow-2xl shadow-black"
+        <div aria-hidden className="pointer-events-none fixed z-50 w-40 -translate-x-1/2 overflow-hidden rounded-xl border-2 border-brand-yellow bg-superficie shadow-2xl shadow-black"
           style={{ left: arrastre.estado.x, top: arrastre.estado.y - 118 }}>
           <Imagen src={grupoArrastrado.resumen.imagen} alt="" className="h-16 w-full" />
-          <p className="truncate px-2 pt-1 text-xs font-bold text-white">{grupoArrastrado.caracteristica ?? grupoArrastrado.nombre}</p>
-          <p className="truncate px-2 pb-1.5 text-[10px] text-steel-300">
+          <p className="truncate px-2 pt-1 text-xs font-bold text-tinta">{grupoArrastrado.caracteristica ?? grupoArrastrado.nombre}</p>
+          <p className="truncate px-2 pb-1.5 text-xs text-steel-300">
             {arrastre.estado.destino ? 'Suelta para unir' : 'Llévalo sobre otro grupo'}
           </p>
         </div>
@@ -467,9 +467,9 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
 
 function SinResultados({ texto, onVolver }: { texto: string; onVolver: () => void }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#111820] p-8 text-center text-sm text-steel-500">
+    <div className="rounded-2xl border border-linea bg-superficie p-8 text-center text-sm text-steel-500">
       <p>{texto}</p>
-      <button type="button" onClick={onVolver} className="mt-2 text-brand-blue hover:underline">Volver</button>
+      <button type="button" onClick={onVolver} className="mt-2 text-enlace hover:underline">Volver</button>
     </div>
   )
 }

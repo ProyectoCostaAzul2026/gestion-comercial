@@ -32,10 +32,10 @@ export default async function InventarioPage() {
 
   return (
     <div className="space-y-4">
-      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] py-3 pl-4 pr-14 md:py-4 md:pr-28">
+      <div className="relative py-1">
         <div className="relative z-10">
           <div>
-            <h1 className="font-display text-2xl font-bold text-brand-yellow md:text-3xl">Inventario</h1>
+            <h1 className="text-2xl font-bold text-tinta md:text-3xl">Inventario</h1>
             <p className="mt-0.5 text-xs text-steel-300">{productos?.length ?? 0} productos registrados</p>
           </div>
 
@@ -56,7 +56,7 @@ export default async function InventarioPage() {
             </Link>
             <Link
               href="/dashboard/inventario/desactivados"
-              className="inline-flex h-11 items-center justify-center rounded-xl bg-steel-700 px-2 text-xs font-bold sm:text-sm text-white hover:brightness-110"
+              className="inline-flex h-11 items-center justify-center rounded-xl bg-steel-700 px-2 text-xs font-bold sm:text-sm text-tinta hover:brightness-110"
             >
               <PowerOff className="mr-1.5 h-4 w-4 shrink-0" />
               Desactivados
@@ -64,7 +64,7 @@ export default async function InventarioPage() {
           </div>
           <Link
             href="/dashboard/inventario/conteo"
-            className="mt-2 flex h-11 items-center justify-center rounded-xl border border-white/20 px-4 text-sm font-bold text-white hover:bg-white/5"
+            className="mt-2 flex h-11 items-center justify-center rounded-xl border border-linea-fuerte px-4 text-sm font-bold text-tinta hover:bg-velo/5"
           >
             <ClipboardCheck className="mr-2 h-4 w-4 text-brand-yellow" />
             Conteo de inventario (también por peso)
@@ -79,14 +79,10 @@ export default async function InventarioPage() {
             </Link>
           )}
         </div>
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-12 overflow-hidden md:w-24">
-          <div className="absolute inset-y-0 right-0 w-9 -skew-x-12 translate-x-4 bg-brand-yellow/80 md:w-20 md:translate-x-8" />
-          <div className="absolute inset-y-0 right-0 w-3 -skew-x-12 translate-x-1 bg-brand-blue md:w-7" />
-        </div>
       </div>
 
       {error && (
-        <p className="rounded-2xl border border-brand-red/30 bg-brand-red/10 p-4 text-sm text-brand-red">
+        <p className="rounded-2xl border border-brand-red/30 bg-brand-red/10 p-4 text-sm text-sale">
           Error al cargar productos: {error.message}
         </p>
       )}

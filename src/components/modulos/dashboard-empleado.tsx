@@ -36,7 +36,7 @@ interface Props {
 export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, turnos, kpis, filtros, tareasPendientes }: Props) {
   if (!profile) {
     return (
-      <div className="rounded-2xl border border-white/10 bg-[#111820] p-6 text-center text-sm text-steel-300">
+      <div className="rounded-2xl border border-linea bg-superficie p-6 text-center text-sm text-steel-300">
         No se pudo cargar tu perfil. Por favor cierra sesión y vuelve a entrar.
       </div>
     )
@@ -62,18 +62,18 @@ export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, 
     <div className="space-y-4 md:space-y-6">
 
       {/* ── Perfil + header diagonal ── */}
-      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] p-4">
+      <div className="relative overflow-hidden rounded-2xl border border-linea bg-superficie p-4">
         <div className="relative z-10 flex items-start gap-4">
           {profile.foto_url ? (
             <img src={profile.foto_url} alt="Foto" className="h-20 w-20 shrink-0 rounded-full border-2 border-brand-yellow object-cover" />
           ) : (
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-brand-yellow font-display text-2xl font-black text-steel-900">
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-brand-yellow font-display text-2xl font-bold text-steel-900">
               {profile.nombre_completo.charAt(0)}
             </div>
           )}
           <div className="min-w-0">
-            <h1 className="font-display text-xl font-bold tracking-tight text-white">{profile.nombre_completo}</h1>
-            <span className={`mt-1 inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide capitalize ${esAdmin ? 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow' : 'border-white/10 bg-steel-700 text-steel-300'}`}>
+            <h1 className="font-display text-xl font-bold tracking-tight text-tinta">{profile.nombre_completo}</h1>
+            <span className={`mt-1 inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize ${esAdmin ? 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow' : 'border-linea bg-steel-700 text-steel-300'}`}>
               {profile.rol}
             </span>
             <p className="mt-1 text-xs text-steel-300">{fechaHoy}{config?.nombre ? ` · ${config.nombre}` : ''}</p>
@@ -90,40 +90,36 @@ export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, 
             </div>
           </div>
         </div>
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-12 overflow-hidden md:w-24">
-          <div className="absolute inset-y-0 right-0 w-9 -skew-x-12 translate-x-4 bg-brand-yellow/80 md:w-20 md:translate-x-8" />
-          <div className="absolute inset-y-0 right-0 w-3 -skew-x-12 translate-x-1 bg-brand-blue md:w-7" />
-        </div>
       </div>
 
       {/* ── KPIs ── */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="rounded-2xl border border-white/10 border-l-4 border-l-brand-yellow bg-[#111820] p-4">
+        <div className="rounded-2xl border border-linea border-l-4 border-l-brand-yellow bg-superficie p-4">
           <div className="flex items-start justify-between">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Total ventas</p>
+            <p className="text-xs font-bold text-steel-300">Total ventas</p>
             <span className="flex items-center justify-center rounded-xl bg-brand-yellow/15 p-2 text-brand-yellow">
               <TrendingUp className="size-5" />
             </span>
           </div>
-          <p className="mt-3 font-display text-2xl font-black text-emerald-400 md:text-3xl">{fmt(kpis.totalVentas)}</p>
+          <p className="mt-3 font-display text-2xl font-bold text-emerald-400 md:text-3xl">{fmt(kpis.totalVentas)}</p>
         </div>
-        <div className="rounded-2xl border border-white/10 border-l-4 border-l-brand-blue bg-[#111820] p-4">
+        <div className="rounded-2xl border border-linea border-l-4 border-l-brand-blue bg-superficie p-4">
           <div className="flex items-start justify-between">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">N° ventas</p>
-            <span className="flex items-center justify-center rounded-xl bg-brand-blue/15 p-2 text-brand-blue">
+            <p className="text-xs font-bold text-steel-300">N° ventas</p>
+            <span className="flex items-center justify-center rounded-xl bg-brand-blue/15 p-2 text-enlace">
               <Receipt className="size-5" />
             </span>
           </div>
-          <p className="mt-3 font-display text-2xl font-black text-white md:text-3xl">{kpis.numVentas}</p>
+          <p className="mt-3 font-display text-2xl font-bold text-tinta md:text-3xl">{kpis.numVentas}</p>
         </div>
-        <div className="rounded-2xl border border-white/10 border-l-4 border-l-brand-blue bg-[#111820] p-4">
+        <div className="rounded-2xl border border-linea border-l-4 border-l-brand-blue bg-superficie p-4">
           <div className="flex items-start justify-between">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Venta promedio</p>
-            <span className="flex items-center justify-center rounded-xl bg-brand-blue/15 p-2 text-brand-blue">
+            <p className="text-xs font-bold text-steel-300">Venta promedio</p>
+            <span className="flex items-center justify-center rounded-xl bg-brand-blue/15 p-2 text-enlace">
               <BarChart3 className="size-5" />
             </span>
           </div>
-          <p className="mt-3 font-display text-2xl font-black text-white md:text-3xl">{fmt(kpis.ventaPromedio)}</p>
+          <p className="mt-3 font-display text-2xl font-bold text-tinta md:text-3xl">{fmt(kpis.ventaPromedio)}</p>
         </div>
       </div>
 
@@ -137,8 +133,8 @@ export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, 
           Nueva Venta
         </Link>
         <Link href="/dashboard/inventario"
-          className="flex h-16 items-center gap-3 rounded-2xl border border-white/10 bg-[#111820] px-4 text-sm font-bold text-white transition hover:border-brand-blue/40">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-blue/15 text-brand-blue">
+          className="flex h-16 items-center gap-3 rounded-2xl border border-linea bg-superficie px-4 text-sm font-bold text-tinta transition hover:border-brand-blue/40">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-blue/15 text-enlace">
             <Package className="size-6" />
           </span>
           Inventario
@@ -151,8 +147,8 @@ export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, 
           { href: '/dashboard/ventas', icon: Receipt, label: 'Mis ventas' },
         ].map(({ href, icon: Icon, label }) => (
           <Link key={href} href={href}
-            className="flex h-16 items-center gap-3 rounded-2xl border border-white/10 bg-[#111820] px-4 text-sm font-bold leading-tight text-white transition hover:border-brand-blue/40">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-blue/15 text-brand-blue">
+            className="flex h-16 items-center gap-3 rounded-2xl border border-linea bg-superficie px-4 text-sm font-bold leading-tight text-tinta transition hover:border-brand-blue/40">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-blue/15 text-enlace">
               <Icon className="size-6" />
             </span>
             {label}
@@ -162,24 +158,24 @@ export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, 
 
       {/* ── Mis ventas con filtro ── */}
       <div className="space-y-3">
-        <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+        <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
           Mis ventas
         </h2>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
-            <label className="block text-[10px] font-bold uppercase tracking-widest text-steel-300">Desde</label>
+            <label className="block text-xs font-bold text-steel-300">Desde</label>
             <Input type="date" value={filtros.ventaDesde}
               onChange={e => actualizar({ venta_desde: e.target.value })}
-              className="h-11 rounded-xl border-white/10 bg-[#1a2430] text-sm text-white" />
+              className="h-11 rounded-xl border-linea bg-superficie-2 text-sm text-tinta" />
           </div>
           <div className="space-y-1">
-            <label className="block text-[10px] font-bold uppercase tracking-widest text-steel-300">Hasta</label>
+            <label className="block text-xs font-bold text-steel-300">Hasta</label>
             <Input type="date" value={filtros.ventaHasta}
               onChange={e => actualizar({ venta_hasta: e.target.value })}
-              className="h-11 rounded-xl border-white/10 bg-[#1a2430] text-sm text-white" />
+              className="h-11 rounded-xl border-linea bg-superficie-2 text-sm text-tinta" />
           </div>
         </div>
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
+        <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -193,19 +189,19 @@ export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, 
               </TableHeader>
               <TableBody>
                 {ventas.slice(0, 10).map((v: any) => (
-                  <TableRow key={v.id} className="border-white/8 hover:bg-white/5">
+                  <TableRow key={v.id} className="border-linea hover:bg-velo/5">
                     <TableCell>
-                      <Link href={`/dashboard/ventas/${v.id}`} className="font-mono text-xs font-medium text-brand-blue hover:underline">
+                      <Link href={`/dashboard/ventas/${v.id}`} className="font-mono text-xs font-medium text-enlace hover:underline">
                         #{v.numero_ticket}
                       </Link>
                     </TableCell>
                     <TableCell className="text-xs text-steel-300">{v.fecha}</TableCell>
                     <TableCell className="text-xs text-steel-300">{v.clientes?.nombre ?? 'General'}</TableCell>
-                    <TableCell className="text-right font-display text-sm font-bold text-white">{fmt(v.total)}</TableCell>
+                    <TableCell className="text-right font-display text-sm font-bold text-tinta">{fmt(v.total)}</TableCell>
                     <TableCell>
                       <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
                         v.estado === 'anulada'
-                          ? 'border-brand-red/30 bg-brand-red/20 text-brand-red'
+                          ? 'border-brand-red/30 bg-brand-red/20 text-sale'
                           : 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400'
                       }`}>
                         {v.estado === 'anulada' && <AlertCircle className="size-3" />}
@@ -215,7 +211,7 @@ export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, 
                   </TableRow>
                 ))}
                 {ventas.length === 0 && (
-                  <TableRow className="border-white/8">
+                  <TableRow className="border-linea">
                     <TableCell colSpan={5} className="py-6 text-center text-steel-500">
                       Sin ventas en este período
                     </TableCell>
@@ -229,18 +225,18 @@ export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, 
 
       {/* ── Horario ── */}
       <div className="space-y-3">
-        <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+        <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
           Mi horario
         </h2>
         {turnosOrdenados.length === 0 ? (
           <p className="text-sm text-steel-300">Sin turnos asignados</p>
         ) : (
-          <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
+          <div className="rounded-2xl border border-linea bg-superficie p-4">
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               {turnosOrdenados.map((t: any) => (
-                <div key={t.dia_semana} className="rounded-xl border border-white/10 bg-[#1a2430] px-3 py-2 text-sm">
-                  <p className="flex items-center gap-1.5 font-semibold text-white">
-                    <Calendar className="size-3.5 text-brand-blue" />
+                <div key={t.dia_semana} className="rounded-xl border border-linea bg-superficie-2 px-3 py-2 text-sm">
+                  <p className="flex items-center gap-1.5 font-semibold text-tinta">
+                    <Calendar className="size-3.5 text-enlace" />
                     {DIAS_LABEL[t.dia_semana] ?? t.dia_semana}
                   </p>
                   <p className="mt-0.5 text-xs text-steel-300">
@@ -255,22 +251,22 @@ export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, 
 
       {/* ── Nóminas ── */}
       <div className="space-y-3">
-        <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-wide text-brand-yellow before:block before:h-5 before:w-1 before:rounded-full before:bg-brand-yellow">
+        <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
           Mi nómina
         </h2>
         <div className="flex flex-wrap items-end gap-3">
           <div className="grid flex-1 grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="block text-[10px] font-bold uppercase tracking-widest text-steel-300">Desde</label>
+              <label className="block text-xs font-bold text-steel-300">Desde</label>
               <Input type="date" value={filtros.nominaDesde}
                 onChange={e => actualizar({ nomina_desde: e.target.value })}
-                className="h-11 rounded-xl border-white/10 bg-[#1a2430] text-sm text-white" />
+                className="h-11 rounded-xl border-linea bg-superficie-2 text-sm text-tinta" />
             </div>
             <div className="space-y-1">
-              <label className="block text-[10px] font-bold uppercase tracking-widest text-steel-300">Hasta</label>
+              <label className="block text-xs font-bold text-steel-300">Hasta</label>
               <Input type="date" value={filtros.nominaHasta}
                 onChange={e => actualizar({ nomina_hasta: e.target.value })}
-                className="h-11 rounded-xl border-white/10 bg-[#1a2430] text-sm text-white" />
+                className="h-11 rounded-xl border-linea bg-superficie-2 text-sm text-tinta" />
             </div>
           </div>
           <div className="pb-1">
@@ -279,7 +275,7 @@ export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, 
             </span>
           </div>
         </div>
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111820]">
+        <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -294,23 +290,23 @@ export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, 
               </TableHeader>
               <TableBody>
                 {nominas.map((n: any) => (
-                  <TableRow key={n.id} className="border-white/8 hover:bg-white/5">
+                  <TableRow key={n.id} className="border-linea hover:bg-velo/5">
                     <TableCell className="text-xs text-steel-300">{n.periodo_inicio}</TableCell>
                     <TableCell className="text-right text-xs text-steel-300">
                       {n.horas_trabajadas != null ? `${n.horas_trabajadas}h` : '—'}
                     </TableCell>
-                    <TableCell className="text-right text-xs text-white">{fmt(n.salario_base)}</TableCell>
+                    <TableCell className="text-right text-xs text-tinta">{fmt(n.salario_base)}</TableCell>
                     <TableCell className="text-right text-xs text-emerald-400">
                       {Number(n.bonificaciones) > 0 ? `+${fmt(n.bonificaciones)}` : '—'}
                     </TableCell>
-                    <TableCell className="text-right text-xs text-brand-red">
+                    <TableCell className="text-right text-xs text-sale">
                       {Number(n.deducciones) > 0 ? `-${fmt(n.deducciones)}` : '—'}
                     </TableCell>
-                    <TableCell className="text-right font-display text-sm font-bold text-white">{fmt(n.total_pago)}</TableCell>
+                    <TableCell className="text-right font-display text-sm font-bold text-tinta">{fmt(n.total_pago)}</TableCell>
                   </TableRow>
                 ))}
                 {nominas.length === 0 && (
-                  <TableRow className="border-white/8">
+                  <TableRow className="border-linea">
                     <TableCell colSpan={6} className="py-6 text-center text-steel-500">
                       Sin nóminas en este período
                     </TableCell>

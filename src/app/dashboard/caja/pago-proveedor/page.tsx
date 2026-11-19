@@ -32,7 +32,7 @@ export default async function PagoProveedorPage() {
       <EncabezadoPagina titulo="Pago a proveedor" atras="/dashboard/caja"
         subtitulo={`${lista.length} factura${lista.length === 1 ? '' : 's'} por pagar · ${fmt(total)}`} />
       {lista.length === 0 && (
-        <p className="rounded-2xl border border-white/10 bg-[#111820] p-8 text-center text-sm text-steel-500">No hay facturas por pagar.</p>
+        <p className="rounded-2xl border border-linea bg-superficie p-8 text-center text-sm text-steel-500">No hay facturas por pagar.</p>
       )}
       <div className="space-y-2">
         {lista.map(f => {
@@ -40,17 +40,17 @@ export default async function PagoProveedorPage() {
           const mora = diasVencido(vence, hoy)
           return (
             <Link key={f.id} href={`/dashboard/proveedores/${f.proveedor_id}/facturas/${f.id}/pagar`}
-              className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#111820] p-3 hover:border-brand-yellow/50">
+              className="flex items-center gap-3 rounded-2xl border border-linea bg-superficie p-3 hover:border-brand-yellow/50">
               <span className={`h-10 w-1.5 shrink-0 rounded-full ${mora > 30 ? 'bg-brand-red' : mora > 0 ? 'bg-amber-400' : 'bg-emerald-400'}`} aria-hidden />
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-bold text-white">{(f.proveedores as { nombre?: string } | null)?.nombre ?? 'Proveedor'}</span>
-                <span className="block text-[11px] text-steel-500">
+                <span className="block truncate text-sm font-bold text-tinta">{(f.proveedores as { nombre?: string } | null)?.nombre ?? 'Proveedor'}</span>
+                <span className="block text-xs text-steel-500">
                   {f.numero_factura ? `Factura ${f.numero_factura}` : 'Sin número'} · {mora > 0 ? `vencida hace ${mora} días` : vence ? `vence ${vence}` : 'sin vencimiento'}
                 </span>
               </span>
               <span className="text-right">
-                <span className="block font-display text-base font-bold text-white">{fmt(Number(f.saldo_pendiente))}</span>
-                <span className="block text-[11px] text-steel-500">de {fmt(Number(f.monto_total))}</span>
+                <span className="block font-display text-base font-bold text-tinta">{fmt(Number(f.saldo_pendiente))}</span>
+                <span className="block text-xs text-steel-500">de {fmt(Number(f.monto_total))}</span>
               </span>
               <ChevronRight className="h-4 w-4 shrink-0 text-steel-500" />
             </Link>

@@ -67,44 +67,44 @@ export function UnirGruposMedidas({ familia, origen, destino, onCerrar, onUnido 
     onUnido?.(destino.clave)
   }
 
-  const CAJA = 'rounded-xl border border-white/10 bg-[#111820] px-3 py-2.5'
+  const CAJA = 'rounded-xl border border-linea bg-superficie px-3 py-2.5'
 
   return (
     <Sheet open onOpenChange={abierto => { if (!abierto && !guardando) onCerrar() }}>
       <SheetContent side="bottom" className="max-h-[88dvh] overflow-y-auto rounded-t-2xl p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:mx-auto sm:max-w-lg">
         <SheetHeader className="p-0 pr-8">
-          <SheetTitle className="text-base text-white">Unir grupos de medidas</SheetTitle>
+          <SheetTitle className="text-base text-tinta">Unir grupos de medidas</SheetTitle>
           <SheetDescription className="text-xs text-steel-300">Familia {familia}</SheetDescription>
         </SheetHeader>
 
         <div className="space-y-1.5">
           <div className={CAJA}>
-            <p className="text-[11px] uppercase tracking-wide text-steel-500">Se mueve</p>
-            <p className="text-sm font-bold text-white">{nombreGrupo(origen)}</p>
+            <p className="text-xs text-steel-500">Se mueve</p>
+            <p className="text-sm font-bold text-tinta">{nombreGrupo(origen)}</p>
             <p className="text-xs text-steel-300">{origen.items.length} medida{origen.items.length === 1 ? '' : 's'}</p>
           </div>
           <ArrowDown className="mx-auto h-4 w-4 text-brand-yellow" aria-hidden />
           <div className={`${CAJA} border-brand-yellow/40`}>
-            <p className="text-[11px] uppercase tracking-wide text-steel-500">Queda dentro de</p>
-            <p className="text-sm font-bold text-white">{nombreGrupo(destino)}</p>
+            <p className="text-xs text-steel-500">Queda dentro de</p>
+            <p className="text-sm font-bold text-tinta">{nombreGrupo(destino)}</p>
             <p className="text-xs text-steel-300">{destino.items.length} medida{destino.items.length === 1 ? '' : 's'}</p>
           </div>
         </div>
 
         {plan.error ? (
-          <p className="flex gap-2 rounded-xl border border-brand-red/40 bg-brand-red/10 px-3 py-2.5 text-sm text-white">
-            <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-brand-red" aria-hidden /> {plan.error}
+          <p className="flex gap-2 rounded-xl border border-brand-red/40 bg-brand-red/10 px-3 py-2.5 text-sm text-tinta">
+            <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-sale" aria-hidden /> {plan.error}
           </p>
         ) : (
           <div className="space-y-2 text-xs text-steel-300">
             <p>
               {n === origen.items.length ? `Las ${n} medidas` : `${n} de las ${origen.items.length} medidas`} de{' '}
-              <span className="font-semibold text-white">{nombreGrupo(origen)}</span> pasan a llamarse{' '}
-              <span className="font-semibold text-white">{destino.nombre}</span>. El código, el stock, los precios y los
+              <span className="font-semibold text-tinta">{nombreGrupo(origen)}</span> pasan a llamarse{' '}
+              <span className="font-semibold text-tinta">{destino.nombre}</span>. El código, el stock, los precios y los
               proveedores no cambian.
             </p>
             {plan.cambiaMarca && (
-              <p className="flex gap-2 rounded-xl border border-brand-yellow/30 bg-brand-yellow/10 px-3 py-2 text-white">
+              <p className="flex gap-2 rounded-xl border border-brand-yellow/30 bg-brand-yellow/10 px-3 py-2 text-tinta">
                 <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-brand-yellow" aria-hidden />
                 <span>
                   Los grupos tienen marcas distintas: las medidas que pasan cambian de marca,
@@ -116,7 +116,7 @@ export function UnirGruposMedidas({ familia, origen, destino, onCerrar, onUnido 
         )}
 
         {plan.repetidas.length > 0 && (
-          <div className="rounded-xl border border-brand-yellow/30 bg-brand-yellow/10 px-3 py-2 text-xs text-white">
+          <div className="rounded-xl border border-brand-yellow/30 bg-brand-yellow/10 px-3 py-2 text-xs text-tinta">
             <p className="flex gap-2 font-semibold">
               <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-brand-yellow" aria-hidden />
               {plan.repetidas.length === 1 ? 'Esta medida ya existe' : `Estas ${plan.repetidas.length} medidas ya existen`} en el destino
@@ -128,7 +128,7 @@ export function UnirGruposMedidas({ familia, origen, destino, onCerrar, onUnido 
 
         <div className="flex gap-2">
           <button type="button" onClick={onCerrar} disabled={guardando}
-            className="h-12 flex-1 rounded-xl border border-white/15 text-sm font-bold text-white hover:bg-white/5 disabled:opacity-50">
+            className="h-12 flex-1 rounded-xl border border-linea text-sm font-bold text-tinta hover:bg-velo/5 disabled:opacity-50">
             {plan.error ? 'Entendido' : 'Cancelar'}
           </button>
           {!plan.error && (

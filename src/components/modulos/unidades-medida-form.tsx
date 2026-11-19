@@ -57,7 +57,7 @@ export function UnidadesMedidaForm({ unidades }: { unidades: Unidad[] }) {
   }
 
   return (
-    <div className="space-y-4 rounded-2xl border border-white/10 bg-[#111820] p-6">
+    <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-6">
       <p className="text-sm text-steel-300">
         Las unidades activas aparecen al crear o editar productos, y al armar una Familia de productos.
       </p>
@@ -65,8 +65,8 @@ export function UnidadesMedidaForm({ unidades }: { unidades: Unidad[] }) {
       {/* Lista de unidades */}
       <div className="flex flex-wrap gap-2">
         {unidades.map(u => (
-          <div key={u.id} className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#1a2430] px-3 py-2">
-            <span className={`text-sm font-medium ${!u.activo ? 'text-steel-500 line-through' : 'text-white'}`}>
+          <div key={u.id} className="flex items-center gap-2 rounded-xl border border-linea bg-superficie-2 px-3 py-2">
+            <span className={`text-sm font-medium ${!u.activo ? 'text-steel-500 line-through' : 'text-tinta'}`}>
               {u.nombre}
             </span>
             <button
@@ -75,7 +75,7 @@ export function UnidadesMedidaForm({ unidades }: { unidades: Unidad[] }) {
               disabled={toggling === u.id}
               className={`rounded-lg p-1 transition-colors ${
                 u.activo
-                  ? 'text-steel-300 hover:bg-brand-red/15 hover:text-brand-red'
+                  ? 'text-steel-300 hover:bg-brand-red/15 hover:text-sale'
                   : 'text-steel-300 hover:bg-emerald-500/15 hover:text-emerald-400'
               }`}
               title={u.activo ? 'Desactivar' : 'Reactivar'}
@@ -87,13 +87,13 @@ export function UnidadesMedidaForm({ unidades }: { unidades: Unidad[] }) {
       </div>
 
       {/* Agregar nueva */}
-      <div className="flex gap-2 border-t border-white/10 pt-4">
+      <div className="flex gap-2 border-t border-linea pt-4">
         <Input
           value={nueva}
           onChange={e => setNueva(e.target.value)}
           placeholder="Nueva unidad… (ej: Tonelada, Rollo)"
           onKeyDown={e => e.key === 'Enter' && handleAgregar()}
-          className="h-12 flex-1 border-white/10 bg-[#1a2430] text-[16px] text-white placeholder:text-steel-500"
+          className="h-12 flex-1 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-steel-500"
         />
         <Button type="button" onClick={handleAgregar} disabled={guardando} className="h-12 bg-brand-yellow font-bold text-steel-900 hover:brightness-105">
           <Plus className="mr-1 h-4 w-4" />

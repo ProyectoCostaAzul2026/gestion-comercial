@@ -29,18 +29,18 @@ export default async function ConteoInventarioPage({
 
   return (
     <div className="-m-4 md:-m-6">
-      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 border-b border-white/10 bg-[#0a0e14] px-4 py-3 lg:top-0">
+      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 border-b border-linea bg-fondo px-4 py-3 lg:top-0">
         <div className="flex items-center gap-3">
           <BotonAtras href="/dashboard/inventario" etiqueta="Volver al inventario" />
           <div>
-            <h1 className="font-display text-lg font-bold text-white">Conteo de inventario</h1>
+            <h1 className="font-display text-lg font-bold text-tinta">Conteo de inventario</h1>
             <p className="text-xs text-steel-300">Escribe lo que hay en almacén y bodega, o pésalo</p>
           </div>
         </div>
       </div>
       <div className="mx-auto max-w-3xl p-4">
         {error && (
-          <p className="mb-3 rounded-2xl border border-brand-red/30 bg-brand-red/10 p-4 text-sm text-brand-red">Error al cargar productos: {error.message}</p>
+          <p className="mb-3 rounded-2xl border border-brand-red/30 bg-brand-red/10 p-4 text-sm text-sale">Error al cargar productos: {error.message}</p>
         )}
         <ConteoInventario
           productos={(productos ?? []).map(p => ({ ...p, peso_unitario_g: p.peso_unitario_g === null ? null : Number(p.peso_unitario_g) }))}

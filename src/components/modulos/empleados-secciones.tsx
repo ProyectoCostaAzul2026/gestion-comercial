@@ -16,14 +16,14 @@ const SECCIONES: { clave: SeccionEmpleados; href: string; label: string; corto: 
 export function EmpleadosSecciones({ actual, esAdmin }: { actual: SeccionEmpleados; esAdmin: boolean }) {
   if (!esAdmin) return null
   return (
-    <nav aria-label="Secciones de Empleados" className="grid grid-cols-3 gap-1 rounded-xl bg-[#0b1117] p-1 md:flex md:w-fit">
+    <nav aria-label="Secciones de Empleados" className="grid grid-cols-3 gap-1 rounded-xl bg-fondo p-1 md:flex md:w-fit">
       {SECCIONES.filter(s => esAdmin || !s.soloAdmin).map(s => {
         const activa = s.clave === actual
         const Icono = s.icono
         return (
           <Link key={s.clave} href={s.href} replace aria-current={activa ? 'page' : undefined}
             className={`inline-flex h-11 items-center justify-center gap-2 rounded-lg px-3 text-sm font-bold transition-colors md:px-4 ${
-              activa ? 'bg-brand-yellow text-steel-900' : 'text-steel-300 hover:bg-white/5 hover:text-white'
+              activa ? 'bg-brand-yellow text-steel-900' : 'text-steel-300 hover:bg-velo/5 hover:text-tinta'
             }`}>
             <Icono className="h-4 w-4 shrink-0" aria-hidden />
             <span className="md:hidden">{s.corto}</span>

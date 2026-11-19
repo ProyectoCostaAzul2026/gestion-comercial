@@ -96,10 +96,10 @@ export default async function VentasPage({
 
   return (
     <div className="space-y-4">
-      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] py-3 pl-4 pr-14 md:py-4 md:pr-28">
+      <div className="relative py-1">
         <div className="relative z-10 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="font-display text-2xl font-bold text-brand-yellow md:text-3xl">Ventas</h1>
+            <h1 className="text-2xl font-bold text-tinta md:text-3xl">Ventas</h1>
             <p className="mt-0.5 text-xs text-steel-300">
               {fechaInicio === hoy && fechaFin === hoy ? 'Hoy' : `${fechaInicio} a ${fechaFin}`}
             </p>
@@ -115,45 +115,41 @@ export default async function VentasPage({
             </Link>
           </div>
         </div>
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-12 overflow-hidden md:w-24">
-          <div className="absolute inset-y-0 right-0 w-9 -skew-x-12 translate-x-4 bg-brand-yellow/80 md:w-20 md:translate-x-8" />
-          <div className="absolute inset-y-0 right-0 w-3 -skew-x-12 translate-x-1 bg-brand-blue md:w-7" />
-        </div>
       </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-        <div className="rounded-2xl border border-white/10 border-l-4 border-l-brand-yellow bg-[#111820] p-4">
+        <div className="rounded-2xl border border-linea border-l-4 border-l-brand-yellow bg-superficie p-4">
           <div className="flex items-start justify-between">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Total ventas (hoy)</p>
+            <p className="text-xs font-bold text-steel-300">Total ventas (hoy)</p>
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-yellow/15 text-brand-yellow">
               <TrendingUp className="size-5" />
             </span>
           </div>
-          <p className="mt-2 font-display text-2xl font-black text-white">${totalVentasHoy.toLocaleString('es-CO')}</p>
+          <p className="mt-2 font-display text-2xl font-bold text-tinta">${totalVentasHoy.toLocaleString('es-CO')}</p>
         </div>
-        <div className="rounded-2xl border border-white/10 border-l-4 border-l-brand-blue bg-[#111820] p-4">
+        <div className="rounded-2xl border border-linea border-l-4 border-l-brand-blue bg-superficie p-4">
           <div className="flex items-start justify-between">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">N° tickets (hoy)</p>
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-blue/15 text-brand-blue">
+            <p className="text-xs font-bold text-steel-300">N° tickets (hoy)</p>
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-blue/15 text-enlace">
               <Receipt className="size-5" />
             </span>
           </div>
-          <p className="mt-2 font-display text-2xl font-black text-white">{numTicketsHoy}</p>
+          <p className="mt-2 font-display text-2xl font-bold text-tinta">{numTicketsHoy}</p>
         </div>
-        <div className="rounded-2xl border border-white/10 border-l-4 border-l-brand-blue bg-[#111820] p-4">
+        <div className="rounded-2xl border border-linea border-l-4 border-l-brand-blue bg-superficie p-4">
           <div className="flex items-start justify-between">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Venta promedio (hoy)</p>
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-blue/15 text-brand-blue">
+            <p className="text-xs font-bold text-steel-300">Venta promedio (hoy)</p>
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-blue/15 text-enlace">
               <Calculator className="size-5" />
             </span>
           </div>
-          <p className="mt-2 font-display text-2xl font-black text-white">${Math.round(ventaPromedioHoy).toLocaleString('es-CO')}</p>
+          <p className="mt-2 font-display text-2xl font-bold text-tinta">${Math.round(ventaPromedioHoy).toLocaleString('es-CO')}</p>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-[#111820] p-4">
+        <div className="rounded-2xl border border-linea bg-superficie p-4">
           <div className="flex items-start justify-between">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Por medio de pago (hoy)</p>
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-blue/15 text-brand-blue">
+            <p className="text-xs font-bold text-steel-300">Por medio de pago (hoy)</p>
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-blue/15 text-enlace">
               <CreditCard className="size-5" />
             </span>
           </div>
@@ -161,7 +157,7 @@ export default async function VentasPage({
             {MEDIOS_ORDEN.filter(m => (desgloseMedios[m] ?? 0) > 0).map(medio => (
               <div key={medio} className="flex justify-between text-xs">
                 <span className="text-steel-300">{MEDIO_LABEL[medio]}</span>
-                <span className="font-medium text-white">${(desgloseMedios[medio] ?? 0).toLocaleString('es-CO')}</span>
+                <span className="font-medium text-tinta">${(desgloseMedios[medio] ?? 0).toLocaleString('es-CO')}</span>
               </div>
             ))}
             {MEDIOS_ORDEN.every(m => !desgloseMedios[m]) && (
@@ -176,7 +172,7 @@ export default async function VentasPage({
         empleadoId={sp.empleado_id ?? ''} empleados={empleados ?? []} esAdmin={esAdmin}
       />
 
-      {error && <p className="rounded-2xl border border-brand-red/30 bg-brand-red/10 p-4 text-sm text-brand-red">Error: {error.message}</p>}
+      {error && <p className="rounded-2xl border border-brand-red/30 bg-brand-red/10 p-4 text-sm text-sale">Error: {error.message}</p>}
 
       <VentasTable ventas={(ventas as any) ?? []} />
     </div>

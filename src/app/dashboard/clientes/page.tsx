@@ -55,10 +55,10 @@ export default async function ClientesPage() {
 
   return (
     <div className="space-y-4">
-      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111820] py-3 pl-4 pr-14 md:py-4 md:pr-28">
+      <div className="relative py-1">
         <div className="relative z-10 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
           <div>
-            <h1 className="font-display text-2xl font-bold text-brand-yellow md:text-3xl">Clientes</h1>
+            <h1 className="text-2xl font-bold text-tinta md:text-3xl">Clientes</h1>
             <p className="mt-0.5 text-xs text-steel-300">{clientes?.length ?? 0} clientes registrados</p>
           </div>
           <Link href="/dashboard/clientes/nuevo"
@@ -67,13 +67,9 @@ export default async function ClientesPage() {
             Agregar cliente
           </Link>
         </div>
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-12 overflow-hidden md:w-24">
-          <div className="absolute inset-y-0 right-0 w-9 -skew-x-12 translate-x-4 bg-brand-yellow/80 md:w-20 md:translate-x-8" />
-          <div className="absolute inset-y-0 right-0 w-3 -skew-x-12 translate-x-1 bg-brand-blue md:w-7" />
-        </div>
       </div>
 
-      {error && <p className="rounded-2xl border border-brand-red/30 bg-brand-red/10 p-4 text-sm text-brand-red">Error: {error.message}</p>}
+      {error && <p className="rounded-2xl border border-brand-red/30 bg-brand-red/10 p-4 text-sm text-sale">Error: {error.message}</p>}
 
       <ClienteTable clientes={clientesConStats} />
     </div>

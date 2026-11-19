@@ -38,9 +38,9 @@ const VACIO: Borrador = {
 }
 
 const COLOR_PRIORIDAD: Record<Prioridad, string> = {
-  alta: 'border-brand-red/40 bg-brand-red/15 text-brand-red',
+  alta: 'border-brand-red/40 bg-brand-red/15 text-sale',
   media: 'border-brand-yellow/40 bg-brand-yellow/15 text-brand-yellow',
-  baja: 'border-white/15 bg-white/5 text-steel-300',
+  baja: 'border-linea bg-velo/5 text-steel-300',
 }
 
 type Filtro = 'todas' | 'mias' | 'libres' | string
@@ -155,27 +155,27 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
     { valor: 'mias', etiqueta: esAdmin ? 'Mías' : 'Mis tareas', cuenta: cuentaMias },
     { valor: 'libres', etiqueta: 'Libres', cuenta: cuentaLibres },
   ]
-  const CAMPO = 'h-11 w-full rounded-xl border border-white/10 bg-[#1a2430] px-3 text-[16px] text-white placeholder:text-steel-500 focus:border-brand-yellow/60 focus:outline-none'
-  const ETIQUETA = 'mb-1 block text-[10px] font-bold uppercase tracking-widest text-steel-300'
+  const CAMPO = 'h-11 w-full rounded-xl border border-linea bg-superficie-2 px-3 text-[16px] text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60 focus:outline-none'
+  const ETIQUETA = 'mb-1 block text-xs font-bold text-steel-300'
 
   const Tarjeta = ({ t }: { t: Tarea }) => {
     const venc = textoVencimiento(t.fecha_limite, hoy)
     const hecha = t.estado === 'hecha'
     const puedeDeshacer = hecha && (esAdmin || t.hecha_por === usuarioId)
     return (
-      <li className={`flex gap-3 rounded-2xl border bg-[#111820] p-3 ${hecha ? 'border-white/5 opacity-70' : venc?.vencida ? 'border-brand-red/40' : 'border-white/10'}`}>
+      <li className={`flex gap-3 rounded-2xl border bg-superficie p-3 ${hecha ? 'border-linea opacity-70' : venc?.vencida ? 'border-brand-red/40' : 'border-linea'}`}>
         <button type="button" disabled={marcando === t.id || (hecha && !puedeDeshacer)}
           onClick={() => (hecha ? marcar(t, false) : setCerrando(t))}
           aria-label={hecha ? `Volver a pendiente: ${t.titulo}` : `Marcar como hecha: ${t.titulo}`}
           className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border-2 transition ${
-            hecha ? 'border-emerald-500 bg-emerald-500 text-steel-900' : 'border-white/30 text-transparent hover:border-brand-yellow hover:text-brand-yellow'
+            hecha ? 'border-emerald-500 bg-emerald-500 text-steel-900' : 'border-linea-fuerte text-transparent hover:border-brand-yellow hover:text-brand-yellow'
           }`}>
           <Check className="h-5 w-5" strokeWidth={3} />
         </button>
         <div className="min-w-0 flex-1">
-          <p className={`text-sm font-bold ${hecha ? 'text-steel-300 line-through' : 'text-white'}`}>{t.titulo}</p>
+          <p className={`text-sm font-bold ${hecha ? 'text-steel-300 line-through' : 'text-tinta'}`}>{t.titulo}</p>
           {t.descripcion && <p className="mt-0.5 whitespace-pre-line text-xs text-steel-300">{t.descripcion}</p>}
-          <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px]">
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs">
             {!hecha && (
               <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-bold ${COLOR_PRIORIDAD[t.prioridad]}`}>
                 <Flag className="h-3 w-3" aria-hidden />{PRIORIDADES.find(p => p.valor === t.prioridad)?.etiqueta}
@@ -186,7 +186,7 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
               {t.asignado_a ? (t.asignado_a === usuarioId ? 'Para ti' : nombre(t.asignado_a)) : 'Libre'}
             </span>
             {venc && !hecha && (
-              <span className={venc.vencida ? 'font-bold text-brand-red' : venc.hoy ? 'font-bold text-brand-yellow' : 'text-steel-300'}>· {venc.texto}</span>
+              <span className={venc.vencida ? 'font-bold text-sale' : venc.hoy ? 'font-bold text-brand-yellow' : 'text-steel-300'}>· {venc.texto}</span>
             )}
             {hecha && (
               <span className="text-emerald-400">
@@ -200,17 +200,17 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
           <div className="flex shrink-0 flex-col gap-1">
             {hecha ? (
               <button type="button" onClick={() => repetir(t)} aria-label={`Crear de nuevo: ${t.titulo}`} title="Crear de nuevo"
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-steel-300 hover:bg-white/5 hover:text-brand-yellow">
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-steel-300 hover:bg-velo/5 hover:text-brand-yellow">
                 <CopyPlus className="h-4 w-4" />
               </button>
             ) : (
               <button type="button" onClick={() => editar(t)} aria-label={`Editar: ${t.titulo}`}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-steel-300 hover:bg-white/5 hover:text-white">
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-steel-300 hover:bg-velo/5 hover:text-tinta">
                 <Pencil className="h-4 w-4" />
               </button>
             )}
             <button type="button" onClick={() => borrarTarea(t)} aria-label={`Borrar: ${t.titulo}`}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-steel-300 hover:bg-white/5 hover:text-brand-red">
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-steel-300 hover:bg-velo/5 hover:text-sale">
               <Trash2 className="h-4 w-4" />
             </button>
           </div>
@@ -229,15 +229,15 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
           </button>
           {plantillas.length > 0 && (
             <div>
-              <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-steel-500">Crear desde una plantilla</p>
+              <p className="mb-1.5 text-xs font-bold text-steel-500">Crear desde una plantilla</p>
               <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0">
                 {plantillas.map(p => (
-                  <span key={p.id} className="flex shrink-0 items-center rounded-full border border-white/10 bg-[#111820]">
-                    <button type="button" onClick={() => desdePlantilla(p)} className="flex h-9 items-center gap-1.5 pl-3 pr-1 text-xs font-semibold text-white hover:text-brand-yellow">
+                  <span key={p.id} className="flex shrink-0 items-center rounded-full border border-linea bg-superficie">
+                    <button type="button" onClick={() => desdePlantilla(p)} className="flex h-9 items-center gap-1.5 pl-3 pr-1 text-xs font-semibold text-tinta hover:text-brand-yellow">
                       <CopyPlus className="h-3.5 w-3.5" aria-hidden />{p.titulo}
                     </button>
                     <button type="button" onClick={() => borrarPlantilla(p)} aria-label={`Borrar plantilla ${p.titulo}`}
-                      className="flex h-9 w-8 items-center justify-center text-steel-500 hover:text-brand-red">
+                      className="flex h-9 w-8 items-center justify-center text-steel-500 hover:text-sale">
                       <X className="h-3.5 w-3.5" />
                     </button>
                   </span>
@@ -253,15 +253,15 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
         {FILTROS.map(f => (
           <button key={f.valor} type="button" onClick={() => setFiltro(f.valor)}
             className={`flex h-10 shrink-0 items-center gap-2 rounded-xl px-4 text-sm font-semibold transition ${
-              filtro === f.valor ? 'bg-brand-yellow text-steel-900' : 'border border-white/10 bg-[#1a2430] text-steel-300 hover:text-white'
+              filtro === f.valor ? 'bg-brand-yellow text-steel-900' : 'border border-linea bg-superficie-2 text-steel-300 hover:text-tinta'
             }`}>
             {f.etiqueta}
-            {f.cuenta !== undefined && <span className={`rounded-full px-1.5 text-[11px] ${filtro === f.valor ? 'bg-steel-900/15' : 'bg-white/10'}`}>{f.cuenta}</span>}
+            {f.cuenta !== undefined && <span className={`rounded-full px-1.5 text-xs ${filtro === f.valor ? 'bg-steel-900/15' : 'bg-velo/10'}`}>{f.cuenta}</span>}
           </button>
         ))}
         {esAdmin && (
           <select value={['todas', 'mias', 'libres'].includes(filtro) ? '' : filtro} onChange={e => setFiltro(e.target.value || 'todas')}
-            aria-label="Ver tareas de una persona" className="h-10 shrink-0 rounded-xl border border-white/10 bg-[#1a2430] px-3 text-sm text-white">
+            aria-label="Ver tareas de una persona" className="h-10 shrink-0 rounded-xl border border-linea bg-superficie-2 px-3 text-sm text-tinta">
             <option value="">Por persona…</option>
             {personas.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
           </select>
@@ -270,9 +270,9 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
 
       {/* Pendientes */}
       {lista.length === 0 ? (
-        <div className="rounded-2xl border border-white/10 bg-[#111820] p-8 text-center">
+        <div className="rounded-2xl border border-linea bg-superficie p-8 text-center">
           <Check className="mx-auto mb-2 h-8 w-8 text-emerald-400" aria-hidden />
-          <p className="text-sm text-white">No hay tareas pendientes{filtro === 'mias' ? ' para ti' : filtro === 'libres' ? ' libres' : ''}.</p>
+          <p className="text-sm text-tinta">No hay tareas pendientes{filtro === 'mias' ? ' para ti' : filtro === 'libres' ? ' libres' : ''}.</p>
         </div>
       ) : (
         <ul className="space-y-2">{lista.map(t => <Tarjeta key={t.id} t={t} />)}</ul>
@@ -282,7 +282,7 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
       {listaHechas.length > 0 && (
         <section className="space-y-2">
           <button type="button" onClick={() => setVerHechas(v => !v)} aria-expanded={verHechas}
-            className="flex items-center gap-1 text-sm font-semibold text-steel-300 hover:text-white">
+            className="flex items-center gap-1 text-sm font-semibold text-steel-300 hover:text-tinta">
             {verHechas ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             Hechas en los últimos 30 días ({listaHechas.length})
           </button>
@@ -295,7 +295,7 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
         <Sheet open onOpenChange={abierto => { if (!abierto) { setCerrando(null); setNota('') } }}>
           <SheetContent side="bottom" className="rounded-t-2xl p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:mx-auto sm:max-w-lg">
             <SheetHeader className="p-0 pr-8">
-              <SheetTitle className="text-base text-white">¿Terminaste esta tarea?</SheetTitle>
+              <SheetTitle className="text-base text-tinta">¿Terminaste esta tarea?</SheetTitle>
               <SheetDescription className="text-sm text-steel-300">{cerrando.titulo}</SheetDescription>
             </SheetHeader>
             <div>
@@ -316,7 +316,7 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
         <Sheet open onOpenChange={abierto => { if (!abierto && !guardando) setBorrador(null) }}>
           <SheetContent side="bottom" className="max-h-[90dvh] overflow-y-auto rounded-t-2xl p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:mx-auto sm:max-w-lg">
             <SheetHeader className="p-0 pr-8">
-              <SheetTitle className="text-base text-white">{borrador.id ? 'Editar tarea' : 'Nueva tarea'}</SheetTitle>
+              <SheetTitle className="text-base text-tinta">{borrador.id ? 'Editar tarea' : 'Nueva tarea'}</SheetTitle>
               <SheetDescription className="text-xs text-steel-300">
                 {borrador.plantilla_id && !borrador.id ? 'Creada desde una plantilla: cambia lo que necesites.' : 'Déjala libre para que la haga cualquiera, o asígnala.'}
               </SheetDescription>
@@ -331,7 +331,7 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
                 <label htmlFor="t-desc" className={ETIQUETA}>Detalles (opcional)</label>
                 <textarea id="t-desc" value={borrador.descripcion} maxLength={2000} rows={3}
                   onChange={e => setBorrador({ ...borrador, descripcion: e.target.value })}
-                  className="w-full rounded-xl border border-white/10 bg-[#1a2430] px-3 py-2 text-[16px] text-white placeholder:text-steel-500 focus:border-brand-yellow/60 focus:outline-none" />
+                  className="w-full rounded-xl border border-linea bg-superficie-2 px-3 py-2 text-[16px] text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60 focus:outline-none" />
               </div>
               <div>
                 <span className={ETIQUETA}>Prioridad</span>
@@ -339,7 +339,7 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
                   {PRIORIDADES.map(p => (
                     <button key={p.valor} type="button" role="radio" aria-checked={borrador.prioridad === p.valor}
                       onClick={() => setBorrador({ ...borrador, prioridad: p.valor })}
-                      className={`h-11 rounded-xl border text-sm font-bold transition ${borrador.prioridad === p.valor ? COLOR_PRIORIDAD[p.valor] : 'border-white/10 bg-[#1a2430] text-steel-300'}`}>
+                      className={`h-11 rounded-xl border text-sm font-bold transition ${borrador.prioridad === p.valor ? COLOR_PRIORIDAD[p.valor] : 'border-linea bg-superficie-2 text-steel-300'}`}>
                       {p.etiqueta}
                     </button>
                   ))}
@@ -370,7 +370,7 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
             <div className="flex gap-2">
               {borrador.id && (
                 <button type="button" onClick={() => setBorrador(null)} disabled={guardando}
-                  className="flex h-12 items-center gap-2 rounded-xl border border-white/15 px-4 text-sm font-bold text-white hover:bg-white/5">
+                  className="flex h-12 items-center gap-2 rounded-xl border border-linea px-4 text-sm font-bold text-tinta hover:bg-velo/5">
                   <RotateCcw className="h-4 w-4" />Cancelar
                 </button>
               )}

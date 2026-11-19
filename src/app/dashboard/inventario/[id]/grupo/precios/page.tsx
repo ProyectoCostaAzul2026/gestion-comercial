@@ -26,11 +26,11 @@ export default async function PreciosGrupoPage({ params }: { params: Promise<{ i
   const { producto, miembros } = grupo
   return (
     <div className="-m-4 md:-m-6">
-      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 border-b border-white/10 bg-[#0a0e14] px-4 py-3 lg:top-0">
+      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 border-b border-linea bg-fondo px-4 py-3 lg:top-0">
         <div className="flex items-center gap-3">
           <BotonAtras href={`/dashboard/inventario/${producto.id}/grupo`} etiqueta="Volver al grupo de medidas" />
           <div className="min-w-0">
-            <h1 className="font-display text-lg font-bold text-white">Precios del grupo</h1>
+            <h1 className="font-display text-lg font-bold text-tinta">Precios del grupo</h1>
             <p className="truncate text-xs text-steel-300">
               {producto.nombre}{producto.marca ? ` · ${producto.marca}` : ''} · {miembros.length} medida{miembros.length === 1 ? '' : 's'}
             </p>
