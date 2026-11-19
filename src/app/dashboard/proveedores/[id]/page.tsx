@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { telefonoMarcable } from '@/components/modulos/avatar-iniciales'
 import { traerTodo } from '@/lib/supabase/traer-todo'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -103,7 +104,10 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
           ].map(([label, value]) => value ? (
             <div key={label as string}>
               <dt className="text-sm font-semibold text-suave">{label}</dt>
-              <dd className="font-medium text-tinta">{value}</dd>
+              <dd className="font-medium text-tinta">
+                {label === 'Teléfono' ? <a href={`tel:${telefonoMarcable(String(value))}`} className="text-enlace underline-offset-2 hover:underline">{value}</a>
+                  : label === 'Email' ? <a href={`mailto:${value}`} className="text-enlace underline-offset-2 hover:underline">{value}</a> : value}
+              </dd>
             </div>
           ) : null)}
         </dl>

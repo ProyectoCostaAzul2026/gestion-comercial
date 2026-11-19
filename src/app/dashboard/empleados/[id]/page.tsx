@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { telefonoMarcable } from '@/components/modulos/avatar-iniciales'
 import { traerTodo } from '@/lib/supabase/traer-todo'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -109,7 +110,7 @@ export default async function PerfilEmpleadoPage({
         <dl className="grid grid-cols-2 gap-3 text-sm">
           <div>
             <dt className="text-sm font-semibold text-suave">Teléfono</dt>
-            <dd className="font-medium text-tinta">{empleado.telefono ?? '—'}</dd>
+            <dd className="font-medium text-tinta">{empleado.telefono ? <a href={`tel:${telefonoMarcable(empleado.telefono)}`} className="text-enlace underline-offset-2 hover:underline">{empleado.telefono}</a> : '—'}</dd>
           </div>
           <div>
             <dt className="text-sm font-semibold text-suave">Salario base diario</dt>

@@ -69,7 +69,7 @@ export default async function ReportesPage({
         .select(`
           id, nombre_producto, cantidad, precio_unitario, subtotal_linea,
           costo_unitario, es_fraccionado, cantidad_fraccion, venta_id, producto_id, devolucion_items(cantidad, cantidad_fraccion),
-          productos(id, codigo, nombre, marca, unidad_medida, precio_costo_base, cantidad_total_unidad, tiene_iva, iva_incluido, porcentaje_iva,
+          productos(id, codigo, nombre, marca, unidad_medida, categoria_id, familia_id, precio_costo_base, cantidad_total_unidad, tiene_iva, iva_incluido, porcentaje_iva,
             producto_familias(nombre_base), categorias_producto(nombre)),
           ventas!inner(fecha, estado)
         `)
@@ -338,24 +338,27 @@ export default async function ReportesPage({
   const ventasConDescuento = (ventas ?? []).filter((v: any) => Number(v.total_descuentos ?? 0) > 0).length
 
   // ── Utilidad por categoría y por familia ──
-  const agrupar = (clave: (i: any) => string) => {
-    const mapa: Record<string, { nombre: string; ingresos: number; costo: number; unidades: number; productos: Set<string> }> = {}
+  const agrupar = (clave: (i: any) => string, enlace: (i: any) => string | null) => {
+    const mapa: Record<string, { nombre: string; href: string | null; ingresos: number; costo: number; unidades: number; productos: Set<string> }> = {}
     for (const i of ventaItems ?? []) {
       const nombre = clave(i)
-      const g = (mapa[nombre] ??= { nombre, ingresos: 0, costo: 0, unidades: 0, productos: new Set() })
+      const g = (mapa[nombre] ??= { nombre, href: enlace(i), ingresos: 0, costo: 0, unidades: 0, productos: new Set() })
       g.ingresos += subtotalNeto(i as any)
       g.costo += costoLineaVenta(i as any)
       g.unidades += cantidadNeta(i as any)
       if ((i as any).producto_id) g.productos.add((i as any).producto_id)
     }
     return Object.values(mapa).map(g => ({
-      nombre: g.nombre, ingresos: g.ingresos, costo: g.costo, utilidad: g.ingresos - g.costo,
+      nombre: g.nombre, href: g.href, ingresos: g.ingresos, costo: g.costo, utilidad: g.ingresos - g.costo,
       margen: g.ingresos > 0 ? ((g.ingresos - g.costo) / g.ingresos) * 100 : 0,
       unidades: g.unidades, productos: g.productos.size,
     })).sort((a, b) => b.utilidad - a.utilidad)
   }
-  const utilidadPorCategoria = agrupar(i => i.productos?.categorias_producto?.nombre ?? 'Sin categoría')
-  const utilidadPorFamilia = agrupar(i => i.productos?.producto_familias?.nombre_base ?? 'Sin familia')
+  // Cada fila abre su tarjeta en Inventario (categoría, o familia dentro de su categoría)
+  const utilidadPorCategoria = agrupar(i => i.productos?.categorias_producto?.nombre ?? 'Sin categoría',
+    i => i.productos?.categoria_id ? `/dashboard/inventario?cat=${i.productos.categoria_id}` : null)
+  const utilidadPorFamilia = agrupar(i => i.productos?.producto_familias?.nombre_base ?? 'Sin familia',
+    i => i.productos?.categoria_id && i.productos?.familia_id ? `/dashboard/inventario?cat=${i.productos.categoria_id}&fam=${i.productos.familia_id}` : null)
 
   const resumenAnterior = await resumenAnteriorPromesa
 

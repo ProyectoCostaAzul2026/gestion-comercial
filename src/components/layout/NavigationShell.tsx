@@ -21,7 +21,7 @@ const iconMap: Record<string, React.ElementType> = {
 const RUTA_VENDER = '/dashboard/ventas/nueva'
 
 /** Tareas que ocupan toda la pantalla del celular: sin barras de navegación; la página trae su Atrás y su acción abajo */
-const RUTAS_TAREA = [RUTA_VENDER]
+const RUTAS_TAREA = [RUTA_VENDER, '/dashboard/caja/gasto', '/dashboard/caja/retiro', '/dashboard/caja/traslado', '/dashboard/caja/pago-proveedor', '/dashboard/caja/cierre']
 const esTarea = (ruta: string) => RUTAS_TAREA.some(r => ruta === r || ruta.startsWith(r + '/'))
 
 function InsigniaRol({ rol, corta = false }: { rol: string; corta?: boolean }) {
@@ -212,8 +212,11 @@ export default function NavigationShell({
         <InsigniaRol rol={rol} corta />
       </header>}
 
+      {/* En las tareas no hay barra superior: una franja del color del fondo cubre la barra de estado del celular */}
+      {tarea && <div aria-hidden className="fixed inset-x-0 top-0 z-40 h-[env(safe-area-inset-top)] bg-fondo lg:hidden" />}
+
       {/* ── CONTENIDO ── */}
-      <main className={`p-4 md:p-6 lg:ml-64 lg:pb-6 print:m-0 print:p-0 ${tarea ? 'pb-6' : 'pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-[calc(5.5rem+env(safe-area-inset-bottom))]'}`}>
+      <main className={`p-4 md:p-6 lg:ml-64 lg:pb-6 print:m-0 print:p-0 ${tarea ? 'pb-6 pt-[calc(1rem+env(safe-area-inset-top))] md:pt-[calc(1.5rem+env(safe-area-inset-top))] lg:pt-6' : 'pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-[calc(5.5rem+env(safe-area-inset-bottom))]'}`}>
         <div className="mx-auto w-full max-w-7xl">{children}</div>
       </main>
 

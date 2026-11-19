@@ -14,6 +14,8 @@ interface Movimiento {
   id: string; hora: string; tipo_movimiento: string
   origen_destino: string; monto: number
   observaciones: string | null; referencia_tipo: string | null; referencia_id?: string | null
+  /** Página exacta a la que lleva (cliente de un abono, proveedor de un pago) */
+  destino?: string | null
 }
 
 interface FondoDenominacion {
@@ -322,7 +324,8 @@ function fechaLarga(iso: string) {
 }
 
 /** A dónde lleva un movimiento de caja: la venta, la nómina, los gastos, la cartera o los proveedores que lo originaron */
-function enlaceMovimiento(m: { referencia_tipo: string | null; referencia_id?: string | null }): string | null {
+function enlaceMovimiento(m: { referencia_tipo: string | null; referencia_id?: string | null; destino?: string | null }): string | null {
+  if (m.destino) return m.destino
   switch (m.referencia_tipo) {
     case 'venta': case 'venta_credito': case 'devolucion': case 'cambio':
       return m.referencia_id ? `/dashboard/ventas/${m.referencia_id}` : null
