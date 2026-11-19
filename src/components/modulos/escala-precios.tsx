@@ -196,7 +196,7 @@ export function EscalaPrecios({ miembros, margenDefault, onGuardado, paginaCompl
         {filas.map((f, i) => (
           <Fragment key={f.m.id}>
             {variasSeries && (i === 0 || filas[i - 1].serie !== f.serie) && (
-              <div className="border-b border-linea bg-superficie-2 px-3 py-1.5 text-xs font-bold text-steel-300">
+              <div className="border-b border-linea bg-superficie-2 px-3 py-1.5 text-sm font-semibold text-suave">
                 Serie {f.etiquetaSerie}
               </div>
             )}
@@ -204,7 +204,7 @@ export function EscalaPrecios({ miembros, margenDefault, onGuardado, paginaCompl
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm font-semibold text-tinta">{f.m.unidad_medida || '—'}</span>
                 {!f.m.activo && (
-                  <span className="rounded-full bg-steel-700 px-2 py-0.5 text-xs font-bold text-steel-300">Inactivo</span>
+                  <span className="rounded-full bg-steel-700 px-2 py-0.5 text-sm font-semibold text-suave">Inactivo</span>
                 )}
                 {alertas[i].map(a => {
                   const { clase, Icono } = ESTILO_ALERTA[a]

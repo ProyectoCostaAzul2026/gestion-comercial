@@ -2,20 +2,14 @@
 
 import Link from 'next/link'
 import {
-  AlertTriangle, ShoppingCart, Package, Wallet, BarChart3, Truck, BookOpen,
-  TrendingUp, Receipt, Users, PackageX, CalendarClock,
-  Banknote, Smartphone, CreditCard, ArrowLeftRight, AlertCircle, CalendarOff, ClipboardList, ClipboardCheck, DollarSign, ListChecks, ShieldCheck,
+  AlertTriangle, Package, Wallet, BarChart3, Truck, BookOpen, Users, PackageX, CalendarClock,
+  AlertCircle, CalendarOff, ClipboardList, ClipboardCheck, DollarSign, ListChecks, ShieldCheck,
 } from 'lucide-react'
+import { Aviso } from '@/components/ui/aviso'
+import { MedioPagoIcono } from '@/components/ui/medio-pago-icono'
 import { fechaLarga } from '@/lib/permisos'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
-const PAGO_UI: Record<string, { label: string; Icon: React.ElementType; ring: string; color: string }> = {
-  efectivo:  { label: 'Efectivo',  Icon: Banknote,       ring: 'bg-emerald-500/20', color: 'text-emerald-400' },
-  nequi:     { label: 'Nequi',     Icon: Smartphone,     ring: 'bg-purple-500/20',  color: 'text-purple-400' },
-  daviplata: { label: 'Daviplata', Icon: Smartphone,     ring: 'bg-red-500/20',     color: 'text-red-400' },
-  tarjeta:   { label: 'Tarjeta',   Icon: CreditCard,     ring: 'bg-brand-blue/20',  color: 'text-enlace' },
-  mixto:     { label: 'Mixto',     Icon: ArrowLeftRight, ring: 'bg-brand-yellow/20', color: 'text-brand-yellow' },
-}
+const PAGO_LABEL: Record<string, string> = { efectivo: 'Efectivo', nequi: 'Nequi', daviplata: 'Daviplata', tarjeta: 'Tarjeta', mixto: 'Varios medios' }
 
 function fmt(n: number) { return `$${Math.round(n).toLocaleString('es-CO')}` }
 
@@ -53,314 +47,174 @@ export function DashboardAdmin({ profile, config, fechaHoy, kpisHoy, ultimasVent
     )
   }
   const nominaAlDia = kpisHoy.nominasPagadas >= kpisHoy.empleadosActivos
-  const totalAlertas = alertas.productosAgotados.length + alertas.facturasPendientes.length + alertas.pagosProgramados.length
-    + alertas.permisos.length + alertas.porCompletar.length
-  const esAdmin = profile.rol === 'administrador'
+  const primerNombre = profile.nombre_completo.split(' ')[0]
+  const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`
+  const TITULO = 'text-lg font-bold text-tinta'
+  const medios = ['efectivo', 'nequi', 'daviplata', 'tarjeta', 'mixto'].filter(m => (kpisHoy.desglosePago[m] ?? 0) > 0)
 
   return (
-    <div className="space-y-4 md:space-y-6">
-
-      {/* ── Perfil + header diagonal ── */}
-      <div className="relative overflow-hidden rounded-2xl border border-linea bg-superficie p-4">
-        <div className="relative z-10 flex items-center gap-4">
-          {profile.foto_url ? (
-            <img src={profile.foto_url} alt="Foto" className="h-20 w-20 shrink-0 rounded-full border-2 border-brand-yellow object-cover" />
-          ) : (
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-brand-yellow font-display text-2xl font-bold text-steel-900">
-              {profile.nombre_completo.charAt(0)}
-            </div>
-          )}
-          <div className="min-w-0">
-            <h1 className="font-display text-xl font-bold tracking-tight text-tinta">{profile.nombre_completo}</h1>
-            <span className={`mt-1 inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize ${esAdmin ? 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow' : 'border-linea bg-steel-700 text-steel-300'}`}>
-              {profile.rol}
-            </span>
-            <p className="mt-1 truncate text-xs text-steel-300">{fechaHoy}{config?.nombre ? ` · ${config.nombre}` : ''}</p>
-          </div>
+    <div className="space-y-6">
+      <header className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-[28px] font-bold leading-tight text-tinta">Hola, {primerNombre}</h1>
+          <p className="truncate text-[15px] text-suave first-letter:uppercase">{/^\d{4}-\d{2}-\d{2}$/.test(fechaHoy) ? fechaLarga(fechaHoy) : fechaHoy}</p>
         </div>
-      </div>
+        {profile.foto_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={profile.foto_url} alt="" className="size-12 shrink-0 rounded-full object-cover" />
+        )}
+      </header>
 
-      {/* ── KPIs hoy ── */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        {/* Ventas hoy */}
-        <div className="rounded-2xl border border-linea border-l-4 border-l-brand-yellow bg-superficie p-4">
-          <div className="flex items-start justify-between">
-            <p className="text-xs font-bold text-steel-300">Ventas hoy</p>
-            <span className="flex items-center justify-center rounded-xl bg-brand-yellow/15 p-2 text-brand-yellow">
-              <TrendingUp className="size-5" />
-            </span>
-          </div>
-          <p className="mt-3 font-display text-3xl font-bold text-tinta">{fmt(kpisHoy.totalVentas)}</p>
-          <p className="mt-0.5 text-xs text-steel-300">{kpisHoy.numTickets} tickets</p>
-        </div>
-
-        {/* Ticket promedio */}
-        <div className="rounded-2xl border border-linea border-l-4 border-l-brand-blue bg-superficie p-4">
-          <div className="flex items-start justify-between">
-            <p className="text-xs font-bold text-steel-300">Ticket promedio</p>
-            <span className="flex items-center justify-center rounded-xl bg-brand-blue/15 p-2 text-enlace">
-              <Receipt className="size-5" />
-            </span>
-          </div>
-          <p className="mt-3 font-display text-3xl font-bold text-tinta">{fmt(kpisHoy.ticketPromedio)}</p>
-        </div>
-
-        {/* Nómina hoy */}
-        <div className="rounded-2xl border border-linea border-l-4 border-l-brand-yellow bg-superficie p-4">
-          <div className="flex items-start justify-between">
-            <p className="text-xs font-bold text-steel-300">Nómina hoy</p>
-            <span className="flex items-center justify-center rounded-xl bg-brand-yellow/15 p-2 text-brand-yellow">
-              <Users className="size-5" />
-            </span>
-          </div>
-          <p className={`mt-3 font-display text-3xl font-bold ${nominaAlDia ? 'text-emerald-400' : 'text-brand-yellow'}`}>
-            {kpisHoy.nominasPagadas}/{kpisHoy.empleadosActivos}
-          </p>
-          <p className="mt-0.5 text-xs text-steel-300">{nominaAlDia ? 'Al día' : 'Pendientes'}</p>
-        </div>
-
-        {/* Caja mayor */}
-        <div className="rounded-2xl border border-linea border-l-4 border-l-brand-blue bg-superficie p-4">
-          <div className="flex items-start justify-between">
-            <p className="text-xs font-bold text-steel-300">Caja Mayor</p>
-            <span className="flex items-center justify-center rounded-xl bg-brand-blue/15 p-2 text-enlace">
-              <Wallet className="size-5" />
-            </span>
-          </div>
-          <p className="mt-3 font-display text-3xl font-bold text-enlace">{fmt(kpisHoy.cajaMayor)}</p>
-        </div>
-      </div>
-
-      {/* ── Desglose medios de pago ── */}
-      {Object.keys(kpisHoy.desglosePago).length > 0 && (
-        <div className="rounded-2xl border border-linea bg-superficie p-4">
-          <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-tinta">
-            Por medio de pago — hoy
-          </h2>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
-            {['efectivo', 'nequi', 'daviplata', 'tarjeta', 'mixto'].map(m => {
-              const ui = PAGO_UI[m]
-              const Icon = ui.Icon
-              return (
-                <div key={m} className="flex items-center gap-3 rounded-xl border border-linea bg-superficie-2 p-3">
-                  <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${ui.ring} ${ui.color}`}>
-                    <Icon className="size-6" />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-xs text-steel-300">{ui.label}</p>
-                    <p className="font-display text-lg font-bold text-tinta">{fmt(kpisHoy.desglosePago[m] ?? 0)}</p>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* ── Alertas ── */}
-      {totalAlertas > 0 && (
-        <div className="space-y-2">
-          <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
-            <AlertTriangle className="size-5 text-brand-yellow" />
-            Alertas ({totalAlertas})
-          </h2>
-
-          {alertas.permisos.length > 0 && (
-            <div className="space-y-2 rounded-2xl border border-brand-red/30 bg-brand-red/10 p-3">
-              <div className="flex items-center justify-between">
-                <p className="flex items-center gap-2 text-sm font-bold text-sale">
-                  <CalendarOff className="size-4" />
-                  {alertas.permisos.length} permiso{alertas.permisos.length !== 1 ? 's' : ''} esta semana
-                </p>
-                <Link href="/dashboard/empleados/horario" className="text-xs font-medium text-sale hover:underline">
-                  Ver horario →
-                </Link>
-              </div>
-              {alertas.permisos.map(p => (
-                <div key={p.id} className="flex items-center justify-between gap-2 rounded-lg bg-velo/5 px-2.5 py-1.5 text-xs">
-                  <span className="text-steel-300"><span className="font-semibold text-tinta">{p.nombre}</span> no asiste{p.motivo ? ` · ${p.motivo}` : ''}</span>
-                  <span className="shrink-0 font-bold text-sale">{p.fecha === fechaHoyBogota ? 'Hoy' : fechaLarga(p.fecha)}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {alertas.porCompletar.length > 0 && (
-            <div className="space-y-2 rounded-2xl border border-brand-yellow/30 bg-brand-yellow/10 p-3">
-              <div className="flex items-center justify-between">
-                <p className="flex items-center gap-2 text-sm font-bold text-brand-yellow">
-                  <ClipboardList className="size-4" />
-                  {alertas.porCompletar.length}{alertas.porCompletar.length === 50 ? '+' : ''} producto{alertas.porCompletar.length !== 1 ? 's' : ''} de alta rápida por completar
-                </p>
-                <Link href="/dashboard/inventario/por-completar" className="text-xs font-medium text-brand-yellow hover:underline">
-                  Completar →
-                </Link>
-              </div>
-              {alertas.porCompletar.slice(0, 3).map(p => (
-                <div key={p.id} className="rounded-lg bg-velo/5 px-2.5 py-1.5 text-sm text-steel-300">{p.nombre}</div>
-              ))}
-              {alertas.porCompletar.length > 3 && <p className="text-xs text-brand-yellow">+{alertas.porCompletar.length - 3} más</p>}
-            </div>
-          )}
-
-          {alertas.productosAgotados.length > 0 && (
-            <div className="space-y-2 rounded-2xl border border-brand-red/30 bg-brand-red/10 p-3">
-              <div className="flex items-center justify-between">
-                <p className="flex items-center gap-2 text-sm font-bold text-sale">
-                  <PackageX className="size-4" />
-                  {alertas.productosAgotados.length} producto{alertas.productosAgotados.length !== 1 ? 's' : ''} agotado{alertas.productosAgotados.length !== 1 ? 's' : ''}
-                </p>
-                <Link href="/dashboard/inventario/agotados" className="text-xs font-medium text-sale hover:underline">
-                  Ver todos →
-                </Link>
-              </div>
-              <div className="space-y-1">
-                {alertas.productosAgotados.slice(0, 3).map((p: any) => (
-                  <div key={p.id} className="flex items-center justify-between rounded-lg bg-velo/5 px-2.5 py-1.5 text-sm text-steel-300">
-                    <span>{p.nombre}</span>
-                    <span className="font-mono text-xs text-steel-500">{p.codigo ?? '—'}</span>
-                  </div>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+        <div className="space-y-6">
+          {/* Lo vendido hoy */}
+          <section className="rounded-[18px] bg-superficie p-5">
+            <p className="text-[15px] font-semibold text-suave">Vendido hoy</p>
+            <p className="cifra text-[52px] font-bold leading-none text-tinta">{fmt(kpisHoy.totalVentas)}</p>
+            <p className="mt-1 text-[15px] text-suave">
+              {plural(kpisHoy.numTickets, 'venta', 'ventas')}{kpisHoy.numTickets > 0 ? `, de ${fmt(kpisHoy.ticketPromedio)} en promedio` : ''}
+            </p>
+            {medios.length > 0 && (
+              <ul className="mt-4 divide-y divide-linea border-t border-linea">
+                {medios.map(m => (
+                  <li key={m} className="flex items-center gap-3 py-2.5">
+                    <MedioPagoIcono medio={m === 'mixto' ? 'varios' : m} className="h-7 w-[42px] shrink-0" />
+                    <span className="flex-1 text-[15px] text-tinta">{PAGO_LABEL[m]}</span>
+                    <span className="cifra text-xl font-bold text-tinta">{fmt(kpisHoy.desglosePago[m] ?? 0)}</span>
+                  </li>
                 ))}
-                {alertas.productosAgotados.length > 3 && (
-                  <p className="text-xs text-sale">+{alertas.productosAgotados.length - 3} más</p>
-                )}
-              </div>
-            </div>
-          )}
+              </ul>
+            )}
+          </section>
 
-          {alertas.facturasPendientes.length > 0 && (
-            <div className="space-y-2 rounded-2xl border border-brand-yellow/30 bg-brand-yellow/10 p-3">
-              <div className="flex items-center justify-between">
-                <p className="flex items-center gap-2 text-sm font-bold text-brand-yellow">
-                  <AlertTriangle className="size-4" />
-                  {alertas.facturasPendientes.length} factura{alertas.facturasPendientes.length !== 1 ? 's' : ''} próxima{alertas.facturasPendientes.length !== 1 ? 's' : ''} a vencer
-                </p>
-                <Link href="/dashboard/proveedores" className="text-xs font-medium text-brand-yellow hover:underline">
-                  Ver proveedores →
-                </Link>
-              </div>
-              {alertas.facturasPendientes.map((f: any) => (
-                <div key={f.id} className="flex items-center justify-between rounded-lg bg-velo/5 px-2.5 py-1.5 text-xs">
-                  <span className="text-steel-300">{f.proveedores?.nombre} · {f.numero_factura ? `#${f.numero_factura}` : 'S/N'}</span>
-                  <span className="font-bold text-sale">{fmt(f.saldo_pendiente)} · vence {f.fecha_vencimiento}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {alertas.pagosProgramados.length > 0 && (
-            <div className="space-y-2 rounded-2xl border border-brand-blue/30 bg-brand-blue/10 p-3">
-              <div className="flex items-center justify-between">
-                <p className="flex items-center gap-2 text-sm font-bold text-enlace">
-                  <CalendarClock className="size-4" />
-                  {alertas.pagosProgramados.length} pago{alertas.pagosProgramados.length !== 1 ? 's' : ''} programado{alertas.pagosProgramados.length !== 1 ? 's' : ''} próximo{alertas.pagosProgramados.length !== 1 ? 's' : ''}
-                </p>
-                <Link href="/dashboard/proveedores" className="text-xs font-medium text-enlace hover:underline">
-                  Ver proveedores →
-                </Link>
-              </div>
-              {alertas.pagosProgramados.map((p: any) => (
-                <div key={p.id} className="flex items-center justify-between rounded-lg bg-velo/5 px-2.5 py-1.5 text-xs">
-                  <span className="text-steel-300">
-                    {p.facturas_proveedor?.proveedores?.nombre ?? '—'}
-                    {p.nota ? ` · ${p.nota}` : ''}
-                  </span>
-                  <span className="font-bold text-enlace">{fmt(p.monto)} · {p.fecha_programada}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── Accesos rápidos ── */}
-      <div className="space-y-2">
-        <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
-          Accesos rápidos
-        </h2>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
-          {[
-            { href: '/dashboard/ventas/nueva', icon: ShoppingCart, label: 'Nueva Venta', primary: true },
-            { href: '/dashboard/caja', icon: Wallet, label: 'Caja', primary: false },
-            { href: '/dashboard/reportes', icon: BarChart3, label: 'Reportes', primary: false },
-            { href: '/dashboard/contabilidad', icon: BookOpen, label: 'Contabilidad', primary: false },
-            { href: '/dashboard/proveedores', icon: Truck, label: 'Proveedores', primary: false },
-            { href: '/dashboard/inventario', icon: Package, label: 'Inventario', primary: false },
-            { href: '/dashboard/recepcion', icon: ClipboardCheck, label: 'Recepción', primary: false },
-            { href: '/dashboard/empleados/nomina', icon: DollarSign, label: 'Nómina', primary: false },
-            { href: '/dashboard/tareas', icon: ListChecks, label: tareasPendientes ? `Tareas (${tareasPendientes})` : 'Tareas', primary: false },
-            { href: '/dashboard/bitacora', icon: ShieldCheck, label: 'Bitácora', primary: false },
-          ].map(({ href, icon: Icon, label, primary }) => (
-            <Link key={href} href={href}
-              className={`flex h-16 items-center gap-3 rounded-2xl px-4 text-sm font-bold transition ${
-                primary
-                  ? 'bg-brand-yellow text-steel-900 hover:brightness-105'
-                  : 'border border-linea bg-superficie text-tinta hover:border-brand-blue/40'
-              }`}>
-              <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${primary ? 'bg-steel-900/10 text-steel-900' : 'bg-brand-blue/15 text-enlace'}`}>
-                <Icon className="size-6" />
-              </span>
-              {label}
+          <div className="grid grid-cols-2 gap-3">
+            <Link href="/dashboard/empleados/nomina" className="rounded-[14px] bg-superficie p-4 hover:bg-superficie-2">
+              <p className="text-sm text-suave">Nómina de hoy</p>
+              <p className={`cifra text-[28px] font-bold leading-tight ${nominaAlDia ? 'text-entra' : 'text-tinta'}`}>
+                {kpisHoy.nominasPagadas} de {kpisHoy.empleadosActivos}
+              </p>
+              <p className="text-sm text-suave">{nominaAlDia ? 'Pagada' : 'Falta pagar'}</p>
             </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Últimas ventas hoy ── */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
-            Últimas ventas hoy
-          </h2>
-          <Link href="/dashboard/ventas" className="text-xs text-enlace hover:underline">Ver todas →</Link>
-        </div>
-        <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
-                  <TableHead>Ticket</TableHead>
-                  <TableHead>Hora</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Empleado</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead>Estado</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {ultimasVentas.map((v: any) => (
-                  <TableRow key={v.id} className="border-linea hover:bg-velo/5">
-                    <TableCell>
-                      <Link href={`/dashboard/ventas/${v.id}`} className="font-mono text-xs font-medium text-enlace hover:underline">
-                        #{v.numero_ticket}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="text-xs text-steel-300">{v.hora?.slice(0, 5)}</TableCell>
-                    <TableCell className="text-xs text-steel-300">{v.clientes?.nombre ?? 'General'}</TableCell>
-                    <TableCell className="text-xs text-steel-300">{v.profiles?.nombre_completo ?? '—'}</TableCell>
-                    <TableCell className="text-right font-display text-sm font-bold text-tinta">{fmt(v.total)}</TableCell>
-                    <TableCell>
-                      <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
-                        v.estado === 'anulada'
-                          ? 'border-brand-red/30 bg-brand-red/20 text-sale'
-                          : 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400'
-                      }`}>
-                        {v.estado === 'anulada' && <AlertCircle className="size-3" />}
-                        {v.estado}
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {ultimasVentas.length === 0 && (
-                  <TableRow className="border-linea">
-                    <TableCell colSpan={6} className="py-6 text-center text-steel-500">
-                      Sin ventas registradas hoy
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+            <Link href="/dashboard/caja" className="rounded-[14px] bg-superficie p-4 hover:bg-superficie-2">
+              <p className="text-sm text-suave">Caja mayor</p>
+              <p className="cifra text-[28px] font-bold leading-tight text-tinta">{fmt(kpisHoy.cajaMayor)}</p>
+              <p className="text-sm text-suave">Saldo actual</p>
+            </Link>
           </div>
+
+          {/* Accesos */}
+          <section className="space-y-2.5">
+            <h2 className={TITULO}>Ir a</h2>
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+              {[
+                { href: '/dashboard/caja', icon: Wallet, label: 'Caja' },
+                { href: '/dashboard/inventario', icon: Package, label: 'Inventario' },
+                { href: '/dashboard/recepcion', icon: ClipboardCheck, label: 'Recepción' },
+                { href: '/dashboard/proveedores', icon: Truck, label: 'Proveedores' },
+                { href: '/dashboard/reportes', icon: BarChart3, label: 'Reportes' },
+                { href: '/dashboard/contabilidad', icon: BookOpen, label: 'Contabilidad' },
+                { href: '/dashboard/empleados/nomina', icon: DollarSign, label: 'Nómina' },
+                { href: '/dashboard/tareas', icon: ListChecks, label: tareasPendientes ? `Tareas (${tareasPendientes})` : 'Tareas' },
+                { href: '/dashboard/clientes', icon: Users, label: 'Clientes' },
+                { href: '/dashboard/bitacora', icon: ShieldCheck, label: 'Bitácora' },
+              ].map(({ href, icon: Icon, label }) => (
+                <Link key={href} href={href}
+                  className="flex h-20 flex-col items-center justify-center gap-1.5 rounded-[14px] bg-superficie px-1 text-center text-sm font-semibold leading-tight text-tinta hover:bg-superficie-2">
+                  <Icon className="size-6 text-enlace" strokeWidth={1.75} aria-hidden />
+                  {label}
+                </Link>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        <div className="space-y-6">
+          {/* Avisos */}
+          {(alertas.permisos.length + alertas.porCompletar.length + alertas.productosAgotados.length
+            + alertas.facturasPendientes.length + alertas.pagosProgramados.length) > 0 && (
+            <section className="space-y-2.5">
+              <h2 className={TITULO}>Para tener en cuenta</h2>
+              {alertas.permisos.length > 0 && (
+                <Aviso tono="info" icono={CalendarOff} accion={{ href: '/dashboard/empleados/horario', texto: 'Horario' }}
+                  titulo={`${plural(alertas.permisos.length, 'permiso', 'permisos')} en los próximos días`}>
+                  <ul className="space-y-0.5">
+                    {alertas.permisos.map(p => (
+                      <li key={p.id}><span className="font-semibold text-tinta">{p.nombre}</span> no viene {p.fecha === fechaHoyBogota ? 'hoy' : `el ${fechaLarga(p.fecha)}`}{p.motivo ? `: ${p.motivo}` : ''}</li>
+                    ))}
+                  </ul>
+                </Aviso>
+              )}
+              {alertas.productosAgotados.length > 0 && (
+                <Aviso tono="sale" icono={PackageX} accion={{ href: '/dashboard/inventario/agotados', texto: 'Ver' }}
+                  titulo={`${plural(alertas.productosAgotados.length, 'producto agotado', 'productos agotados')}`}>
+                  {alertas.productosAgotados.slice(0, 3).map((p: any) => p.nombre).join(', ')}
+                  {alertas.productosAgotados.length > 3 ? ` y ${alertas.productosAgotados.length - 3} más.` : '.'}
+                </Aviso>
+              )}
+              {alertas.porCompletar.length > 0 && (
+                <Aviso icono={ClipboardList} accion={{ href: '/dashboard/inventario/por-completar', texto: 'Completar' }}
+                  titulo={`${alertas.porCompletar.length}${alertas.porCompletar.length === 50 ? ' o más' : ''} ${alertas.porCompletar.length === 1 ? 'producto creado' : 'productos creados'} en la venta sin datos completos`}>
+                  {alertas.porCompletar.slice(0, 3).map(p => p.nombre).join(', ')}{alertas.porCompletar.length > 3 ? ` y ${alertas.porCompletar.length - 3} más.` : '.'}
+                </Aviso>
+              )}
+              {alertas.facturasPendientes.length > 0 && (
+                <Aviso icono={AlertTriangle} accion={{ href: '/dashboard/proveedores', texto: 'Ver' }}
+                  titulo={`${plural(alertas.facturasPendientes.length, 'factura vence pronto', 'facturas vencen pronto')}`}>
+                  <ul className="space-y-0.5">
+                    {alertas.facturasPendientes.map((f: any) => (
+                      <li key={f.id} className="flex justify-between gap-2">
+                        <span>{f.proveedores?.nombre}, vence {fechaLarga(f.fecha_vencimiento)}</span>
+                        <span className="cifra text-base font-bold text-tinta">{fmt(f.saldo_pendiente)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </Aviso>
+              )}
+              {alertas.pagosProgramados.length > 0 && (
+                <Aviso tono="info" icono={CalendarClock} accion={{ href: '/dashboard/proveedores', texto: 'Ver' }}
+                  titulo={`${plural(alertas.pagosProgramados.length, 'pago programado', 'pagos programados')} a proveedores`}>
+                  <ul className="space-y-0.5">
+                    {alertas.pagosProgramados.map((p: any) => (
+                      <li key={p.id} className="flex justify-between gap-2">
+                        <span>{p.facturas_proveedor?.proveedores?.nombre ?? 'Proveedor'}, {fechaLarga(p.fecha_programada)}</span>
+                        <span className="cifra text-base font-bold text-tinta">{fmt(p.monto)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </Aviso>
+              )}
+            </section>
+          )}
+
+          {/* Últimas ventas */}
+          <section className="space-y-2.5">
+            <div className="flex items-baseline justify-between">
+              <h2 className={TITULO}>Últimas ventas de hoy</h2>
+              <Link href="/dashboard/ventas" className="text-[15px] font-semibold text-enlace">Ver todas</Link>
+            </div>
+            <ul className="overflow-hidden rounded-2xl bg-superficie">
+              {ultimasVentas.map((v: any) => (
+                <li key={v.id} className="border-b border-linea last:border-0">
+                  <Link href={`/dashboard/ventas/${v.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-velo/5">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[15px] font-semibold text-tinta">{v.clientes?.nombre ?? 'Mostrador'}</p>
+                      <p className="truncate text-sm text-suave">Ticket {v.numero_ticket}, {v.hora?.slice(0, 5)}{v.profiles?.nombre_completo ? `, ${v.profiles.nombre_completo.split(' ')[0]}` : ''}</p>
+                    </div>
+                    {v.estado === 'anulada' ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[color-mix(in_oklab,var(--sale)_12%,transparent)] px-2.5 py-1 text-sm font-semibold text-sale">
+                        <AlertCircle className="size-3.5" aria-hidden />Anulada
+                      </span>
+                    ) : (
+                      <span className="cifra text-xl font-bold text-tinta">{fmt(v.total)}</span>
+                    )}
+                  </Link>
+                </li>
+              ))}
+              {ultimasVentas.length === 0 && (
+                <li className="px-4 py-8 text-center text-[15px] text-suave">Aún no hay ventas hoy.</li>
+              )}
+            </ul>
+          </section>
         </div>
       </div>
     </div>

@@ -86,16 +86,16 @@ export function ServiciosGestion({ servicios: inicial }: { servicios: Servicio[]
         <div className="space-y-3 rounded-xl border border-linea bg-superficie-2 p-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <Label className="text-xs font-bold text-steel-300">Nombre *</Label>
+              <Label className="text-sm font-semibold text-suave">Nombre *</Label>
               <Input value={form.nombre} className="border-linea bg-superficie text-tinta" onChange={e => setForm(p => ({ ...p, nombre: e.target.value }))} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-bold text-steel-300">Precio *</Label>
+              <Label className="text-sm font-semibold text-suave">Precio *</Label>
               <Input type="number" value={form.precio || ''} className="border-linea bg-superficie text-tinta"
                 onChange={e => setForm(p => ({ ...p, precio: parseFloat(e.target.value) || 0 }))} />
             </div>
             <div className="col-span-2 space-y-1">
-              <Label className="text-xs font-bold text-steel-300">Descripción</Label>
+              <Label className="text-sm font-semibold text-suave">Descripción</Label>
               <Input value={form.descripcion} className="border-linea bg-superficie text-tinta" onChange={e => setForm(p => ({ ...p, descripcion: e.target.value }))} />
             </div>
           </div>

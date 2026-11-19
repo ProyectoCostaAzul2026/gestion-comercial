@@ -30,8 +30,8 @@ interface Semana {
 
 const fmt = (n: number) => `${n < 0 ? '-' : ''}$${Math.abs(Math.round(n)).toLocaleString('es-CO')}`
 const corto = (f: string) => `${Number(f.slice(8))}/${Number(f.slice(5, 7))}`
-const AXIS_TICK = { fontSize: 9, fill: '#9aa7b0' }
-const TOOLTIP_STYLE = { backgroundColor: '#1a2430', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, color: '#f4f6f8', fontSize: 12 }
+const AXIS_TICK = { fontSize: 9, fill: 'var(--suave)' }
+const TOOLTIP_STYLE = { backgroundColor: 'var(--sup2)', border: '1px solid var(--linea)', borderRadius: 12, color: 'var(--tinta)', fontSize: 12 }
 
 /**
  * Proyección semana a semana. Lo seguro: el dinero de hoy, los créditos por cobrar y las facturas por pagar según su
@@ -173,14 +173,14 @@ export function FlujoProyectadoPanel({ hoy, disponible, cobros, pagos, promedios
           <ComposedChart data={proyeccion.map(s => ({ semana: corto(s.desde), entradas: s.entradas, salidas: -s.salidas, saldo: s.saldoFinal }))}
             margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-            <XAxis dataKey="semana" tick={{ fontSize: 10, fill: '#9aa7b0' }} />
+            <XAxis dataKey="semana" tick={{ fontSize: 10, fill: 'var(--suave)' }} />
             <YAxis tick={AXIS_TICK} tickFormatter={v => `$${(v / 1000).toFixed(0)}K`} width={50} />
             <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.05)' }}
               formatter={(v: any, name: any) => [fmt(Math.abs(Number(v))), name === 'entradas' ? 'Entradas' : name === 'salidas' ? 'Salidas' : 'Saldo final']} />
-            <ReferenceLine y={0} stroke="#e8453f" strokeDasharray="4 4" />
-            <Bar dataKey="entradas" fill="#34d399" radius={[3, 3, 0, 0]} />
-            <Bar dataKey="salidas" fill="#e8453f" radius={[3, 3, 0, 0]} />
-            <Line type="monotone" dataKey="saldo" stroke="#ffce00" strokeWidth={2} dot={{ r: 3, fill: '#ffce00' }} />
+            <ReferenceLine y={0} stroke="var(--sale)" strokeDasharray="4 4" />
+            <Bar dataKey="entradas" fill="var(--entra)" radius={[3, 3, 0, 0]} />
+            <Bar dataKey="salidas" fill="var(--sale)" radius={[3, 3, 0, 0]} />
+            <Line type="monotone" dataKey="saldo" stroke="var(--chart-1)" strokeWidth={2} dot={{ r: 3, fill: 'var(--chart-1)' }} />
           </ComposedChart>
         </ResponsiveContainer>
       </section>

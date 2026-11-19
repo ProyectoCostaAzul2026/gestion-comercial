@@ -18,7 +18,7 @@ export type TipoMovimientoCaja = 'gasto' | 'retiro' | 'traslado'
 
 const pesos = (n: number) => `$${Math.round(n).toLocaleString('es-CO')}`
 const CAMPO = 'h-11 border-linea bg-superficie-2 text-tinta'
-const ETIQUETA = 'text-xs font-bold text-steel-300'
+const ETIQUETA = 'text-sm font-semibold text-suave'
 
 /**
  * Formulario de Caja en vista propia: registrar un gasto, un retiro de dinero o un traslado entre medios.

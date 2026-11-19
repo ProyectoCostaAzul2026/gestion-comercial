@@ -208,25 +208,25 @@ export default async function VentaDetallePage({
         <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-tinta">Información general</h2>
         <dl className="grid grid-cols-2 gap-3 text-sm">
           <div>
-            <dt className="text-xs font-bold text-steel-300">Cliente</dt>
+            <dt className="text-sm font-semibold text-suave">Cliente</dt>
             <dd className="font-medium text-tinta">{cliente?.nombre ?? '—'}</dd>
             {cliente?.telefono && <dd className="text-xs text-steel-500">{cliente.telefono}</dd>}
           </div>
           <div>
-            <dt className="text-xs font-bold text-steel-300">Empleado</dt>
+            <dt className="text-sm font-semibold text-suave">Empleado</dt>
             <dd className="text-tinta">{empleado?.nombre_completo ?? '—'}</dd>
           </div>
           <div>
-            <dt className="text-xs font-bold text-steel-300">Tipo de pago</dt>
+            <dt className="text-sm font-semibold text-suave">Tipo de pago</dt>
             <dd className="text-tinta">{METODO_LABEL[venta.tipo_pago] ?? venta.tipo_pago}</dd>
           </div>
           <div>
-            <dt className="text-xs font-bold text-steel-300">Factura electrónica</dt>
+            <dt className="text-sm font-semibold text-suave">Factura electrónica</dt>
             <dd className="text-tinta">{venta.factura_electronica ? 'Sí' : 'No'}</dd>
           </div>
           {venta.observaciones && (
             <div className="col-span-2">
-              <dt className="text-xs font-bold text-steel-300">Observaciones</dt>
+              <dt className="text-sm font-semibold text-suave">Observaciones</dt>
               <dd className="text-steel-300">{venta.observaciones}</dd>
             </div>
           )}

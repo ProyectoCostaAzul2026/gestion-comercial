@@ -73,15 +73,15 @@ export function GarantiasPanel({ garantias, proveedores, soloProveedor }: Garant
       {!soloProveedor && (
         <div className="flex flex-wrap gap-3">
           <div className="space-y-1">
-            <label className="text-xs font-bold text-steel-300">Desde</label>
+            <label className="text-sm font-semibold text-suave">Desde</label>
             <Input type="date" value={filtroDesde} onChange={e => setFiltroDesde(e.target.value)} className="w-36 border-linea bg-superficie-2 text-tinta" />
           </div>
           <div className="space-y-1">
-            <label className="text-xs font-bold text-steel-300">Hasta</label>
+            <label className="text-sm font-semibold text-suave">Hasta</label>
             <Input type="date" value={filtroHasta} onChange={e => setFiltroHasta(e.target.value)} className="w-36 border-linea bg-superficie-2 text-tinta" />
           </div>
           <div className="space-y-1">
-            <label className="text-xs font-bold text-steel-300">Proveedor</label>
+            <label className="text-sm font-semibold text-suave">Proveedor</label>
             <Select items={[{ value: 'todos', label: 'Todos' }, ...proveedores.map(p => ({ value: p.nombre, label: p.nombre }))]}
               value={filtroProveedor} onValueChange={v => v && setFiltroProveedor(v)}>
               <SelectTrigger className="w-48 border-linea bg-superficie-2 text-tinta"><SelectValue /></SelectTrigger>
@@ -104,7 +104,7 @@ export function GarantiasPanel({ garantias, proveedores, soloProveedor }: Garant
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+              <TableRow className="bg-superficie-2 hover:bg-superficie-2 [&_th]:text-sm [&_th]:font-semibold [&_th]:text-suave">
                 <TableHead>Fecha</TableHead>
                 <TableHead>Producto</TableHead>
                 <TableHead>Proveedor</TableHead>
@@ -166,7 +166,7 @@ export function GarantiasPanel({ garantias, proveedores, soloProveedor }: Garant
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+                <TableRow className="bg-superficie-2 hover:bg-superficie-2 [&_th]:text-sm [&_th]:font-semibold [&_th]:text-suave">
                   <TableHead>Fecha</TableHead>
                   <TableHead>Producto</TableHead>
                   <TableHead>Proveedor</TableHead>

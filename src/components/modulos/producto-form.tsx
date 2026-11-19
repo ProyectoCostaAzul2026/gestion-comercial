@@ -33,7 +33,7 @@ import { useNavegacion } from '@/lib/navegacion'
 export const MEDIDA_REGEX = /^[^;]+$/
 
 export const INPUT_CLS = 'border-linea bg-superficie-2 text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60'
-export const LABEL_CLS = 'text-xs font-bold text-steel-300'
+export const LABEL_CLS = 'text-sm font-semibold text-suave'
 
 interface ProveedorForm {
   id?: string

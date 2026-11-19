@@ -1,17 +1,14 @@
 'use client'
 
 import Link from 'next/link'
+import { fechaLarga } from '@/lib/permisos'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
-import {
-  ShoppingCart, Package, TrendingUp, Receipt, BarChart3,
-  Phone, Mail, Banknote, Calendar, AlertCircle, ClipboardCheck, Users, ListChecks,
-} from 'lucide-react'
+import { Package, Receipt, Calendar, AlertCircle, ClipboardCheck, Users, ListChecks } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 const DIAS_LABEL: Record<string, string> = {
-  lunes: 'Lun', martes: 'Mar', miercoles: 'Mié',
-  jueves: 'Jue', viernes: 'Vie', sabado: 'Sáb', domingo: 'Dom',
+  lunes: 'Lunes', martes: 'Martes', miercoles: 'Miércoles',
+  jueves: 'Jueves', viernes: 'Viernes', sabado: 'Sábado', domingo: 'Domingo',
 }
 const DIAS_ORDEN = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo']
 
@@ -56,265 +53,135 @@ export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, 
   )
 
   const totalNominas = nominas.reduce((s, n) => s + Number(n.total_pago), 0)
-  const esAdmin = profile.rol === 'administrador'
+  const primerNombre = profile.nombre_completo.split(' ')[0]
+  const TITULO = 'text-lg font-bold text-tinta'
+  const FECHA = 'h-11 rounded-xl border-linea bg-superficie text-[15px] text-tinta'
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="space-y-6">
+      <header className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-[28px] font-bold leading-tight text-tinta">Hola, {primerNombre}</h1>
+          <p className="truncate text-[15px] text-suave first-letter:uppercase">{/^\d{4}-\d{2}-\d{2}$/.test(fechaHoy) ? fechaLarga(fechaHoy) : fechaHoy}</p>
+        </div>
+        {profile.foto_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={profile.foto_url} alt="" className="size-12 shrink-0 rounded-full object-cover" />
+        )}
+      </header>
 
-      {/* ── Perfil + header diagonal ── */}
-      <div className="relative overflow-hidden rounded-2xl border border-linea bg-superficie p-4">
-        <div className="relative z-10 flex items-start gap-4">
-          {profile.foto_url ? (
-            <img src={profile.foto_url} alt="Foto" className="h-20 w-20 shrink-0 rounded-full border-2 border-brand-yellow object-cover" />
-          ) : (
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-brand-yellow font-display text-2xl font-bold text-steel-900">
-              {profile.nombre_completo.charAt(0)}
-            </div>
-          )}
-          <div className="min-w-0">
-            <h1 className="font-display text-xl font-bold tracking-tight text-tinta">{profile.nombre_completo}</h1>
-            <span className={`mt-1 inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize ${esAdmin ? 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow' : 'border-linea bg-steel-700 text-steel-300'}`}>
-              {profile.rol}
-            </span>
-            <p className="mt-1 text-xs text-steel-300">{fechaHoy}{config?.nombre ? ` · ${config.nombre}` : ''}</p>
-            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-steel-300">
-              {profile.telefono && (
-                <span className="flex items-center gap-1.5"><Phone className="size-3.5 text-steel-500" /> {profile.telefono}</span>
-              )}
-              {profile.email && (
-                <span className="flex items-center gap-1.5"><Mail className="size-3.5 text-steel-500" /> {profile.email}</span>
-              )}
-              {profile.salario_base && (
-                <span className="flex items-center gap-1.5"><Banknote className="size-3.5 text-steel-500" /> Salario base: {fmt(profile.salario_base)}/día</span>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="space-y-6">
+          <section className="rounded-[18px] bg-superficie p-5">
+            <p className="text-[15px] font-semibold text-suave">Lo que has vendido en el periodo</p>
+            <p className="cifra text-[48px] font-bold leading-none text-tinta">{fmt(kpis.totalVentas)}</p>
+            <p className="mt-1 text-[15px] text-suave">
+              {kpis.numVentas} {kpis.numVentas === 1 ? 'venta' : 'ventas'}{kpis.numVentas > 0 ? `, de ${fmt(kpis.ventaPromedio)} en promedio` : ''}
+            </p>
+          </section>
 
-      {/* ── KPIs ── */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="rounded-2xl border border-linea border-l-4 border-l-brand-yellow bg-superficie p-4">
-          <div className="flex items-start justify-between">
-            <p className="text-xs font-bold text-steel-300">Total ventas</p>
-            <span className="flex items-center justify-center rounded-xl bg-brand-yellow/15 p-2 text-brand-yellow">
-              <TrendingUp className="size-5" />
-            </span>
-          </div>
-          <p className="mt-3 font-display text-2xl font-bold text-emerald-400 md:text-3xl">{fmt(kpis.totalVentas)}</p>
-        </div>
-        <div className="rounded-2xl border border-linea border-l-4 border-l-brand-blue bg-superficie p-4">
-          <div className="flex items-start justify-between">
-            <p className="text-xs font-bold text-steel-300">N° ventas</p>
-            <span className="flex items-center justify-center rounded-xl bg-brand-blue/15 p-2 text-enlace">
-              <Receipt className="size-5" />
-            </span>
-          </div>
-          <p className="mt-3 font-display text-2xl font-bold text-tinta md:text-3xl">{kpis.numVentas}</p>
-        </div>
-        <div className="rounded-2xl border border-linea border-l-4 border-l-brand-blue bg-superficie p-4">
-          <div className="flex items-start justify-between">
-            <p className="text-xs font-bold text-steel-300">Venta promedio</p>
-            <span className="flex items-center justify-center rounded-xl bg-brand-blue/15 p-2 text-enlace">
-              <BarChart3 className="size-5" />
-            </span>
-          </div>
-          <p className="mt-3 font-display text-2xl font-bold text-tinta md:text-3xl">{fmt(kpis.ventaPromedio)}</p>
-        </div>
-      </div>
-
-      {/* ── Accesos rápidos ── */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-        <Link href="/dashboard/ventas/nueva"
-          className="flex h-16 items-center gap-3 rounded-2xl bg-brand-yellow px-4 text-sm font-bold text-steel-900 transition hover:brightness-105">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-steel-900/10">
-            <ShoppingCart className="size-6" />
-          </span>
-          Nueva Venta
-        </Link>
-        <Link href="/dashboard/inventario"
-          className="flex h-16 items-center gap-3 rounded-2xl border border-linea bg-superficie px-4 text-sm font-bold text-tinta transition hover:border-brand-blue/40">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-blue/15 text-enlace">
-            <Package className="size-6" />
-          </span>
-          Inventario
-        </Link>
-        {[
-          { href: '/dashboard/tareas', icon: ListChecks, label: tareasPendientes ? `Tareas (${tareasPendientes})` : 'Tareas' },
-          { href: '/dashboard/recepcion', icon: ClipboardCheck, label: 'Recepción' },
-          { href: '/dashboard/clientes', icon: Users, label: 'Clientes' },
-          { href: '/dashboard/empleados/horario', icon: Calendar, label: 'Horario y permisos' },
-          { href: '/dashboard/ventas', icon: Receipt, label: 'Mis ventas' },
-        ].map(({ href, icon: Icon, label }) => (
-          <Link key={href} href={href}
-            className="flex h-16 items-center gap-3 rounded-2xl border border-linea bg-superficie px-4 text-sm font-bold leading-tight text-tinta transition hover:border-brand-blue/40">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-blue/15 text-enlace">
-              <Icon className="size-6" />
-            </span>
-            {label}
-          </Link>
-        ))}
-      </div>
-
-      {/* ── Mis ventas con filtro ── */}
-      <div className="space-y-3">
-        <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
-          Mis ventas
-        </h2>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <label className="block text-xs font-bold text-steel-300">Desde</label>
-            <Input type="date" value={filtros.ventaDesde}
-              onChange={e => actualizar({ venta_desde: e.target.value })}
-              className="h-11 rounded-xl border-linea bg-superficie-2 text-sm text-tinta" />
-          </div>
-          <div className="space-y-1">
-            <label className="block text-xs font-bold text-steel-300">Hasta</label>
-            <Input type="date" value={filtros.ventaHasta}
-              onChange={e => actualizar({ venta_hasta: e.target.value })}
-              className="h-11 rounded-xl border-linea bg-superficie-2 text-sm text-tinta" />
-          </div>
-        </div>
-        <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
-                  <TableHead>Ticket</TableHead>
-                  <TableHead>Fecha</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead>Estado</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {ventas.slice(0, 10).map((v: any) => (
-                  <TableRow key={v.id} className="border-linea hover:bg-velo/5">
-                    <TableCell>
-                      <Link href={`/dashboard/ventas/${v.id}`} className="font-mono text-xs font-medium text-enlace hover:underline">
-                        #{v.numero_ticket}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="text-xs text-steel-300">{v.fecha}</TableCell>
-                    <TableCell className="text-xs text-steel-300">{v.clientes?.nombre ?? 'General'}</TableCell>
-                    <TableCell className="text-right font-display text-sm font-bold text-tinta">{fmt(v.total)}</TableCell>
-                    <TableCell>
-                      <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
-                        v.estado === 'anulada'
-                          ? 'border-brand-red/30 bg-brand-red/20 text-sale'
-                          : 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400'
-                      }`}>
-                        {v.estado === 'anulada' && <AlertCircle className="size-3" />}
-                        {v.estado}
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {ventas.length === 0 && (
-                  <TableRow className="border-linea">
-                    <TableCell colSpan={5} className="py-6 text-center text-steel-500">
-                      Sin ventas en este período
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Horario ── */}
-      <div className="space-y-3">
-        <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
-          Mi horario
-        </h2>
-        {turnosOrdenados.length === 0 ? (
-          <p className="text-sm text-steel-300">Sin turnos asignados</p>
-        ) : (
-          <div className="rounded-2xl border border-linea bg-superficie p-4">
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              {turnosOrdenados.map((t: any) => (
-                <div key={t.dia_semana} className="rounded-xl border border-linea bg-superficie-2 px-3 py-2 text-sm">
-                  <p className="flex items-center gap-1.5 font-semibold text-tinta">
-                    <Calendar className="size-3.5 text-enlace" />
-                    {DIAS_LABEL[t.dia_semana] ?? t.dia_semana}
-                  </p>
-                  <p className="mt-0.5 text-xs text-steel-300">
-                    {t.hora_inicio?.slice(0, 5)} – {t.hora_fin?.slice(0, 5)}
-                  </p>
-                </div>
+          <section className="space-y-2.5">
+            <h2 className={TITULO}>Ir a</h2>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { href: '/dashboard/inventario', icon: Package, label: 'Inventario' },
+                { href: '/dashboard/tareas', icon: ListChecks, label: tareasPendientes ? `Tareas (${tareasPendientes})` : 'Tareas' },
+                { href: '/dashboard/recepcion', icon: ClipboardCheck, label: 'Recepción' },
+                { href: '/dashboard/clientes', icon: Users, label: 'Clientes' },
+                { href: '/dashboard/empleados/horario', icon: Calendar, label: 'Horario y permisos' },
+                { href: '/dashboard/ventas', icon: Receipt, label: 'Mis ventas' },
+              ].map(({ href, icon: Icon, label }) => (
+                <Link key={href} href={href}
+                  className="flex h-20 flex-col items-center justify-center gap-1.5 rounded-[14px] bg-superficie px-1 text-center text-sm font-semibold leading-tight text-tinta hover:bg-superficie-2">
+                  <Icon className="size-6 text-enlace" strokeWidth={1.75} aria-hidden />
+                  {label}
+                </Link>
               ))}
             </div>
-          </div>
-        )}
-      </div>
+          </section>
 
-      {/* ── Nóminas ── */}
-      <div className="space-y-3">
-        <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
-          Mi nómina
-        </h2>
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="grid flex-1 grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="block text-xs font-bold text-steel-300">Desde</label>
-              <Input type="date" value={filtros.nominaDesde}
-                onChange={e => actualizar({ nomina_desde: e.target.value })}
-                className="h-11 rounded-xl border-linea bg-superficie-2 text-sm text-tinta" />
-            </div>
-            <div className="space-y-1">
-              <label className="block text-xs font-bold text-steel-300">Hasta</label>
-              <Input type="date" value={filtros.nominaHasta}
-                onChange={e => actualizar({ nomina_hasta: e.target.value })}
-                className="h-11 rounded-xl border-linea bg-superficie-2 text-sm text-tinta" />
-            </div>
-          </div>
-          <div className="pb-1">
-            <span className="text-sm text-steel-300">
-              Total: <span className="font-display font-bold text-emerald-400">{fmt(totalNominas)}</span>
-            </span>
-          </div>
-        </div>
-        <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
-                  <TableHead>Fecha</TableHead>
-                  <TableHead className="text-right">Horas</TableHead>
-                  <TableHead className="text-right">Salario base</TableHead>
-                  <TableHead className="text-right">Bonif.</TableHead>
-                  <TableHead className="text-right">Deduc.</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {nominas.map((n: any) => (
-                  <TableRow key={n.id} className="border-linea hover:bg-velo/5">
-                    <TableCell className="text-xs text-steel-300">{n.periodo_inicio}</TableCell>
-                    <TableCell className="text-right text-xs text-steel-300">
-                      {n.horas_trabajadas != null ? `${n.horas_trabajadas}h` : '—'}
-                    </TableCell>
-                    <TableCell className="text-right text-xs text-tinta">{fmt(n.salario_base)}</TableCell>
-                    <TableCell className="text-right text-xs text-emerald-400">
-                      {Number(n.bonificaciones) > 0 ? `+${fmt(n.bonificaciones)}` : '—'}
-                    </TableCell>
-                    <TableCell className="text-right text-xs text-sale">
-                      {Number(n.deducciones) > 0 ? `-${fmt(n.deducciones)}` : '—'}
-                    </TableCell>
-                    <TableCell className="text-right font-display text-sm font-bold text-tinta">{fmt(n.total_pago)}</TableCell>
-                  </TableRow>
+          <section className="space-y-2.5">
+            <h2 className={TITULO}>Mi horario</h2>
+            {turnosOrdenados.length === 0 ? (
+              <p className="rounded-2xl bg-superficie px-4 py-6 text-center text-[15px] text-suave">Aún no tienes turnos asignados.</p>
+            ) : (
+              <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {turnosOrdenados.map((t: any) => (
+                  <li key={t.dia_semana} className="rounded-[14px] bg-superficie px-3.5 py-2.5">
+                    <p className="text-[15px] font-semibold text-tinta">{DIAS_LABEL[t.dia_semana] ?? t.dia_semana}</p>
+                    <p className="cifra text-lg text-suave">{t.hora_inicio?.slice(0, 5)} a {t.hora_fin?.slice(0, 5)}</p>
+                  </li>
                 ))}
-                {nominas.length === 0 && (
-                  <TableRow className="border-linea">
-                    <TableCell colSpan={6} className="py-6 text-center text-steel-500">
-                      Sin nóminas en este período
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+              </ul>
+            )}
+          </section>
+        </div>
+
+        <div className="space-y-6">
+          <section className="space-y-2.5">
+            <h2 className={TITULO}>Mis ventas</h2>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <label htmlFor="venta-desde" className="text-sm font-semibold text-suave">Desde</label>
+                <Input id="venta-desde" type="date" value={filtros.ventaDesde} onChange={e => actualizar({ venta_desde: e.target.value })} className={FECHA} />
+              </div>
+              <div className="space-y-1">
+                <label htmlFor="venta-hasta" className="text-sm font-semibold text-suave">Hasta</label>
+                <Input id="venta-hasta" type="date" value={filtros.ventaHasta} onChange={e => actualizar({ venta_hasta: e.target.value })} className={FECHA} />
+              </div>
+            </div>
+            <ul className="overflow-hidden rounded-2xl bg-superficie">
+              {ventas.slice(0, 10).map((v: any) => (
+                <li key={v.id} className="border-b border-linea last:border-0">
+                  <Link href={`/dashboard/ventas/${v.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-velo/5">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[15px] font-semibold text-tinta">{v.clientes?.nombre ?? 'Mostrador'}</p>
+                      <p className="text-sm text-suave">Ticket {v.numero_ticket}, {v.fecha}</p>
+                    </div>
+                    {v.estado === 'anulada' ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[color-mix(in_oklab,var(--sale)_12%,transparent)] px-2.5 py-1 text-sm font-semibold text-sale">
+                        <AlertCircle className="size-3.5" aria-hidden />Anulada
+                      </span>
+                    ) : <span className="cifra text-xl font-bold text-tinta">{fmt(v.total)}</span>}
+                  </Link>
+                </li>
+              ))}
+              {ventas.length === 0 && <li className="px-4 py-8 text-center text-[15px] text-suave">No tienes ventas en estas fechas.</li>}
+            </ul>
+          </section>
+
+          <section className="space-y-2.5">
+            <div className="flex items-baseline justify-between gap-2">
+              <h2 className={TITULO}>Mi nómina</h2>
+              <p className="text-[15px] text-suave">Total <span className="cifra text-xl font-bold text-tinta">{fmt(totalNominas)}</span></p>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <label htmlFor="nomina-desde" className="text-sm font-semibold text-suave">Desde</label>
+                <Input id="nomina-desde" type="date" value={filtros.nominaDesde} onChange={e => actualizar({ nomina_desde: e.target.value })} className={FECHA} />
+              </div>
+              <div className="space-y-1">
+                <label htmlFor="nomina-hasta" className="text-sm font-semibold text-suave">Hasta</label>
+                <Input id="nomina-hasta" type="date" value={filtros.nominaHasta} onChange={e => actualizar({ nomina_hasta: e.target.value })} className={FECHA} />
+              </div>
+            </div>
+            <ul className="overflow-hidden rounded-2xl bg-superficie">
+              {nominas.map((n: any) => (
+                <li key={n.id} className="flex items-center gap-3 border-b border-linea px-4 py-3 last:border-0">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[15px] font-semibold text-tinta">{n.periodo_inicio}</p>
+                    <p className="text-sm text-suave">
+                      {n.horas_trabajadas != null ? `${n.horas_trabajadas} h, ` : ''}base {fmt(n.salario_base)}
+                      {Number(n.bonificaciones) > 0 ? `, +${fmt(n.bonificaciones)} de bonificación` : ''}
+                      {Number(n.deducciones) > 0 ? `, −${fmt(n.deducciones)} de descuentos` : ''}
+                    </p>
+                  </div>
+                  <span className="cifra text-xl font-bold text-tinta">{fmt(n.total_pago)}</span>
+                </li>
+              ))}
+              {nominas.length === 0 && <li className="px-4 py-8 text-center text-[15px] text-suave">No hay pagos de nómina en estas fechas.</li>}
+            </ul>
+          </section>
         </div>
       </div>
     </div>

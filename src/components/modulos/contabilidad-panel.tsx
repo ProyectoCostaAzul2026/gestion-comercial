@@ -69,11 +69,12 @@ function SeccionTabla({ titulo, total, color, headerBg, children }: {
   return (
     <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
       <button type="button" onClick={() => setAbierta(v => !v)}
-        className={`flex w-full items-center justify-between px-4 py-3 transition-colors ${headerBg ?? 'bg-brand-blue text-white'}`}>
-        <span className="font-display font-bold">{titulo}</span>
+        aria-expanded={abierta} data-encabezado={headerBg ? 'destacado' : undefined}
+        className="flex min-h-14 w-full items-center justify-between gap-3 px-4 py-3 text-left text-tinta transition-colors hover:bg-velo/5">
+        <span className="text-lg font-bold">{titulo}</span>
         <div className="flex items-center gap-3">
-          <span className="font-display font-bold">${total.toLocaleString('es-CO')}</span>
-          {abierta ? <ChevronUp className="h-4 w-4 opacity-70" /> : <ChevronDown className="h-4 w-4 opacity-70" />}
+          <span className={`cifra text-xl font-bold ${color}`}>${total.toLocaleString('es-CO')}</span>
+          {abierta ? <ChevronUp className="size-5 text-suave" /> : <ChevronDown className="size-5 text-suave" />}
         </div>
       </button>
       {abierta && <div className="border-t border-linea">{children}</div>}
@@ -210,23 +211,23 @@ export function ContabilidadPanel({
       {/* Balance cards */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
         <div className="rounded-2xl border border-linea bg-superficie p-4">
-          <p className="text-xs font-bold text-steel-300">Ingresos</p>
+          <p className="text-sm font-semibold text-suave">Ingresos</p>
           <p className="mt-1 font-display text-lg font-bold text-emerald-400">${balance.totalIngresos.toLocaleString('es-CO')}</p>
         </div>
         <div className="rounded-2xl border border-linea bg-superficie p-4">
-          <p className="text-xs font-bold text-steel-300">Costo mercancía</p>
+          <p className="text-sm font-semibold text-suave">Costo mercancía</p>
           <p className="mt-1 font-display text-lg font-bold text-sale">${balance.totalCMV.toLocaleString('es-CO')}</p>
         </div>
         <div className="rounded-2xl border border-linea bg-superficie p-4">
-          <p className="text-xs font-bold text-steel-300">Gastos</p>
+          <p className="text-sm font-semibold text-suave">Gastos</p>
           <p className="mt-1 font-display text-lg font-bold text-sale">${balance.totalGastos.toLocaleString('es-CO')}</p>
         </div>
         <div className="rounded-2xl border border-linea bg-superficie p-4">
-          <p className="text-xs font-bold text-steel-300">Nóminas</p>
+          <p className="text-sm font-semibold text-suave">Nóminas</p>
           <p className="mt-1 font-display text-lg font-bold text-sale">${balance.totalNominas.toLocaleString('es-CO')}</p>
         </div>
         <div className="rounded-2xl border-2 border-brand-yellow bg-superficie p-4">
-          <p className="text-xs font-bold text-steel-300">Resultado</p>
+          <p className="text-sm font-semibold text-suave">Resultado</p>
           <p className={`mt-1 font-display text-xl font-bold ${balance.resultado >= 0 ? 'text-emerald-400' : 'text-sale'}`}>
             ${balance.resultado.toLocaleString('es-CO')}
           </p>
@@ -250,7 +251,7 @@ export function ContabilidadPanel({
         <div className="max-h-96 overflow-y-auto overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+            <TableRow className="bg-superficie-2 hover:bg-superficie-2 [&_th]:text-sm [&_th]:font-semibold [&_th]:text-suave">
               <TableHead>Fecha</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Descripción</TableHead>
@@ -303,7 +304,7 @@ export function ContabilidadPanel({
         <div className="max-h-96 overflow-y-auto overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+            <TableRow className="bg-superficie-2 hover:bg-superficie-2 [&_th]:text-sm [&_th]:font-semibold [&_th]:text-suave">
               <TableHead>Producto</TableHead>
               <TableHead>Proveedor</TableHead>
               <TableHead className="text-right">Cantidad</TableHead>
@@ -354,7 +355,7 @@ export function ContabilidadPanel({
         <div className="max-h-96 overflow-y-auto overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+            <TableRow className="bg-superficie-2 hover:bg-superficie-2 [&_th]:text-sm [&_th]:font-semibold [&_th]:text-suave">
               <TableHead>Fecha</TableHead>
               <TableHead>Concepto</TableHead>
               <TableHead>Categoría</TableHead>
@@ -397,7 +398,7 @@ export function ContabilidadPanel({
         <div className="max-h-96 overflow-y-auto overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+            <TableRow className="bg-superficie-2 hover:bg-superficie-2 [&_th]:text-sm [&_th]:font-semibold [&_th]:text-suave">
               <TableHead>Fecha</TableHead>
               <TableHead>Empleado</TableHead>
               <TableHead className="text-right">Horas</TableHead>
@@ -452,7 +453,7 @@ export function ContabilidadPanel({
         <div className="max-h-96 overflow-y-auto overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+            <TableRow className="bg-superficie-2 hover:bg-superficie-2 [&_th]:text-sm [&_th]:font-semibold [&_th]:text-suave">
               <TableHead>Fecha</TableHead>
               <TableHead>Ticket</TableHead>
               <TableHead>Cliente</TableHead>
@@ -517,7 +518,7 @@ export function ContabilidadPanel({
         <div className="max-h-96 overflow-y-auto overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+            <TableRow className="bg-superficie-2 hover:bg-superficie-2 [&_th]:text-sm [&_th]:font-semibold [&_th]:text-suave">
               <TableHead>Factura</TableHead>
               <TableHead>Proveedor</TableHead>
               <TableHead>Emitida</TableHead>

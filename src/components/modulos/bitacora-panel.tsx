@@ -86,7 +86,7 @@ export function BitacoraPanel({ registros, borrados, filtros, hayMas }: Props) {
   const sinFiltro = !filtros.tabla && !filtros.origen && !filtros.desde && !filtros.hasta
   // Solo tiene sentido buscar saltos cuando se ve la lista completa, sin filtros
   const SELECT = 'h-11 w-full rounded-lg border border-linea bg-superficie-2 px-3 text-[16px] text-tinta'
-  const ETIQUETA = 'text-xs font-bold text-steel-300'
+  const ETIQUETA = 'text-sm font-semibold text-suave'
 
   return (
     <div className="space-y-4">

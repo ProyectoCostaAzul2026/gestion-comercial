@@ -591,7 +591,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
 
       {/* Lista de miembros de la familia */}
       <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
-        <div className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 border-b border-linea bg-superficie-2 px-4 py-2 text-xs font-bold text-steel-300">
+        <div className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 border-b border-linea bg-superficie-2 px-4 py-2 text-sm font-semibold text-suave">
           <span>Característica</span>
           <span>Medida</span>
           <span>Marca</span>
@@ -602,7 +602,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
             <span className="text-sm text-tinta">
               {m.caracteristica || '—'}
               {m.id === productoActualId && <span className="ml-2 text-xs font-bold text-brand-yellow">Actual</span>}
-              {!m.activo && <span className="ml-2 rounded-full bg-steel-700 px-2 py-0.5 text-xs font-bold text-steel-300">Inactivo</span>}
+              {!m.activo && <span className="ml-2 rounded-full bg-steel-700 px-2 py-0.5 text-sm font-semibold text-suave">Inactivo</span>}
             </span>
             <span className="text-sm text-steel-300">{m.unidad_medida || '—'}</span>
             <span className="text-sm text-steel-300">
@@ -653,7 +653,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
           {/* Lista de ramas con checkbox */}
           <div className="overflow-hidden rounded-xl border border-linea">
             <div className="flex items-center justify-between border-b border-linea bg-superficie-2 px-3 py-2">
-              <span className="text-xs font-bold text-steel-300">Ramas ({seleccionados.size} de {miembros.length} seleccionadas)</span>
+              <span className="text-sm font-semibold text-suave">Ramas ({seleccionados.size} de {miembros.length} seleccionadas)</span>
               <div className="flex gap-3 text-xs font-semibold">
                 <button type="button" className="text-enlace hover:underline" onClick={seleccionarTodos}>Todas</button>
                 <button type="button" className="text-steel-300 hover:underline" onClick={deseleccionarTodos}>Ninguna</button>

@@ -28,7 +28,7 @@ export function VentasFiltros({ fechaInicio, fechaFin, tipoPago, estado, emplead
     router.replace(`${pathname}?${params.toString()}`, { scroll: false })
   }
 
-  const labelCls = 'block text-xs font-bold text-steel-300'
+  const labelCls = 'block text-sm font-semibold text-suave'
   const triggerCls = 'h-11 border-linea bg-superficie-2 text-tinta'
 
   return (

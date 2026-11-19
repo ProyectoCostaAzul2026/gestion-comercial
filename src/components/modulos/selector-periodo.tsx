@@ -53,13 +53,13 @@ export function SelectorPeriodo({ periodo, hoy, anterior }: {
       {periodo.tipo === 'rango' ? (
         <div className="grid grid-cols-2 gap-2">
           <label className="space-y-1">
-            <span className="text-xs font-bold text-steel-300">Desde</span>
+            <span className="text-sm font-semibold text-suave">Desde</span>
             <Input type="date" value={periodo.desde} max={hoy}
               onChange={e => e.target.value && ir({ desde: e.target.value })}
               className="h-11 border-linea bg-superficie-2 text-tinta" />
           </label>
           <label className="space-y-1">
-            <span className="text-xs font-bold text-steel-300">Hasta</span>
+            <span className="text-sm font-semibold text-suave">Hasta</span>
             <Input type="date" value={periodo.hasta} max={hoy}
               onChange={e => e.target.value && ir({ hasta: e.target.value })}
               className="h-11 border-linea bg-superficie-2 text-tinta" />

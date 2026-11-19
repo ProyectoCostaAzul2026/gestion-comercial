@@ -15,7 +15,7 @@ import {
 // Precios por cantidad: editor de tramos (solo administrador), lista de solo lectura y aviso en las líneas de venta.
 
 const INPUT = 'h-10 border-linea bg-superficie text-[16px] text-tinta placeholder:text-steel-500'
-const ETIQUETA = 'text-xs font-bold text-steel-300'
+const ETIQUETA = 'text-sm font-semibold text-suave'
 const pesos = (n: number) => `$${Math.round(n).toLocaleString('es-CO')}`
 const porcentaje = (n: number) => `${n.toLocaleString('es-CO', { maximumFractionDigits: 1 })} %`
 

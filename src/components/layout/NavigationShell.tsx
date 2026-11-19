@@ -254,8 +254,8 @@ export default function NavigationShell({
         aria-modal="true"
         aria-label="Menú completo"
         inert={!drawerOpen}
-        className={`fixed inset-x-0 bottom-0 z-50 flex max-h-[88dvh] flex-col rounded-t-3xl border-t border-linea bg-superficie pb-[env(safe-area-inset-bottom)] text-tinta shadow-2xl transition-transform duration-300 ease-out lg:hidden ${
-          drawerOpen ? 'translate-y-0' : 'translate-y-full'
+        className={`fixed inset-x-0 bottom-0 z-50 flex max-h-[88dvh] flex-col rounded-t-3xl border-t border-linea bg-superficie pb-[env(safe-area-inset-bottom)] text-tinta shadow-2xl transition-[transform,visibility] duration-300 ease-out lg:hidden ${
+          drawerOpen ? 'visible translate-y-0' : 'invisible translate-y-full'
         }`}
       >
         <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-velo/20" aria-hidden />

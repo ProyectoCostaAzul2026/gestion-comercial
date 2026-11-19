@@ -62,7 +62,7 @@ function fmtFecha(f: string) {
 }
 
 const INPUT_CLS = 'border-linea bg-superficie-2 text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60'
-const LABEL_CLS = 'text-xs font-bold text-steel-300'
+const LABEL_CLS = 'text-sm font-semibold text-suave'
 
 export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
   catalogo: ServicioSearch[]
@@ -369,17 +369,17 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="text-xs font-bold text-steel-300">Cantidad</label>
+                  <label className="text-sm font-semibold text-suave">Cantidad</label>
                   <Input type="number" min={1} value={item.cantidad} className="border-linea bg-superficie text-tinta"
                     onChange={e => setCarrito(prev => prev.map((it, i) => i === idx ? conCantidad(it, parseInt(e.target.value) || 1) : it))} />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-steel-300">Precio</label>
+                  <label className="text-sm font-semibold text-suave">Precio</label>
                   <Input type="number" value={item.precio_unitario} className="border-linea bg-superficie text-tinta"
                     onChange={e => setCarrito(prev => prev.map((it, i) => i === idx ? { ...it, precio_unitario: parseFloat(e.target.value) || 0 } : it))} />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-steel-300">Subtotal</label>
+                  <label className="text-sm font-semibold text-suave">Subtotal</label>
                   <p className="mt-2 text-sm font-semibold text-tinta">
                     {fmt(item.precio_unitario * item.cantidad * (1 - (item.descuento_habilitado ? item.descuento_porcentaje / 100 : 0)))}
                   </p>

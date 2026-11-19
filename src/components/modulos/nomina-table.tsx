@@ -236,7 +236,7 @@ export function NominaTable({
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+                  <TableRow className="bg-superficie-2 hover:bg-superficie-2 [&_th]:text-sm [&_th]:font-semibold [&_th]:text-suave">
                     <TableHead>Empleado</TableHead>
                     <TableHead className="text-right">Salario base</TableHead>
                     <TableHead className="text-right">Horas hoy</TableHead>
@@ -307,15 +307,15 @@ export function NominaTable({
         <div className="space-y-3">
           <div className="flex flex-wrap gap-3">
             <div className="space-y-1">
-              <label className="text-xs font-bold text-steel-300">Desde</label>
+              <label className="text-sm font-semibold text-suave">Desde</label>
               <Input type="date" value={filtroFechaDesde} onChange={e => setFiltroFechaDesde(e.target.value)} className="w-36 border-linea bg-superficie-2 text-tinta" />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-bold text-steel-300">Hasta</label>
+              <label className="text-sm font-semibold text-suave">Hasta</label>
               <Input type="date" value={filtroFechaHasta} onChange={e => setFiltroFechaHasta(e.target.value)} className="w-36 border-linea bg-superficie-2 text-tinta" />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-bold text-steel-300">Empleado</label>
+              <label className="text-sm font-semibold text-suave">Empleado</label>
               <Input placeholder="Buscar…" value={filtroEmpleado} onChange={e => setFiltroEmpleado(e.target.value)} className="w-48 border-linea bg-superficie-2 text-tinta placeholder:text-steel-500" />
             </div>
           </div>
@@ -323,7 +323,7 @@ export function NominaTable({
             <div className="max-h-96 overflow-y-auto overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+                  <TableRow className="bg-superficie-2 hover:bg-superficie-2 [&_th]:text-sm [&_th]:font-semibold [&_th]:text-suave">
                     <TableHead>Empleado</TableHead>
                     <TableHead>Fecha</TableHead>
                     <TableHead className="text-right">Horas</TableHead>

@@ -59,7 +59,7 @@ export function SinMovimientoPanel({ productos }: { productos: ProductoQuieto[];
   return (
     <div className="space-y-4">
       <section className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
-        <p className="text-xs font-bold text-steel-300">Sin vender hace al menos</p>
+        <p className="text-sm font-semibold text-suave">Sin vender hace al menos</p>
         <div className="grid grid-cols-4 gap-1 rounded-xl bg-fondo p-1">
           {UMBRALES.map(u => (
             <button key={u} type="button" onClick={() => { setUmbral(u); setLimite(50) }}

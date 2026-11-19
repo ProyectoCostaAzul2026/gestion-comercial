@@ -52,7 +52,7 @@ export function FuentesPagoEditor({ fuentes, setFuentes, montoTotal, saldos }: {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <Label className="text-xs font-bold text-steel-300">Sale de</Label>
+        <Label className="text-sm font-semibold text-suave">Sale de</Label>
         {fuentes.length < FUENTES_DISPONIBLES.length && (
           <button type="button"
             onClick={() => setFuentes([...fuentes, { key: String(Date.now()), fuente: FUENTES_DISPONIBLES.find(f => !usadas.has(f.value))?.value ?? 'caja_menor', monto: Math.max(diferencia, 0) }])}
