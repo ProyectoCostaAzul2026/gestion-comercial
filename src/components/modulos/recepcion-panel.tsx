@@ -54,21 +54,20 @@ export function RecepcionPanel({ recepcion, renglones, productosProveedor, esAdm
               {ETIQUETA_ESTADO_RECEPCION[recepcion.estado]}
             </span>
           </div>
-          <p className="text-xs text-steel-300">
-            {recepcion.numero_factura ? `Factura N° ${recepcion.numero_factura}` : 'Factura sin número'} · {recepcion.fecha_factura}
-            {' '}· Costos {recepcion.costos_con_iva ? 'con IVA' : 'sin IVA'}
+          <p className="text-sm text-suave">
+            {recepcion.numero_factura ? `Factura ${recepcion.numero_factura}` : 'Factura sin número'}, {recepcion.fecha_factura}, costos {recepcion.costos_con_iva ? 'con IVA' : 'sin IVA'}
           </p>
         </div>
         <button type="button" onClick={actualizar} aria-label="Actualizar"
-          className="shrink-0 rounded-xl border border-linea p-2 text-steel-300 hover:bg-velo/5 hover:text-tinta">
-          <RefreshCw className={`h-4 w-4 ${actualizando ? 'animate-spin' : ''}`} />
+          className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-linea text-suave hover:bg-velo/5 hover:text-tinta">
+          <RefreshCw className={`size-5 ${actualizando ? 'animate-spin' : ''}`} strokeWidth={1.75} />
         </button>
       </div>
 
       <div className="flex gap-1 overflow-x-auto rounded-xl border border-linea bg-superficie p-1" role="tablist">
         {pestanas.map(p => (
           <button key={p.id} type="button" role="tab" aria-selected={pestana === p.id} onClick={() => setPestana(p.id)}
-            className={`flex-1 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${pestana === p.id ? 'bg-brand-yellow text-steel-900' : 'text-steel-300 hover:bg-velo/5 hover:text-tinta'}`}>
+            className={`min-h-10 flex-1 whitespace-nowrap rounded-lg px-3 py-2 text-[15px] font-semibold transition-colors ${pestana === p.id ? 'bg-tinta text-fondo' : 'text-suave hover:bg-velo/5 hover:text-tinta'}`}>
             {p.etiqueta}
           </button>
         ))}

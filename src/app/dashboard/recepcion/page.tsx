@@ -35,8 +35,8 @@ export default async function RecepcionPage() {
     <div className="max-w-3xl space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold text-tinta">Recepción de mercancía</h1>
-          <p className="text-sm text-steel-300">Transcribe la factura, cuenta lo que llegó y deja todo en el inventario.</p>
+          <h1 className="text-[28px] font-bold leading-tight text-tinta">Recepción de mercancía</h1>
+          <p className="text-[15px] text-suave">Transcribe la factura, cuenta lo que llegó y deja todo en el inventario.</p>
         </div>
       </div>
 
@@ -49,7 +49,7 @@ export default async function RecepcionPage() {
           {administrador ? 'No hay recepciones. Abre una cuando llegue una factura.' : 'No hay recepciones por trabajar.'}
         </p>
       ) : (
-        <ul className="space-y-2">
+        <ul className="overflow-hidden rounded-2xl bg-superficie">
           {(recepciones ?? []).map(r => {
             const renglones = r.recepcion_items ?? []
             const contados = renglones.filter(x => x.cantidad_contada != null).length
@@ -57,26 +57,31 @@ export default async function RecepcionPage() {
             const diferencias = renglones.filter(x => diferenciaRenglon(x)?.cuadra === false).length
             const estado = r.estado as EstadoRecepcion
             return (
-              <li key={r.id}>
+              <li key={r.id} className="border-b border-linea last:border-0">
                 <Link href={`/dashboard/recepcion/${r.id}`}
-                  className="flex items-center justify-between gap-3 rounded-2xl border border-linea bg-superficie p-4 hover:bg-velo/5">
-                  <div className="min-w-0 space-y-1">
+                  className="flex items-center justify-between gap-3 px-4 py-3.5 hover:bg-velo/5">
+                  <div className="min-w-0 flex-1 space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-semibold text-tinta">{r.proveedores?.nombre ?? 'Proveedor'}</p>
+                      <p className="text-[16px] font-semibold text-tinta">{r.proveedores?.nombre ?? 'Proveedor'}</p>
                       <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${CLASE_ESTADO_RECEPCION[estado]}`}>
                         {ETIQUETA_ESTADO_RECEPCION[estado]}
                       </span>
                     </div>
-                    <p className="text-xs text-steel-300">
-                      {r.numero_factura ? `Factura N° ${r.numero_factura}` : 'Factura sin número'} · {r.fecha_factura}
+                    <p className="text-sm text-suave">
+                      {r.numero_factura ? `Factura ${r.numero_factura}` : 'Factura sin número'}, {r.fecha_factura}
                     </p>
-                    <p className="text-xs text-steel-300">
+                    {renglones.length > 0 && (
+                      <div className="h-1.5 max-w-60 overflow-hidden rounded-full bg-realce" role="img" aria-label={`Contados ${contados} de ${renglones.length}`}>
+                        <div className="h-1.5 rounded-full bg-entra" style={{ width: `${(contados / renglones.length) * 100}%` }} />
+                      </div>
+                    )}
+                    <p className="text-sm text-suave">
                       {renglones.length === 0 ? 'Sin renglones' : `Contados ${contados} de ${renglones.length}`}
-                      {pendientes > 0 && <span className="text-brand-yellow"> · {pendientes} sin producto</span>}
-                      {diferencias > 0 && <span className="text-sale"> · {diferencias} con diferencia</span>}
+                      {pendientes > 0 && <span className="font-semibold text-aviso">, {pendientes} sin producto</span>}
+                      {diferencias > 0 && <span className="font-semibold text-sale">, {diferencias} con diferencia</span>}
                     </p>
                   </div>
-                  <ChevronRight className="h-5 w-5 shrink-0 text-steel-500" />
+                  <ChevronRight className="size-5 shrink-0 text-tenue" aria-hidden />
                 </Link>
               </li>
             )

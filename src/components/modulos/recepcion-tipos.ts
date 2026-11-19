@@ -84,9 +84,9 @@ export interface DatosAdminRecepcion {
 
 /** Colores de la etiqueta de cada estado */
 export const CLASE_ESTADO_RECEPCION: Record<EstadoRecepcion, string> = {
-  abierta: 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow',
-  reclamacion: 'border-brand-red/30 bg-brand-red/20 text-sale',
-  cerrada: 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400',
+  abierta: 'border-transparent bg-[color-mix(in_oklab,var(--aviso)_14%,transparent)] text-aviso',
+  reclamacion: 'border-transparent bg-[color-mix(in_oklab,var(--sale)_12%,transparent)] text-sale',
+  cerrada: 'border-transparent bg-[color-mix(in_oklab,var(--entra)_13%,transparent)] text-entra',
 }
 
 /** Nombre de un producto con su medida, como aparece en el renglón */

@@ -1,9 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
-import { telefonoMarcable } from '@/components/modulos/avatar-iniciales'
+import { AvatarIniciales, telefonoMarcable } from '@/components/modulos/avatar-iniciales'
+import { Pencil } from 'lucide-react'
+import { MedioPagoIcono } from '@/components/ui/medio-pago-icono'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { BotonAtras } from '@/components/ui/boton-atras'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { PerfilClienteCreditos } from '@/components/modulos/perfil-cliente-creditos'
 
 export default async function PerfilClientePage({
@@ -51,117 +52,97 @@ export default async function PerfilClientePage({
     .filter((c: any) => c.estado !== 'pagado' && c.estado !== 'anulado')
     .reduce((s: number, c: any) => s + Number(c.saldo_pendiente), 0)
 
+  const pesos = (n: number) => `$${Math.round(n).toLocaleString('es-CO')}`
+  const creditosActivos = (creditos ?? []).filter((c: any) => c.estado !== 'pagado' && c.estado !== 'anulado').length
+  const totalComprado = (ventas ?? []).filter((v: any) => v.estado !== 'anulada').reduce((s: number, v: any) => s + Number(v.total) - Number(v.monto_devolucion ?? 0), 0)
+  const ENLACE = 'text-enlace underline-offset-2 hover:underline'
+  const datos: [string, React.ReactNode][] = [
+    ['Teléfono', cliente.telefono ? <a href={`tel:${telefonoMarcable(cliente.telefono)}`} className={ENLACE}>{cliente.telefono}</a> : null],
+    ['Correo', cliente.email ? <a href={`mailto:${cliente.email}`} className={ENLACE}>{cliente.email}</a> : null],
+    ['NIT o cédula', cliente.nit_cc],
+    ['Dirección', cliente.direccion],
+    ['Notas', cliente.notas],
+  ]
+  const ESTADO: Record<string, string> = {
+    anulada: 'bg-[color-mix(in_oklab,var(--sale)_12%,transparent)] text-sale',
+    credito: 'bg-[color-mix(in_oklab,var(--aviso)_14%,transparent)] text-aviso',
+  }
+
   return (
     <div className="-m-4 md:-m-6">
-      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 border-b lg:top-0 border-linea bg-fondo px-4 py-3">
-        <div className="flex items-center gap-3">
-          <BotonAtras href="/dashboard/clientes" />
-          <div>
-            <h1 className="font-display text-lg font-bold text-tinta">{cliente.nombre}</h1>
-            <p className="text-xs text-steel-300">Perfil del cliente</p>
-          </div>
+      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 flex items-center gap-3 bg-fondo/95 px-2 py-2 backdrop-blur lg:top-0 md:px-4">
+        <BotonAtras href="/dashboard/clientes" />
+        <AvatarIniciales nombre={cliente.nombre} className="size-11 text-base" />
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-xl font-bold text-tinta">{cliente.nombre}</h1>
+          <p className="text-sm text-suave">{cliente.es_cliente_generico ? 'Cliente de mostrador' : 'Cliente'}</p>
         </div>
-      </div>
-
-      <div className="max-w-2xl space-y-6 p-4">
-
-        {/* Datos */}
-        <dl className="space-y-3 text-sm">
-          {[
-            ['Teléfono', cliente.telefono ?? '—'],
-            ['Email', cliente.email ?? '—'],
-            ['NIT/CC', cliente.nit_cc ?? '—'],
-            ['Dirección', cliente.direccion ?? '—'],
-            ['Notas', cliente.notas ?? '—'],
-          ].map(([label, value]) => (
-            <div key={label} className="flex justify-between gap-4 border-b border-linea pb-2">
-              <dt className="text-steel-300">{label}</dt>
-              <dd className="text-right font-medium text-tinta">
-                {label === 'Teléfono' && cliente.telefono ? <a href={`tel:${telefonoMarcable(cliente.telefono)}`} className="text-enlace underline-offset-2 hover:underline">{value}</a>
-                  : label === 'Email' && cliente.email ? <a href={`mailto:${cliente.email}`} className="text-enlace underline-offset-2 hover:underline">{value}</a> : value}
-              </dd>
-            </div>
-          ))}
-        </dl>
-
         {!cliente.es_cliente_generico && (
-          <Link
-            href={`/dashboard/clientes/${cliente.id}/editar`}
-            className="block w-full rounded-xl bg-brand-yellow px-4 py-3 text-center text-sm font-bold text-steel-900 hover:brightness-105"
-          >
-            Editar cliente
+          <Link href={`/dashboard/clientes/${cliente.id}/editar`}
+            className="mr-2 inline-flex h-10 items-center gap-1.5 rounded-xl border border-linea bg-superficie px-3 text-[15px] font-semibold text-tinta hover:bg-superficie-2">
+            <Pencil className="size-4" strokeWidth={1.75} aria-hidden />Editar
           </Link>
         )}
+      </div>
 
-        {/* Deuda total */}
-        {totalDeuda > 0 && (
-          <div className="flex items-center justify-between rounded-2xl border border-brand-red/30 bg-brand-red/10 p-4">
-            <div>
-              <p className="text-sm font-semibold text-sale">Saldo pendiente total</p>
-              <p className="mt-0.5 text-xs text-sale">
-                {(creditos ?? []).filter((c: any) => c.estado !== 'pagado' && c.estado !== 'anulado').length} crédito(s) activo(s)
-              </p>
-            </div>
-            <p className="font-display text-2xl font-bold text-sale">${totalDeuda.toLocaleString('es-CO')}</p>
-          </div>
-        )}
-
-        {/* Créditos pendientes con abonos */}
-        {(creditos ?? []).length > 0 && (
-          <PerfilClienteCreditos creditos={creditos as any} cliente={{ nombre: cliente.nombre, telefono: cliente.telefono }} negocio={negocio?.nombre ?? undefined} />
-        )}
-
-        {/* Historial de compras */}
-        <div>
-          <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-tinta">
-            Historial de compras ({ventas?.length ?? 0})
-          </h2>
-          {(ventas ?? []).length === 0 ? (
-            <p className="rounded-2xl border border-linea bg-superficie p-6 text-center text-sm text-steel-500">
-              Sin compras registradas.
-            </p>
+      <div className="mx-auto grid max-w-5xl gap-6 px-4 pb-8 md:px-6 lg:grid-cols-2">
+        <div className="space-y-5">
+          {/* Lo principal: cuánto debe */}
+          {totalDeuda > 0 ? (
+            <section className="rounded-[18px] bg-superficie p-5">
+              <p className="text-[15px] font-semibold text-suave">Debe</p>
+              <p className="cifra text-[48px] font-bold leading-none text-sale">{pesos(totalDeuda)}</p>
+              <p className="mt-1 text-[15px] text-suave">{creditosActivos} {creditosActivos === 1 ? 'crédito activo' : 'créditos activos'}. Abona en cada crédito, abajo.</p>
+            </section>
           ) : (
-            <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-superficie-2 hover:bg-superficie-2 [&_th]:text-sm [&_th]:font-semibold [&_th]:text-suave">
-                      <TableHead>Ticket</TableHead>
-                      <TableHead>Fecha</TableHead>
-                      <TableHead className="text-right">Total</TableHead>
-                      <TableHead>Pago</TableHead>
-                      <TableHead>Estado</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {(ventas ?? []).map((v: any) => (
-                      <TableRow key={v.id} className="border-linea hover:bg-velo/5">
-                        <TableCell>
-                          <Link href={`/dashboard/ventas/${v.id}`} className="text-xs font-medium text-enlace hover:underline">
-                            #{v.numero_ticket}
-                          </Link>
-                        </TableCell>
-                        <TableCell className="text-xs text-steel-300">{v.fecha}</TableCell>
-                        <TableCell className="text-right font-display text-sm font-bold text-tinta">
-                          ${Number(v.total).toLocaleString('es-CO')}
-                        </TableCell>
-                        <TableCell className="text-xs capitalize text-steel-300">{v.tipo_pago}</TableCell>
-                        <TableCell>
-                          <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize ${
-                            v.estado === 'anulada' ? 'border-brand-red/30 bg-brand-red/20 text-sale' :
-                            v.estado === 'credito' ? 'border-brand-yellow/30 bg-brand-yellow/20 text-brand-yellow' :
-                            'border-emerald-500/30 bg-emerald-500/20 text-emerald-400'}`}>
-                            {v.estado}
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
+            <section className="rounded-[18px] bg-superficie p-5">
+              <p className="text-[15px] font-semibold text-suave">Ha comprado</p>
+              <p className="cifra text-[44px] font-bold leading-none text-tinta">{pesos(totalComprado)}</p>
+              <p className="mt-1 text-[15px] text-suave">En {(ventas ?? []).length} {(ventas ?? []).length === 1 ? 'compra' : 'compras'}. No debe nada.</p>
+            </section>
+          )}
+
+          <section className="space-y-2.5">
+            <h2 className="text-lg font-bold text-tinta">Datos</h2>
+            <dl className="overflow-hidden rounded-2xl bg-superficie">
+              {datos.map(([etiqueta, valor]) => (
+                <div key={etiqueta} className="flex justify-between gap-4 border-b border-linea px-4 py-3 last:border-0">
+                  <dt className="text-[15px] text-suave">{etiqueta}</dt>
+                  <dd className="text-right text-[15px] font-semibold text-tinta">{valor || <span className="font-normal text-tenue">Sin dato</span>}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+
+          {(creditos ?? []).length > 0 && (
+            <PerfilClienteCreditos creditos={creditos as any} cliente={{ nombre: cliente.nombre, telefono: cliente.telefono }} negocio={negocio?.nombre ?? undefined} />
           )}
         </div>
+
+        <section className="space-y-2.5">
+          <h2 className="text-lg font-bold text-tinta">Compras ({ventas?.length ?? 0})</h2>
+          {(ventas ?? []).length === 0 ? (
+            <p className="rounded-2xl bg-superficie px-4 py-8 text-center text-[15px] text-suave">Aún no tiene compras registradas.</p>
+          ) : (
+            <ul className="overflow-hidden rounded-2xl bg-superficie">
+              {(ventas ?? []).map((v: any) => (
+                <li key={v.id} className="border-b border-linea last:border-0">
+                  <Link href={`/dashboard/ventas/${v.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-velo/5">
+                    <MedioPagoIcono medio={v.tipo_pago === 'mixto' ? 'varios' : v.tipo_pago} className="h-7 w-[42px] shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[15px] font-semibold text-tinta">Ticket {v.numero_ticket}</p>
+                      <p className="text-sm text-suave">{v.fecha}</p>
+                    </div>
+                    {ESTADO[v.estado] && (
+                      <span className={`rounded-full px-2.5 py-1 text-sm font-semibold capitalize ${ESTADO[v.estado]}`}>{v.estado === 'credito' ? 'Crédito' : 'Anulada'}</span>
+                    )}
+                    <span className={`cifra text-xl font-bold ${v.estado === 'anulada' ? 'text-tenue line-through' : 'text-tinta'}`}>{pesos(Number(v.total))}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </div>
     </div>
   )
