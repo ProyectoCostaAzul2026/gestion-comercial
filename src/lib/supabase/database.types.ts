@@ -183,6 +183,87 @@ export type Database = {
           },
         ]
       }
+      bitacora: {
+        Row: {
+          accion: string
+          detalle: Json | null
+          numero: number
+          ocurrido_en: string
+          origen: string
+          registro_id: string | null
+          resumen: string
+          rol_bd: string
+          tabla: string
+          usuario_id: string | null
+          usuario_nombre: string | null
+        }
+        Insert: {
+          accion: string
+          detalle?: Json | null
+          numero?: never
+          ocurrido_en?: string
+          origen: string
+          registro_id?: string | null
+          resumen: string
+          rol_bd: string
+          tabla: string
+          usuario_id?: string | null
+          usuario_nombre?: string | null
+        }
+        Update: {
+          accion?: string
+          detalle?: Json | null
+          numero?: never
+          ocurrido_en?: string
+          origen?: string
+          registro_id?: string | null
+          resumen?: string
+          rol_bd?: string
+          tabla?: string
+          usuario_id?: string | null
+          usuario_nombre?: string | null
+        }
+        Relationships: []
+      }
+      bitacora_borrados: {
+        Row: {
+          fecha_desde: string | null
+          fecha_hasta: string | null
+          forma: string
+          id: number
+          numero_desde: number | null
+          numero_hasta: number | null
+          ocurrido_en: string
+          registros: number
+          rol_bd: string
+          usuario_id: string | null
+        }
+        Insert: {
+          fecha_desde?: string | null
+          fecha_hasta?: string | null
+          forma: string
+          id?: never
+          numero_desde?: number | null
+          numero_hasta?: number | null
+          ocurrido_en?: string
+          registros: number
+          rol_bd: string
+          usuario_id?: string | null
+        }
+        Update: {
+          fecha_desde?: string | null
+          fecha_hasta?: string | null
+          forma?: string
+          id?: never
+          numero_desde?: number | null
+          numero_hasta?: number | null
+          ocurrido_en?: string
+          registros?: number
+          rol_bd?: string
+          usuario_id?: string | null
+        }
+        Relationships: []
+      }
       caja_mayor: {
         Row: {
           id: string
@@ -1303,6 +1384,7 @@ export type Database = {
           categoria_id: string | null
           codigo: string | null
           created_at: string
+          desactivado_en: string | null
           descripcion: string | null
           familia_id: string | null
           id: string
@@ -1339,6 +1421,7 @@ export type Database = {
           categoria_id?: string | null
           codigo?: string | null
           created_at?: string
+          desactivado_en?: string | null
           descripcion?: string | null
           familia_id?: string | null
           id?: string
@@ -1375,6 +1458,7 @@ export type Database = {
           categoria_id?: string | null
           codigo?: string | null
           created_at?: string
+          desactivado_en?: string | null
           descripcion?: string | null
           familia_id?: string | null
           id?: string
@@ -1681,6 +1765,7 @@ export type Database = {
           observaciones: string
           origen: string
           realizado_por: string
+          registrado_por: string | null
         }
         Insert: {
           created_at?: string
@@ -1690,6 +1775,7 @@ export type Database = {
           observaciones: string
           origen: string
           realizado_por: string
+          registrado_por?: string | null
         }
         Update: {
           created_at?: string
@@ -1699,11 +1785,19 @@ export type Database = {
           observaciones?: string
           origen?: string
           realizado_por?: string
+          registrado_por?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "retiros_realizado_por_fkey"
             columns: ["realizado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "retiros_registrado_por_fkey"
+            columns: ["registrado_por"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1760,6 +1854,131 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      tareas: {
+        Row: {
+          asignado_a: string | null
+          creado_por: string
+          created_at: string
+          descripcion: string | null
+          estado: string
+          fecha_limite: string | null
+          hecha_en: string | null
+          hecha_por: string | null
+          id: string
+          nota: string | null
+          plantilla_id: string | null
+          prioridad: string
+          titulo: string
+        }
+        Insert: {
+          asignado_a?: string | null
+          creado_por?: string
+          created_at?: string
+          descripcion?: string | null
+          estado?: string
+          fecha_limite?: string | null
+          hecha_en?: string | null
+          hecha_por?: string | null
+          id?: string
+          nota?: string | null
+          plantilla_id?: string | null
+          prioridad?: string
+          titulo: string
+        }
+        Update: {
+          asignado_a?: string | null
+          creado_por?: string
+          created_at?: string
+          descripcion?: string | null
+          estado?: string
+          fecha_limite?: string | null
+          hecha_en?: string | null
+          hecha_por?: string | null
+          id?: string
+          nota?: string | null
+          plantilla_id?: string | null
+          prioridad?: string
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tareas_asignado_a_fkey"
+            columns: ["asignado_a"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tareas_creado_por_fkey"
+            columns: ["creado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tareas_hecha_por_fkey"
+            columns: ["hecha_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tareas_plantilla_id_fkey"
+            columns: ["plantilla_id"]
+            isOneToOne: false
+            referencedRelation: "tareas_plantillas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tareas_plantillas: {
+        Row: {
+          asignado_a: string | null
+          creado_por: string
+          created_at: string
+          descripcion: string | null
+          id: string
+          prioridad: string
+          titulo: string
+          veces_usada: number
+        }
+        Insert: {
+          asignado_a?: string | null
+          creado_por?: string
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          prioridad?: string
+          titulo: string
+          veces_usada?: number
+        }
+        Update: {
+          asignado_a?: string | null
+          creado_por?: string
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          prioridad?: string
+          titulo?: string
+          veces_usada?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tareas_plantillas_asignado_a_fkey"
+            columns: ["asignado_a"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tareas_plantillas_creado_por_fkey"
+            columns: ["creado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       unidades_medida: {
         Row: {
@@ -2239,6 +2458,17 @@ export type Database = {
         }
         Returns: undefined
       }
+      editar_factura_proveedor: {
+        Args: {
+          p_factura_id: string
+          p_fecha_emision: string
+          p_fecha_vencimiento: string
+          p_monto_total: number
+          p_notas: string
+          p_numero_factura: string
+        }
+        Returns: undefined
+      }
       editar_familia: {
         Args: {
           p_familia_id: string
@@ -2257,6 +2487,24 @@ export type Database = {
           p_marca: string
         }
         Returns: number
+      }
+      eliminar_producto_desactivado: {
+        Args: { p_producto_id: string }
+        Returns: undefined
+      }
+      fn_bitacora_escribir: {
+        Args: {
+          p_accion: string
+          p_detalle: Json
+          p_registro_id: string
+          p_resumen: string
+          p_tabla: string
+        }
+        Returns: undefined
+      }
+      fn_borrar_producto: {
+        Args: { p_producto_id: string }
+        Returns: undefined
       }
       guardar_familia: {
         Args: {
@@ -2289,6 +2537,10 @@ export type Database = {
         Returns: string
       }
       is_admin: { Args: never; Returns: boolean }
+      marcar_tarea: {
+        Args: { p_hecha: boolean; p_nota?: string; p_tarea_id: string }
+        Returns: undefined
+      }
       mover_productos: {
         Args: {
           p_caracteristica?: string
@@ -2307,6 +2559,11 @@ export type Database = {
         Returns: undefined
       }
       prefijo_codigo_producto: { Args: { p_nombre: string }; Returns: string }
+      producto_tiene_registros: {
+        Args: { p_producto_id: string }
+        Returns: boolean
+      }
+      purgar_productos_desactivados: { Args: never; Returns: number }
       quitar_renglon_recepcion: {
         Args: { p_renglon_id: string }
         Returns: undefined
@@ -2323,6 +2580,21 @@ export type Database = {
           p_venta_credito_id: string
         }
         Returns: undefined
+      }
+      registrar_conteo_inventario: {
+        Args: { p_conteos: Json }
+        Returns: number
+      }
+      registrar_garantia: {
+        Args: {
+          p_cantidad: number
+          p_devolucion_id?: string
+          p_observaciones?: string
+          p_producto_id: string
+          p_proveedor_id: string
+          p_venta_id?: string
+        }
+        Returns: string
       }
       registrar_gasto_caja: {
         Args: {
@@ -2417,6 +2689,14 @@ export type Database = {
           p_origen: string
         }
         Returns: undefined
+      }
+      unir_grupos_medidas: {
+        Args: {
+          p_caracteristica: string
+          p_marca: string
+          p_producto_ids: string[]
+        }
+        Returns: number
       }
     }
     Enums: {

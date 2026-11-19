@@ -122,7 +122,7 @@ nómina).
 - `src/app/manifest.ts` e íconos `public/icono-*.png`: la app se puede instalar en la pantalla de inicio del celular.
 - `src/proxy.ts`: exige sesión en `/dashboard`, cierra la sesión si el perfil está inactivo y manda a los
   empleados fuera de las rutas de administrador.
-- `DATABASE.md`: tablas, RPC, índices y políticas RLS (al día al 2026-11-07). Mantenerlo actualizado.
+- `DATABASE.md`: tablas, RPC, índices y políticas RLS (al día al 2026-11-19; `database.types.ts` regenerado ese día). Mantenerlo actualizado.
 
 ## Base de datos: piezas clave
 
@@ -181,6 +181,11 @@ nómina).
   SQL en `sql/hoja_de_tareas.sql`): solo el administrador crea, edita y borra; prioridad alta, media o baja,
   asignada a un empleado o libre, con fecha límite opcional. No se repiten solas: se guardan como plantilla o se "crean de
   nuevo" desde una hecha. El empleado ve las suyas y las libres y las marca hechas (con nota) con la RPC `marcar_tarea`.
+- **Vistas de Caja**: gasto, retiro, traslado entre medios y pago a proveedor son páginas propias (`caja/gasto`, `retiro`,
+  `traslado`, `pago-proveedor`; formulario `movimiento-caja-form.tsx`, fuentes en `fuentes-pago.tsx`, saldos con
+  `saldosMedios` de `src/lib/caja-servidor.ts`). Contabilidad registra el gasto en la misma vista (`?desde=contabilidad`).
+  Pagar nómina se hace en Empleados › Nómina. `registrar_venta` exige que los pagos sumen el total (migración
+  `validar_pagos_venta`, 2026-11-19).
 - **Cierre de caja** (`cerrar_caja_arqueo`, `arqueo-panel.tsx`): lo que debe haber sobre la base es el saldo del medio
   `efectivo` en `saldos_medios_pago` desde el último cierre (lo mueven todas las RPC de dinero y el cierre lo deja en 0).
   Entradas y salidas del día salen de `movimientos_caja`; lo que no cuadra con ellas es efectivo de días sin cerrar.
@@ -333,7 +338,9 @@ nómina).
   cerrar; hoy abierto). Todo lleva la marca `PRUEBA SISTEMA` en observaciones o notas, con 4 "Cliente Prueba" y un
   "Proveedor Prueba Sistema". Bajaron el stock real de unos 260 productos. El cuadre cerró: cada medio contra sus
   movimientos, crédito contra la deuda de clientes, efectivo y cada cierre, cada venta contra lo que entró por ella y las
-  facturas contra sus pagos. Un pago real a proveedor desde caja mayor, anterior al arreglo de caja mayor, no la descontó.
+  facturas contra sus pagos. Un pago real a proveedor desde caja mayor, anterior al arreglo de caja mayor, no la había
+  descontado; se ajustó el saldo el 2026-11-19 y ahora caja mayor cuadra con todos sus movimientos. Los datos de prueba se
+  borrarán más adelante, cuando todo el personal haya visto cómo funciona el sistema.
 - 2026-11-07 (migración `mejoras_inventario_recepcion_horario`): tablas y columnas nuevas `permisos_empleado`,
   `productos.por_completar` y `recepcion_items.cantidad_almacen` / `ingresado_bodega` / `ingresado_almacen` (reemplazan a
   `destino`).
@@ -392,9 +399,6 @@ nómina).
   `transferencia_salida`) y de llegada; se creó `retiros.registrado_por` (antes todo retiro fallaba).
 - Recepción de mercancía: quedan para después adjuntar la foto o el PDF de la factura y repartir fletes y descuentos en
   el costo de los renglones.
-- `DATABASE.md` y `database.types.ts` no incluyen todavía lo del 2026-11-13 (`bitacora`, `bitacora_borrados`,
-  `productos.desactivado_en` y las RPC nuevas): la app las llama con `as never`. Regenerar los tipos y completar la
-  documentación.
 - El lint tiene unos 315 errores heredados (casi todos `any`); no bloquean el build.
 - Verificación visual sin tocar producción: un servidor local que imita a Supabase (auth y pocas tablas) con
   `NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321` y la cookie `sb-localhost-auth-token`; el host real de Supabase no

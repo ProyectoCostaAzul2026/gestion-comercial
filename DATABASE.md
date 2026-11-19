@@ -1,7 +1,7 @@
 # DATABASE.md — Ferreléctricos Costa Azul
 > Documentación de la base de datos en Supabase (PostgreSQL)
 > Proyecto: `qmeegynucijohagywdcr`
-> Última actualización: 2026-11-07
+> Última actualización: 2026-11-19
 
 ---
 
@@ -606,7 +606,7 @@ Migración `mejoras_inventario_recepcion_horario` (2026-11-07).
 | origen_destino | varchar | NO | — | efectivo/caja_menor/caja_mayor/nequi/daviplata/tarjeta/credito |
 | monto | numeric | NO | — | |
 | referencia_id | uuid | YES | — | |
-| referencia_tipo | varchar | YES | — | venta/gasto/nomina/retiro/arqueo/factura_proveedor/abono_credito |
+| referencia_tipo | varchar | YES | — | venta/venta_credito/devolucion/cambio/gasto/nomina/retiro/arqueo/factura_proveedor/abono_credito/transferencia (llegada)/transferencia_salida (salida) |
 | empleado_id | uuid | YES | — | FK → profiles |
 | observaciones | text | YES | — | |
 | created_at | timestamptz | NO | now() | |
@@ -638,7 +638,8 @@ Saldo acumulado por medio de pago (efectivo, nequi, daviplata, tarjeta, credito,
 ---
 
 ### `caja_mayor`
-Registro único (singleton) del saldo de caja mayor.
+Registro único (singleton) del saldo de caja mayor. Desde el 2026-11-18 es una copia: el saldo de verdad es
+`saldos_medios_pago` medio `caja_mayor`, y el trigger `trg_sincronizar_caja_mayor` lo copia aquí.
 
 | Columna | Tipo | Nullable | Default |
 |---|---|---|---|
@@ -729,6 +730,43 @@ Conteo de billetes asociado a caja_menor.
 | tipo | varchar | NO | — | billete/moneda |
 | cantidad | int4 | NO | 0 | |
 | subtotal | numeric | NO | — | |
+
+---
+
+### `tareas_plantillas`
+Tareas que el administrador guarda para volver a crear con un toque (no se repiten solas).
+
+| Columna | Tipo | Nullable | Default |
+|---|---|---|---|
+| id | uuid | NO | gen_random_uuid() |
+| titulo | text | NO | — | 1 a 200 caracteres |
+| descripcion | text | YES | — | hasta 2000 |
+| prioridad | text | NO | 'media' | alta/media/baja |
+| asignado_a | uuid | YES | — | FK → profiles (null: libre) |
+| veces_usada | integer | NO | 0 | |
+| creado_por | uuid | NO | auth.uid() | FK → profiles |
+| created_at | timestamptz | NO | now() | |
+
+---
+
+### `tareas`
+Hoja de tareas. Solo el administrador crea, edita y borra; quien puede verla la marca hecha con `marcar_tarea`.
+
+| Columna | Tipo | Nullable | Default |
+|---|---|---|---|
+| id | uuid | NO | gen_random_uuid() |
+| titulo | text | NO | — | 1 a 200 caracteres |
+| descripcion | text | YES | — | |
+| prioridad | text | NO | 'media' | alta/media/baja |
+| asignado_a | uuid | YES | — | FK → profiles (null: libre para cualquiera) |
+| fecha_limite | date | YES | — | |
+| estado | text | NO | 'pendiente' | pendiente/hecha (hecha ⇔ hecha_en no nulo) |
+| hecha_por | uuid | YES | — | FK → profiles |
+| hecha_en | timestamptz | YES | — | |
+| nota | text | YES | — | hasta 500 |
+| plantilla_id | uuid | YES | — | FK → tareas_plantillas |
+| creado_por | uuid | NO | auth.uid() | FK → profiles |
+| created_at | timestamptz | NO | now() | |
 
 ---
 
@@ -925,8 +963,9 @@ servicios ─────────────────────── 
 | `registrar_retiro(p_monto, p_observaciones, p_fuentes)` | Registra retiro de caja |
 | `registrar_pago_factura(p_factura_id, p_monto, p_fuentes, p_fecha_pago, p_observaciones)` | Pago a proveedor |
 | `registrar_nomina(p_empleado_id, p_fecha, p_horas_trabajadas, p_salario_base, p_bonificaciones, p_concepto_bonificacion, p_deducciones, p_concepto_deduccion, p_metodo_pago, p_notas)` | Registra nómina diaria |
-| `cerrar_caja_arqueo(p_conteo_base, p_conteo_sobrante, p_observacion_diferencia)` | Cierre de caja con arqueo físico |
-| `transferir_entre_fondos(p_origen, p_destino, p_monto, p_observaciones)` | Mueve dinero entre fondos |
+| `cerrar_caja_arqueo(p_conteo_base, p_conteo_sobrante, p_observacion_diferencia)` | Cierre de caja con arqueo físico. Espera el saldo `efectivo` desde el último cierre (nota 21) |
+| `transferir_entre_fondos(p_origen, p_destino, p_monto, p_observaciones)` | Mueve dinero entre medios: exige saldo en el origen y deja dos movimientos (salida y llegada) |
+| `editar_factura_proveedor(p_factura_id, p_numero_factura, p_fecha_emision, p_fecha_vencimiento, p_monto_total, p_notas)` | Edita una factura y recalcula saldo y estado con lo pagado (administrador) |
 | `abrir_caja(...)` | Apertura de caja menor |
 | `actualizar_denominaciones(...)` | Actualiza configuración de denominaciones |
 | `cerrar_caja(...)` | Versión legacy de cierre |
@@ -934,12 +973,20 @@ servicios ─────────────────────── 
 ### Garantías
 | Función | Descripción |
 |---|---|
+| `registrar_garantia(p_producto_id, p_proveedor_id, p_cantidad, p_observaciones, p_venta_id, p_devolucion_id)` | Envía un producto en garantía al proveedor y lo saca del stock |
 | `recibir_garantia(p_garantia_id, p_stock_destino)` | Confirma garantía recibida y reintegra stock |
+
+### Tareas
+| Función | Descripción |
+|---|---|
+| `marcar_tarea(p_tarea_id, p_hecha, p_nota)` | Marca una tarea hecha (o la vuelve a pendiente quien la marcó o un administrador). El empleado solo las suyas y las libres |
 
 ### Utilidades
 | Función | Descripción |
 |---|---|
-| `is_admin()` | Helper para políticas RLS |
+| `is_admin()` | Helper para políticas RLS (solo `authenticated` y `service_role`; `anon` no la ejecuta) |
+| `unir_grupos_medidas(p_producto_ids, p_caracteristica, p_marca)` | Une las medidas de un grupo dentro de otro en una transacción (marca y característica); también deshace |
+| `fn_sincronizar_caja_mayor()` | Trigger en `saldos_medios_pago`: copia el saldo `caja_mayor` a `caja_mayor.saldo_actual` |
 | `fn_sync_stock_actual()` | Trigger: sincroniza stock_actual |
 | `fn_actualizar_precio_costo_base()` | Trigger: actualiza precio_costo_base |
 | `update_updated_at_column()` | Trigger: actualiza updated_at |
@@ -1041,6 +1088,11 @@ servicios ─────────────────────── 
   `trg_proteger_campos_sensibles_profiles` impide que alguien que no es admin cambie `rol`, `salario_base` o `activo`.
 - `producto_familias` — SELECT, INSERT, UPDATE (rol authenticated)
 - `unidades_medida` — SELECT (con sesión), INSERT/UPDATE (admin)
+- `tareas` — SELECT (admin todas; el empleado las suyas y las libres), INSERT/UPDATE/DELETE (admin). Marcar hecha va por
+  `marcar_tarea`
+- `tareas_plantillas` — ALL (admin)
+
+Desde el 2026-11-18 ninguna política queda "para public": todas son `to authenticated` (antes exigían sesión por dentro).
 
 ---
 
@@ -1057,7 +1109,7 @@ servicios ─────────────────────── 
    cero y no superar el total calculado (redondeado a la centena), y la diferencia se suma a `total_descuentos`.
 6. **Ticket número**: Único por fecha, se reinicia cada día.
 7. **Garantías**: Un producto en garantía NO regresa al inventario hasta confirmar `recibir_garantia()`.
-8. **Arqueo**: Solo uno por día (`fecha` UNIQUE). Resetea saldo efectivo a 0 y transfiere sobrante a caja mayor.
+8. **Arqueo**: Solo uno por día (`fecha` UNIQUE). Compara lo contado con el saldo `efectivo`, lo deja en 0 y suma lo contado a caja mayor (nota 21).
 9. **Respaldo**: el esquema privado `respaldo` (no expuesto por la API) guarda copias tomadas antes de cada carga del
    catálogo. `*_20261029`: `productos`, `producto_proveedores`, `producto_familias`, `unidades_medida` y
    `movimientos_inventario`. `*_20261031` (antes de cargar el catálogo desde facturas): `productos`,
@@ -1159,3 +1211,20 @@ servicios ─────────────────────── 
     - `productos.desactivado_en` (trigger `trg_marcar_desactivado`), `producto_tiene_registros(uuid)`,
       `eliminar_producto_desactivado(uuid)` (administrador) y `purgar_productos_desactivados()` (tarea `pg_cron`
       `purgar-productos-desactivados`, diaria a las 8:15 UTC; solo la ejecuta la base).
+21. **Dinero: cuadre de caja y medios** (migraciones del 2026-11-18 y 2026-11-19; SQL en `sql/`):
+    - `cierre_caja_saldo_efectivo`: `cerrar_caja_arqueo` espera el saldo `efectivo` de `saldos_medios_pago` desde el último
+      cierre (lo mueven todas las RPC de dinero); entradas y salidas del día salen de `movimientos_caja` y la diferencia es
+      el "arrastre" de días sin cerrar. Antes no contaba los abonos en efectivo y restaba dos veces las anulaciones.
+    - `cuadre_caja_mayor`: un solo saldo de caja mayor (`saldos_medios_pago` medio `caja_mayor`, copiado a `caja_mayor` por
+      trigger). Antes los gastos, retiros, pagos y nómina "desde caja mayor" no la descontaban. `transferir_entre_fondos`
+      deja salida y llegada. Se creó `retiros.registrado_por` (antes todo retiro fallaba).
+    - `validar_pagos_venta`: `registrar_venta` rechaza pagos negativos y pagos que no suman el total (tolerancia $1).
+    - Cuadre: cada medio (`nequi`, `daviplata`, `tarjeta`, `caja_mayor`) es la suma de sus movimientos (ingresos más
+      llegadas, menos egresos y salidas); `credito` es la suma de `ventas_credito.saldo_pendiente` pendientes; `efectivo` es
+      lo movido desde el último arqueo.
+    - **Devoluciones**: `devolver_productos` no baja `ventas.total`; anota lo devuelto en `ventas.monto_devolucion` y las
+      unidades en `devolucion_items`. Toda cifra de ventas debe restarlo (`totalNetoVenta` y `costoLineaVenta` en
+      `src/lib/costo-venta.ts`). `cambiar_productos` sí actualiza el total.
+    - Otras del 2026-11-18: `hoja_de_tareas` (tablas `tareas` y `tareas_plantillas`, `marcar_tarea`), `garantias_y_fraccion`
+      (`registrar_garantia`), `iva_fraccion_y_editar_factura` (`editar_factura_proveedor`) y
+      `unir_grupos_y_politicas_con_sesion` (`unir_grupos_medidas`; políticas `to authenticated`).
