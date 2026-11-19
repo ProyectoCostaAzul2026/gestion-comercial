@@ -1232,3 +1232,22 @@ Desde el 2026-11-18 ninguna política queda "para public": todas son `to authent
     y `rls_auto_enable` ya no se pueden ejecutar con sesión (la app no las usa). Revisión del mismo día: ninguna función
     `SECURITY DEFINER` se ejecuta sin sesión y todas las de administrador validan el rol por dentro; los tipos de
     `database.types.ts` coinciden con el esquema.
+23. **Categorías con la referencia de Ranger** (2026-11-19, solo datos; SQL en `sql/catalogo_categorias_referencia_ranger.sql`):
+    se crearon 6 categorías (Llaves y Copas, Accesorios para Herramienta Eléctrica, Seguridad Industrial, Herramientas de
+    Medición, Gas y Automotriz) y se movieron 450 productos de familias enteras siguiendo cómo agrupa sus productos la
+    tienda de Ranger. Solo cambió `productos.categoria_id`: nombres, marcas, medidas, códigos, stock y precios quedaron
+    igual. Quedan 27 categorías, todas con imagen. Una familia puede estar en dos categorías cuando son productos distintos
+    (pistola de silicona eléctrica y de calafateo, sonda para cable y para cañería, buje de PVC y de caucho, válvula de gas
+    y de agua).
+    Lote 2 (`sql/catalogo_referencia_ranger_lote2.sql`): familias nuevas Volvedor y Mango En T con 4 productos que
+    estaban en Rache (mismo código), la pinza de masa a Accesorios para Herramienta Eléctrica y el soplete a Herramientas
+    Manuales. Lote 3 (`sql/catalogo_referencia_ranger_lote3.sql`): registros de gas a Gas, guaya a Herrajes y acople
+    rápido a Accesorios para Herramienta Eléctrica. En los dos lotes, 257 productos llevan al final de la descripción
+    "También se conoce como ..." con otros nombres de la herramienta (llave combinada, Stillson, ratchet, broquero,
+    garrucha...), porque `buscar_productos` también busca en la descripción. Ranger no vende eléctricos, tornillería,
+    sanitarios ni PVC, así que no hay más lotes con esa referencia.
+    Lote 4 (`sql/catalogo_categorias_lote4.sql`, inferido del propio catálogo): categorías nuevas Iluminación (bombillos,
+    paneles y demás LED, rosetas, portalámparas, fotoceldas, sensores de movimiento, linternas), Electrónica, Audio y Video
+    (antenas, cables y conectores, convertidores, soportes para TV, pilas, componentes) y Empaque y Amarre (amarres
+    plásticos, cuerdas, piolas, hilos, pulpos, zunchos, vinipel, cartón); el pegante y la trampa para ratas van a Jardín y
+    Agropecuario. Quedan 30 categorías; Eléctrico queda con la instalación eléctrica.
