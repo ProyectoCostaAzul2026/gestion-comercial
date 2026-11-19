@@ -1,5 +1,6 @@
 'use client'
 
+import { MiniaturaProducto, ProductoConFoto, EnlaceA } from '@/components/ui/producto-miniatura'
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -167,8 +168,9 @@ export function ConteoInventario({ productos, categorias, inicial }: Props) {
               return (
                 <li key={p.id} className={`rounded-2xl border bg-superficie p-3 ${contado ? (diferencia === 0 ? 'border-emerald-500/40' : 'border-brand-yellow/50') : 'border-linea'}`}>
                   <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold leading-tight text-tinta">{p.nombre} <span className="text-brand-yellow">{p.unidad_medida ?? ''}</span></p>
+                    <MiniaturaProducto url={p.imagen_url} nombre={p.nombre} tam="sm" />
+                    <div className="min-w-0 flex-1">
+                      <EnlaceA href={`/dashboard/inventario/${p.id}`}><span className="text-[15px] font-bold leading-tight text-tinta">{p.nombre} <span className="text-suave">{p.unidad_medida ?? ''}</span></span></EnlaceA>
                       <p className="truncate text-xs text-steel-300">
                         <span className="font-mono">{p.codigo ?? '—'}</span>
                         {p.marca ? ` · ${p.marca}` : ''}{p.ubicacion ? ` · ${p.ubicacion}` : ''}

@@ -1,5 +1,6 @@
 'use client'
 
+import { MiniaturaProducto } from '@/components/ui/producto-miniatura'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -10,6 +11,7 @@ import { nombreConMedida, pesos, type ProductoDelProveedor } from './recepcion-t
 export interface ProductoElegido {
   id: string
   nombre: string
+  imagen_url?: string | null
   unidad_medida: string | null
   marca: string | null
   codigo: string | null
@@ -60,10 +62,10 @@ export function BuscadorProducto({ id, productosProveedor, onElegir, placeholder
       const propios = new Set(productosProveedor.map(p => p.id))
       setOtros({
         q,
-        items: ((data ?? []) as { id: string; nombre: string; unidad_medida: string | null; marca: string | null; codigo: string | null }[])
+        items: ((data ?? []) as { id: string; nombre: string; imagen_url?: string | null; unidad_medida: string | null; marca: string | null; codigo: string | null }[])
           .filter(p => !propios.has(p.id))
           .slice(0, 5)
-          .map(p => ({ id: p.id, nombre: p.nombre, unidad_medida: p.unidad_medida, marca: p.marca, codigo: p.codigo, referencia: null, costo: null })),
+          .map(p => ({ id: p.id, nombre: p.nombre, imagen_url: p.imagen_url, unidad_medida: p.unidad_medida, marca: p.marca, codigo: p.codigo, referencia: null, costo: null })),
       })
     }, 300)
     return () => clearTimeout(t)
@@ -91,8 +93,9 @@ export function BuscadorProducto({ id, productosProveedor, onElegir, placeholder
           {delProveedor.map(p => (
             <li key={p.id}>
               <button type="button" onClick={() => elegir({ ...p, referencia: p.referencia, costo: p.costo })}
-                className="flex w-full items-start justify-between gap-3 border-b border-linea px-3 py-2 text-left hover:bg-velo/5">
-                <span className="min-w-0">
+                className="flex w-full items-center justify-between gap-3 border-b border-linea px-3 py-2 text-left hover:bg-velo/5">
+                <MiniaturaProducto url={p.imagen_url} nombre={p.nombre} tam="xs" />
+                <span className="min-w-0 flex-1">
                   <span className="block text-sm font-medium text-tinta">{nombreConMedida(p)}</span>
                   <span className="block text-xs text-steel-300">
                     {[p.activo ? null : 'Inactivo', p.marca, p.referencia ? `Ref. ${p.referencia}` : null, p.codigo].filter(Boolean).join(' · ')}
@@ -105,8 +108,9 @@ export function BuscadorProducto({ id, productosProveedor, onElegir, placeholder
           {otrosVisibles.map(p => (
             <li key={p.id}>
               <button type="button" onClick={() => elegir(p)}
-                className="flex w-full items-start justify-between gap-3 border-b border-linea px-3 py-2 text-left hover:bg-velo/5">
-                <span className="min-w-0">
+                className="flex w-full items-center justify-between gap-3 border-b border-linea px-3 py-2 text-left hover:bg-velo/5">
+                <MiniaturaProducto url={p.imagen_url} nombre={p.nombre} tam="xs" />
+                <span className="min-w-0 flex-1">
                   <span className="block text-sm font-medium text-tinta">{nombreConMedida(p)}</span>
                   <span className="block text-xs text-steel-300">{[p.marca, p.codigo].filter(Boolean).join(' · ')}</span>
                 </span>

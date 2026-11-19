@@ -1,5 +1,6 @@
 'use client'
 
+import { MiniaturaProducto } from '@/components/ui/producto-miniatura'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -49,6 +50,7 @@ interface ProductoBase {
 
 export interface Miembro {
   id: string
+  imagen_url?: string | null
   nombre: string
   codigo: string | null
   unidad_medida: string | null
@@ -599,8 +601,9 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
         </div>
         {miembros.map(m => (
           <div key={m.id} className={`grid grid-cols-[1fr_1fr_1fr_auto] items-center gap-2 border-b border-linea px-4 py-3 last:border-0 ${m.id === productoActualId ? 'bg-brand-yellow/5' : ''}`}>
-            <span className="text-sm text-tinta">
-              {m.caracteristica || '—'}
+            <span className="flex min-w-0 items-center gap-2 text-sm text-tinta">
+              <MiniaturaProducto url={m.imagen_url} nombre={m.nombre} tam="xs" />
+              <Link href={`/dashboard/inventario/${m.id}`} className="min-w-0 hover:underline">{m.caracteristica || '—'}</Link>
               {m.id === productoActualId && <span className="ml-2 text-xs font-bold text-brand-yellow">Actual</span>}
               {!m.activo && <span className="ml-2 rounded-full bg-steel-700 px-2 py-0.5 text-sm font-semibold text-suave">Inactivo</span>}
             </span>
@@ -663,6 +666,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
               <label key={m.id} className="flex cursor-pointer items-center gap-3 border-b border-linea px-3 py-2 last:border-0 hover:bg-velo/5">
                 <input type="checkbox" checked={seleccionados.has(m.id)} onChange={() => toggleSeleccion(m.id)}
                   className="size-4 rounded border-linea-fuerte accent-brand-yellow" />
+                <MiniaturaProducto url={m.imagen_url} nombre={m.nombre} tam="xs" />
                 <span className="flex-1 text-sm text-tinta">{m.caracteristica || '—'}</span>
                 <span className="text-sm text-steel-300">{m.unidad_medida || '—'}</span>
                 <span className="text-sm text-steel-300">{m.marca || '—'}</span>

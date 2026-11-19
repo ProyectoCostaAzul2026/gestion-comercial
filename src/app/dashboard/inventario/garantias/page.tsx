@@ -11,7 +11,7 @@ export default async function GarantiasPage() {
   const [{ data: garantias }, { data: proveedores }] = await Promise.all([
     (supabase as any)
       .from('garantias')
-      .select('id, nombre_producto, cantidad, observaciones, fecha_registro, estado, proveedores(nombre), productos(id)')
+      .select('id, nombre_producto, cantidad, observaciones, fecha_registro, estado, proveedores(id, nombre), productos(id, imagen_url)')
       .order('fecha_registro', { ascending: false }),
     supabase.from('proveedores').select('id, nombre').eq('activo', true).order('nombre'),
   ])

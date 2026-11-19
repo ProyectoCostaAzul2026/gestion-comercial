@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
+import { EnlaceA, MiniaturaProducto, rutaProducto } from '@/components/ui/producto-miniatura'
 import { BotonAtras } from '@/components/ui/boton-atras'
 import { Printer } from 'lucide-react'
 import { VentaAcciones, type AccionVenta } from '@/components/modulos/venta-acciones'
@@ -68,7 +69,7 @@ export default async function VentaDetallePage({
   ] = await Promise.all([
     supabase
       .from('venta_items')
-      .select('id, nombre_producto, precio_unitario, iva_unitario, cantidad, descuento_linea, subtotal_linea, es_fraccionado, cantidad_fraccion, descuento_porcentaje, precio_cantidad_desde, producto_id, devolucion_items(cantidad, cantidad_fraccion), productos(producto_proveedores(proveedor_id, es_proveedor_principal, proveedores(id, nombre)))')
+      .select('id, nombre_producto, precio_unitario, iva_unitario, cantidad, descuento_linea, subtotal_linea, es_fraccionado, cantidad_fraccion, descuento_porcentaje, precio_cantidad_desde, producto_id, devolucion_items(cantidad, cantidad_fraccion), productos(imagen_url, producto_proveedores(proveedor_id, es_proveedor_principal, proveedores(id, nombre)))')
       .eq('venta_id', id),
     supabase
       .from('venta_servicios')
@@ -138,6 +139,7 @@ export default async function VentaDetallePage({
             return {
               id: i.id,
               nombre_producto: i.nombre_producto,
+              imagen_url: (i as any).productos?.imagen_url ?? null,
               cantidad: i.es_fraccionado ? i.cantidad : i.cantidad - yaDevuelto,
               cantidad_linea: i.cantidad,
               precio_unitario: Number(i.precio_unitario),
@@ -209,7 +211,7 @@ export default async function VentaDetallePage({
         <dl className="grid grid-cols-2 gap-3 text-sm">
           <div>
             <dt className="text-sm font-semibold text-suave">Cliente</dt>
-            <dd className="font-medium text-tinta">{cliente?.nombre ?? '—'}</dd>
+            <dd className="font-medium text-tinta">{cliente?.id ? <EnlaceA href={`/dashboard/clientes/${cliente.id}`}>{cliente.nombre}</EnlaceA> : (cliente?.nombre ?? 'Mostrador')}</dd>
             {cliente?.telefono && <dd className="text-xs text-steel-500">{cliente.telefono}</dd>}
           </div>
           <div>
@@ -238,10 +240,14 @@ export default async function VentaDetallePage({
         <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-tinta">Productos</h2>
         <div className="space-y-2">
           {(items ?? []).map((item) => (
-            <div key={item.id} className="flex items-start justify-between border-b border-linea py-2 text-sm last:border-0">
-              <div>
-                <p className="font-semibold text-tinta">{item.nombre_producto}</p>
-                <p className="text-xs text-brand-yellow">
+            <div key={item.id} className="flex items-start justify-between gap-3 border-b border-linea py-2.5 text-sm last:border-0">
+              <div className="flex min-w-0 gap-3">
+                <MiniaturaProducto url={(item as any).productos?.imagen_url} nombre={item.nombre_producto} tam="md" />
+                <div className="min-w-0">
+                <EnlaceA href={item.producto_id ? rutaProducto(item.producto_id) : null} className="font-semibold">
+                  <span className="font-semibold text-tinta">{item.nombre_producto}</span>
+                </EnlaceA>
+                <p className="text-sm text-suave">
                   {item.es_fraccionado
                     ? `${item.cantidad_fraccion} (fraccionado)`
                     : `${item.cantidad} × $${Number(item.precio_unitario).toLocaleString('es-CO')}`}
@@ -259,6 +265,7 @@ export default async function VentaDetallePage({
                     IVA: ${Math.round(Number(item.iva_unitario) * item.cantidad).toLocaleString('es-CO')} (informativo)
                   </p>
                 )}
+                </div>
               </div>
               <p className="shrink-0 font-display font-bold text-tinta">
                 ${Number(item.subtotal_linea).toLocaleString('es-CO')}

@@ -1,5 +1,6 @@
 'use client'
 
+import { MiniaturaProducto } from '@/components/ui/producto-miniatura'
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -103,8 +104,9 @@ function FormularioRenglon({ recepcion, productosProveedor, renglon, onListo }: 
         </div>
       ) : producto ? (
         <div className="flex items-start justify-between gap-2 rounded-xl border border-linea bg-superficie-2 p-3">
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-tinta">{nombreConMedida(producto)}</p>
+          <MiniaturaProducto url={producto.imagen_url} nombre={producto.nombre} tam="sm" />
+          <div className="min-w-0 flex-1">
+            <p className="text-[15px] font-semibold text-tinta">{nombreConMedida(producto)}</p>
             <p className="text-xs text-steel-300">
               {[producto.marca, producto.codigo, producto.costo != null ? `Costo anterior ${pesos(producto.costo)}` : 'Nuevo con este proveedor'].filter(Boolean).join(' · ')}
             </p>
@@ -253,9 +255,12 @@ export function RecepcionRenglones({ recepcion, renglones, productosProveedor, e
                   <FormularioRenglon recepcion={recepcion} productosProveedor={productosProveedor} renglon={r} onListo={() => setEditando(null)} />
                 ) : (
                   <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 space-y-0.5">
+                    <MiniaturaProducto url={r.producto?.imagen_url} nombre={nombre} tam="sm" />
+                    <div className="min-w-0 flex-1 space-y-0.5">
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-sm font-semibold text-tinta">{nombre}</p>
+                        {r.producto
+                          ? <Link href={`/dashboard/inventario/${r.producto.id}`} className="text-[15px] font-semibold text-tinta hover:underline">{nombre}</Link>
+                          : <p className="text-[15px] font-semibold text-tinta">{nombre}</p>}
                         {pendiente && <span className="rounded-full border border-brand-yellow/40 px-2 py-0.5 text-xs font-semibold text-brand-yellow">Pendiente</span>}
                         {r.producto && !r.producto.activo && <span className="rounded-full border border-brand-blue/40 px-2 py-0.5 text-xs font-semibold text-enlace">Nuevo</span>}
                       </div>

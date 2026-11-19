@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+import { MiniaturaProducto, ProductoConFoto, EnlaceA } from '@/components/ui/producto-miniatura'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -18,8 +20,8 @@ interface Garantia {
   observaciones: string | null
   fecha_registro: string
   estado: string
-  proveedores: { nombre: string } | null
-  productos: { id: string } | null
+  proveedores: { id?: string; nombre: string } | null
+  productos: { id: string; imagen_url?: string | null } | null
 }
 
 interface GarantiasPanelProps {
@@ -117,8 +119,8 @@ export function GarantiasPanel({ garantias, proveedores, soloProveedor }: Garant
               {pendientes.map(g => (
                 <TableRow key={g.id} className="border-linea hover:bg-velo/5">
                   <TableCell className="text-xs text-steel-300">{g.fecha_registro}</TableCell>
-                  <TableCell className="text-xs font-medium text-tinta">{g.nombre_producto}</TableCell>
-                  <TableCell className="text-xs text-steel-300">{g.proveedores?.nombre ?? '—'}</TableCell>
+                  <TableCell><ProductoConFoto id={g.productos?.id} nombre={g.nombre_producto} url={g.productos?.imagen_url} tam="xs" className="text-sm" /></TableCell>
+                  <TableCell className="text-sm text-suave">{g.proveedores?.id ? <Link href={`/dashboard/proveedores/${g.proveedores.id}`} className="underline-offset-2 hover:text-enlace hover:underline">{g.proveedores.nombre}</Link> : (g.proveedores?.nombre ?? '—')}</TableCell>
                   <TableCell className="text-xs text-steel-300">{g.observaciones ?? '—'}</TableCell>
                   <TableCell>
                     <select
@@ -178,8 +180,8 @@ export function GarantiasPanel({ garantias, proveedores, soloProveedor }: Garant
                 {recibidas.map(g => (
                   <TableRow key={g.id} className="border-linea hover:bg-velo/5">
                     <TableCell className="text-xs text-steel-300">{g.fecha_registro}</TableCell>
-                    <TableCell className="text-xs font-medium text-tinta">{g.nombre_producto}</TableCell>
-                    <TableCell className="text-xs text-steel-300">{g.proveedores?.nombre ?? '—'}</TableCell>
+                    <TableCell><ProductoConFoto id={g.productos?.id} nombre={g.nombre_producto} url={g.productos?.imagen_url} tam="xs" className="text-sm" /></TableCell>
+                    <TableCell className="text-sm text-suave">{g.proveedores?.id ? <Link href={`/dashboard/proveedores/${g.proveedores.id}`} className="underline-offset-2 hover:text-enlace hover:underline">{g.proveedores.nombre}</Link> : (g.proveedores?.nombre ?? '—')}</TableCell>
                     <TableCell className="text-xs text-steel-300">{g.observaciones ?? '—'}</TableCell>
                     <TableCell><span className="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-400">Recibida</span></TableCell>
                   </TableRow>

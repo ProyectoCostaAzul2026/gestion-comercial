@@ -129,7 +129,11 @@ nómina).
   dinero con la clase `cifra` (Barlow Condensed). Sin mayúsculas sostenidas ni franjas decorativas.
 - **Diseño** (lienzo aprobado el 2026-11-19): celular primero; las tareas (`RUTAS_TAREA` en `NavigationShell.tsx`, hoy
   Nueva venta) ocupan toda la pantalla sin barras; listas con divisores en vez de tarjetas; avisos con fondo suave, ícono y
-  acción; medios de pago con `MedioPagoIcono`. Logo en `public/logo-costa-azul.webp`, íconos `public/icono-*.png`.
+  acción; medios de pago con `MedioPagoIcono`.
+- **Productos con foto y todo enlazado** (2026-11-19): todo lugar que muestre un producto lleva su foto con
+  `MiniaturaProducto` o `ProductoConFoto` (`src/components/ui/producto-miniatura.tsx`; la consulta debe traer
+  `imagen_url`). Un grupo de medidas lleva una sola foto, arriba. En Reportes no va foto, pero el producto abre su detalle.
+  Todo lo que alude a algo (producto, venta, cliente, proveedor, empleado, movimiento de caja) lleva a ese algo. Logo en `public/logo-costa-azul.webp`, íconos `public/icono-*.png`.
 - **Fechas**: "hoy" siempre con `hoyBogota()` / `bogotaEnDias()` de `src/lib/fechas.ts`. Nunca
   `new Date().toISOString().slice(0, 10)` (es UTC: desde las 7 p. m. de Bogotá ya es mañana).
 - `src/app/manifest.ts` e íconos `public/icono-*.png`: la app se puede instalar en la pantalla de inicio del celular.

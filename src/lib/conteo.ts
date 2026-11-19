@@ -4,6 +4,7 @@
 
 export interface ProductoConteo {
   id: string
+  imagen_url?: string | null
   codigo: string | null
   nombre: string
   marca: string | null

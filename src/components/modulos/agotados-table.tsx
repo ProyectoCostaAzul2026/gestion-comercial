@@ -10,12 +10,14 @@ import { autoTable } from 'jspdf-autotable'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { cantidadSugerida } from '@/lib/pedido'
+import { MiniaturaProducto } from '@/components/ui/producto-miniatura'
 import { hoyBogota } from '@/lib/fechas'
 import { enlaceWhatsApp, textoPedido } from '@/lib/whatsapp'
 
 export interface ProductoAgotado {
   id: string
   nombre: string
+  imagen_url?: string | null
   codigo: string
   marca: string | null
   unidad_medida: string | null
@@ -273,7 +275,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
                   onClick={() => router.push(`/dashboard/inventario/${producto.id}`)}
                 >
                   <TableCell className="font-mono text-xs text-brand-yellow">{producto.codigo}</TableCell>
-                  <TableCell className="text-xs font-medium text-tinta">{producto.nombre}</TableCell>
+                  <TableCell><span className="flex items-center gap-2.5"><MiniaturaProducto url={producto.imagen_url} nombre={producto.nombre} tam="xs" /><span className="text-sm font-semibold text-tinta">{producto.nombre}</span></span></TableCell>
                   <TableCell className="text-xs text-steel-300">{producto.unidad_medida ?? '—'}</TableCell>
                   <TableCell className="text-xs text-steel-300">{producto.marca ?? '—'}</TableCell>
                   <TableCell>

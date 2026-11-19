@@ -1,5 +1,6 @@
 'use client'
 
+import { MiniaturaProducto } from '@/components/ui/producto-miniatura'
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -94,7 +95,8 @@ function Encabezado({ renglon }: { renglon: RenglonVista }) {
   return (
     <div className="min-w-0">
       <div className="flex flex-wrap items-center gap-2">
-        <p className="text-sm font-semibold text-tinta">{renglon.producto ? nombreConMedida(renglon.producto) : renglon.descripcion}</p>
+        <MiniaturaProducto url={renglon.producto?.imagen_url} nombre={renglon.descripcion} tam="sm" />
+        <p className="text-[15px] font-semibold text-tinta">{renglon.producto ? nombreConMedida(renglon.producto) : renglon.descripcion}</p>
         {!renglon.producto_id && <span className="rounded-full border border-brand-yellow/40 px-2 py-0.5 text-xs font-semibold text-brand-yellow">Pendiente</span>}
       </div>
       <p className="text-xs text-steel-300">

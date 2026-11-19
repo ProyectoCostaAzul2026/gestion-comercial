@@ -4,6 +4,7 @@ import type { EstadoRecepcion } from '@/lib/recepcion'
 export interface ProductoDelRenglon {
   id: string
   nombre: string
+  imagen_url?: string | null
   codigo: string | null
   marca: string | null
   unidad_medida: string | null
@@ -63,6 +64,7 @@ export interface RecepcionVista {
 export interface ProductoDelProveedor {
   id: string
   nombre: string
+  imagen_url?: string | null
   codigo: string | null
   marca: string | null
   unidad_medida: string | null

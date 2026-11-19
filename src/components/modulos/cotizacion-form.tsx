@@ -1,5 +1,6 @@
 'use client'
 
+import { MiniaturaProducto } from '@/components/ui/producto-miniatura'
 import { useState, useMemo, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
@@ -17,7 +18,7 @@ import { useNavegacion } from '@/lib/navegacion'
 
 interface ProductoSearch {
   id: string; nombre: string; codigo: string | null
-  precio_venta: number; stock_almacen: number; tiene_iva: boolean
+  precio_venta: number; stock_almacen: number; tiene_iva: boolean; imagen_url?: string | null
   iva_incluido: boolean; porcentaje_iva: number
   /** Precios por cantidad (buscar_productos), de menor a mayor cantidad mínima */
   precios_cantidad?: TramoPrecio[] | null
@@ -26,6 +27,7 @@ interface ProductoSearch {
 interface ServicioSearch { id: string; nombre: string; descripcion: string | null; precio: number }
 
 interface ItemCotizacion {
+  imagen_url?: string | null
   key: string; producto_id: string; nombre: string
   precio_unitario: number; cantidad: number
   descuento_habilitado: boolean; descuento_porcentaje: number
@@ -102,7 +104,7 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
       return
     }
     setCarrito(prev => [...prev, {
-      key: `${p.id}-${Date.now()}`, producto_id: p.id, nombre: p.nombre,
+      key: `${p.id}-${Date.now()}`, producto_id: p.id, nombre: p.nombre, imagen_url: p.imagen_url ?? null,
       precio_unitario: p.precio_venta, cantidad: 1,
       descuento_habilitado: false, descuento_porcentaje: 0,
       agotado: p.stock_almacen <= 0,
@@ -345,9 +347,10 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
               <div className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-xl border border-linea bg-superficie shadow-xl">
                 {resultadosProducto.map((p: any) => (
                   <button key={p.id} type="button"
-                    className="flex w-full justify-between px-3 py-2 text-left text-sm hover:bg-velo/5"
+                    className="flex min-h-12 w-full items-center gap-2.5 px-3 py-2 text-left text-sm hover:bg-velo/5"
                     onClick={() => agregarProducto(p)}>
-                    <span className="font-medium text-tinta">{p.nombre}{p.stock_almacen <= 0 ? <span className="ml-2 text-xs text-brand-yellow">(agotado)</span> : null}</span>
+                    <MiniaturaProducto url={p.imagen_url} nombre={p.nombre} tam="xs" />
+                    <span className="flex-1 font-medium text-tinta">{p.nombre}{p.stock_almacen <= 0 ? <span className="ml-2 text-xs text-brand-yellow">(agotado)</span> : null}</span>
                     <span className="text-xs text-steel-300">{fmt(p.precio_venta)}</span>
                   </button>
                 ))}
@@ -358,9 +361,12 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
           {carrito.map((item, idx) => (
             <div key={item.key} className="space-y-2 rounded-xl border border-linea bg-superficie-2 p-3">
               <div className="flex items-center justify-between gap-2">
-                <div>
-                  <p className="text-sm font-semibold text-tinta">{item.nombre}</p>
-                  {item.agotado && <p className="text-xs text-brand-yellow">⚠ Producto agotado</p>}
+                <div className="flex min-w-0 items-center gap-3">
+                  <MiniaturaProducto url={item.imagen_url} nombre={item.nombre} tam="sm" />
+                  <div className="min-w-0">
+                    <p className="text-[15px] font-semibold text-tinta">{item.nombre}</p>
+                    {item.agotado && <p className="text-sm font-semibold text-aviso">Producto agotado</p>}
+                  </div>
                 </div>
                 <button type="button" onClick={() => setCarrito(prev => prev.filter((_, i) => i !== idx))}
                   className="text-steel-300 hover:text-sale">

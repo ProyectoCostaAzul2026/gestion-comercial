@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 import { BotonAtras } from '@/components/ui/boton-atras'
+import { MiniaturaProducto } from '@/components/ui/producto-miniatura'
 import { esAdmin } from '@/lib/permissions'
 import { cargarGrupoMedidas } from '@/lib/grupo-medidas-servidor'
 import { ordenarPorMedida } from '@/lib/escala-precios'
@@ -29,10 +30,11 @@ export default async function PreciosGrupoPage({ params }: { params: Promise<{ i
       <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 border-b border-linea bg-fondo px-4 py-3 lg:top-0">
         <div className="flex items-center gap-3">
           <BotonAtras href={`/dashboard/inventario/${producto.id}/grupo`} etiqueta="Volver al grupo de medidas" />
+          <MiniaturaProducto url={(producto as { imagen_url?: string | null }).imagen_url ?? miembros.find(m => m.imagen_url)?.imagen_url} nombre={producto.nombre} tam="md" />
           <div className="min-w-0">
-            <h1 className="font-display text-lg font-bold text-tinta">Precios del grupo</h1>
-            <p className="truncate text-xs text-steel-300">
-              {producto.nombre}{producto.marca ? ` · ${producto.marca}` : ''} · {miembros.length} medida{miembros.length === 1 ? '' : 's'}
+            <h1 className="truncate text-lg font-bold text-tinta">Precios del grupo</h1>
+            <p className="truncate text-sm text-suave">
+              {producto.nombre}{producto.marca ? `, ${producto.marca}` : ''}, {miembros.length} {miembros.length === 1 ? 'medida' : 'medidas'}
             </p>
           </div>
         </div>

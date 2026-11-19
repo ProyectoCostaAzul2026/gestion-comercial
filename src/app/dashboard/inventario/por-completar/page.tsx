@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { MiniaturaProducto, ProductoConFoto, EnlaceA } from '@/components/ui/producto-miniatura'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { BotonAtras } from '@/components/ui/boton-atras'
@@ -16,7 +17,7 @@ export default async function PorCompletarPage() {
 
   const { data, error } = await supabase
     .from('productos')
-    .select('id, nombre, codigo, precio_venta, stock_actual, categoria_id, familia_id, created_at, producto_proveedores(precio_costo)')
+    .select('id, nombre, codigo, imagen_url, precio_venta, stock_actual, categoria_id, familia_id, created_at, producto_proveedores(precio_costo)')
     .eq('por_completar', true)
     .eq('activo', true)
     .order('created_at', { ascending: false })
@@ -57,8 +58,9 @@ export default async function PorCompletarPage() {
         <ul className="divide-y divide-linea overflow-hidden rounded-2xl border border-linea bg-superficie">
           {productos.map(p => (
             <li key={p.id} className="flex items-center gap-3 px-3 py-3">
+              <MiniaturaProducto url={(p as any).imagen_url} nombre={p.nombre} tam="sm" />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-bold text-tinta">{p.nombre}</p>
+                <EnlaceA href={`/dashboard/inventario/${p.id}`}><span className="truncate text-[15px] font-bold text-tinta">{p.nombre}</span></EnlaceA>
                 <p className="text-xs text-steel-300">
                   <span className="font-mono text-brand-yellow">{p.codigo ?? '—'}</span> · ${Number(p.precio_venta).toLocaleString('es-CO')} · Stock {p.stock_actual}
                 </p>

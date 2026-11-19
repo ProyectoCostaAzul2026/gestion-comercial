@@ -8,6 +8,7 @@ import { useNavegacion } from '@/lib/navegacion'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { MiniaturaProducto } from '@/components/ui/producto-miniatura'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Ban, Repeat, Search, Trash2, Undo2 } from 'lucide-react'
@@ -32,17 +33,19 @@ interface VentaItem {
   cantidad_fraccion_linea?: number | null
   cantidad_minima_venta?: number | null; medida_venta?: string | null
   producto_id?: string
+  imagen_url?: string | null
 }
 
 interface ProductoSearch {
   id: string; nombre: string; codigo: string | null
   precio_venta: number; stock_almacen: number
+  imagen_url?: string | null
   /** Precios por cantidad (buscar_productos), de menor a mayor cantidad mínima */
   precios_cantidad?: TramoPrecio[] | null
 }
 
 interface ItemDevolucion {
-  venta_item_id: string; nombre: string
+  venta_item_id: string; nombre: string; imagen_url?: string | null
   es_fraccionado: boolean
   cantidad_max: number; cantidad: number; seleccionado: boolean
   subtotal_linea: number; cantidad_linea: number
@@ -52,14 +55,14 @@ interface ItemDevolucion {
 }
 
 interface ItemRetirar {
-  venta_item_id: string; nombre: string; cantidad_max: number
+  venta_item_id: string; nombre: string; imagen_url?: string | null; cantidad_max: number
   cantidad: number; seleccionado: boolean; precio_unitario: number
   cantidad_linea: number; descuento_linea: number; subtotal_linea: number
   proveedores_producto?: { id: string }[]
 }
 
 interface ItemAgregar {
-  key: string; producto_id: string; nombre: string
+  key: string; producto_id: string; nombre: string; imagen_url?: string | null
   /** Precio normal; el que se cobra puede ser el de un tramo de precio por cantidad (precioAgregado) */
   precio_venta: number; cantidad: number; stock_almacen: number
   tramos: TramoPrecio[]
@@ -102,6 +105,7 @@ const itemsDevolucionIniciales = (items: VentaItem[]): ItemDevolucion[] =>
   items.map(i => ({
     venta_item_id: i.id,
     nombre: i.nombre_producto,
+    imagen_url: i.imagen_url,
     es_fraccionado: i.es_fraccionado ?? false,
     cantidad_max: i.cantidad,
     cantidad: i.cantidad,
@@ -117,7 +121,7 @@ const itemsDevolucionIniciales = (items: VentaItem[]): ItemDevolucion[] =>
 
 const itemsRetirarIniciales = (items: VentaItem[]): ItemRetirar[] =>
   items.filter(i => !i.es_fraccionado).map(i => ({
-    venta_item_id: i.id, nombre: i.nombre_producto,
+    venta_item_id: i.id, nombre: i.nombre_producto, imagen_url: i.imagen_url,
     cantidad_max: i.cantidad, cantidad: i.cantidad,
     seleccionado: false, precio_unitario: i.precio_unitario,
     cantidad_linea: i.cantidad_linea ?? i.cantidad,
@@ -283,7 +287,7 @@ export function VentaAcciones({
       if (idx >= 0) {
         const n = [...prev]; n[idx] = { ...n[idx], cantidad: n[idx].cantidad + 1 }; return n
       }
-      return [...prev, { key: `${p.id}-${Date.now()}`, producto_id: p.id, nombre: p.nombre, precio_venta: p.precio_venta, cantidad: 1, stock_almacen: p.stock_almacen, tramos: p.precios_cantidad ?? [] }]
+      return [...prev, { key: `${p.id}-${Date.now()}`, producto_id: p.id, nombre: p.nombre, imagen_url: p.imagen_url, precio_venta: p.precio_venta, cantidad: 1, stock_almacen: p.stock_almacen, tramos: p.precios_cantidad ?? [] }]
     })
     setQueryProducto(''); setResultadosProducto([])
   }
@@ -424,7 +428,7 @@ export function VentaAcciones({
                   <input type="checkbox" checked={item.seleccionado}
                     onChange={e => setItemsDevolucion(prev => prev.map((it, i) => i === idx ? { ...it, seleccionado: e.target.checked } : it))}
                     className="h-4 w-4 accent-brand-yellow" />
-                  <span className="flex-1 text-sm text-tinta">{item.nombre}</span>
+                  <MiniaturaProducto url={item.imagen_url} nombre={item.nombre} tam="xs" /><span className="flex-1 text-[15px] text-tinta">{item.nombre}</span>
                   {item.es_fraccionado ? (
                     <div className="flex items-center gap-1">
                       <span className="text-xs text-steel-300">Cant ({item.medida_venta}):</span>
@@ -570,7 +574,7 @@ export function VentaAcciones({
                       <input type="checkbox" checked={item.seleccionado}
                         onChange={e => setItemsRetirar(prev => prev.map((it, i) => i === idx ? { ...it, seleccionado: e.target.checked } : it))}
                         className="h-4 w-4 accent-brand-blue" />
-                      <span className="flex-1 text-sm text-tinta">{item.nombre}</span>
+                      <MiniaturaProducto url={item.imagen_url} nombre={item.nombre} tam="xs" /><span className="flex-1 text-[15px] text-tinta">{item.nombre}</span>
                       <div className="flex items-center gap-1">
                         <Input type="number" min={1} max={item.cantidad_max} value={item.cantidad}
                           disabled={!item.seleccionado}
@@ -650,7 +654,8 @@ export function VentaAcciones({
               <div className="space-y-0.5 rounded-xl border border-linea bg-superficie-2 p-2 text-xs text-steel-300">
                 <p className="mb-1 font-medium text-tinta">Retirando:</p>
                 {seleccionadosCambio.map(i => (
-                  <div key={i.venta_item_id}>
+                  <div key={i.venta_item_id} className="flex items-center gap-2 py-0.5">
+                    <MiniaturaProducto url={i.imagen_url} nombre={i.nombre} tam="xs" />
                     <span>{i.nombre} × {i.cantidad}</span>
                   </div>
                 ))}
@@ -665,9 +670,10 @@ export function VentaAcciones({
                   <div className="absolute z-20 mt-1 w-full rounded-xl border border-linea bg-superficie shadow-xl">
                     {resultadosProducto.map((p: any) => (
                       <button key={p.id} type="button"
-                        className="flex w-full justify-between px-3 py-2 text-left text-sm hover:bg-velo/5"
+                        className="flex min-h-12 w-full items-center gap-2.5 px-3 py-2 text-left text-sm hover:bg-velo/5"
                         onClick={() => agregarProductoCambio(p)}>
-                        <span className="text-tinta">{p.nombre}</span>
+                        <MiniaturaProducto url={p.imagen_url} nombre={p.nombre} tam="xs" />
+                        <span className="flex-1 text-tinta">{p.nombre}</span>
                         <span className="text-xs text-steel-300">${p.precio_venta?.toLocaleString('es-CO')} · Stock: {p.stock_almacen}</span>
                       </button>
                     ))}
@@ -680,7 +686,7 @@ export function VentaAcciones({
                   {itemsAgregar.map((item, idx) => (
                     <div key={item.key} className="space-y-1 rounded-xl border border-linea bg-superficie-2 p-2">
                       <div className="flex items-center gap-2">
-                        <span className="flex-1 text-sm text-tinta">{item.nombre}</span>
+                        <MiniaturaProducto url={item.imagen_url} nombre={item.nombre} tam="xs" /><span className="flex-1 text-[15px] text-tinta">{item.nombre}</span>
                         <Input type="number" min={1} max={item.stock_almacen} value={item.cantidad}
                           onChange={e => setItemsAgregar(prev => prev.map((it, i) => i === idx ? { ...it, cantidad: parseInt(e.target.value) || 1 } : it))}
                           className="h-7 w-16 border-linea bg-superficie text-xs text-tinta" />

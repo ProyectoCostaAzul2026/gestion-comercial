@@ -21,7 +21,7 @@ export default async function RecepcionDetallePage({ params }: { params: Promise
   const [{ data: items, error: errorItems }, { data: catalogo }] = await Promise.all([
     traerTodo((desde, hasta) => supabase
       .from('recepcion_items')
-      .select('id, producto_id, descripcion, referencia, cantidad_facturada, costo_unitario, cantidad_contada, cantidad_averiada, cantidad_almacen, ingresado_bodega, ingresado_almacen, stock_ingresado, contado_at, precio_aprobado, productos(id, nombre, codigo, marca, unidad_medida, activo, precio_venta, tiene_iva, iva_incluido, porcentaje_iva, vender_por_fraccion, stock_bodega, stock_almacen), profiles(nombre_completo)')
+      .select('id, producto_id, descripcion, referencia, cantidad_facturada, costo_unitario, cantidad_contada, cantidad_averiada, cantidad_almacen, ingresado_bodega, ingresado_almacen, stock_ingresado, contado_at, precio_aprobado, productos(id, nombre, codigo, imagen_url, marca, unidad_medida, activo, precio_venta, tiene_iva, iva_incluido, porcentaje_iva, vender_por_fraccion, stock_bodega, stock_almacen), profiles(nombre_completo)')
       .eq('recepcion_id', id)
       .order('created_at')
       .order('id')
@@ -29,7 +29,7 @@ export default async function RecepcionDetallePage({ params }: { params: Promise
     // Productos del proveedor (para buscar por referencia y ver su costo actual); un empleado no ve los inactivos
     traerTodo((desde, hasta) => supabase
       .from('producto_proveedores')
-      .select('precio_costo, referencia_proveedor, productos(id, nombre, codigo, marca, unidad_medida, activo)')
+      .select('precio_costo, referencia_proveedor, productos(id, nombre, codigo, imagen_url, marca, unidad_medida, activo)')
       .eq('proveedor_id', rec.proveedor_id)
       .order('id')
       .range(desde, hasta)),
@@ -44,6 +44,7 @@ export default async function RecepcionDetallePage({ params }: { params: Promise
       marca: pp.productos!.marca,
       unidad_medida: pp.productos!.unidad_medida,
       referencia: pp.referencia_proveedor,
+      imagen_url: pp.productos?.imagen_url ?? null,
       costo: Number(pp.precio_costo),
       activo: pp.productos!.activo,
     }))
@@ -106,6 +107,7 @@ export default async function RecepcionDetallePage({ params }: { params: Promise
     producto: i.productos ? {
       id: i.productos.id,
       nombre: i.productos.nombre,
+      imagen_url: i.productos.imagen_url ?? null,
       codigo: i.productos.codigo,
       marca: i.productos.marca,
       unidad_medida: i.productos.unidad_medida,
