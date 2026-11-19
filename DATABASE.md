@@ -1246,3 +1246,8 @@ Desde el 2026-11-18 ninguna política queda "para public": todas son `to authent
     "También se conoce como ..." con otros nombres de la herramienta (llave combinada, Stillson, ratchet, broquero,
     garrucha...), porque `buscar_productos` también busca en la descripción. Ranger no vende eléctricos, tornillería,
     sanitarios ni PVC, así que no hay más lotes con esa referencia.
+    Lote 4 (`sql/catalogo_categorias_lote4.sql`, inferido del propio catálogo): categorías nuevas Iluminación (bombillos,
+    paneles y demás LED, rosetas, portalámparas, fotoceldas, sensores de movimiento, linternas), Electrónica, Audio y Video
+    (antenas, cables y conectores, convertidores, soportes para TV, pilas, componentes) y Empaque y Amarre (amarres
+    plásticos, cuerdas, piolas, hilos, pulpos, zunchos, vinipel, cartón); el pegante y la trampa para ratas van a Jardín y
+    Agropecuario. Quedan 30 categorías; Eléctrico queda con la instalación eléctrica.

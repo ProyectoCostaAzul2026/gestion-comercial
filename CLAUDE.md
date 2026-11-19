@@ -353,7 +353,7 @@ nómina).
   "Drywall Negro" → "Drywall" y "Hexagonal Grado 2 Zincado UNC" → "Hexagonal Grado 2 Zincado": el stock pasó al producto
   que queda (movimiento `ajuste`), el proveedor del repetido quedó como adicional y el repetido está inactivo. Quedan
   3325 productos activos; 46 tienen dos proveedores. Respaldo en `respaldo.*_20261106`.
-- Categorías: 27 desde el 2026-11-19 (6 nuevas con la referencia de Ranger, nota 23 de `DATABASE.md`; todas con imagen;
+- Categorías: 30 desde el 2026-11-19 (6 nuevas con la referencia de Ranger y 3 inferidas del catálogo, nota 23 de `DATABASE.md`; todas con imagen;
   "Tanques y Recipientes" tiene un solo producto). Familias (329 de 433) tienen `imagen_url` propia para su tarjeta en Inventario; 13
   proveedores tienen `logo_url` y `sitio_web`.
 - `facturas_proveedor`: 233 documentos (facturas, remisiones, pedidos, cuentas de cobro y cotizaciones de dos
