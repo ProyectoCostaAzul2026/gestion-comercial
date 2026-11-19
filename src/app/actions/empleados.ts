@@ -45,19 +45,22 @@ export async function invitarEmpleado(data: {
 
   if (perfil?.rol !== 'administrador') throw new Error('Solo un administrador puede crear empleados')
 
-  // Enviar invitación — Supabase manda el email automáticamente
-  const { data: invitado, error: invError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-    data.email,
-    {
+  // Crea el usuario y arma su enlace para crear la contraseña, SIN mandar correo: el correo de Supabase del plan
+  // gratuito solo llega a los miembros del equipo del proyecto. El administrador comparte el enlace por WhatsApp.
+  const { data: generado, error: invError } = await supabaseAdmin.auth.admin.generateLink({
+    type: 'invite',
+    email: data.email,
+    options: {
       data: {
         nombre_completo: data.nombre_completo,
         foto_url: data.foto_url || null,
       },
       redirectTo: `${await origenApp()}/auth/confirm`,
-    }
-  )
+    },
+  })
 
   if (invError) throw new Error(invError.message)
+  const invitado = { user: generado.user }
 
   // Crear perfil
 const { error: perfilError } = await supabaseAdmin.from('profiles').upsert({
@@ -72,7 +75,41 @@ const { error: perfilError } = await supabaseAdmin.from('profiles').upsert({
 
   if (perfilError) throw new Error(perfilError.message)
 
-  return { id: invitado.user.id }
+  return { id: invitado.user.id, enlace: await enlaceConfirmar(generado.properties.hashed_token, 'invite') }
+}
+
+/** Enlace de la app que entra con el token y lleva a crear la contraseña (sirve en cualquier celular) */
+async function enlaceConfirmar(tokenHash: string, tipo: 'invite' | 'recovery'): Promise<string> {
+  return `${await origenApp()}/auth/confirm?token_hash=${encodeURIComponent(tokenHash)}&type=${tipo}`
+}
+
+/**
+ * Enlace para que un empleado cree una contraseña nueva, sin depender del correo. Solo el administrador lo genera y
+ * lo comparte (WhatsApp o copiar). Vence como los enlaces de correo de Supabase (una hora por defecto) y sirve una vez.
+ */
+export async function enlaceNuevaContrasena(empleadoId: string): Promise<{ enlace: string }> {
+  const cookieStore = await cookies()
+  const supabaseAdmin = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} } }
+  )
+
+  const { data: { user } } = await supabaseAdmin.auth.getUser()
+  if (!user) throw new Error('No autenticado')
+  const { data: perfil } = await supabaseAdmin.from('profiles').select('rol').eq('id', user.id).single()
+  if (perfil?.rol !== 'administrador') throw new Error('Solo un administrador puede generar este enlace')
+
+  const { data: empleado, error: errUsuario } = await supabaseAdmin.auth.admin.getUserById(empleadoId)
+  if (errUsuario || !empleado.user?.email) throw new Error('Este empleado no tiene un correo de acceso')
+
+  const { data: generado, error } = await supabaseAdmin.auth.admin.generateLink({
+    type: 'recovery',
+    email: empleado.user.email,
+    options: { redirectTo: `${await origenApp()}/auth/confirm` },
+  })
+  if (error) throw new Error(error.message)
+  return { enlace: await enlaceConfirmar(generado.properties.hashed_token, 'recovery') }
 }
 
 export async function desactivarEmpleado(empleadoId: string) {

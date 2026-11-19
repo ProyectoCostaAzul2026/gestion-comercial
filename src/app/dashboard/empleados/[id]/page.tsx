@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { AvatarIniciales, telefonoMarcable } from '@/components/modulos/avatar-iniciales'
 import { Pencil } from 'lucide-react'
 import { MedioPagoIcono } from '@/components/ui/medio-pago-icono'
+import { GenerarEnlaceContrasena } from '@/components/modulos/enlace-acceso'
 import { traerTodo } from '@/lib/supabase/traer-todo'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -134,6 +135,7 @@ export default async function PerfilEmpleadoPage({
                 <dd className="cifra text-lg font-bold text-tinta">{empleado.salario_base ? pesos(Number(empleado.salario_base)) : 'Sin dato'}</dd>
               </div>
             </dl>
+            <GenerarEnlaceContrasena empleadoId={id} nombre={empleado.nombre_completo} telefono={empleado.telefono} />
           </section>
 
           <section className="space-y-2.5">
