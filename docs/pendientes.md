@@ -67,7 +67,8 @@ sube al repositorio.
    YouTube y Facebook, y una versión vertical para estados e Instagram.
 2. **Video del sistema de información**: hecho el 2026-11-19 en `videos/promo-app` (unos 95 segundos, vertical, modo
    claro). Graba la app real con datos de demostración (servidor que imita a Supabase), música generada por código y la
-   firma "By: Luis Ortiz". Cómo rehacerlo en `videos/promo-app/README.md`. Falta: que el dueño lo revise y, si quiere,
+   firma "By: Luis Ortiz". Inicio con explosión y efectos de sonido (teclas, toques, cobro, notificaciones) desde el
+   2026-11-19. Cómo rehacerlo en `videos/promo-app/README.md`. Falta: que el dueño lo revise y, si quiere,
    cambiar la música por una pista suya (mismo pulso, 120 por minuto) o grabar una versión horizontal.
 
 Para el video de la ferretería se necesita del dueño: el logo en buena calidad, fotos o videos del local y del equipo, la música (con

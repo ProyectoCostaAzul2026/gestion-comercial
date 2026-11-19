@@ -126,9 +126,12 @@ def acorde(pulso):
 
 
 def energia(pulso):
-    """0 = sin ritmo, 1 = ritmo normal, 2 = ritmo fuerte (funciones secundarias)."""
-    if pulso < inicio['presentacion']:
+    """0 = sin ritmo, 1 = ritmo normal, 2 = ritmo fuerte (explosión del inicio y funciones secundarias)."""
+    g = inicio['gancho']
+    if pulso < g + 2:  # la pregunta, en tensión
         return 0
+    if pulso < g + 7:  # explosión y golpes
+        return 2
     if inicio['masTitulo'] <= pulso < inicio['secundarias']:
         return 0
     if inicio['secundarias'] <= pulso < inicio['tema']:
@@ -145,13 +148,16 @@ fin_ritmo = inicio['final']
 for c in range(0, TOTAL_PULSOS, 4):
     raiz, tonos = acorde(c)
     vol = 0.22 if energia(c) == 0 else 0.13
+    if c < inicio['gancho'] + 2:  # la pregunta va sin acordes: el colchón entra con la explosión
+        poner(colchon(tonos, 2 * PULSO + 0.3), c + 2, 0.13 * 1.4, musica=True)
+        continue
     poner(colchon(tonos, 4 * PULSO + 0.3), c, vol * 1.4, musica=True)
 
-# Gancho: un golpe por palabra y subida hacia el celular
-for b in (0, 2, 4):
-    poner(golpe(), b, 0.55)
-    poner(nota(acorde(b)[1][0] * 2, 0.9, caida=4), b, 0.18)
-poner(subida(4), inicio['gancho'] + 6, 0.5)
+# Gancho: zumbido grave que crece durante la pregunta y platillo largo en la explosión
+t = t_(2 * PULSO)
+zumbido = (np.sin(2 * np.pi * 55 * t) + 0.5 * np.sin(2 * np.pi * 82.4 * t)) * (0.6 + 0.4 * np.sin(2 * np.pi * 6 * t)) * (t / t[-1]) ** 1.5
+poner(zumbido, inicio['gancho'], 0.35)
+poner(platillo(1.6, 1.3), inicio['gancho'] + 2, 0.9)
 
 # Ritmo
 for b8 in np.arange(0, TOTAL_PULSOS, 0.5):

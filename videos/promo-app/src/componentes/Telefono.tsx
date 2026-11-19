@@ -1,5 +1,6 @@
 import React from 'react';
 import { Easing, Img, interpolate, staticFile, useCurrentFrame } from 'remotion';
+import { Sonido } from './Sonido';
 import { C, captura, LETRA } from '../tema';
 
 // Medidas del celular de la app: 390 x 844 puntos. La barra de estado ocupa 44 puntos arriba.
@@ -113,13 +114,15 @@ export const Pantalla: React.FC<{
 export const Toque: React.FC<{ x: number; y: number; en: number }> = ({ x, y, en }) => {
   const f = useCurrentFrame();
   const k = useEscala();
-  if (f < en - 6 || f > en + 18) return null;
+  const sonido = <Sonido nombre="toque" en={en} vol={0.5} />;
+  if (f < en - 6 || f > en + 18) return sonido;
   const aparece = interpolate(f, [en - 6, en], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const onda = interpolate(f, [en, en + 16], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: Easing.out(Easing.quad) });
   return (
     <>
       <div style={{ position: 'absolute', left: x * k, top: y * k, width: 46 * k, height: 46 * k, marginLeft: -23 * k, marginTop: -23 * k, borderRadius: '50%', background: 'rgba(18,38,58,0.22)', border: `${2 * k}px solid rgba(255,255,255,0.9)`, opacity: aparece * (1 - onda * 0.8), scale: String(1 - onda * 0.2) }} />
       <div style={{ position: 'absolute', left: x * k, top: y * k, width: 46 * k, height: 46 * k, marginLeft: -23 * k, marginTop: -23 * k, borderRadius: '50%', border: `${2 * k}px solid ${C.azul}`, opacity: 1 - onda, scale: String(1 + onda * 1.6) }} />
+      {sonido}
     </>
   );
 };

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Easing, interpolate, useCurrentFrame } from 'remotion';
 import { C, LETRA, LETRA_CIFRAS } from '../tema';
+import { Sonido } from './Sonido';
 
 const suave = Easing.bezier(0.16, 1, 0.3, 1);
 
@@ -76,12 +77,15 @@ export const Cifra: React.FC<{ valor: number; desde?: number; dura?: number; tam
 };
 
 /** Tarjeta blanca flotante (como una notificación) que entra con un rebote */
-export const Tarjeta: React.FC<{ desde: number; hasta?: number; icono?: React.ReactNode; titulo: string; texto?: string; style?: React.CSSProperties; ancho?: number }> = ({ desde, hasta, icono, titulo, texto, style, ancho = 620 }) => {
+export const Tarjeta: React.FC<{ desde: number; hasta?: number; icono?: React.ReactNode; titulo: string; texto?: string; style?: React.CSSProperties; ancho?: number; sonido?: string }> = ({ desde, hasta, icono, titulo, texto, style, ancho = 620, sonido }) => {
   const f = useCurrentFrame();
+  const efecto = sonido ? <Sonido nombre={sonido} en={desde} vol={0.7} /> : null;
   const t = interpolate(f, [desde, desde + 14], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: Easing.bezier(0.34, 1.56, 0.64, 1) });
   const salida = hasta != null ? interpolate(f, [hasta - 6, hasta], [1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }) : 1;
-  if (f < desde) return null;
+  if (f < desde) return efecto;
   return (
+    <>
+    {efecto}
     <div style={{ position: 'absolute', width: ancho, display: 'flex', gap: 26, alignItems: 'center', padding: '26px 30px', borderRadius: 34, background: 'rgba(255,255,255,0.96)', boxShadow: '0 30px 70px rgba(18,38,58,0.22), 0 6px 18px rgba(18,38,58,0.10)', scale: String(0.7 + 0.3 * t), opacity: Math.min(t * 1.4, 1) * salida, fontFamily: LETRA, ...style }}>
       {icono && <div style={{ flexShrink: 0 }}>{icono}</div>}
       <div style={{ minWidth: 0 }}>
@@ -89,6 +93,7 @@ export const Tarjeta: React.FC<{ desde: number; hasta?: number; icono?: React.Re
         {texto && <div style={{ fontSize: 28, fontWeight: 500, color: C.suave, marginTop: 6, lineHeight: 1.25 }}>{texto}</div>}
       </div>
     </div>
+    </>
   );
 };
 

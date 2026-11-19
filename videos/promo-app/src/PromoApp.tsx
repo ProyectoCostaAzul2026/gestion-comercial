@@ -30,10 +30,10 @@ export const PromoApp: React.FC<{ conMusica: boolean }> = ({ conMusica }) => (
       return (
         <Sequence key={t.id} name={t.id} from={t.desde} durationInFrames={t.dura} premountFor={30}>
           <Escena />
-          {t.id !== 'final' && t.id !== 'creditosFotos' && <Firma oscuro={t.id === 'cifra'} />}
+          {t.id !== 'gancho' && t.id !== 'final' && t.id !== 'creditosFotos' && <Firma oscuro={t.id === 'cifra'} />}
         </Sequence>
       );
     })}
-    {conMusica && <Audio src={staticFile('musica.wav')} />}
+    {conMusica && <Audio src={staticFile('musica.wav')} volume={0.75} />}
   </AbsoluteFill>
 );

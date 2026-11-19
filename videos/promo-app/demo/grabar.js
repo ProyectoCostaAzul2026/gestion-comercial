@@ -1,5 +1,6 @@
 // Graba la app en uso (toques, escritura, desplazamientos) cuadro a cuadro y arma un MP4 por cada guion.
 // Uso: node grabar.js <carpeta de salida> [filtro de guiones]
+//   Anota el segundo de cada toque y cada tecla en src/eventos.json, para poner los sonidos en el video.
 //   Requiere la app en http://localhost:3000 apuntando al servidor de demostración (supabase-demo.js en el 54321).
 const { chromium } = require('playwright')
 const { execFileSync } = require('child_process')
@@ -38,19 +39,26 @@ const SCRIPT_TOQUE = `
 `
 
 // Ayudas para los guiones
-const ayudas = page => ({
+// `marcar(tipo)` anota un sonido en el momento actual (toque, tecla, cobro, check)
+const ayudas = (page, marcar) => ({
   esperar,
-  async tocar(loc, pausa = 450) {
+  async tocar(loc, pausa = 450, sonido = 'toque') {
     const l = typeof loc === 'string' ? page.locator(loc).first() : loc
     await l.scrollIntoViewIfNeeded().catch(() => {})
     await esperar(150)
     await l.tap({ timeout: 6000 }).catch(async () => { await l.click({ timeout: 6000 }) })
+    marcar(sonido)
     await esperar(pausa)
   },
   async escribir(loc, texto, retardo = 110) {
     const l = typeof loc === 'string' ? page.locator(loc).first() : loc
     await l.tap({ timeout: 6000 }).catch(() => l.click({ timeout: 6000 }))
-    await l.pressSequentially(texto, { delay: retardo })
+    marcar('toque')
+    for (const letra of texto) {
+      await page.keyboard.type(letra)
+      marcar('tecla')
+      await esperar(retardo)
+    }
   },
   async desplazar(y, ms = 900) {
     await page.evaluate(([y, ms]) => new Promise(r => {
@@ -85,7 +93,7 @@ const guiones = {
       await h.tocar(p.getByRole('button', { name: /Cobrar/ }).first(), 1000)
       await h.tocar(p.getByRole('button', { name: /^Efectivo/ }).first(), 500)
       await h.tocar(p.getByRole('button', { name: /\$50\.000/ }).first(), 1300)
-      await h.tocar(p.getByRole('button', { name: /Registrar/ }).first(), 1600)
+      await h.tocar(p.getByRole('button', { name: /Registrar/ }).first(), 1600, 'cobro')
       // La venta queda arriba en la lista: se abre, se ve el recibo y se manda por WhatsApp
       await h.tocar(p.locator('a[href^="/dashboard/ventas/v"]').first(), 1300)
       await h.tocar(p.getByRole('link', { name: /Recibo/ }).first().or(p.getByRole('button', { name: /Recibo/ }).first()), 1500)
@@ -222,13 +230,13 @@ const guiones = {
   nomina: {
     ruta: '/dashboard/empleados/nomina', async pasos(p, h) {
       await h.esperar(600)
-      await h.tocar(p.getByRole('button', { name: /^Pagar$/ }).first(), 900)
+      await h.tocar(p.getByRole('button', { name: /^Pagar$/ }).first(), 900, 'cobro')
     },
   },
   tareas: {
     ruta: '/dashboard/tareas', async pasos(p, h) {
       await h.esperar(600)
-      await h.tocar(p.getByRole('checkbox').first().or(p.getByLabel(/Marcar/).first()), 900)
+      await h.tocar(p.getByRole('checkbox').first().or(p.getByLabel(/Marcar/).first()), 900, 'check')
     },
   },
   bitacora: {
@@ -284,7 +292,9 @@ async function grabar(browser, nombre, g) {
   })
   await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 88, maxWidth: ancho, maxHeight: alto, everyNthFrame: 1 })
   const inicio = Date.now()
-  try { await g.pasos(page, ayudas(page)) } catch (e) { console.log('  paso falló:', e.message.split('\n')[0]) }
+  const eventos = []
+  const marcar = tipo => eventos.push({ tipo, t: Date.now() / 1000 })
+  try { await g.pasos(page, ayudas(page, marcar)) } catch (e) { console.log('  paso falló:', e.message.split('\n')[0]) }
   await esperar(500)
   await cdp.send('Page.stopScreencast').catch(() => {})
   const fin = Date.now()
@@ -307,6 +317,12 @@ async function grabar(browser, nombre, g) {
   execFileSync('ffmpeg', ['-y', '-v', 'error', '-f', 'concat', '-safe', '0', '-i', path.join(dir, 'lista.txt'),
     '-vf', `fps=30,scale=${ancho - (ancho % 2)}:${alto - (alto % 2)},format=yuv420p`, '-c:v', 'libx264', '-preset', 'medium', '-crf', '16', '-movflags', '+faststart', salida])
   fs.rmSync(dir, { recursive: true, force: true })
+  // Segundo de cada sonido dentro del MP4 (el video empieza en el primer cuadro)
+  const archivoEventos = path.join(__dirname, '..', 'src', 'eventos.json')
+  const todos = fs.existsSync(archivoEventos) ? JSON.parse(fs.readFileSync(archivoEventos, 'utf8')) : {}
+  todos[nombre] = eventos.map(e => ({ tipo: e.tipo, t: Number((e.t - cuadros[0].t).toFixed(3)) })).filter(e => e.t >= 0)
+  fs.writeFileSync(archivoEventos, JSON.stringify(todos, null, 1) + '\n')
+  console.log(`  reloj: primer cuadro ${(cuadros[0].t - inicio / 1000).toFixed(3)} s después de empezar; ${eventos.length} sonidos`)
   const dur = execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', salida]).toString().trim()
   console.log(`ok ${nombre}: ${cuadros.length} cuadros, ${Number(dur).toFixed(1)} s`)
 }
