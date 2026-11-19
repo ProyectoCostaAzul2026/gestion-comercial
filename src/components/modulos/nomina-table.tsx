@@ -190,13 +190,13 @@ export function NominaTable({
             </p>
           )}
           {empleadosEnTurno.length === 0 && (
-            <div className="rounded-2xl border border-linea bg-superficie p-6 text-center text-sm text-steel-500">
+            <div className="rounded-2xl bg-superficie p-6 text-center text-sm text-steel-500">
               No hay empleados con turno asignado para hoy ({fechaHoy})
             </div>
           )}
 
           {pendientes.length > 0 && (
-            <div className="rounded-2xl border border-linea bg-superficie p-4">
+            <div className="rounded-2xl bg-superficie p-4">
               {!confirmandoTodos ? (
                 <div className="flex items-center justify-between">
                   <div>
@@ -234,7 +234,7 @@ export function NominaTable({
             </div>
           )}
 
-          <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+          <div className="overflow-hidden rounded-2xl bg-superficie">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -318,10 +318,10 @@ export function NominaTable({
             </div>
             <div className="space-y-1">
               <label className="text-sm font-semibold text-suave">Empleado</label>
-              <Input placeholder="Buscar…" value={filtroEmpleado} onChange={e => setFiltroEmpleado(e.target.value)} className="w-48 border-linea bg-superficie-2 text-tinta placeholder:text-steel-500" />
+              <Input placeholder="Buscar…" value={filtroEmpleado} onChange={e => setFiltroEmpleado(e.target.value)} className="w-48 border-linea bg-superficie-2 text-tinta placeholder:text-tenue" />
             </div>
           </div>
-          <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+          <div className="overflow-hidden rounded-2xl bg-superficie">
             <div className="max-h-96 overflow-y-auto overflow-x-auto">
               <Table>
                 <TableHeader>

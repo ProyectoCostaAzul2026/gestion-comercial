@@ -45,7 +45,7 @@ export default async function RecepcionPage() {
       {error && <p className="text-sm text-sale">No se pudieron cargar las recepciones: {error.message}</p>}
 
       {(recepciones ?? []).length === 0 ? (
-        <p className="rounded-2xl border border-linea bg-superficie p-4 text-sm text-steel-500">
+        <p className="rounded-2xl bg-superficie p-4 text-sm text-steel-500">
           {administrador ? 'No hay recepciones. Abre una cuando llegue una factura.' : 'No hay recepciones por trabajar.'}
         </p>
       ) : (

@@ -12,9 +12,9 @@ export default async function NuevoEmpleadoPage() {
     <div className="max-w-md">
       <div className="mb-6 flex items-center gap-3">
         <BotonAtras href="/dashboard/empleados" />
-        <h1 className="font-display text-2xl font-bold text-tinta">Nuevo Empleado</h1>
+        <h1 className="text-2xl font-bold text-tinta">Nuevo empleado</h1>
       </div>
-      <div className="rounded-2xl border border-linea bg-superficie p-6">
+      <div>
         <EmpleadoForm />
       </div>
     </div>

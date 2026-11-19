@@ -57,12 +57,12 @@ export default function ResetPasswordPage() {
     setTimeout(() => { router.push('/dashboard'); router.refresh() }, 1500)
   }
 
-  const CAMPO = 'w-full rounded-xl border border-linea bg-superficie-2 px-4 py-3 pr-11 text-[16px] text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60 focus:outline-none'
+  const CAMPO = 'w-full rounded-xl border border-linea bg-superficie-2 px-4 py-3 pr-11 text-[16px] text-tinta placeholder:text-tenue focus:border-accion focus:ring-3 focus:ring-accion/25 focus:outline-none'
   const ETIQUETA = 'mb-1 block text-sm font-semibold text-suave'
 
   return (
     <div className="flex min-h-dvh items-center justify-center bg-fondo px-4 py-8 text-tinta">
-      <div className="w-full max-w-sm space-y-6 rounded-2xl border border-linea bg-superficie p-6 sm:p-8">
+      <div className="w-full max-w-sm space-y-6 rounded-2xl bg-superficie p-6 sm:p-8">
         <div className="space-y-2 text-center">
           <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-yellow text-steel-900">
             <KeyRound className="h-7 w-7" aria-hidden />

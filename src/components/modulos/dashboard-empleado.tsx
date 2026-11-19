@@ -33,7 +33,7 @@ interface Props {
 export function DashboardEmpleado({ profile, config, fechaHoy, ventas, nominas, turnos, kpis, filtros, tareasPendientes }: Props) {
   if (!profile) {
     return (
-      <div className="rounded-2xl border border-linea bg-superficie p-6 text-center text-sm text-steel-300">
+      <div className="rounded-2xl bg-superficie p-6 text-center text-sm text-steel-300">
         No se pudo cargar tu perfil. Por favor cierra sesión y vuelve a entrar.
       </div>
     )

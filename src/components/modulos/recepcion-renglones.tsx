@@ -229,7 +229,7 @@ export function RecepcionRenglones({ recepcion, renglones, productosProveedor, e
   return (
     <div className="space-y-4">
       {abierta && (
-        <div className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+        <div className="space-y-3 rounded-2xl bg-superficie p-4">
           <h3 className="flex items-center gap-2 font-display font-bold text-tinta"><Plus className="h-4 w-4 text-brand-yellow" />Agregar renglón</h3>
           <FormularioRenglon recepcion={recepcion} productosProveedor={productosProveedor} onListo={() => {}} />
         </div>

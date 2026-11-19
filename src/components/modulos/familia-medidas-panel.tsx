@@ -554,7 +554,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
 
       {mostrarAyuda && temaAyuda && (
         <div className="space-y-4 rounded-2xl border border-brand-blue/30 bg-brand-blue/5 p-4">
-          <h3 className="font-display font-bold text-tinta">{temaAyuda.titulo}</h3>
+          <h3 className="text-lg font-bold text-tinta">{temaAyuda.titulo}</h3>
           {temaAyuda.secciones.map((sec, i) => (
             <div key={i} className="space-y-2">
               {sec.subtitulo && <p className="text-sm font-semibold text-enlace">{sec.subtitulo}</p>}
@@ -592,7 +592,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
       </div>
 
       {/* Lista de miembros de la familia */}
-      <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+      <div className="overflow-hidden rounded-2xl bg-superficie">
         <div className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 border-b border-linea bg-superficie-2 px-4 py-2 text-sm font-semibold text-suave">
           <span>Característica</span>
           <span>Medida</span>
@@ -642,10 +642,10 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
       {/* Editar Datos: prellena datos compartidos (categoría, descripción, imagen, IVA, fracción, proveedores)
           en varios productos seleccionados a la vez. No los activa — eso solo lo hace "Editar producto". */}
       {modoEditarDatos && (
-        <div className="space-y-5 rounded-2xl border border-linea bg-superficie p-4">
+        <div className="space-y-5 rounded-2xl bg-superficie p-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-display font-bold text-tinta">Editar Datos</h3>
+              <h3 className="text-lg font-bold text-tinta">Editar Datos</h3>
               <p className="text-xs text-steel-500">Selecciona una o más ramas y prellena los datos que compartan. Todo es opcional — deja vacío lo que no aplique.</p>
             </div>
             <Button type="button" variant="ghost" size="icon-sm" className="text-steel-300 hover:text-tinta" onClick={cerrarEditarDatos}>
@@ -799,9 +799,9 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
 
       {/* Árbol Característica → Medida → Marca */}
       {modoArbol && (
-        <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
+        <div className="space-y-4 rounded-2xl bg-superficie p-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-display font-bold text-tinta">Familia de productos</h3>
+            <h3 className="text-lg font-bold text-tinta">Familia de productos</h3>
             <Button type="button" variant="ghost" size="icon-sm" className="text-steel-300 hover:text-tinta" onClick={cerrarArbol}>
               <X className="h-4 w-4" />
             </Button>

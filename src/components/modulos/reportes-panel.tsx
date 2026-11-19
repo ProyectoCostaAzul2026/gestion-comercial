@@ -86,7 +86,7 @@ function KPICard({ label, valor, sub, color, comparacion }: {
   comparacion?: React.ReactNode
 }) {
   return (
-    <div className="rounded-2xl border border-linea bg-superficie p-4">
+    <div className="rounded-2xl bg-superficie p-4">
       <p className="text-sm font-semibold text-suave">{label}</p>
       <p className={`mt-1 font-display text-lg font-bold ${color ?? 'text-tinta'}`}>{valor}</p>
       {comparacion && <div className="mt-0.5">{comparacion}</div>}
@@ -111,7 +111,7 @@ function TablaUtilidad({ porCategoria, porFamilia, desde, hasta }: {
   const mostradas = verTodo ? filas : filas.slice(0, 15)
   const total = filas.reduce((t, f) => ({ ingresos: t.ingresos + f.ingresos, costo: t.costo + f.costo }), { ingresos: 0, costo: 0 })
   return (
-    <div className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+    <div className="space-y-3 rounded-2xl bg-superficie p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="font-semibold text-tinta">Utilidad por {vista === 'categoria' ? 'categoría' : 'familia'}</p>
@@ -301,7 +301,7 @@ export function ReportesPanel({
           { href: `/dashboard/contabilidad/exportar?desde=${desde}&hasta=${hasta}`, icono: FileSpreadsheet, titulo: 'Excel para el contador', sub: 'Del periodo elegido', descarga: true },
         ].map(v => {
           const Icono = v.icono
-          const clase = 'flex min-h-16 items-center gap-3 rounded-2xl border border-linea bg-superficie p-3 transition-colors hover:border-brand-yellow/50'
+          const clase = 'flex min-h-16 items-center gap-3 rounded-2xl bg-superficie p-3 transition-colors hover:border-brand-yellow/50'
           const contenido = (
             <>
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-yellow/10 text-brand-yellow"><Icono className="h-5 w-5" /></span>
@@ -340,7 +340,7 @@ export function ReportesPanel({
 
         {/* Saldos por medio período */}
         {Object.keys(mediosPeriodoStats).length > 0 && (
-          <div className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+          <div className="space-y-3 rounded-2xl bg-superficie p-4">
             <p className="text-xs font-medium text-steel-300">Ingresos por medio de pago — período</p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
               {MEDIOS_ORDEN.filter(m => mediosPeriodoStats[m]).map(medio => {
@@ -375,7 +375,7 @@ export function ReportesPanel({
         )}
 
         {/* Estado de resultados */}
-        <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
+        <div className="space-y-4 rounded-2xl bg-superficie p-4">
           <p className="text-xs font-medium text-steel-300">Estado de resultados</p>
 
           {/* Tabla */}
@@ -453,7 +453,7 @@ export function ReportesPanel({
         <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
           Contra el periodo anterior
         </h2>
-        <div className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+        <div className="space-y-3 rounded-2xl bg-superficie p-4">
           <Table>
             <TableHeader>
               <TableRow className="bg-superficie-2 hover:bg-superficie-2 [&_th]:text-sm [&_th]:font-semibold [&_th]:text-suave">
@@ -538,7 +538,7 @@ export function ReportesPanel({
           <KPICard label="Ventas con descuento" valor={String(descuentos.ventasConDescuento)}
             sub={kpisPeriodo.numVentas > 0 ? `${pct((descuentos.ventasConDescuento / kpisPeriodo.numVentas) * 100)} de los tickets` : undefined} />
         </div>
-        <div className="rounded-2xl border border-linea bg-superficie p-4">
+        <div className="rounded-2xl bg-superficie p-4">
           <p className="mb-1 text-sm font-semibold text-tinta">Descuentos en el tiempo</p>
           <p className="mb-4 text-xs text-steel-500">{diasPeriodo > 92 ? 'Por mes' : 'Por día'}. Incluye descuentos por línea, descuento total y total editado a mano.</p>
           {descuentos.total > 0 ? (
@@ -566,7 +566,7 @@ export function ReportesPanel({
           Análisis de ventas
         </h2>
 
-        <div className="rounded-2xl border border-linea bg-superficie p-4">
+        <div className="rounded-2xl bg-superficie p-4">
           <p className="mb-1 text-sm font-semibold text-tinta">Flujo de caja</p>
           <p className="mb-4 text-xs text-steel-500">
             {diasPeriodo > 30 ? 'Agrupado por mes' : 'Por día'}
@@ -601,7 +601,7 @@ export function ReportesPanel({
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {/* Medios de pago */}
-          <div className="rounded-2xl border border-linea bg-superficie p-4">
+          <div className="rounded-2xl bg-superficie p-4">
             <p className="mb-4 text-sm font-semibold text-tinta">Por medio de pago</p>
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
@@ -624,7 +624,7 @@ export function ReportesPanel({
           </div>
 
           {/* Ventas por hora */}
-          <div className="rounded-2xl border border-linea bg-superficie p-4">
+          <div className="rounded-2xl bg-superficie p-4">
             <p className="mb-1 text-sm font-semibold text-tinta">Ventas por hora del día</p>
             <SelectorModoGrafico modo={modoHoras} onChange={setModoHoras} />
             <ResponsiveContainer width="100%" height={200}>
@@ -645,7 +645,7 @@ export function ReportesPanel({
         </div>
 
         {/* Ventas promedio por día de la semana */}
-        <div className="rounded-2xl border border-linea bg-superficie p-4">
+        <div className="rounded-2xl bg-superficie p-4">
           <p className="mb-1 text-sm font-semibold text-tinta">Ventas promedio por día de la semana</p>
           <p className="mb-3 text-xs text-steel-500">Lunes a domingo · promedio sobre el período seleccionado</p>
           <SelectorModoGrafico modo={modoDias} onChange={setModoDias} />
@@ -667,7 +667,7 @@ export function ReportesPanel({
 
         {/* Ventas por empleado */}
         {graficaEmpleados.length > 0 && (
-          <div className="rounded-2xl border border-linea bg-superficie p-4">
+          <div className="rounded-2xl bg-superficie p-4">
             <p className="mb-4 text-sm font-semibold text-tinta">Ventas por empleado</p>
             <ResponsiveContainer width="100%" height={Math.max(120, graficaEmpleados.length * 40)}>
               <BarChart data={graficaEmpleados} layout="vertical"
@@ -720,7 +720,7 @@ export function ReportesPanel({
         </div>
 
         {/* Top por cantidad */}
-        <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+        <div className="overflow-hidden rounded-2xl bg-superficie">
           <div className="flex items-center justify-between border-b border-linea px-4 py-3">
             <p className="font-semibold text-tinta">Top {topN} — Más vendidos por cantidad</p>
             <Button variant="outline" size="sm" className="border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={() =>
@@ -773,7 +773,7 @@ export function ReportesPanel({
         </div>
 
         {/* Top por ingresos */}
-        <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+        <div className="overflow-hidden rounded-2xl bg-superficie">
           <div className="flex items-center justify-between border-b border-linea px-4 py-3">
             <p className="font-semibold text-tinta">Top {topN} — Mayor ingreso generado</p>
             <Button variant="outline" size="sm" className="border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={() =>
@@ -829,7 +829,7 @@ export function ReportesPanel({
         </div>
 
         {/* Top por rotación */}
-        <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+        <div className="overflow-hidden rounded-2xl bg-superficie">
           <div className="flex items-center justify-between border-b border-linea px-4 py-3">
             <p className="font-semibold text-tinta">Top {topN} — Mayor rotación</p>
             <Button variant="outline" size="sm" className="border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={() =>
@@ -899,7 +899,7 @@ export function ReportesPanel({
           <KPICard label="Valor inventario a precio de venta"
             valor={fmt(inventario.valorVenta)} sub="Stock actual × precio de venta" color="text-emerald-400" />
         </div>
-        <div className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+        <div className="space-y-3 rounded-2xl bg-superficie p-4">
           <div className="flex items-center justify-between">
             <p className="font-semibold text-tinta">Deuda con proveedores</p>
             <span className="font-display text-lg font-bold text-sale">{fmt(deudaProveedores.total)}</span>
@@ -924,7 +924,7 @@ export function ReportesPanel({
           <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
             Nómina del período
           </h2>
-          <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+          <div className="overflow-hidden rounded-2xl bg-superficie">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>

@@ -57,12 +57,12 @@ export default async function ProductosDesactivadosPage() {
       <div className="flex items-center gap-3">
         <BotonAtras href="/dashboard/inventario" />
         <div>
-          <h1 className="font-display text-2xl font-bold text-tinta">Productos Desactivados</h1>
+          <h1 className="text-2xl font-bold text-tinta">Productos desactivados</h1>
           <p className="text-xs text-steel-300">{(inactivos ?? []).length} producto(s) inactivo(s) en total</p>
         </div>
       </div>
 
-      <p className="rounded-2xl border border-linea bg-superficie px-4 py-3 text-xs text-steel-300">
+      <p className="rounded-2xl bg-superficie px-4 py-3 text-xs text-steel-300">
         Solo se pueden eliminar los productos <span className="font-semibold text-tinta">sin registros</span> (sin ventas,
         devoluciones, garantías ni recepciones) y sin stock. Esos se borran solos a los 3 meses de estar desactivados; los
         que tienen registros se conservan siempre para no perder el historial.

@@ -16,8 +16,8 @@ export function PerfilProveedorAcciones({ proveedorId }: { proveedorId: string }
       </Button>
 
       {mostrar && (
-        <div className="mt-4 rounded-2xl border border-linea bg-superficie p-4">
-          <h3 className="mb-3 font-display font-bold text-tinta">Registrar nueva factura</h3>
+        <div className="mt-4">
+          <h3 className="mb-3 text-lg font-bold text-tinta">Registrar nueva factura</h3>
           <FacturaProveedorForm
             proveedorId={proveedorId}
             onSuccess={() => setMostrar(false)}

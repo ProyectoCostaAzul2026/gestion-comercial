@@ -42,7 +42,7 @@ interface Props {
 export function DashboardAdmin({ profile, config, fechaHoy, kpisHoy, ultimasVentas, alertas, fechaHoyBogota, tareasPendientes }: Props) {
   if (!profile) {
     return (
-      <div className="rounded-2xl border border-linea bg-superficie p-6 text-center text-sm text-steel-300">
+      <div className="rounded-2xl bg-superficie p-6 text-center text-sm text-steel-300">
         No se pudo cargar tu perfil. Por favor cierra sesión y vuelve a entrar.
       </div>
     )

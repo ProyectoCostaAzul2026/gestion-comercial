@@ -154,7 +154,7 @@ export function AccionesInventario({ objetivo, onCerrar, categorias, familias, e
 
   const volver = rutaVolver ? `&volver=${encodeURIComponent(rutaVolver)}` : ''
   const BOTON = 'flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-tinta hover:bg-velo/5 disabled:opacity-50'
-  const CAMPO = 'h-11 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-steel-500'
+  const CAMPO = 'h-11 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-tenue'
   const SELECT = 'h-11 w-full rounded-lg border border-linea bg-superficie-2 px-3 text-[16px] text-tinta'
 
   const selectorCategoria = (

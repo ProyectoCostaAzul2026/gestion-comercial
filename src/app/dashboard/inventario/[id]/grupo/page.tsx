@@ -28,7 +28,7 @@ export default async function GrupoMedidasPage({
 
   return (
     <div className="-m-4 md:-m-6">
-      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 border-b lg:top-0 border-linea bg-fondo px-4 py-3">
+      <div className="sticky top-[calc(var(--alto-barra,3.5rem)+env(safe-area-inset-top))] z-20 bg-fondo/95 px-2 py-2 backdrop-blur lg:top-0 md:px-4">
         <div className="flex items-center gap-3">
           <BotonAtras href={`/dashboard/inventario/${producto.id}`} />
           {/* Un grupo de medidas lleva una sola foto, arriba */}

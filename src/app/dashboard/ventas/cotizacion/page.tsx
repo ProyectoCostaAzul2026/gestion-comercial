@@ -17,7 +17,7 @@ export default async function CotizacionPage() {
     <div>
       <div className="mb-6 flex items-center gap-3">
         <BotonAtras href="/dashboard/ventas" />
-        <h1 className="font-display text-2xl font-bold text-tinta">Nueva <span className="text-brand-yellow">Cotización</span></h1>
+        <h1 className="text-2xl font-bold text-tinta">Nueva <span className="text-brand-yellow">Cotización</span></h1>
       </div>
       <CotizacionForm
         catalogo={catalogo ?? []}

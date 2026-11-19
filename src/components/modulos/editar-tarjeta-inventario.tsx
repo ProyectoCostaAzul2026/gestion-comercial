@@ -83,7 +83,7 @@ export function EditarTarjetaInventario({ tarjeta, categorias, onCerrar, onGrupo
     router.refresh()
   }
 
-  const CAMPO = 'h-11 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-steel-500'
+  const CAMPO = 'h-11 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-tenue'
   const etiquetaNombre = tarjeta.tipo === 'grupo' ? 'Característica del grupo' : tarjeta.tipo === 'familia' ? 'Nombre de la familia' : 'Nombre de la categoría'
 
   return (

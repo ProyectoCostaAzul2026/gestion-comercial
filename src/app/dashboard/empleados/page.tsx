@@ -48,7 +48,7 @@ export default async function EmpleadosPage() {
           const turno = turnoDeHoy(e.id)
           return (
             <div key={e.id}
-              className={`relative flex flex-col gap-3 rounded-2xl border border-linea bg-superficie p-4 transition hover:border-brand-yellow/50 ${e.activo ? '' : 'opacity-60'}`}>
+              className={`relative flex flex-col gap-3 rounded-2xl bg-superficie p-4 transition hover:border-brand-yellow/50 ${e.activo ? '' : 'opacity-60'}`}>
               <div className="flex items-start gap-3">
                 <AvatarIniciales nombre={e.nombre_completo} foto={e.foto_url} />
                 <div className="min-w-0 flex-1">
@@ -101,7 +101,7 @@ export default async function EmpleadosPage() {
         )}
       </div>
       {(empleados ?? []).length === 0 && (
-        <p className="rounded-2xl border border-linea bg-superficie p-8 text-center text-sm text-steel-500">No hay empleados registrados.</p>
+        <p className="rounded-2xl bg-superficie p-8 text-center text-sm text-steel-500">No hay empleados registrados.</p>
       )}
     </div>
   )

@@ -15,7 +15,7 @@ import { LABEL_CLS } from './producto-form'
 import { nombreConMedida, pesos, type RecepcionVista, type RenglonVista } from './recepcion-tipos'
 
 const ESTADO_PAGO: Record<string, string> = { pendiente: 'Pendiente de pago', parcial: 'Pago parcial', pagada: 'Pagada' }
-const AREA_CLS = 'border-linea bg-superficie-2 text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60'
+const AREA_CLS = 'border-linea bg-superficie-2 text-tinta placeholder:text-tenue focus:border-accion focus:ring-3 focus:ring-accion/25'
 
 /**
  * Pestaña "Cierre" (solo administrador): revisa la suma de la factura, lo que falta, las diferencias y cierra la
@@ -66,9 +66,9 @@ export function RecepcionCierre({ recepcion, renglones, totalFactura, estadoPago
 
   return (
     <div className="space-y-4">
-      <div className="space-y-2 rounded-2xl border border-linea bg-superficie p-4">
+      <div className="space-y-2 rounded-2xl bg-superficie p-4">
         <div className="flex items-center justify-between gap-2">
-          <h3 className="font-display font-bold text-tinta">Factura</h3>
+          <h3 className="text-lg font-bold text-tinta">Factura</h3>
           <Link href={`/dashboard/proveedores/${recepcion.proveedor_id}`} className="inline-flex items-center gap-1 text-xs font-semibold text-enlace hover:underline">
             {ESTADO_PAGO[estadoPago] ?? estadoPago}: ver pagos <ExternalLink className="h-3 w-3" />
           </Link>
@@ -91,7 +91,7 @@ export function RecepcionCierre({ recepcion, renglones, totalFactura, estadoPago
 
       {lineasConDiferencia.length > 0 && (
         <div className="space-y-2 rounded-2xl border border-brand-red/30 bg-brand-red/5 p-4">
-          <h3 className="font-display font-bold text-tinta">Diferencias</h3>
+          <h3 className="text-lg font-bold text-tinta">Diferencias</h3>
           <ul className="space-y-1 text-sm">
             {lineasConDiferencia.map(r => {
               const d = diferenciaRenglon(r)!
@@ -107,7 +107,7 @@ export function RecepcionCierre({ recepcion, renglones, totalFactura, estadoPago
       )}
 
       {recepcion.estado === 'abierta' && (
-        <div className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+        <div className="space-y-3 rounded-2xl bg-superficie p-4">
           {pendientes.length > 0 ? (
             <ul className="space-y-1">
               {pendientes.map(p => (

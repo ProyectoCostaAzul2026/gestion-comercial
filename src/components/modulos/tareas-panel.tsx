@@ -155,7 +155,7 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
     { valor: 'mias', etiqueta: esAdmin ? 'Mías' : 'Mis tareas', cuenta: cuentaMias },
     { valor: 'libres', etiqueta: 'Libres', cuenta: cuentaLibres },
   ]
-  const CAMPO = 'h-11 w-full rounded-xl border border-linea bg-superficie-2 px-3 text-[16px] text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60 focus:outline-none'
+  const CAMPO = 'h-11 w-full rounded-xl border border-linea bg-superficie-2 px-3 text-[16px] text-tinta placeholder:text-tenue focus:border-accion focus:ring-3 focus:ring-accion/25 focus:outline-none'
   const ETIQUETA = 'mb-1 block text-sm font-semibold text-suave'
 
   const Tarjeta = ({ t }: { t: Tarea }) => {
@@ -270,7 +270,7 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
 
       {/* Pendientes */}
       {lista.length === 0 ? (
-        <div className="rounded-2xl border border-linea bg-superficie p-8 text-center">
+        <div className="rounded-2xl bg-superficie p-8 text-center">
           <Check className="mx-auto mb-2 h-8 w-8 text-emerald-400" aria-hidden />
           <p className="text-sm text-tinta">No hay tareas pendientes{filtro === 'mias' ? ' para ti' : filtro === 'libres' ? ' libres' : ''}.</p>
         </div>
@@ -331,7 +331,7 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
                 <label htmlFor="t-desc" className={ETIQUETA}>Detalles (opcional)</label>
                 <textarea id="t-desc" value={borrador.descripcion} maxLength={2000} rows={3}
                   onChange={e => setBorrador({ ...borrador, descripcion: e.target.value })}
-                  className="w-full rounded-xl border border-linea bg-superficie-2 px-3 py-2 text-[16px] text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60 focus:outline-none" />
+                  className="w-full rounded-xl border border-linea bg-superficie-2 px-3 py-2 text-[16px] text-tinta placeholder:text-tenue focus:border-accion focus:ring-3 focus:ring-accion/25 focus:outline-none" />
               </div>
               <div>
                 <span className={ETIQUETA}>Prioridad</span>

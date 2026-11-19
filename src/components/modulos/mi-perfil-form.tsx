@@ -75,7 +75,7 @@ export function MiPerfilForm({ perfil }: { perfil: Perfil }) {
     .join('')
     .toUpperCase()
 
-  const inputCls = 'w-full rounded-xl border border-linea bg-superficie-2 px-4 py-3 text-[16px] text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60 focus:outline-none focus:ring-0'
+  const inputCls = 'w-full rounded-xl border border-linea bg-superficie-2 px-4 py-3 text-[16px] text-tinta placeholder:text-tenue focus:border-accion focus:ring-3 focus:ring-accion/25 focus:outline-none focus:ring-0'
   const labelCls = 'mb-1 block text-sm font-semibold text-suave'
 
   return (
@@ -83,7 +83,7 @@ export function MiPerfilForm({ perfil }: { perfil: Perfil }) {
       <SelectorTema />
 
       {/* Avatar + nombre */}
-      <div className="flex flex-col items-center gap-3 rounded-2xl border border-linea bg-superficie p-6 text-center">
+      <div className="flex flex-col items-center gap-3 rounded-2xl bg-superficie p-6 text-center">
         {perfil.foto_url ? (
           <img
             src={perfil.foto_url}
@@ -104,7 +104,7 @@ export function MiPerfilForm({ perfil }: { perfil: Perfil }) {
       </div>
 
       {/* Datos del usuario */}
-      <div className="rounded-2xl border border-linea bg-superficie p-6">
+      <div className="rounded-2xl bg-superficie p-6">
         <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-tinta">
           
           Información de la cuenta
@@ -130,7 +130,7 @@ export function MiPerfilForm({ perfil }: { perfil: Perfil }) {
       </div>
 
       {/* Cambiar contraseña */}
-      <div className="rounded-2xl border border-linea bg-superficie p-6">
+      <div className="rounded-2xl bg-superficie p-6">
         <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-tinta">
           
           Cambiar contraseña

@@ -147,7 +147,7 @@ export function EscalaPrecios({ miembros, margenDefault, onGuardado, paginaCompl
   }
 
   return (
-    <div className={paginaCompleta ? 'space-y-4' : 'space-y-4 rounded-2xl border border-linea bg-superficie p-4'}>
+    <div className={paginaCompleta ? 'space-y-4' : 'space-y-4 rounded-2xl bg-superficie p-4'}>
       <div>
         <h3 className={`font-display font-bold text-tinta ${paginaCompleta ? 'sr-only' : ''}`}>Escala de precios</h3>
         <p className="text-xs text-steel-500">

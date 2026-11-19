@@ -35,7 +35,7 @@ export function SelectorPeriodo({ periodo, hoy, anterior }: {
   const puedeAvanzar = !!siguiente && siguiente <= hoy
 
   return (
-    <section className="space-y-3 rounded-2xl border border-linea bg-superficie p-3 md:p-4">
+    <section className="space-y-3 rounded-2xl bg-superficie p-3 md:p-4">
       <div role="tablist" aria-label="Periodo" className="grid grid-cols-5 gap-1 rounded-xl bg-fondo p-1">
         {TIPOS_PERIODO.map(t => {
           const activo = t.valor === periodo.tipo

@@ -74,9 +74,9 @@ export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId, saldos
     }
   }
 
-  const inputCls = 'h-12 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60'
+  const inputCls = 'h-12 border-linea-fuerte bg-superficie text-[16px] text-tinta placeholder:text-tenue focus:border-accion focus:ring-3 focus:ring-accion/25'
   const labelCls = 'text-sm font-semibold text-suave'
-  const triggerCls = 'border-linea bg-superficie-2 text-tinta'
+  const triggerCls = 'h-12 w-full border-linea-fuerte bg-superficie text-[16px] text-tinta'
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -158,7 +158,7 @@ export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId, saldos
         <Label htmlFor="observaciones" className={labelCls}>Observaciones</Label>
         <Textarea
           id="observaciones"
-          className="border-linea bg-superficie-2 text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60"
+          className="border-linea bg-superficie-2 text-tinta placeholder:text-tenue focus:border-accion focus:ring-3 focus:ring-accion/25"
           value={observaciones}
           rows={2}
           onChange={e => setObservaciones(e.target.value)}

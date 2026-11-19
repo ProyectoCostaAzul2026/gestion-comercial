@@ -67,7 +67,7 @@ function SeccionTabla({ titulo, total, color, headerBg, children }: {
 }) {
   const [abierta, setAbierta] = useState(true)
   return (
-    <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+    <div className="overflow-hidden rounded-2xl bg-superficie">
       <button type="button" onClick={() => setAbierta(v => !v)}
         aria-expanded={abierta} data-encabezado={headerBg ? 'destacado' : undefined}
         className="flex min-h-14 w-full items-center justify-between gap-3 px-4 py-3 text-left text-tinta transition-colors hover:bg-velo/5">
@@ -210,19 +210,19 @@ export function ContabilidadPanel({
 
       {/* Balance cards */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-        <div className="rounded-2xl border border-linea bg-superficie p-4">
+        <div className="rounded-2xl bg-superficie p-4">
           <p className="text-sm font-semibold text-suave">Ingresos</p>
           <p className="mt-1 font-display text-lg font-bold text-emerald-400">${balance.totalIngresos.toLocaleString('es-CO')}</p>
         </div>
-        <div className="rounded-2xl border border-linea bg-superficie p-4">
+        <div className="rounded-2xl bg-superficie p-4">
           <p className="text-sm font-semibold text-suave">Costo mercancía</p>
           <p className="mt-1 font-display text-lg font-bold text-sale">${balance.totalCMV.toLocaleString('es-CO')}</p>
         </div>
-        <div className="rounded-2xl border border-linea bg-superficie p-4">
+        <div className="rounded-2xl bg-superficie p-4">
           <p className="text-sm font-semibold text-suave">Gastos</p>
           <p className="mt-1 font-display text-lg font-bold text-sale">${balance.totalGastos.toLocaleString('es-CO')}</p>
         </div>
-        <div className="rounded-2xl border border-linea bg-superficie p-4">
+        <div className="rounded-2xl bg-superficie p-4">
           <p className="text-sm font-semibold text-suave">Nóminas</p>
           <p className="mt-1 font-display text-lg font-bold text-sale">${balance.totalNominas.toLocaleString('es-CO')}</p>
         </div>
@@ -337,7 +337,7 @@ export function ContabilidadPanel({
       </SeccionTabla>
 
       {/* Gastos */}
-      <SeccionTabla titulo="Gastos Operativos" total={totalGastosTabla} color="text-sale">
+      <SeccionTabla titulo="Gastos operativos" total={totalGastosTabla} color="text-sale">
         <div className="flex items-center justify-between gap-3 border-b border-linea bg-superficie-2 p-3">
           <Select items={[{ value: 'todas', label: 'Todas las categorías' }, ...categoriasEnTabla.map(c => ({ value: c, label: c }))]}
             onValueChange={v => v && setFiltroCategoriaGasto(v)} value={filtroCategoriaGasto}>

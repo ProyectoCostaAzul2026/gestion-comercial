@@ -825,7 +825,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                     className="h-[52px] rounded-xl border-linea bg-superficie pl-11 text-[17px] text-tinta placeholder:text-tenue"
                   />
                   {resultadosProducto.length > 0 && (
-                    <ul className="absolute z-20 mt-1 max-h-[60vh] w-full overflow-y-auto rounded-2xl border border-linea bg-superficie shadow-2xl">
+                    <ul className="absolute z-20 mt-1 max-h-[60vh] w-full overflow-y-auto rounded-2xl bg-superficie shadow-2xl">
                       {resultadosProducto.map(p => {
                         const sinStock = p.stock_almacen <= 0 && p.stock_bodega <= 0
                         const primero = (p.precios_cantidad ?? []).find(t => t.precio_unitario < p.precio_venta)

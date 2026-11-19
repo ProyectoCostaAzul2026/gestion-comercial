@@ -203,7 +203,7 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
           value={query}
           onChange={(e) => { setQuery(e.target.value); setLimite(PAGINA_BUSQUEDA) }}
           placeholder="Buscar por nombre, código, marca, medida o ubicación…"
-          className="h-12 border-linea bg-superficie-2 pl-9 pr-10 text-[16px] text-tinta placeholder:text-steel-500"
+          className="h-12 border-linea bg-superficie-2 pl-9 pr-10 text-[16px] text-tinta placeholder:text-tenue"
         />
         {buscando && (
           <button type="button" onClick={() => setQuery('')} aria-label="Borrar búsqueda"
@@ -329,7 +329,7 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
           {/* Nivel 4: el grupo de medidas con su imagen y la lista de productos */}
           {cat && fam && g && (grupo ? (
             <section className="space-y-4">
-              <div className="overflow-hidden rounded-2xl border border-linea bg-superficie sm:flex">
+              <div className="overflow-hidden rounded-2xl bg-superficie sm:flex">
                 <Imagen src={grupo.resumen.imagen} alt={grupo.nombre} className="h-56 w-full sm:h-48 sm:w-64 sm:shrink-0" />
                 <div className="flex flex-1 flex-col gap-2 p-4">
                   <div>
@@ -374,7 +374,7 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
                 </div>
               </div>
 
-              <ul className="divide-y divide-linea overflow-hidden rounded-2xl border border-linea bg-superficie">
+              <ul className="divide-y divide-linea overflow-hidden rounded-2xl bg-superficie">
                 {grupo.items.map(p => (
                   <li key={p.id} className="flex items-center gap-2 pr-1 hover:bg-velo/5">
                     <button type="button" onClick={() => router.push(`${RUTA}/${p.id}`)} className="flex min-w-0 flex-1 items-center gap-3 px-3 py-3 text-left">
@@ -467,7 +467,7 @@ export function InventarioNavegador({ productos, categorias, familias, esAdmin }
 
 function SinResultados({ texto, onVolver }: { texto: string; onVolver: () => void }) {
   return (
-    <div className="rounded-2xl border border-linea bg-superficie p-8 text-center text-sm text-steel-500">
+    <div className="rounded-2xl bg-superficie p-8 text-center text-sm text-steel-500">
       <p>{texto}</p>
       <button type="button" onClick={onVolver} className="mt-2 text-enlace hover:underline">Volver</button>
     </div>

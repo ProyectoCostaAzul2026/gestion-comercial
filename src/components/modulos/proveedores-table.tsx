@@ -162,7 +162,7 @@ export function ProveedoresTable({
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Buscar por nombre, contacto o NIT…"
-            className="h-12 border-linea bg-superficie-2 pl-9 text-[16px] text-tinta placeholder:text-steel-500"
+            className="h-12 border-linea bg-superficie-2 pl-9 text-[16px] text-tinta placeholder:text-tenue"
           />
         </div>
         <Select
@@ -246,7 +246,7 @@ export function ProveedoresTable({
         })}
       </div>
       {filtrados.length === 0 && (
-        <p className="rounded-2xl border border-linea bg-superficie p-8 text-center text-sm text-steel-500">
+        <p className="rounded-2xl bg-superficie p-8 text-center text-sm text-steel-500">
           {proveedores.length === 0 ? 'No hay proveedores registrados.' : 'Sin resultados para este filtro.'}
         </p>
       )}

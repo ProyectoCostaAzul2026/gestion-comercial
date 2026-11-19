@@ -97,7 +97,7 @@ export function GarantiasPanel({ garantias, proveedores, soloProveedor }: Garant
       )}
 
       {/* Pendientes */}
-      <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+      <div className="overflow-hidden rounded-2xl bg-superficie">
         <div className="flex items-center justify-between border-b border-linea bg-brand-yellow/10 px-4 py-3">
           <p className="flex items-center gap-2 font-display font-bold text-brand-yellow">
             <ShieldCheck className="h-4 w-4" />Garantías pendientes ({pendientes.length})
@@ -161,7 +161,7 @@ export function GarantiasPanel({ garantias, proveedores, soloProveedor }: Garant
 
       {/* Recibidas */}
       {recibidas.length > 0 && (
-        <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+        <div className="overflow-hidden rounded-2xl bg-superficie">
           <div className="border-b border-linea bg-emerald-500/10 px-4 py-3">
             <p className="font-display font-bold text-emerald-400">Garantías recibidas ({recibidas.length})</p>
           </div>

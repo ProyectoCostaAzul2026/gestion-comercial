@@ -193,7 +193,7 @@ export function RecepcionConteo({ recepcion, renglones, esAdmin }: {
         ) : (
           <ul className="space-y-2">
             {porContar.map(r => (
-              <li key={r.id} className="space-y-3 rounded-2xl border border-linea bg-superficie p-3">
+              <li key={r.id} className="space-y-3 rounded-2xl bg-superficie p-3">
                 <Encabezado renglon={r} />
                 {editable ? <FilaConteo renglon={r} onListo={() => {}} /> : <p className="text-xs text-steel-500">Sin contar</p>}
               </li>
@@ -212,7 +212,7 @@ export function RecepcionConteo({ recepcion, renglones, esAdmin }: {
           </p>
           <ul className="space-y-2">
             {esperandoPrecio.map(r => (
-              <li key={r.id} className="space-y-1 rounded-2xl border border-linea bg-superficie p-3 opacity-80">
+              <li key={r.id} className="space-y-1 rounded-2xl bg-superficie p-3 opacity-80">
                 <Encabezado renglon={r} />
                 <p className="text-xs text-steel-500">{motivoNoContable(r)}</p>
               </li>

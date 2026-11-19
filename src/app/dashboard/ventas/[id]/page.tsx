@@ -170,7 +170,7 @@ export default async function VentaDetallePage({
         <div className="flex items-center gap-3">
           <BotonAtras href={`/dashboard/ventas/${id}`} />
           <div className="min-w-0 flex-1">
-            <h1 className="font-display text-2xl font-bold text-tinta">{TITULOS_ACCION[accionVista]}</h1>
+            <h1 className="text-2xl font-bold text-tinta">{TITULOS_ACCION[accionVista]}</h1>
             <p className="text-xs text-steel-300">
               Ticket #{venta.numero_ticket} · {venta.fecha} · ${Number(venta.total).toLocaleString('es-CO')} · {METODO_LABEL[venta.tipo_pago] ?? venta.tipo_pago}
               {cliente?.nombre ? ` · ${cliente.nombre}` : ''}
@@ -188,7 +188,7 @@ export default async function VentaDetallePage({
         <BotonAtras href="/dashboard/ventas" />
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="font-display text-2xl font-bold text-tinta">Ticket #{venta.numero_ticket}</h1>
+            <h1 className="text-2xl font-bold text-tinta">Ticket #{venta.numero_ticket}</h1>
             <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${estadoBadge}`}>
               {venta.estado === 'anulada' ? 'Anulada' :
                venta.estado === 'modificada' ? 'Modificada' :
@@ -207,7 +207,7 @@ export default async function VentaDetallePage({
       </div>
 
       {/* Info general */}
-      <div className="rounded-2xl border border-linea bg-superficie p-4">
+      <div className="rounded-2xl bg-superficie p-4">
         <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-tinta">Información general</h2>
         <dl className="grid grid-cols-2 gap-3 text-sm">
           <div>
@@ -237,7 +237,7 @@ export default async function VentaDetallePage({
       </div>
 
       {/* Productos */}
-      <div className="rounded-2xl border border-linea bg-superficie p-4">
+      <div className="rounded-2xl bg-superficie p-4">
         <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-tinta">Productos</h2>
         <div className="space-y-2">
           {(items ?? []).map((item) => (
@@ -281,7 +281,7 @@ export default async function VentaDetallePage({
 
       {/* Servicios */}
       {(servicios ?? []).length > 0 && (
-        <div className="rounded-2xl border border-linea bg-superficie p-4">
+        <div className="rounded-2xl bg-superficie p-4">
           <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-tinta">Servicios</h2>
           <div className="space-y-2">
             {servicios!.map((s) => (
@@ -295,7 +295,7 @@ export default async function VentaDetallePage({
       )}
 
       {/* Pagos */}
-      <div className="rounded-2xl border border-linea bg-superficie p-4">
+      <div className="rounded-2xl bg-superficie p-4">
         <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-tinta">Pagos</h2>
         <div className="space-y-2">
           {(pagos ?? []).map((p) => (
@@ -318,7 +318,7 @@ export default async function VentaDetallePage({
       </div>
 
       {/* Totales */}
-      <div className="rounded-2xl border border-linea bg-superficie p-4">
+      <div className="rounded-2xl bg-superficie p-4">
         <dl className="space-y-2 text-sm">
           <div className="flex justify-between">
             <dt className="text-steel-300">Subtotal</dt>
@@ -359,7 +359,7 @@ export default async function VentaDetallePage({
 
       {/* Historial devoluciones */}
       {(devoluciones ?? []).length > 0 && (
-        <div className="rounded-2xl border border-linea bg-superficie p-4">
+        <div className="rounded-2xl bg-superficie p-4">
           <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-tinta">Historial de ajustes</h2>
           <div className="space-y-2">
             {devoluciones!.map((d) => (

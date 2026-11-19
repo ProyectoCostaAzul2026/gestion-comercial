@@ -93,7 +93,7 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
     }
   }
 
-  const inputCls = 'h-12 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60'
+  const inputCls = 'h-12 border-linea-fuerte bg-superficie text-[16px] text-tinta placeholder:text-tenue focus:border-accion focus:ring-3 focus:ring-accion/25'
   const labelCls = 'text-sm font-semibold text-suave'
 
   return (
@@ -105,7 +105,7 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
           onValueChange={v => v && setEmpleadoId(v)}
           value={empleadoId}
         >
-          <SelectTrigger className="border-linea bg-superficie-2 text-tinta"><SelectValue placeholder="Selecciona empleado" /></SelectTrigger>
+          <SelectTrigger className="h-12 w-full border-linea-fuerte bg-superficie text-[16px] text-tinta"><SelectValue placeholder="Selecciona empleado" /></SelectTrigger>
           <SelectContent>
             {empleados.map(e => (
               <SelectItem key={e.id} value={e.id}>{e.nombre_completo}</SelectItem>
@@ -244,7 +244,7 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
           onValueChange={v => v && setMetodoPago(v)}
           value={metodoPago}
         >
-          <SelectTrigger className="border-linea bg-superficie-2 text-tinta"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-12 w-full border-linea-fuerte bg-superficie text-[16px] text-tinta"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="efectivo">Efectivo (caja menor)</SelectItem>
             <SelectItem value="nequi">Nequi</SelectItem>
@@ -257,7 +257,7 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
         <Label htmlFor="notas" className={labelCls}>Notas</Label>
         <Textarea
           id="notas"
-          className="border-linea bg-superficie-2 text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60"
+          className="border-linea bg-superficie-2 text-tinta placeholder:text-tenue focus:border-accion focus:ring-3 focus:ring-accion/25"
           value={notas}
           onChange={e => setNotas(e.target.value)}
           rows={2}
@@ -265,9 +265,11 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
         />
       </div>
 
-      <Button type="submit" disabled={saving} className="h-12 w-full bg-brand-yellow text-base font-bold text-steel-900 hover:bg-brand-yellow hover:brightness-105">
+      <div className="sticky bottom-[var(--abajo-nav,0px)] z-10 -mx-4 bg-gradient-to-t from-fondo via-fondo/95 to-transparent px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-5 md:-mx-6 md:px-6 lg:static lg:mx-0 lg:bg-none lg:p-0">
+<Button type="submit" disabled={saving} className="h-14 w-full rounded-xl bg-accion text-lg font-bold text-sobre-accion hover:bg-accion hover:brightness-105">
         {saving ? 'Registrando…' : `Pagar $${totalPago.toLocaleString('es-CO')}`}
       </Button>
+</div>
     </form>
   )
 }

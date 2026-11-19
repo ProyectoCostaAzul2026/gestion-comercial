@@ -46,14 +46,14 @@ export function ClienteTable({ clientes }: { clientes: ClienteListItem[] }) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Buscar por nombre, teléfono o documento…"
-          className="h-12 border-linea bg-superficie-2 pl-9 text-[16px] text-tinta placeholder:text-steel-500"
+          className="h-12 border-linea bg-superficie-2 pl-9 text-[16px] text-tinta placeholder:text-tenue"
         />
       </div>
 
       {/* Celular: una tarjeta por cliente */}
       <ul className="space-y-2 md:hidden">
         {filtrados.map((cliente) => (
-          <li key={cliente.id} className="flex items-stretch overflow-hidden rounded-2xl border border-linea bg-superficie">
+          <li key={cliente.id} className="flex items-stretch overflow-hidden rounded-2xl bg-superficie">
             <Link href={`/dashboard/clientes/${cliente.id}`} className="flex min-w-0 flex-1 items-center gap-2 px-3 py-3 active:bg-velo/5">
               <div className="min-w-0 flex-1">
                 <p className="flex items-center gap-2 text-sm font-bold text-tinta">
@@ -85,12 +85,12 @@ export function ClienteTable({ clientes }: { clientes: ClienteListItem[] }) {
         ))}
       </ul>
       {filtrados.length === 0 && (
-        <p className="rounded-2xl border border-linea bg-superficie p-8 text-center text-sm text-steel-500 md:hidden">
+        <p className="rounded-2xl bg-superficie p-8 text-center text-sm text-steel-500 md:hidden">
           {clientes.length === 0 ? 'No hay clientes registrados todavía.' : 'No se encontraron clientes con esa búsqueda.'}
         </p>
       )}
 
-      <div className="hidden overflow-hidden rounded-2xl border border-linea bg-superficie md:block">
+      <div className="hidden overflow-hidden rounded-2xl bg-superficie md:block">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>

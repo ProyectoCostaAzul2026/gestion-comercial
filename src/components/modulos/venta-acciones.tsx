@@ -354,7 +354,7 @@ export function VentaAcciones({
   if (!esAdmin) return null
 
   return (
-    <div className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+    <div className="space-y-3 rounded-2xl bg-superficie p-4">
       {!accion && (
         <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
           Acciones
@@ -407,7 +407,7 @@ export function VentaAcciones({
           )}
           <div className="space-y-1">
             <Label className="text-xs text-sale">Motivo (obligatorio)</Label>
-            <Textarea value={motivo} onChange={e => setMotivo(e.target.value)} rows={2} className="border-linea bg-superficie text-tinta placeholder:text-steel-500" />
+            <Textarea value={motivo} onChange={e => setMotivo(e.target.value)} rows={2} className="border-linea bg-superficie text-tinta placeholder:text-tenue" />
           </div>
           <div className="flex gap-2">
             <Button size="sm" onClick={handleAnular} disabled={anulando} className="bg-brand-red font-bold text-white hover:bg-brand-red hover:brightness-95">
@@ -500,7 +500,7 @@ export function VentaAcciones({
                           placeholder="Observación (defecto, motivo…)"
                           value={garantiasDevolucion[item.venta_item_id]?.observacion ?? ''}
                           onChange={e => setGarantiasDevolucion(prev => ({ ...prev, [item.venta_item_id]: { ...prev[item.venta_item_id], observacion: e.target.value } }))}
-                          className="w-full rounded-lg border border-linea bg-superficie px-2 py-1 text-xs text-tinta placeholder:text-steel-500"
+                          className="w-full rounded-lg border border-linea bg-superficie px-2 py-1 text-xs text-tinta placeholder:text-tenue"
                         />
                       </div>
                     )}
@@ -545,7 +545,7 @@ export function VentaAcciones({
 
           <div className="space-y-1">
             <Label className="text-xs text-brand-yellow">Observación (obligatoria)</Label>
-            <Textarea value={observacionDev} onChange={e => setObservacionDev(e.target.value)} rows={2} className="border-linea bg-superficie text-tinta placeholder:text-steel-500" />
+            <Textarea value={observacionDev} onChange={e => setObservacionDev(e.target.value)} rows={2} className="border-linea bg-superficie text-tinta placeholder:text-tenue" />
           </div>
           <div className="flex gap-2">
             <Button size="sm" onClick={handleDevolver} disabled={devolviendo} className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105">
@@ -631,7 +631,7 @@ export function VentaAcciones({
                               placeholder="Observación (defecto, motivo…)"
                               value={garantiasCambio[item.venta_item_id]?.observacion ?? ''}
                               onChange={e => setGarantiasCambio(prev => ({ ...prev, [item.venta_item_id]: { ...prev[item.venta_item_id], observacion: e.target.value } }))}
-                              className="w-full rounded-lg border border-linea bg-superficie px-2 py-1 text-xs text-tinta placeholder:text-steel-500"
+                              className="w-full rounded-lg border border-linea bg-superficie px-2 py-1 text-xs text-tinta placeholder:text-tenue"
                             />
                           </div>
                         )}
@@ -665,7 +665,7 @@ export function VentaAcciones({
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-500" />
                 <Input value={queryProducto}
                   onChange={async e => { setQueryProducto(e.target.value); await buscarProductos(e.target.value) }}
-                  placeholder="Buscar producto a agregar…" className="border-linea bg-superficie-2 pl-9 text-tinta placeholder:text-steel-500" />
+                  placeholder="Buscar producto a agregar…" className="border-linea bg-superficie-2 pl-9 text-tinta placeholder:text-tenue" />
                 {resultadosProducto.length > 0 && (
                   <div className="absolute z-20 mt-1 w-full rounded-xl border border-linea bg-superficie shadow-xl">
                     {resultadosProducto.map((p: any) => (
@@ -738,7 +738,7 @@ export function VentaAcciones({
 
               <div className="space-y-1">
                 <Label className="text-xs text-enlace">Observación (obligatoria)</Label>
-                <Textarea value={observacionCambio} onChange={e => setObservacionCambio(e.target.value)} rows={2} className="border-linea bg-superficie text-tinta placeholder:text-steel-500" />
+                <Textarea value={observacionCambio} onChange={e => setObservacionCambio(e.target.value)} rows={2} className="border-linea bg-superficie text-tinta placeholder:text-tenue" />
               </div>
               <div className="flex gap-2">
                 <Button size="sm" variant="outline" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setPaso(1)}>← Atrás</Button>
