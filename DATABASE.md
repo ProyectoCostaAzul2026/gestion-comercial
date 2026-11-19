@@ -1232,3 +1232,10 @@ Desde el 2026-11-18 ninguna política queda "para public": todas son `to authent
     y `rls_auto_enable` ya no se pueden ejecutar con sesión (la app no las usa). Revisión del mismo día: ninguna función
     `SECURITY DEFINER` se ejecuta sin sesión y todas las de administrador validan el rol por dentro; los tipos de
     `database.types.ts` coinciden con el esquema.
+23. **Categorías con la referencia de Ranger** (2026-11-19, solo datos; SQL en `sql/catalogo_categorias_referencia_ranger.sql`):
+    se crearon 6 categorías (Llaves y Copas, Accesorios para Herramienta Eléctrica, Seguridad Industrial, Herramientas de
+    Medición, Gas y Automotriz) y se movieron 450 productos de familias enteras siguiendo cómo agrupa sus productos la
+    tienda de Ranger. Solo cambió `productos.categoria_id`: nombres, marcas, medidas, códigos, stock y precios quedaron
+    igual. Quedan 27 categorías, todas con imagen. Una familia puede estar en dos categorías cuando son productos distintos
+    (pistola de silicona eléctrica y de calafateo, sonda para cable y para cañería, buje de PVC y de caucho, válvula de gas
+    y de agua).

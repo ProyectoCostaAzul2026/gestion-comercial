@@ -332,6 +332,10 @@ nómina).
   `DATABASE.md`). Reglas: familia = tipo de producto (Codo, Tee, Tubo);
   característica = sistema y variante (PVC Presion, PVC Sanitario CxC, CPVC); la medida va en `unidad_medida`; la
   descripción dice función y características, sin datos del proveedor. Los duplicados se reportan, no se unen.
+- **Referencia de Ranger** (ranger.com.co, 2.363 productos de herramienta y ferretería): se usa solo como información para
+  ordenar el catálogo (cómo agrupa y nombra), nunca sus fotos ni sus textos (su política de contenidos lo prohíbe). Los
+  datos extraídos se guardan fuera del repositorio. Lote 1 aplicado (categorías); los siguientes revisan características y
+  grupos sin cambiar la identidad del producto (marca, medida, código, stock, precio).
 - 20 productos tienen dos proveedores: el de la compra más reciente es el principal y está marcado `es_costo_base_manual`.
 - **Webs de proveedores (2026-11-06)**: la imagen va por grupo de medidas (familia + característica + marca) y se enlaza
   desde la web del proveedor cuando la referencia coincide: Sumatec (GraphQL de Magento en sumatec.co/graphql),
@@ -348,7 +352,8 @@ nómina).
   "Drywall Negro" → "Drywall" y "Hexagonal Grado 2 Zincado UNC" → "Hexagonal Grado 2 Zincado": el stock pasó al producto
   que queda (movimiento `ajuste`), el proveedor del repetido quedó como adicional y el repetido está inactivo. Quedan
   3325 productos activos; 46 tienen dos proveedores. Respaldo en `respaldo.*_20261106`.
-- Categorías (20 de 21; "Tanques y Recipientes" no tiene productos activos) y familias (329 de 433) tienen `imagen_url` propia para su tarjeta en Inventario; 13
+- Categorías: 27 desde el 2026-11-19 (6 nuevas con la referencia de Ranger, nota 23 de `DATABASE.md`; todas con imagen;
+  "Tanques y Recipientes" tiene un solo producto). Familias (329 de 433) tienen `imagen_url` propia para su tarjeta en Inventario; 13
   proveedores tienen `logo_url` y `sitio_web`.
 - `facturas_proveedor`: 233 documentos (facturas, remisiones, pedidos, cuentas de cobro y cotizaciones de dos
   proveedores que fueron compras reales). Los vencidos al 2026-10-31 quedaron como pagados (215) sin filas en
