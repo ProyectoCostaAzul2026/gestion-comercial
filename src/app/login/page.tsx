@@ -66,7 +66,7 @@ export default function LoginPage() {
       return
     }
 
-    setRecuperarMsg('Si el correo existe, te enviamos un enlace para restablecer tu contraseña.')
+    setRecuperarMsg('Si el correo existe, te enviamos un enlace. Si no te llega en unos minutos, pídele al administrador un enlace para crear tu contraseña: lo genera desde tu ficha en Empleados.')
   }
 
   const inputCls = 'h-[52px] w-full rounded-[10px] border border-linea-fuerte bg-superficie px-3.5 text-[17px] text-tinta placeholder:text-tenue focus:border-accion focus:outline-none focus:ring-3 focus:ring-accion/30'

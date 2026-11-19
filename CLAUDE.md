@@ -116,10 +116,15 @@ nómina).
 - **Pantallas de precarga**: cada página del dashboard tiene `loading.tsx` con una silueta de `src/components/ui/esqueleto.tsx`
   (lista, tarjetas, detalle, formulario, panel, venta, semana). Una página nueva debe traer su `loading.tsx`.
   `barra-progreso.tsx` muestra una barra arriba apenas se toca un enlace interno.
-- **Recuperar contraseña e invitaciones**: el enlace del correo llega a `/auth/confirm` (Route Handler), que acepta
-  `token_hash` + `type` (funciona en cualquier dispositivo) o `code` (solo en el navegador que pidió el enlace), deja la
-  sesión y manda a `/auth/reset-password`. Si el enlace no sirve, `/login?error=enlace_invalido`. El proxy pasa a
-  `/auth/confirm` cualquier página que reciba `code` o `token_hash`. `redirectTo` usa la dirección de la propia app.
+- **Recuperar contraseña e invitaciones** (sin correo desde el 2026-11-19): el correo de Supabase del plan gratuito solo
+  llega a los miembros del equipo del proyecto y sin SMTP propio no se pueden editar las plantillas. Por eso el
+  administrador genera el enlace en la app y lo manda por WhatsApp o lo copia (`enlace-acceso.tsx`): al crear un empleado
+  (`invitarEmpleado` usa `auth.admin.generateLink` tipo `invite`, que crea el usuario sin mandar correo) y en la ficha del
+  empleado ("Generar enlace para cambiar la contraseña", `enlaceNuevaContrasena`, tipo `recovery`). El enlace va a
+  `/auth/confirm?token_hash=…&type=…` (Route Handler), que sirve en cualquier celular, deja la sesión y manda a
+  `/auth/reset-password`; vence en una hora y sirve una vez. `/auth/confirm` también acepta `code` (enlace del correo por
+  defecto, solo en el navegador que lo pidió). Si el enlace no sirve, `/login?error=enlace_invalido`. El proxy pasa a
+  `/auth/confirm` cualquier página que reciba `code` o `token_hash`.
 - **Tema claro y oscuro** (desde el 2026-11-19): cada persona elige Claro, Oscuro o "Como el celular" en Mi perfil
   (`selector-tema.tsx`, cookie `tema`, por defecto oscuro; `src/lib/tema.ts`). Los colores son variables en `globals.css`
   (`:root` claro, `.dark` oscuro): usar `bg-fondo`, `bg-superficie`, `bg-superficie-2`, `text-tinta`, `text-suave`,
@@ -396,10 +401,10 @@ nómina).
 - Migración `garantias_y_fraccion` (2026-11-18): RPC `registrar_garantia` (saca del stock lo que va al proveedor;
   `recibir_garantia` lo suma al volver), movimiento de inventario al devolver por fracción y `anular_venta` pasando a
   unidades el sobrante de una línea por fracción.
-- Plantillas de correo de Supabase: para que el enlace de recuperación funcione desde cualquier dispositivo, la plantilla
-  "Reset Password" debe enlazar a `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery` (e "Invite user"
-  a `...&type=invite`), y `https://gestion-comercial-alpha.vercel.app/**` debe estar en Redirect URLs. Se cambia en el
-  panel de Supabase (Authentication > Emails y URL Configuration); el conector no lo permite.
+- Correo de Supabase: para que "Olvidé mi contraseña" del login llegue por correo a cualquier persona hay que configurar
+  un SMTP propio (Authentication > Emails > Set up SMTP; p. ej. Gmail con contraseña de aplicación, Brevo o Resend) y
+  entonces cambiar la plantilla "Reset Password" a `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery`.
+  Mientras tanto, el administrador genera el enlace en la ficha del empleado.
 - Migración `iva_fraccion_y_editar_factura` (2026-11-18): IVA informativo en las líneas por fracción y RPC
   `editar_factura_proveedor` (recalcula saldo y estado con lo pagado). Las 4 ventas por fracción anteriores conservan
   su IVA en 0.

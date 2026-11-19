@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { invitarEmpleado, desactivarEmpleado, reactivarEmpleado } from '@/app/actions/empleados'
+import { EnlaceAcceso } from './enlace-acceso'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -42,6 +43,8 @@ export function EmpleadoForm({ empleado }: EmpleadoFormProps) {
   })
   const [saving, setSaving] = useState(false)
   const [accionando, setAccionando] = useState(false)
+  // Enlace para que el empleado recién creado haga su contraseña
+  const [enlaceNuevo, setEnlaceNuevo] = useState<string | null>(null)
 
   const handleChange = (field: keyof typeof form, value: string | number) => {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -67,7 +70,7 @@ export function EmpleadoForm({ empleado }: EmpleadoFormProps) {
         volver('/dashboard/empleados', { refrescar: true })
       } else {
         if (!form.email.trim()) { toast.error('El email es obligatorio'); setSaving(false); return }
-        await invitarEmpleado({
+        const { enlace } = await invitarEmpleado({
           email: form.email,
           nombre_completo: form.nombre_completo,
           telefono: form.telefono || null,
@@ -75,8 +78,8 @@ export function EmpleadoForm({ empleado }: EmpleadoFormProps) {
           rol: form.rol,
           salario_base: form.salario_base || null,
         })
-        toast.success('Invitación enviada al empleado por email')
-        volver('/dashboard/empleados', { refrescar: true })
+        toast.success('Empleado creado')
+        setEnlaceNuevo(enlace)
       }
     } catch (err: any) {
       toast.error('Error: ' + err.message)
@@ -112,6 +115,18 @@ export function EmpleadoForm({ empleado }: EmpleadoFormProps) {
     } finally {
       setAccionando(false)
     }
+  }
+
+  if (enlaceNuevo) {
+    return (
+      <div className="space-y-4">
+        <EnlaceAcceso enlace={enlaceNuevo} nombre={form.nombre_completo} telefono={form.telefono} nuevo />
+        <button type="button" onClick={() => volver('/dashboard/empleados', { refrescar: true })}
+          className="h-12 w-full rounded-xl border border-linea bg-superficie text-[15px] font-semibold text-tinta hover:bg-superficie-2">
+          Listo, volver a Empleados
+        </button>
+      </div>
+    )
   }
 
   const inputCls = 'h-12 border-linea-fuerte bg-superficie text-[16px] text-tinta placeholder:text-tenue focus:border-accion focus:ring-3 focus:ring-accion/25'
