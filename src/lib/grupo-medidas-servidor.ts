@@ -6,7 +6,7 @@ import type { Database } from '@/lib/supabase/database.types'
 import type { MiembroGrupo } from '@/components/modulos/grupo-medidas-panel'
 
 const CAMPOS_MIEMBRO = `
-  id, nombre, codigo, unidad_medida, marca, activo, stock_actual, stock_minimo, ubicacion,
+  id, nombre, codigo, unidad_medida, marca, imagen_url, activo, stock_actual, stock_minimo, ubicacion,
   precio_venta, precio_costo_base, tiene_iva, iva_incluido, porcentaje_iva, orden_medida, peso_unitario_g
 `
 
@@ -19,7 +19,7 @@ export interface GrupoCargado {
 export async function cargarGrupoMedidas(supabase: SupabaseClient<Database>, id: string): Promise<GrupoCargado | null> {
   const { data: producto, error } = await supabase
     .from('productos')
-    .select('id, nombre, familia_id, caracteristica, marca')
+    .select('id, nombre, familia_id, caracteristica, marca, imagen_url')
     .eq('id', id)
     .single()
   if (error || !producto) return null

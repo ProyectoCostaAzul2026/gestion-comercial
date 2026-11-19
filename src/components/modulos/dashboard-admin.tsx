@@ -6,6 +6,7 @@ import {
   AlertCircle, CalendarOff, ClipboardList, ClipboardCheck, DollarSign, ListChecks, ShieldCheck,
 } from 'lucide-react'
 import { Aviso } from '@/components/ui/aviso'
+import { EnlaceA, ProductoConFoto } from '@/components/ui/producto-miniatura'
 import { MedioPagoIcono } from '@/components/ui/medio-pago-icono'
 import { fechaLarga } from '@/lib/permisos'
 
@@ -30,7 +31,7 @@ interface Props {
     /** Permisos de hoy a 7 días: el empleado no asiste ese día */
     permisos: { id: string; fecha: string; motivo: string | null; nombre: string }[]
     /** Productos de alta rápida que faltan por completar (hasta 50) */
-    porCompletar: { id: string; nombre: string }[]
+    porCompletar: { id: string; nombre: string; imagen_url?: string | null }[]
   }
   /** Fecha de hoy en Bogotá, para marcar los permisos de hoy */
   fechaHoyBogota: string
@@ -147,14 +148,23 @@ export function DashboardAdmin({ profile, config, fechaHoy, kpisHoy, ultimasVent
               {alertas.productosAgotados.length > 0 && (
                 <Aviso tono="sale" icono={PackageX} accion={{ href: '/dashboard/inventario/agotados', texto: 'Ver' }}
                   titulo={`${plural(alertas.productosAgotados.length, 'producto agotado', 'productos agotados')}`}>
-                  {alertas.productosAgotados.slice(0, 3).map((p: any) => p.nombre).join(', ')}
-                  {alertas.productosAgotados.length > 3 ? ` y ${alertas.productosAgotados.length - 3} más.` : '.'}
+                  <ul className="space-y-1.5">
+                    {alertas.productosAgotados.slice(0, 3).map((p: any) => (
+                      <li key={p.id}><ProductoConFoto id={p.id} nombre={p.nombre} url={p.imagen_url} tam="xs" className="text-[15px]" /></li>
+                    ))}
+                  </ul>
+                  {alertas.productosAgotados.length > 3 && <p className="mt-1.5">Y {alertas.productosAgotados.length - 3} más.</p>}
                 </Aviso>
               )}
               {alertas.porCompletar.length > 0 && (
                 <Aviso icono={ClipboardList} accion={{ href: '/dashboard/inventario/por-completar', texto: 'Completar' }}
                   titulo={`${alertas.porCompletar.length}${alertas.porCompletar.length === 50 ? ' o más' : ''} ${alertas.porCompletar.length === 1 ? 'producto creado' : 'productos creados'} en la venta sin datos completos`}>
-                  {alertas.porCompletar.slice(0, 3).map(p => p.nombre).join(', ')}{alertas.porCompletar.length > 3 ? ` y ${alertas.porCompletar.length - 3} más.` : '.'}
+                  <ul className="space-y-1.5">
+                    {alertas.porCompletar.slice(0, 3).map(p => (
+                      <li key={p.id}><ProductoConFoto id={p.id} nombre={p.nombre} url={p.imagen_url} tam="xs" className="text-[15px]" /></li>
+                    ))}
+                  </ul>
+                  {alertas.porCompletar.length > 3 && <p className="mt-1.5">Y {alertas.porCompletar.length - 3} más.</p>}
                 </Aviso>
               )}
               {alertas.facturasPendientes.length > 0 && (
@@ -163,7 +173,7 @@ export function DashboardAdmin({ profile, config, fechaHoy, kpisHoy, ultimasVent
                   <ul className="space-y-0.5">
                     {alertas.facturasPendientes.map((f: any) => (
                       <li key={f.id} className="flex justify-between gap-2">
-                        <span>{f.proveedores?.nombre}, vence {fechaLarga(f.fecha_vencimiento)}</span>
+                        <span><EnlaceA href={f.proveedores?.id ? `/dashboard/proveedores/${f.proveedores.id}` : null}>{f.proveedores?.nombre}</EnlaceA>, vence {fechaLarga(f.fecha_vencimiento)}</span>
                         <span className="cifra text-base font-bold text-tinta">{fmt(f.saldo_pendiente)}</span>
                       </li>
                     ))}
@@ -176,7 +186,7 @@ export function DashboardAdmin({ profile, config, fechaHoy, kpisHoy, ultimasVent
                   <ul className="space-y-0.5">
                     {alertas.pagosProgramados.map((p: any) => (
                       <li key={p.id} className="flex justify-between gap-2">
-                        <span>{p.facturas_proveedor?.proveedores?.nombre ?? 'Proveedor'}, {fechaLarga(p.fecha_programada)}</span>
+                        <span><EnlaceA href={p.facturas_proveedor?.proveedores?.id ? `/dashboard/proveedores/${p.facturas_proveedor.proveedores.id}` : null}>{p.facturas_proveedor?.proveedores?.nombre ?? 'Proveedor'}</EnlaceA>, {fechaLarga(p.fecha_programada)}</span>
                         <span className="cifra text-base font-bold text-tinta">{fmt(p.monto)}</span>
                       </li>
                     ))}

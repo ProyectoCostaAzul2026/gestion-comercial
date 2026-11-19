@@ -14,7 +14,7 @@ export default async function AgotadosPage() {
       supabase
         .from('productos')
         .select(`
-          id, nombre, codigo, marca, unidad_medida, prioridad, stock_actual, stock_minimo, stock_bodega, stock_almacen,
+          id, nombre, codigo, marca, unidad_medida, imagen_url, prioridad, stock_actual, stock_minimo, stock_bodega, stock_almacen,
           producto_proveedores(precio_costo, proveedor_id, proveedores(id, nombre))
         `)
         .eq('activo', true)
@@ -35,6 +35,7 @@ export default async function AgotadosPage() {
       return {
         id: p.id,
         nombre: p.nombre,
+        imagen_url: p.imagen_url ?? null,
         codigo: p.codigo ?? '—',
         marca: p.marca,
         unidad_medida: p.unidad_medida,

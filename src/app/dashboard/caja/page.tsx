@@ -24,7 +24,7 @@ export default async function CajaPage() {
     { data: saldos },
   ] = await Promise.all([
     supabase.from('movimientos_caja')
-      .select('id, fecha, hora, tipo_movimiento, origen_destino, monto, observaciones, referencia_tipo')
+      .select('id, fecha, hora, tipo_movimiento, origen_destino, monto, observaciones, referencia_tipo, referencia_id')
       .eq('fecha', hoy)
       .order('hora', { ascending: false }),
     supabase.from('fondos_denominaciones')

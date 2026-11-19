@@ -1,5 +1,6 @@
 'use client'
 
+import { MiniaturaProducto, ProductoConFoto, EnlaceA } from '@/components/ui/producto-miniatura'
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -16,6 +17,7 @@ export interface ProductoDesactivado {
   nombre: string
   unidad_medida: string | null
   marca: string | null
+  imagen_url?: string | null
   updated_at: string
 }
 
@@ -85,8 +87,8 @@ function Lista({
                 {filtrados.map(p => (
                   <TableRow key={p.id} className="border-linea hover:bg-velo/5">
                     <TableCell className="font-mono text-xs text-brand-yellow">{p.codigo ?? '—'}</TableCell>
-                    <TableCell className="text-xs font-medium text-tinta">
-                      <Link href={`/dashboard/inventario/${p.id}`} className="hover:underline">{p.nombre}</Link>
+                    <TableCell>
+                      <ProductoConFoto id={p.id} nombre={p.nombre} url={p.imagen_url} tam="xs" className="text-sm" />
                     </TableCell>
                     <TableCell className="text-xs text-steel-300">{p.unidad_medida ?? '—'}</TableCell>
                     <TableCell className="text-xs text-steel-300">{p.marca ?? '—'}</TableCell>

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { BotonAtras } from '@/components/ui/boton-atras'
+import { MiniaturaProducto } from '@/components/ui/producto-miniatura'
 import { esAdmin } from '@/lib/permissions'
 import { GrupoMedidasPanel } from '@/components/modulos/grupo-medidas-panel'
 import { cargarGrupoMedidas } from '@/lib/grupo-medidas-servidor'
@@ -23,16 +24,19 @@ export default async function GrupoMedidasPage({
   ])
   if (!grupo) notFound()
   const { producto, miembros } = grupo
+  const fotoGrupo = (producto as { imagen_url?: string | null }).imagen_url ?? miembros.find(m => m.imagen_url)?.imagen_url ?? null
 
   return (
     <div className="-m-4 md:-m-6">
       <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 border-b lg:top-0 border-linea bg-fondo px-4 py-3">
         <div className="flex items-center gap-3">
           <BotonAtras href={`/dashboard/inventario/${producto.id}`} />
+          {/* Un grupo de medidas lleva una sola foto, arriba */}
+          <MiniaturaProducto url={fotoGrupo} nombre={producto.nombre} tam="md" />
           <div className="min-w-0">
-            <h1 className="font-display text-lg font-bold text-tinta">Grupo de medidas</h1>
-            <p className="truncate text-xs text-steel-300">
-              {producto.nombre}{producto.marca ? ` · ${producto.marca}` : ''}
+            <h1 className="truncate text-lg font-bold text-tinta">{producto.nombre}</h1>
+            <p className="truncate text-sm text-suave">
+              Grupo de medidas{producto.marca ? `, ${producto.marca}` : ''}, {miembros.length} {miembros.length === 1 ? 'medida' : 'medidas'}
             </p>
           </div>
         </div>

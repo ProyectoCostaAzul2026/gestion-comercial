@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+import { MiniaturaProducto } from '@/components/ui/producto-miniatura'
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -119,7 +121,8 @@ export function RecepcionPrecios({ recepcion, renglones, margenDefault }: {
           return (
             <li key={r.id} className="space-y-2 rounded-2xl border border-linea bg-superficie p-3">
               <div className="flex flex-wrap items-center gap-2">
-                <p className="text-sm font-semibold text-tinta">{nombreConMedida(p)}</p>
+                <MiniaturaProducto url={p.imagen_url} nombre={p.nombre} tam="sm" />
+                <Link href={`/dashboard/inventario/${p.id}`} className="text-[15px] font-semibold text-tinta hover:underline">{nombreConMedida(p)}</Link>
                 {!p.activo && <span className="rounded-full border border-brand-blue/40 px-2 py-0.5 text-xs font-semibold text-enlace">Nuevo: se activa al aprobar</span>}
                 {aprobado && <span className="inline-flex items-center gap-1 text-xs text-emerald-400"><CheckCircle2 className="h-3.5 w-3.5" />Aprobado</span>}
               </div>

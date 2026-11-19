@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { RefreshCw } from 'lucide-react'
@@ -48,7 +49,7 @@ export function RecepcionPanel({ recepcion, renglones, productosProveedor, esAdm
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="font-display text-xl font-bold text-tinta">{recepcion.proveedor_nombre}</h1>
+            <h1 className="text-xl font-bold text-tinta"><Link href={`/dashboard/proveedores/${recepcion.proveedor_id}`} className="underline-offset-2 hover:text-enlace hover:underline">{recepcion.proveedor_nombre}</Link></h1>
             <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${CLASE_ESTADO_RECEPCION[recepcion.estado]}`}>
               {ETIQUETA_ESTADO_RECEPCION[recepcion.estado]}
             </span>

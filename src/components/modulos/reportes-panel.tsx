@@ -751,7 +751,7 @@ export function ReportesPanel({
                   <TableRow key={p.producto_id} className="border-linea hover:bg-velo/5">
                     <TableCell className="text-xs text-steel-500">{i + 1}</TableCell>
                     <TableCell className="font-mono text-xs text-brand-yellow">{p.codigo}</TableCell>
-                    <TableCell className="text-xs font-medium text-tinta">{p.nombre}</TableCell>
+                    <TableCell className="text-sm font-medium"><Link href={`/dashboard/inventario/${p.producto_id}`} prefetch={false} className="text-tinta underline-offset-2 hover:text-enlace hover:underline">{p.nombre}</Link></TableCell>
                     <TableCell className="text-xs text-steel-300">{p.marca ?? '—'}</TableCell>
                     <TableCell className="text-xs text-steel-300">{p.unidad_medida ?? '—'}</TableCell>
                     <TableCell className="text-right font-display font-bold text-tinta">{p.cantidad}</TableCell>
@@ -805,7 +805,7 @@ export function ReportesPanel({
                     <TableRow key={p.producto_id} className="border-linea hover:bg-velo/5">
                       <TableCell className="text-xs text-steel-500">{i + 1}</TableCell>
                       <TableCell className="font-mono text-xs text-brand-yellow">{p.codigo}</TableCell>
-                      <TableCell className="text-xs font-medium text-tinta">{p.nombre}</TableCell>
+                      <TableCell className="text-sm font-medium"><Link href={`/dashboard/inventario/${p.producto_id}`} prefetch={false} className="text-tinta underline-offset-2 hover:text-enlace hover:underline">{p.nombre}</Link></TableCell>
                       <TableCell className="text-xs text-steel-300">{p.marca ?? '—'}</TableCell>
                       <TableCell className="text-xs text-steel-300">{p.unidad_medida ?? '—'}</TableCell>
                       <TableCell className="text-right font-display font-bold text-emerald-400">{fmt(p.ingresos)}</TableCell>
@@ -859,7 +859,7 @@ export function ReportesPanel({
                   <TableRow key={p.producto_id} className="border-linea hover:bg-velo/5">
                     <TableCell className="text-xs text-steel-500">{i + 1}</TableCell>
                     <TableCell className="font-mono text-xs text-brand-yellow">{p.codigo}</TableCell>
-                    <TableCell className="text-xs font-medium text-tinta">{p.nombre}</TableCell>
+                    <TableCell className="text-sm font-medium"><Link href={`/dashboard/inventario/${p.producto_id}`} prefetch={false} className="text-tinta underline-offset-2 hover:text-enlace hover:underline">{p.nombre}</Link></TableCell>
                     <TableCell className="text-xs text-steel-300">{p.marca ?? '—'}</TableCell>
                     <TableCell className="text-xs text-steel-300">{p.unidad_medida ?? '—'}</TableCell>
                     <TableCell className="text-right text-emerald-400">{fmt(p.ingresos)}</TableCell>

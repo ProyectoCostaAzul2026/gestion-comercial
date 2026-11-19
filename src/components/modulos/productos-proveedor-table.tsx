@@ -1,5 +1,6 @@
 'use client'
 
+import { MiniaturaProducto, ProductoConFoto, EnlaceA } from '@/components/ui/producto-miniatura'
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -22,6 +23,7 @@ interface ProductoProveedor {
   producto: {
     id: string
     nombre: string
+    imagen_url?: string | null
     codigo: string | null
     activo: boolean
     stock_actual: number
@@ -39,6 +41,8 @@ const SIN_FAMILIA = '__sin_familia__'
 
 interface ItemPedido {
   id: string
+  producto_id?: string
+  imagen_url?: string | null
   referencia_proveedor: string | null
   nombre: string
   marca: string | null
@@ -128,6 +132,8 @@ export function ProductosProveedorTable({
             id: pp.id,
             referencia_proveedor: pp.referencia_proveedor,
             nombre: pp.producto.nombre,
+            producto_id: pp.producto.id,
+            imagen_url: pp.producto.imagen_url,
             marca: pp.producto.marca,
             unidad_medida: pp.producto.unidad_medida,
             stock_actual: pp.producto.stock_actual,
@@ -264,6 +270,7 @@ export function ProductosProveedorTable({
                         </td>
                         <td className="py-2 pr-3">
                           <div className="flex items-center gap-2">
+                            <MiniaturaProducto url={pp.producto.imagen_url} nombre={pp.producto.nombre} tam="xs" />
                             {pp.producto.id ? (
                               // Sin prefetch: un proveedor puede tener cientos de productos en esta lista
                               <Link
@@ -373,12 +380,15 @@ export function ProductosProveedorTable({
                       <span className="col-span-3 truncate font-mono text-xs text-brand-yellow">
                         {item.referencia_proveedor ?? '—'}
                       </span>
-                      <div className="col-span-4 min-w-0">
+                      <div className="col-span-4 flex min-w-0 items-center gap-2">
+                        <MiniaturaProducto url={item.imagen_url} nombre={item.nombre} tam="xs" />
+                        <div className="min-w-0">
                         <p className="truncate text-sm font-medium text-tinta">{item.nombre}</p>
                         <p className="text-xs text-steel-500">
                           {item.marca ?? ''}{item.unidad_medida ? ` · ${item.unidad_medida}` : ''}
                           {' · '}Stock: <span className={item.stock_actual <= item.stock_minimo ? 'text-sale' : 'text-steel-300'}>{item.stock_actual}</span>
                         </p>
+                        </div>
                       </div>
                       <span className="col-span-2 text-right text-xs text-steel-300">
                         {item.rotacion_diaria > 0 ? item.rotacion_diaria.toFixed(2) : '—'}

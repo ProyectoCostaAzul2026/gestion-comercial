@@ -21,6 +21,7 @@ import { INPUT_CLS, LABEL_CLS } from './producto-form'
 // precios.
 
 export interface MiembroGrupo {
+  imagen_url?: string | null
   id: string
   nombre: string
   codigo: string | null

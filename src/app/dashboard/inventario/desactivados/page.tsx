@@ -15,7 +15,7 @@ export default async function ProductosDesactivadosPage() {
   const { data: inactivos } = await traerTodo((filaDesde, filaHasta) =>
     supabase
       .from('productos')
-      .select('id, codigo, nombre, unidad_medida, marca, updated_at')
+      .select('id, codigo, nombre, unidad_medida, marca, imagen_url, updated_at')
       .eq('activo', false)
       .order('updated_at', { ascending: false })
       .order('id', { ascending: true })

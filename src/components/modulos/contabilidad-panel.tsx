@@ -264,8 +264,8 @@ export function ContabilidadPanel({
               <TableRow key={`v-${v.id}`} className="border-linea hover:bg-velo/5">
                 <TableCell className="text-xs text-steel-300">{v.fecha}</TableCell>
                 <TableCell><span className="inline-flex items-center rounded-full bg-brand-blue/20 px-2 py-0.5 text-xs font-semibold text-enlace">Venta</span></TableCell>
-                <TableCell className="text-xs text-tinta">Ticket #{v.numero_ticket}</TableCell>
-                <TableCell className="text-xs text-steel-300">{v.clientes?.nombre ?? 'General'}</TableCell>
+                <TableCell className="text-sm text-tinta"><Link href={`/dashboard/ventas/${v.id}`} prefetch={false} className="underline-offset-2 hover:text-enlace hover:underline">Ticket #{v.numero_ticket}</Link></TableCell>
+                <TableCell className="text-sm text-suave">{v.clientes?.id ? <Link href={`/dashboard/clientes/${v.clientes.id}`} prefetch={false} className="underline-offset-2 hover:text-enlace hover:underline">{v.clientes.nombre}</Link> : 'Mostrador'}</TableCell>
                 <TableCell className="text-right font-display font-bold text-emerald-400">${Number(v.total).toLocaleString('es-CO')}</TableCell>
               </TableRow>
             ))}
@@ -274,7 +274,7 @@ export function ContabilidadPanel({
                 <TableCell className="text-xs text-steel-300">{s.ventas?.fecha}</TableCell>
                 <TableCell><span className="inline-flex items-center rounded-full bg-brand-yellow/20 px-2 py-0.5 text-xs font-semibold text-brand-yellow">Servicio</span></TableCell>
                 <TableCell className="text-xs text-tinta">{s.nombre_servicio}</TableCell>
-                <TableCell className="text-xs text-steel-300">Ticket #{s.ventas?.numero_ticket}</TableCell>
+                <TableCell className="text-sm text-suave"><Link href={`/dashboard/ventas/${s.ventas?.id}`} prefetch={false} className="underline-offset-2 hover:text-enlace hover:underline">Ticket #{s.ventas?.numero_ticket}</Link></TableCell>
                 <TableCell className={`text-right font-display font-bold ${filtroTipoIngreso === 'servicios' ? 'text-emerald-400' : 'text-steel-300'}`}>
                   ${Number(s.precio_aplicado).toLocaleString('es-CO')}
                   {filtroTipoIngreso !== 'servicios' && <span className="block text-xs font-normal text-steel-500">incluido en el ticket</span>}
@@ -317,10 +317,11 @@ export function ContabilidadPanel({
               const cant = cantidadVendida(i)
               const totalCosto = Math.round(costoLineaVenta(i))
               const proveedor = i.productos?.producto_proveedores?.[0]?.proveedores?.nombre ?? '—'
+              const proveedorId = i.productos?.producto_proveedores?.[0]?.proveedor_id as string | undefined
               return (
                 <TableRow key={i.id} className="border-linea hover:bg-velo/5">
-                  <TableCell className="text-xs font-medium text-tinta">{i.nombre_producto}</TableCell>
-                  <TableCell className="text-xs text-steel-300">{proveedor}</TableCell>
+                  <TableCell className="text-sm font-medium text-tinta">{i.productos?.id ? <Link href={`/dashboard/inventario/${i.productos.id}`} prefetch={false} className="underline-offset-2 hover:text-enlace hover:underline">{i.nombre_producto}</Link> : i.nombre_producto}</TableCell>
+                  <TableCell className="text-sm text-suave">{proveedorId ? <Link href={`/dashboard/proveedores/${proveedorId}`} prefetch={false} className="underline-offset-2 hover:text-enlace hover:underline">{proveedor}</Link> : proveedor}</TableCell>
                   <TableCell className="text-right text-xs text-tinta">{cant}</TableCell>
                   <TableCell className="text-right text-xs text-tinta">${costoPorUnidadVendida(i).toLocaleString('es-CO', { maximumFractionDigits: 2 })}</TableCell>
                   <TableCell className="text-right font-display font-bold text-sale">${totalCosto.toLocaleString('es-CO')}</TableCell>
@@ -370,7 +371,7 @@ export function ContabilidadPanel({
                 <TableCell className="text-xs text-steel-300">{g.fecha}</TableCell>
                 <TableCell className="text-xs font-medium text-tinta">{g.concepto}</TableCell>
                 <TableCell className="text-xs text-steel-300">{g.categoria_gasto ?? '—'}</TableCell>
-                <TableCell className="text-xs text-steel-300">{g.proveedores?.nombre ?? '—'}</TableCell>
+                <TableCell className="text-sm text-suave">{g.proveedores?.id ? <Link href={`/dashboard/proveedores/${g.proveedores.id}`} prefetch={false} className="underline-offset-2 hover:text-enlace hover:underline">{g.proveedores.nombre}</Link> : '—'}</TableCell>
                 <TableCell className="text-xs capitalize text-steel-300">{g.metodo_pago}</TableCell>
                 <TableCell className="text-right font-display font-bold text-sale">${Number(g.monto).toLocaleString('es-CO')}</TableCell>
               </TableRow>
@@ -412,7 +413,7 @@ export function ContabilidadPanel({
             {nominasFiltradas.map(n => (
               <TableRow key={n.id} className="border-linea hover:bg-velo/5">
                 <TableCell className="text-xs text-steel-300">{n.periodo_inicio}</TableCell>
-                <TableCell className="text-xs font-medium text-tinta">{n.profiles?.nombre_completo ?? '—'}</TableCell>
+                <TableCell className="text-sm font-medium text-tinta">{n.empleado_id ? <Link href={`/dashboard/empleados/${n.empleado_id}`} prefetch={false} className="underline-offset-2 hover:text-enlace hover:underline">{n.profiles?.nombre_completo ?? 'Empleado'}</Link> : (n.profiles?.nombre_completo ?? '—')}</TableCell>
                 <TableCell className="text-right text-xs text-steel-300">{n.horas_trabajadas != null ? `${n.horas_trabajadas}h` : '—'}</TableCell>
                 <TableCell className="text-right text-xs text-tinta">${Number(n.salario_base).toLocaleString('es-CO')}</TableCell>
                 <TableCell className="text-right text-xs text-emerald-400">{Number(n.bonificaciones) > 0 ? `+$${Number(n.bonificaciones).toLocaleString('es-CO')}` : '—'}</TableCell>
@@ -472,8 +473,8 @@ export function ContabilidadPanel({
               return (
                 <TableRow key={c.id} className="border-linea hover:bg-velo/5">
                   <TableCell className="text-xs text-steel-300">{c.ventas?.fecha ?? '—'}</TableCell>
-                  <TableCell className="text-xs text-tinta">#{c.ventas?.numero_ticket ?? '—'}</TableCell>
-                  <TableCell className="text-xs font-medium text-tinta">{c.clientes?.nombre ?? '—'}</TableCell>
+                  <TableCell className="text-sm text-tinta">{c.ventas?.id ? <Link href={`/dashboard/ventas/${c.ventas.id}`} prefetch={false} className="underline-offset-2 hover:text-enlace hover:underline">#{c.ventas.numero_ticket}</Link> : '—'}</TableCell>
+                  <TableCell className="text-sm font-medium text-tinta">{c.cliente_id ? <Link href={`/dashboard/clientes/${c.cliente_id}`} prefetch={false} className="underline-offset-2 hover:text-enlace hover:underline">{c.clientes?.nombre ?? 'Cliente'}</Link> : '—'}</TableCell>
                   <TableCell className="text-right text-xs text-tinta">${Number(c.monto_original).toLocaleString('es-CO')}</TableCell>
                   <TableCell className="text-right text-xs text-emerald-400">{abonado > 0 ? `$${abonado.toLocaleString('es-CO')}` : '—'}</TableCell>
                   <TableCell className="text-right font-display font-bold text-enlace">${Number(c.saldo_pendiente).toLocaleString('es-CO')}</TableCell>
@@ -535,7 +536,7 @@ export function ContabilidadPanel({
               return (
                 <TableRow key={f.id} className={`border-linea hover:bg-velo/5 ${vencida ? 'bg-brand-red/10' : ''}`}>
                   <TableCell className="text-xs font-medium text-tinta">{f.numero_factura ? `#${f.numero_factura}` : 'Sin número'}</TableCell>
-                  <TableCell className="text-xs text-tinta">{f.proveedores?.nombre ?? '—'}</TableCell>
+                  <TableCell className="text-sm text-tinta">{f.proveedor_id ? <Link href={`/dashboard/proveedores/${f.proveedor_id}`} prefetch={false} className="underline-offset-2 hover:text-enlace hover:underline">{f.proveedores?.nombre ?? 'Proveedor'}</Link> : '—'}</TableCell>
                   <TableCell className="text-xs text-steel-300">{f.fecha_emision}</TableCell>
                   <TableCell className={`text-xs ${vencida ? 'font-medium text-sale' : 'text-steel-300'}`}>
                     {f.fecha_vencimiento ?? '—'}{vencida && ' ⚠'}

@@ -69,7 +69,7 @@ export default async function FamiliaMedidasPage({
     const sinActualizar = m.stock_almacen === 0 && m.stock_bodega === 0 && costoMinimo === 0
     return {
       id: m.id, nombre: m.nombre, codigo: m.codigo, unidad_medida: m.unidad_medida,
-      marca: m.marca, caracteristica: m.caracteristica, activo: m.activo,
+      marca: m.marca, caracteristica: m.caracteristica, activo: m.activo, imagen_url: (m as { imagen_url?: string | null }).imagen_url ?? null,
       stock_almacen: m.stock_almacen, stock_bodega: m.stock_bodega, sinActualizar,
     }
   }
@@ -77,7 +77,7 @@ export default async function FamiliaMedidasPage({
   if (producto.familia_id) {
     const { data: familiaData } = await supabase
       .from('productos')
-      .select('id, nombre, codigo, unidad_medida, marca, caracteristica, activo, stock_almacen, stock_bodega, producto_proveedores(precio_costo)')
+      .select('id, nombre, codigo, unidad_medida, marca, caracteristica, imagen_url, activo, stock_almacen, stock_bodega, producto_proveedores(precio_costo)')
       .eq('familia_id', producto.familia_id)
       .order('created_at', { ascending: true })
     miembros = (familiaData ?? []).map(mapear)

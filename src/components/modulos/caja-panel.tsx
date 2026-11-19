@@ -13,7 +13,7 @@ import { esDomingoOFestivo } from '@/lib/festivos-colombia'
 interface Movimiento {
   id: string; hora: string; tipo_movimiento: string
   origen_destino: string; monto: number
-  observaciones: string | null; referencia_tipo: string | null
+  observaciones: string | null; referencia_tipo: string | null; referencia_id?: string | null
 }
 
 interface FondoDenominacion {
@@ -276,8 +276,10 @@ export function CajaPanel({
               {movimientosFiltrados.map(m => {
                 const esIngreso = m.tipo_movimiento === 'ingreso'
                 const Flecha = esIngreso ? ArrowDownLeft : ArrowUpRight
+                const href = enlaceMovimiento(m)
                 return (
-                  <li key={m.id} className="flex items-center gap-3 border-b border-linea px-3.5 py-3 last:border-0">
+                  <li key={m.id} className="border-b border-linea last:border-0">
+                  <FilaEnlace href={href}>
                     <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${esIngreso
                       ? 'bg-[color-mix(in_oklab,var(--entra)_14%,transparent)] text-entra'
                       : 'bg-[color-mix(in_oklab,var(--sale)_13%,transparent)] text-sale'}`}>
@@ -290,6 +292,7 @@ export function CajaPanel({
                     <span className={`cifra shrink-0 text-xl font-bold ${esIngreso ? 'text-entra' : 'text-sale'}`}>
                       {esIngreso ? '+' : '−'}{pesos(Number(m.monto))}
                     </span>
+                  </FilaEnlace>
                   </li>
                 )
               })}
@@ -316,4 +319,25 @@ function fechaLarga(iso: string) {
   const [a, m, d] = iso.split('-').map(Number)
   const txt = new Date(Date.UTC(a, m - 1, d, 12)).toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })
   return txt.charAt(0).toUpperCase() + txt.slice(1)
+}
+
+/** A dónde lleva un movimiento de caja: la venta, la nómina, los gastos, la cartera o los proveedores que lo originaron */
+function enlaceMovimiento(m: { referencia_tipo: string | null; referencia_id?: string | null }): string | null {
+  switch (m.referencia_tipo) {
+    case 'venta': case 'venta_credito': case 'devolucion': case 'cambio':
+      return m.referencia_id ? `/dashboard/ventas/${m.referencia_id}` : null
+    case 'nomina': return '/dashboard/empleados/nomina'
+    case 'gasto': return '/dashboard/contabilidad'
+    case 'abono_credito': return '/dashboard/reportes/cartera'
+    case 'factura_proveedor': return '/dashboard/proveedores'
+    case 'arqueo': return '/dashboard/caja/cierre'
+    default: return null
+  }
+}
+
+function FilaEnlace({ href, children }: { href: string | null; children: React.ReactNode }) {
+  const clase = 'flex items-center gap-3 px-3.5 py-3'
+  return href
+    ? <Link href={href} prefetch={false} className={`${clase} hover:bg-velo/5`}>{children}</Link>
+    : <div className={clase}>{children}</div>
 }

@@ -18,7 +18,7 @@ export default async function ConteoInventarioPage({
     traerTodo((filaDesde, filaHasta) =>
       supabase
         .from('productos')
-        .select('id, codigo, nombre, marca, unidad_medida, ubicacion, categoria_id, familia_id, caracteristica, stock_almacen, stock_bodega, peso_unitario_g, vender_por_fraccion')
+        .select('id, codigo, nombre, imagen_url, marca, unidad_medida, ubicacion, categoria_id, familia_id, caracteristica, stock_almacen, stock_bodega, peso_unitario_g, vender_por_fraccion')
         .eq('activo', true)
         .order('nombre')
         .order('id')

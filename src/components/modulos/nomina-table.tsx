@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Badge } from '@/components/ui/badge'
@@ -34,6 +35,7 @@ interface EmpleadoNomina {
 
 interface HistorialNomina {
   id: string
+  empleado_id?: string
   periodo_inicio: string
   periodo_fin: string
   total_pago: number
@@ -249,7 +251,7 @@ export function NominaTable({
                 <TableBody>
                   {empleadosEnTurno.map(e => (
                     <TableRow key={e.id} className="border-linea hover:bg-velo/5">
-                      <TableCell className="text-xs font-medium text-tinta">{e.nombre_completo}</TableCell>
+                      <TableCell className="text-sm font-medium text-tinta"><Link href={`/dashboard/empleados/${e.id}`} className="underline-offset-2 hover:text-enlace hover:underline">{e.nombre_completo}</Link></TableCell>
                       <TableCell className="text-right text-xs text-tinta">${e.salario_base.toLocaleString('es-CO')}</TableCell>
                       <TableCell className="text-right text-xs text-steel-300">
                         {e.horasTurno != null ? `${e.horasTurno.toFixed(1)}h / ${horasEstandarHoy}h` : 'Sin turno'}
@@ -336,7 +338,7 @@ export function NominaTable({
                 <TableBody>
                   {historialFiltrado.map(n => (
                     <TableRow key={n.id} className="border-linea hover:bg-velo/5">
-                      <TableCell className="text-xs font-medium text-tinta">{n.profiles?.nombre_completo ?? '—'}</TableCell>
+                      <TableCell className="text-sm font-medium text-tinta">{n.empleado_id ? <Link href={`/dashboard/empleados/${n.empleado_id}`} className="underline-offset-2 hover:text-enlace hover:underline">{n.profiles?.nombre_completo ?? 'Empleado'}</Link> : (n.profiles?.nombre_completo ?? '—')}</TableCell>
                       <TableCell className="text-xs text-steel-300">{n.periodo_inicio}</TableCell>
                       <TableCell className="text-right text-xs text-steel-300">{n.horas_trabajadas != null ? `${n.horas_trabajadas}h` : '—'}</TableCell>
                       <TableCell className="text-right text-xs text-tinta">${Number(n.salario_base).toLocaleString('es-CO')}</TableCell>

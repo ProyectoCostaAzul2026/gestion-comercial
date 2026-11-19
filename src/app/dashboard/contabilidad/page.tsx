@@ -38,7 +38,7 @@ export default async function ContabilidadPage({
     traerTodo((filaDesde, filaHasta) =>
       supabase
         .from('ventas')
-        .select('id, numero_ticket, fecha, total, monto_devolucion, tipo_pago, estado, clientes(nombre)')
+        .select('id, numero_ticket, fecha, total, monto_devolucion, tipo_pago, estado, clientes(id, nombre)')
         .gte('fecha', desde)
         .lte('fecha', hasta)
         .in('estado', ['completada', 'modificada', 'credito'])
@@ -77,7 +77,7 @@ export default async function ContabilidadPage({
     traerTodo((filaDesde, filaHasta) =>
       supabase
         .from('gastos')
-        .select('id, fecha, concepto, categoria_gasto, monto, metodo_pago, notas, proveedores(nombre)')
+        .select('id, fecha, concepto, categoria_gasto, monto, metodo_pago, notas, proveedores(id, nombre)')
         .gte('fecha', desde)
         .lte('fecha', hasta)
         .order('fecha', { ascending: false })
@@ -87,7 +87,7 @@ export default async function ContabilidadPage({
 
     supabase
       .from('nominas')
-      .select('id, periodo_inicio, total_pago, horas_trabajadas, salario_base, bonificaciones, deducciones, profiles(nombre_completo)')
+      .select('id, periodo_inicio, total_pago, horas_trabajadas, salario_base, bonificaciones, deducciones, empleado_id, profiles(nombre_completo)')
       .gte('periodo_inicio', desde)
       .lte('periodo_inicio', hasta)
       .eq('estado', 'pagada')
@@ -102,8 +102,8 @@ export default async function ContabilidadPage({
         .from('ventas_credito')
         .select(`
           id, monto_original, saldo_pendiente, estado, fecha_pago_programada, created_at,
-          cliente_id,
-          ventas(numero_ticket, fecha)
+          cliente_id, venta_id,
+          ventas(id, numero_ticket, fecha)
         `)
         .in('estado', ['pendiente', 'parcial'])
         .order('created_at', { ascending: false })
@@ -113,7 +113,7 @@ export default async function ContabilidadPage({
 
     supabase
       .from('facturas_proveedor')
-      .select('id, numero_factura, fecha_emision, fecha_vencimiento, monto_total, saldo_pendiente, estado, proveedores(nombre)')
+      .select('id, numero_factura, fecha_emision, fecha_vencimiento, monto_total, saldo_pendiente, estado, proveedor_id, proveedores(id, nombre)')
       .in('estado', ['pendiente', 'parcial'])
       .order('fecha_vencimiento', { ascending: true }),
   ])

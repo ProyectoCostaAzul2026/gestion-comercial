@@ -75,7 +75,7 @@ export default async function DashboardPage({
         clientes(nombre), profiles!empleado_id(nombre_completo)
       `).eq('fecha', hoy).in('estado', ['completada', 'modificada'])
         .order('hora', { ascending: false }).limit(5),
-      supabase.from('productos').select('id, codigo, nombre, stock_actual, stock_minimo')
+      supabase.from('productos').select('id, codigo, nombre, imagen_url, stock_actual, stock_minimo')
         .eq('activo', true).lte('stock_actual', 0),
       supabase.from('facturas_proveedor')
         .select('id, numero_factura, saldo_pendiente, fecha_vencimiento, proveedores(id, nombre)')
@@ -93,7 +93,7 @@ export default async function DashboardPage({
         .gte('fecha', hoy)
         .lte('fecha', sumarDias(hoy, 7))
         .order('fecha'),
-      supabase.from('productos').select('id, nombre')
+      supabase.from('productos').select('id, nombre, imagen_url')
         .eq('por_completar', true).eq('activo', true).order('created_at', { ascending: false }).limit(50),
     ])
 

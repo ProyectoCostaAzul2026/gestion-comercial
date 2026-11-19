@@ -38,7 +38,7 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
     traerTodo((filaDesde, filaHasta) =>
       supabase
         .from('producto_proveedores')
-        .select('id, precio_costo, es_proveedor_principal, referencia_proveedor, productos(id, nombre, codigo, activo, stock_actual, stock_minimo, marca, unidad_medida, familia_id, producto_familias(nombre_base))')
+        .select('id, precio_costo, es_proveedor_principal, referencia_proveedor, productos(id, nombre, codigo, imagen_url, activo, stock_actual, stock_minimo, marca, unidad_medida, familia_id, producto_familias(nombre_base))')
         .eq('proveedor_id', id)
         .order('created_at', { ascending: false })
         .order('id')
@@ -142,6 +142,7 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
           producto: {
             id: pp.productos?.id,
             nombre: pp.productos?.nombre ?? '—',
+            imagen_url: pp.productos?.imagen_url ?? null,
             codigo: pp.productos?.codigo,
             activo: pp.productos?.activo,
             stock_actual: pp.productos?.stock_actual ?? 0,

@@ -28,7 +28,7 @@ export default async function NominaPage() {
     .from('nominas')
     .select(`
       id, periodo_inicio, periodo_fin, total_pago, estado,
-      salario_base, horas_trabajadas, bonificaciones, deducciones, notas,
+      salario_base, horas_trabajadas, bonificaciones, deducciones, notas, empleado_id,
       profiles(nombre_completo)
     `)
     .order('periodo_inicio', { ascending: false })

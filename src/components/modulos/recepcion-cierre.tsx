@@ -1,5 +1,6 @@
 'use client'
 
+import { MiniaturaProducto } from '@/components/ui/producto-miniatura'
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -97,7 +98,7 @@ export function RecepcionCierre({ recepcion, renglones, totalFactura, estadoPago
               const partes = [d.faltan > 0 && `faltan ${d.faltan}`, d.sobran > 0 && `sobran ${d.sobran}`, d.averiadas > 0 && `${d.averiadas} averiadas`].filter(Boolean)
               return (
                 <li key={r.id} className="text-steel-300">
-                  <span className="text-tinta">{r.producto ? nombreConMedida(r.producto) : r.descripcion}</span>: {partes.join(', ')}
+                  <span className="inline-flex items-center gap-1.5 align-middle"><MiniaturaProducto url={r.producto?.imagen_url} nombre={r.descripcion} tam="xs" /><span className="text-tinta">{r.producto ? nombreConMedida(r.producto) : r.descripcion}</span></span>: {partes.join(', ')}
                 </li>
               )
             })}
