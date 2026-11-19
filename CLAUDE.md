@@ -385,7 +385,8 @@ nómina).
 ## Deuda técnica conocida (pendiente)
 
 - Lista completa y al día de lo que falta en `docs/pendientes.md`; plan de las etapas 6 (factura electrónica, mapa,
-  gráficos ampliables) y 7 (asistente de WhatsApp) en `docs/plan-etapa-6.md`.
+  gráficos ampliables) y 7 (asistente de WhatsApp) en `docs/plan-etapa-6.md`; plan de la etapa 8 (página web pública) en
+  `docs/plan-pagina-web.md`.
 
 - Activar la protección de contraseñas filtradas en Supabase Auth (requiere plan Pro).
 - `pg_trgm` sigue en el esquema `public` (moverla puede romper `buscar_productos`).

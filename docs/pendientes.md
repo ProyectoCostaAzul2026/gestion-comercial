@@ -30,6 +30,15 @@ Lista viva de lo que falta. Se actualiza al cerrar cada tarea. Última revisión
 - Lint: unos 300 avisos de `any` heredados; no bloquean el build.
 - No hay pruebas automáticas ni CI.
 
+## Orden del catálogo con la referencia de Ranger
+
+Tomar de la tienda de Ranger (ranger.com.co, 2.365 productos de herramienta) solo información de referencia, nunca fotos
+ni textos copiados: cómo nombra y agrupa los productos (catálogo, sección, categoría, subcategoría), las medidas y las
+unidades de empaque. Con eso se proponen cambios por lotes a nombres, familias, grupos de medidas, categorías y
+descripciones de nuestras herramientas (unos 830 productos en 74 familias), siguiendo las reglas del catálogo de
+`CLAUDE.md`. Cada lote se revisa antes y se aplica con el SQL a la vista; los datos extraídos se guardan fuera del
+repositorio.
+
 ## Próximas etapas (en espera)
 
 Quedan como pendientes hasta que el dueño responda las preguntas del final de `docs/plan-etapa-6.md`, donde está el plan
@@ -37,6 +46,8 @@ completo:
 
 - **Etapa 6**: factura electrónica, mapa de la ferretería y gráficos ampliables.
 - **Etapa 7**: asistente de ventas por WhatsApp (con preparativos que se pueden ir haciendo desde la etapa 6).
+- **Etapa 8**: página web pública de la ferretería alimentada por la base, con el concepto de la tienda de Ranger y la
+  identidad propia. Plan, viabilidad y tiempos en `docs/plan-pagina-web.md`.
 
 ## Videos promocionales
 
