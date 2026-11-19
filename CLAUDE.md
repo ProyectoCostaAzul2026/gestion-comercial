@@ -159,6 +159,9 @@ nómina).
   girada. Medios de pago es una barra de proporciones con lista, no un pastel.
 - **Fechas**: "hoy" siempre con `hoyBogota()` / `bogotaEnDias()` de `src/lib/fechas.ts`. Nunca
   `new Date().toISOString().slice(0, 10)` (es UTC: desde las 7 p. m. de Bogotá ya es mañana).
+- **Video promocional del sistema** (`videos/promo-app`, proyecto Remotion aparte, excluido del `tsconfig` y del lint de la
+  app): graba la app con datos ficticios (`demo/`, servidor que imita a Supabase en el 54321) y arma el video con
+  `src/linea.json` (pulsos a 120 por minuto) y la música de `musica/generar.py`. Pasos en su `README.md`.
 - `src/app/manifest.ts` e íconos `public/icono-*.png`: la app se puede instalar en la pantalla de inicio del celular.
 - `src/proxy.ts`: exige sesión en `/dashboard`, cierra la sesión si el perfil está inactivo y manda a los
   empleados fuera de las rutas de administrador.

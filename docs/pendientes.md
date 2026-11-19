@@ -65,9 +65,11 @@ sube al repositorio.
    recorriendo las categorías del catálogo (eléctricos, plomería, tornillería, herramientas y demás) con las fotos de los
    productos, la atención en el mostrador y cómo contactarla (WhatsApp, dirección, horario). Formato horizontal para
    YouTube y Facebook, y una versión vertical para estados e Instagram.
-2. **Video del sistema de información (corto, 30 a 45 segundos)**: muestra la app en el celular (vender, inventario con
-   fotos, caja, reportes) con capturas hechas sobre datos de prueba, nunca con cifras reales. Formato vertical.
+2. **Video del sistema de información**: hecho el 2026-11-19 en `videos/promo-app` (unos 95 segundos, vertical, modo
+   claro). Graba la app real con datos de demostración (servidor que imita a Supabase), música generada por código y la
+   firma "By: Luis Ortiz". Cómo rehacerlo en `videos/promo-app/README.md`. Falta: que el dueño lo revise y, si quiere,
+   cambiar la música por una pista suya (mismo pulso, 120 por minuto) o grabar una versión horizontal.
 
-Antes de empezar se necesita del dueño: el logo en buena calidad, fotos o videos del local y del equipo, la música (con
+Para el video de la ferretería se necesita del dueño: el logo en buena calidad, fotos o videos del local y del equipo, la música (con
 licencia libre) y si el video lleva voz (grabada por alguien del negocio o generada). La licencia de Remotion es gratuita
 para personas y empresas de hasta 3 empleados; si el negocio tiene más, confirmar si aplica la licencia de empresa.
