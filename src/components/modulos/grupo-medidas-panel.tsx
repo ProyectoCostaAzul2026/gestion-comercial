@@ -245,7 +245,7 @@ export function GrupoMedidasPanel({
 
       {/* Lista de medidas */}
       <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
-        <div className="grid grid-cols-[1fr_auto_auto] gap-3 border-b border-linea bg-superficie-2 px-4 py-2 text-xs font-bold text-steel-300">
+        <div className="grid grid-cols-[1fr_auto_auto] gap-3 border-b border-linea bg-superficie-2 px-4 py-2 text-sm font-semibold text-suave">
           <span>Medida ({miembros.length})</span>
           <span className="w-14 text-right">Stock</span>
           <span className="w-20 text-right">{ordenEdicion ? 'Mover' : 'Precio'}</span>
@@ -258,7 +258,7 @@ export function GrupoMedidasPanel({
                 {m.unidad_medida || '—'}
               </Link>
               {m.id === productoActualId && <span className="ml-2 text-xs font-bold text-brand-yellow">Actual</span>}
-              {!m.activo && <span className="ml-2 rounded-full bg-steel-700 px-2 py-0.5 text-xs font-bold text-steel-300">Inactivo</span>}
+              {!m.activo && <span className="ml-2 rounded-full bg-steel-700 px-2 py-0.5 text-sm font-semibold text-suave">Inactivo</span>}
               <p className="truncate font-mono text-xs text-steel-500">
                 {m.codigo ?? '—'}
                 {m.peso_unitario_g != null && <span className="font-sans"> · {formatearPeso(m.peso_unitario_g)} c/u</span>}
@@ -327,7 +327,7 @@ export function GrupoMedidasPanel({
                   <div className="flex items-center gap-3">
                     <span className="min-w-0 flex-1 text-sm text-tinta">
                       {m.unidad_medida || '—'}
-                      {!m.activo && <span className="ml-2 text-xs font-bold text-steel-500">Inactivo</span>}
+                      {!m.activo && <span className="ml-2 text-sm font-semibold text-tenue">Inactivo</span>}
                     </span>
                     <Input type="number" inputMode="decimal" min={0} step="0.001" placeholder="g"
                       aria-label={`Peso de una unidad de ${m.unidad_medida ?? 'esta medida'}, en gramos`}
@@ -395,7 +395,7 @@ export function GrupoMedidasPanel({
 
           <div className="overflow-hidden rounded-xl border border-linea">
             <div className="flex items-center justify-between border-b border-linea bg-superficie-2 px-3 py-2">
-              <span className="text-xs font-bold text-steel-300">
+              <span className="text-sm font-semibold text-suave">
                 Medidas ({seleccionados.size} de {miembros.length})
               </span>
               <div className="flex gap-3 text-xs font-semibold">
@@ -409,7 +409,7 @@ export function GrupoMedidasPanel({
                   <input type="checkbox" checked={seleccionados.has(m.id)} onChange={() => alternarSeleccion(m.id)}
                     className="size-4 rounded border-linea-fuerte accent-brand-yellow" />
                   <span className="flex-1 text-sm text-tinta">{m.unidad_medida || '—'}</span>
-                  {!m.activo && <span className="text-xs font-bold text-steel-500">Inactivo</span>}
+                  {!m.activo && <span className="text-sm font-semibold text-tenue">Inactivo</span>}
                 </label>
               ))}
             </div>

@@ -24,14 +24,14 @@ const TOP_OPCIONES = [
 ]
 
 const COLORES_MEDIO: Record<string, string> = {
-  efectivo: '#34d399',
-  nequi: '#a855f7',
-  daviplata: '#f87171',
-  tarjeta: '#1c6cb4',
-  credito: '#fbbf24',
+  efectivo: 'var(--entra)',
+  nequi: 'var(--violeta)',
+  daviplata: 'var(--sale)',
+  tarjeta: 'var(--chart-2)',
+  credito: 'var(--aviso)',
 }
 
-const COLORES_GRAFICA = ['#ffce00', '#1c6cb4', '#34d399', '#a855f7', '#f87171', '#fbbf24']
+const COLORES_GRAFICA = ['var(--chart-1)', 'var(--chart-2)', 'var(--entra)', 'var(--violeta)', 'var(--sale)', 'var(--aviso)']
 
 const METODO_LABEL: Record<string, string> = {
   efectivo: 'Efectivo', nequi: 'Nequi',
@@ -50,9 +50,9 @@ const MEDIO_ESTILO: Record<string, { icono: any; texto: string; borde: string; f
 }
 
 // Estilos comunes para los ejes/grids de recharts sobre fondo oscuro
-const AXIS_TICK = { fontSize: 9, fill: '#9aa7b0' }
+const AXIS_TICK = { fontSize: 9, fill: 'var(--suave)' }
 const GRID_STROKE = 'rgba(255,255,255,0.08)'
-const TOOLTIP_STYLE = { backgroundColor: '#1a2430', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, color: '#f4f6f8', fontSize: 12 }
+const TOOLTIP_STYLE = { backgroundColor: 'var(--sup2)', border: '1px solid var(--linea)', borderRadius: 12, color: 'var(--tinta)', fontSize: 12 }
 
 function fmt(n: number) { return `$${Math.round(n).toLocaleString('es-CO')}` }
 function pct(n: number) { return `${n.toFixed(1)}%` }
@@ -87,7 +87,7 @@ function KPICard({ label, valor, sub, color, comparacion }: {
 }) {
   return (
     <div className="rounded-2xl border border-linea bg-superficie p-4">
-      <p className="text-xs font-bold text-steel-300">{label}</p>
+      <p className="text-sm font-semibold text-suave">{label}</p>
       <p className={`mt-1 font-display text-lg font-bold ${color ?? 'text-tinta'}`}>{valor}</p>
       {comparacion && <div className="mt-0.5">{comparacion}</div>}
       {sub && <p className="mt-0.5 text-xs text-steel-500">{sub}</p>}
@@ -135,7 +135,7 @@ function TablaUtilidad({ porCategoria, porFamilia, desde, hasta }: {
       </div>
       <Table>
         <TableHeader>
-          <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+          <TableRow className="bg-superficie-2 hover:bg-superficie-2 [&_th]:text-sm [&_th]:font-semibold [&_th]:text-suave">
             <TableHead>{vista === 'categoria' ? 'Categoría' : 'Familia'}</TableHead>
             <TableHead className="text-right">Ventas</TableHead>
             <TableHead className="text-right">Costo</TableHead>
@@ -160,7 +160,7 @@ function TablaUtilidad({ porCategoria, porFamilia, desde, hasta }: {
             <TableRow className="border-linea"><TableCell colSpan={5} className="py-6 text-center text-steel-500">Sin ventas en el periodo</TableCell></TableRow>
           )}
           {filas.length > 0 && (
-            <TableRow className="bg-steel-700 hover:bg-steel-700">
+            <TableRow className="bg-superficie-2 hover:bg-superficie-2">
               <TableCell className="font-bold text-brand-yellow">Total</TableCell>
               <TableCell className="text-right text-xs font-bold text-tinta">{fmt(total.ingresos)}</TableCell>
               <TableCell className="text-right text-xs font-bold text-tinta">{fmt(total.costo)}</TableCell>
@@ -272,12 +272,12 @@ export function ReportesPanel({
 
   // Datos para gráfico estado de resultados
   const datosEstadoResultados = [
-    { nombre: 'Ingresos', valor: kpisPeriodo.totalIngresos, color: '#34d399' },
-    { nombre: 'CMV', valor: kpisPeriodo.totalCMV, color: '#e8453f' },
-    { nombre: 'Gastos', valor: kpisPeriodo.totalGastos, color: '#f97316' },
-    { nombre: 'Nóminas', valor: kpisPeriodo.totalNominas, color: '#fbbf24' },
-    { nombre: 'Gan. bruta', valor: kpisPeriodo.gananciaBruta, color: kpisPeriodo.gananciaBruta >= 0 ? '#16a34a' : '#dc2626' },
-    { nombre: 'Resultado', valor: kpisPeriodo.resultado, color: kpisPeriodo.resultado >= 0 ? '#ffce00' : '#dc2626' },
+    { nombre: 'Ingresos', valor: kpisPeriodo.totalIngresos, color: 'var(--entra)' },
+    { nombre: 'CMV', valor: kpisPeriodo.totalCMV, color: 'var(--sale)' },
+    { nombre: 'Gastos', valor: kpisPeriodo.totalGastos, color: 'var(--aviso)' },
+    { nombre: 'Nóminas', valor: kpisPeriodo.totalNominas, color: 'var(--aviso)' },
+    { nombre: 'Gan. bruta', valor: kpisPeriodo.gananciaBruta, color: kpisPeriodo.gananciaBruta >= 0 ? 'var(--entra)' : 'var(--sale)' },
+    { nombre: 'Resultado', valor: kpisPeriodo.resultado, color: kpisPeriodo.resultado >= 0 ? 'var(--chart-1)' : 'var(--sale)' },
   ]
 
   return (
@@ -429,16 +429,16 @@ export function ReportesPanel({
               <XAxis type="number" tick={AXIS_TICK}
                 tickFormatter={v => `$${(Math.abs(v) / 1000000).toFixed(1)}M`}
                 domain={['auto', 'auto']} />
-              <YAxis type="category" dataKey="nombre" tick={{ fontSize: 10, fill: '#9aa7b0' }} width={75} />
+              <YAxis type="category" dataKey="nombre" tick={{ fontSize: 10, fill: 'var(--suave)' }} width={75} />
               <Tooltip formatter={(v: any) => [fmt(Math.abs(Number(v))), '']} contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
               <Bar dataKey="valor" radius={[0, 3, 3, 0]}>
                 {[
-                  '#1c6cb4',   // Ingresos — azul de marca
-                  '#5b6b76',   // CMV — acero
-                  '#a855f7',   // Nóminas — morado
-                  '#e8453f',   // Gastos — rojo
-                  kpisPeriodo.gananciaBruta >= 0 ? '#34d399' : '#ea580c',  // Gan. Bruta
-                  kpisPeriodo.resultado >= 0 ? '#ffce00' : '#c2410c',       // Resultado
+                  'var(--chart-2)',   // Ingresos — azul de marca
+                  'var(--tenue)',   // CMV — acero
+                  'var(--violeta)',   // Nóminas — morado
+                  'var(--sale)',   // Gastos — rojo
+                  kpisPeriodo.gananciaBruta >= 0 ? 'var(--entra)' : 'var(--aviso)',  // Gan. Bruta
+                  kpisPeriodo.resultado >= 0 ? 'var(--chart-1)' : 'var(--aviso)',       // Resultado
                 ].map((color, i) => <Cell key={i} fill={color} />)}
               </Bar>
             </BarChart>
@@ -454,7 +454,7 @@ export function ReportesPanel({
         <div className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
           <Table>
             <TableHeader>
-              <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+              <TableRow className="bg-superficie-2 hover:bg-superficie-2 [&_th]:text-sm [&_th]:font-semibold [&_th]:text-suave">
                 <TableHead>Concepto</TableHead>
                 <TableHead className="text-right">Este periodo</TableHead>
                 <TableHead className="text-right">Anterior</TableHead>
@@ -507,12 +507,12 @@ export function ReportesPanel({
               margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
-              <XAxis dataKey="nombre" tick={{ fontSize: 10, fill: '#9aa7b0' }} />
+              <XAxis dataKey="nombre" tick={{ fontSize: 10, fill: 'var(--suave)' }} />
               <YAxis tick={AXIS_TICK} tickFormatter={v => `$${(v / 1000).toFixed(0)}K`} width={50} />
               <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                 formatter={(v: any, name: any) => [fmt(Number(v)), name === 'actual' ? 'Este periodo' : 'Anterior']} />
-              <Bar dataKey="anterior" fill="#5b6b76" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="actual" fill="#ffce00" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="anterior" fill="var(--tenue)" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="actual" fill="var(--chart-1)" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
           <p className="text-center text-xs text-steel-500">
@@ -543,13 +543,13 @@ export function ReportesPanel({
             <ResponsiveContainer width="100%" height={220}>
               <ComposedChart data={descuentos.serie} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
-                <XAxis dataKey="periodo" tick={{ fontSize: 10, fill: '#9aa7b0' }} />
+                <XAxis dataKey="periodo" tick={{ fontSize: 10, fill: 'var(--suave)' }} />
                 <YAxis yAxisId="d" tick={AXIS_TICK} tickFormatter={v => `$${(v / 1000).toFixed(0)}K`} width={45} />
                 <YAxis yAxisId="t" orientation="right" tick={AXIS_TICK} allowDecimals={false} width={25} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                   formatter={(v: any, name: any) => name === 'tickets' ? [v, 'Ventas con descuento'] : [fmt(Number(v)), 'Descuento']} />
-                <Bar yAxisId="d" dataKey="descuentos" fill="#fbbf24" radius={[3, 3, 0, 0]} />
-                <Line yAxisId="t" type="monotone" dataKey="tickets" stroke="#1c6cb4" strokeWidth={2} dot={false} />
+                <Bar yAxisId="d" dataKey="descuentos" fill="var(--aviso)" radius={[3, 3, 0, 0]} />
+                <Line yAxisId="t" type="monotone" dataKey="tickets" stroke="var(--chart-2)" strokeWidth={2} dot={false} />
               </ComposedChart>
             </ResponsiveContainer>
           ) : (
@@ -578,7 +578,7 @@ export function ReportesPanel({
               margin={{ top: 10, right: 20, left: 10, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
-              <XAxis dataKey="periodo" tick={{ fontSize: 10, fill: '#9aa7b0' }} />
+              <XAxis dataKey="periodo" tick={{ fontSize: 10, fill: 'var(--suave)' }} />
               <YAxis tick={AXIS_TICK} tickFormatter={v => `$${(Math.abs(v) / 1000).toFixed(0)}K`} />
               <Tooltip
                 contentStyle={TOOLTIP_STYLE}
@@ -589,10 +589,10 @@ export function ReportesPanel({
                 ]}
               />
               {/* Barras apiladas en el mismo eje: ingresos arriba (verde), egresos abajo (rojo) */}
-              <Bar dataKey="ingresos" fill="#34d399" radius={[3, 3, 0, 0]} name="ingresos" />
-              <Bar dataKey="egresos" fill="#e8453f" radius={[3, 3, 0, 0]} name="egresos" />
-              <Line type="monotone" dataKey="utilidad" stroke="#ffce00" strokeWidth={2}
-                dot={{ fill: '#ffce00', r: 4, strokeWidth: 2, stroke: '#111820' }} name="utilidad" />
+              <Bar dataKey="ingresos" fill="var(--entra)" radius={[3, 3, 0, 0]} name="ingresos" />
+              <Bar dataKey="egresos" fill="var(--sale)" radius={[3, 3, 0, 0]} name="egresos" />
+              <Line type="monotone" dataKey="utilidad" stroke="var(--chart-1)" strokeWidth={2}
+                dot={{ fill: 'var(--chart-1)', r: 4, strokeWidth: 2, stroke: 'var(--sup)' }} name="utilidad" />
             </ComposedChart>
           </ResponsiveContainer>
         </div>
@@ -609,7 +609,7 @@ export function ReportesPanel({
                   label={({ name, percent }: any) =>
                     `${METODO_LABEL[name] ?? name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                   labelLine={false}
-                  stroke="#111820"
+                  stroke="var(--sup)"
                 >
                   {graficaMedios.map((entry, i) => (
                     <Cell key={entry.metodo}
@@ -636,7 +636,7 @@ export function ReportesPanel({
                   allowDataOverflow={false}
                 />
                 <Tooltip formatter={(v: any) => [modoHoras === 'ticket' ? Number(v).toFixed(0) : fmt(Number(v)), ETIQUETA_MODO[modoHoras]]} contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
-                <Bar dataKey="valor" fill="#1c6cb4" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="valor" fill="var(--chart-2)" radius={[2, 2, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -658,7 +658,7 @@ export function ReportesPanel({
                 allowDataOverflow={false}
               />
               <Tooltip formatter={(v: any) => [modoDias === 'ticket' ? Number(v).toFixed(1) : fmt(Number(v)), ETIQUETA_MODO[modoDias]]} contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
-              <Bar dataKey="valor" fill="#ffce00" radius={[2, 2, 0, 0]} />
+              <Bar dataKey="valor" fill="var(--chart-1)" radius={[2, 2, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -672,7 +672,7 @@ export function ReportesPanel({
                 margin={{ top: 5, right: 60, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
                 <XAxis type="number" tick={AXIS_TICK} tickFormatter={v => `$${(v / 1000).toFixed(0)}K`} />
-                <YAxis type="category" dataKey="nombre" tick={{ fontSize: 10, fill: '#9aa7b0' }} width={100} />
+                <YAxis type="category" dataKey="nombre" tick={{ fontSize: 10, fill: 'var(--suave)' }} width={100} />
                 <Tooltip
                   contentStyle={TOOLTIP_STYLE}
                   cursor={{ fill: 'rgba(255,255,255,0.05)' }}
@@ -681,7 +681,7 @@ export function ReportesPanel({
                     name === 'total' ? 'Ventas' : 'Tickets'
                   ]}
                 />
-                <Bar dataKey="total" fill="#ffce00" radius={[0, 3, 3, 0]}>
+                <Bar dataKey="total" fill="var(--chart-1)" radius={[0, 3, 3, 0]}>
                   {graficaEmpleados.map((_, i) => (
                     <Cell key={i} fill={COLORES_GRAFICA[i % COLORES_GRAFICA.length]} />
                   ))}
@@ -734,7 +734,7 @@ export function ReportesPanel({
           <div className="max-h-96 overflow-x-auto overflow-y-auto">
               <Table>
               <TableHeader>
-                <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+                <TableRow className="bg-superficie-2 hover:bg-superficie-2 [&_th]:text-sm [&_th]:font-semibold [&_th]:text-suave">
                   <TableHead className="w-8">#</TableHead>
                   <TableHead>Código</TableHead>
                   <TableHead>Nombre</TableHead>
@@ -787,7 +787,7 @@ export function ReportesPanel({
           <div className="max-h-96 overflow-x-auto overflow-y-auto">
               <Table>
               <TableHeader>
-                <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+                <TableRow className="bg-superficie-2 hover:bg-superficie-2 [&_th]:text-sm [&_th]:font-semibold [&_th]:text-suave">
                   <TableHead className="w-8">#</TableHead>
                   <TableHead>Código</TableHead>
                   <TableHead>Nombre</TableHead>
@@ -843,7 +843,7 @@ export function ReportesPanel({
           <div className="max-h-96 overflow-x-auto overflow-y-auto">
               <Table>
               <TableHeader>
-                <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+                <TableRow className="bg-superficie-2 hover:bg-superficie-2 [&_th]:text-sm [&_th]:font-semibold [&_th]:text-suave">
                   <TableHead className="w-8">#</TableHead>
                   <TableHead>Código</TableHead>
                   <TableHead>Nombre</TableHead>
@@ -926,7 +926,7 @@ export function ReportesPanel({
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+                  <TableRow className="bg-superficie-2 hover:bg-superficie-2 [&_th]:text-sm [&_th]:font-semibold [&_th]:text-suave">
                     <TableHead>Empleado</TableHead>
                     <TableHead className="text-right">Días pagados</TableHead>
                     <TableHead className="text-right">Total pagado</TableHead>
@@ -944,7 +944,7 @@ export function ReportesPanel({
                       </TableCell>
                     </TableRow>
                   ))}
-                  <TableRow className="bg-steel-700 hover:bg-steel-700">
+                  <TableRow className="bg-superficie-2 hover:bg-superficie-2">
                     <TableCell className="font-bold text-brand-yellow">Total</TableCell>
                     <TableCell />
                     <TableCell className="text-right font-display font-bold text-brand-yellow">

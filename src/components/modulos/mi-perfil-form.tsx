@@ -76,7 +76,7 @@ export function MiPerfilForm({ perfil }: { perfil: Perfil }) {
     .toUpperCase()
 
   const inputCls = 'w-full rounded-xl border border-linea bg-superficie-2 px-4 py-3 text-[16px] text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60 focus:outline-none focus:ring-0'
-  const labelCls = 'mb-1 block text-xs font-bold text-steel-300'
+  const labelCls = 'mb-1 block text-sm font-semibold text-suave'
 
   return (
     <div className="max-w-md space-y-6">

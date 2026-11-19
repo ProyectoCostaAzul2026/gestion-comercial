@@ -94,7 +94,7 @@ export function ClienteTable({ clientes }: { clientes: ClienteListItem[] }) {
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+              <TableRow className="bg-superficie-2 hover:bg-superficie-2 [&_th]:text-sm [&_th]:font-semibold [&_th]:text-suave">
                 <TableHead>Nombre</TableHead>
                 <TableHead>Teléfono</TableHead>
                 <TableHead>Email</TableHead>

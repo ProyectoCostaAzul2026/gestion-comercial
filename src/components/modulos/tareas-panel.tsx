@@ -156,7 +156,7 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
     { valor: 'libres', etiqueta: 'Libres', cuenta: cuentaLibres },
   ]
   const CAMPO = 'h-11 w-full rounded-xl border border-linea bg-superficie-2 px-3 text-[16px] text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60 focus:outline-none'
-  const ETIQUETA = 'mb-1 block text-xs font-bold text-steel-300'
+  const ETIQUETA = 'mb-1 block text-sm font-semibold text-suave'
 
   const Tarjeta = ({ t }: { t: Tarea }) => {
     const venc = textoVencimiento(t.fecha_limite, hoy)
@@ -168,7 +168,7 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
           onClick={() => (hecha ? marcar(t, false) : setCerrando(t))}
           aria-label={hecha ? `Volver a pendiente: ${t.titulo}` : `Marcar como hecha: ${t.titulo}`}
           className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border-2 transition ${
-            hecha ? 'border-emerald-500 bg-emerald-500 text-steel-900' : 'border-linea-fuerte text-transparent hover:border-brand-yellow hover:text-brand-yellow'
+            hecha ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-linea-fuerte text-transparent hover:border-brand-yellow hover:text-brand-yellow'
           }`}>
           <Check className="h-5 w-5" strokeWidth={3} />
         </button>
@@ -229,7 +229,7 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
           </button>
           {plantillas.length > 0 && (
             <div>
-              <p className="mb-1.5 text-xs font-bold text-steel-500">Crear desde una plantilla</p>
+              <p className="mb-1.5 text-sm font-semibold text-tenue">Crear desde una plantilla</p>
               <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0">
                 {plantillas.map(p => (
                   <span key={p.id} className="flex shrink-0 items-center rounded-full border border-linea bg-superficie">
@@ -304,7 +304,7 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
                 placeholder="Ej: faltaron 2 cajas, quedaron en bodega" className={CAMPO} />
             </div>
             <button type="button" disabled={marcando === cerrando.id} onClick={() => marcar(cerrando, true, nota)}
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 text-sm font-bold text-steel-900 hover:brightness-105 disabled:opacity-50">
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 text-sm font-bold text-white hover:brightness-105 disabled:opacity-50">
               <Check className="h-5 w-5" strokeWidth={3} />{marcando === cerrando.id ? 'Guardando…' : 'Sí, la hice'}
             </button>
           </SheetContent>

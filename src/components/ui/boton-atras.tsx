@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 import { useNavegacion } from '@/lib/navegacion'
 
 /**
@@ -12,9 +12,9 @@ export function BotonAtras({ href, etiqueta = 'Volver', texto }: { href: string;
   return (
     <button type="button" onClick={() => volver(href)} aria-label={texto ? undefined : etiqueta}
       className={texto
-        ? 'inline-flex min-h-10 items-center gap-2 rounded-xl px-1 text-sm text-steel-300 hover:text-tinta'
-        : 'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-linea-fuerte text-tinta hover:bg-velo/5'}>
-      <ArrowLeft className="h-4 w-4" aria-hidden />
+        ? 'inline-flex min-h-11 items-center gap-1 rounded-xl px-1 text-[15px] font-semibold text-suave hover:text-tinta'
+        : 'flex size-12 shrink-0 items-center justify-center rounded-xl text-tinta hover:bg-velo/5'}>
+      <ChevronLeft className={texto ? 'size-5' : 'size-6'} strokeWidth={2} aria-hidden />
       {texto}
     </button>
   )

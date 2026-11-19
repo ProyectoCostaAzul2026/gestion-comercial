@@ -191,7 +191,7 @@ function CreditoCard({ credito }: { credito: Credito }) {
                 Registrar abono · Saldo pendiente: {fmt(credito.saldo_pendiente)}
               </p>
               <div className="space-y-1">
-                <Label className="text-xs font-bold text-steel-300">Monto a abonar</Label>
+                <Label className="text-sm font-semibold text-suave">Monto a abonar</Label>
                 <Input
                   type="number"
                   className="border-linea bg-superficie text-tinta"
@@ -208,7 +208,7 @@ function CreditoCard({ credito }: { credito: Credito }) {
               {/* Fuentes */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs font-bold text-steel-300">Fuentes de pago</Label>
+                  <Label className="text-sm font-semibold text-suave">Fuentes de pago</Label>
                   <button
                     type="button"
                     onClick={() => setFuentes(prev => [...prev, { key: Date.now().toString(), fuente: 'efectivo', monto: 0 }])}
@@ -251,7 +251,7 @@ function CreditoCard({ credito }: { credito: Credito }) {
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs font-bold text-steel-300">Observaciones</Label>
+                <Label className="text-sm font-semibold text-suave">Observaciones</Label>
                 <Textarea value={observaciones} onChange={e => setObservaciones(e.target.value)} rows={2} className="border-linea bg-superficie text-tinta placeholder:text-steel-500" />
               </div>
 
@@ -280,7 +280,7 @@ function CreditoCard({ credito }: { credito: Credito }) {
               <p className="text-xs font-medium text-steel-300">Programar fecha de pago</p>
               <Input type="date" value={nuevaFecha} onChange={e => setNuevaFecha(e.target.value)} className="w-44 border-linea bg-superficie text-tinta" />
               <div className="space-y-1">
-                <Label className="text-xs font-bold text-steel-300">Nota (opcional)</Label>
+                <Label className="text-sm font-semibold text-suave">Nota (opcional)</Label>
                 <Input value={notaFecha} onChange={e => setNotaFecha(e.target.value)} placeholder="Ej: Acordado con el cliente" className="border-linea bg-superficie text-tinta placeholder:text-steel-500" />
               </div>
               <div className="flex gap-2">

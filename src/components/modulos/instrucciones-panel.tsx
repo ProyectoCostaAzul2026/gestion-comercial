@@ -17,7 +17,7 @@ export function InstruccionesPanel({ esAdmin }: { esAdmin: boolean }) {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <Label className="text-xs font-bold text-steel-300">Elige un tema</Label>
+        <Label className="text-sm font-semibold text-suave">Elige un tema</Label>
         <Select value={tema?.id} onValueChange={v => v && setTemaId(v)}>
           <SelectTrigger className="h-12 w-full border-linea bg-superficie-2 text-[15px] text-tinta">
             <SelectValue placeholder="Selecciona un tema…" />

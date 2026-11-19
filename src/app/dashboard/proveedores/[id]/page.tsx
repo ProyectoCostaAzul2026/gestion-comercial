@@ -102,7 +102,7 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
             ['Notas', proveedor.notas],
           ].map(([label, value]) => value ? (
             <div key={label as string}>
-              <dt className="text-xs font-bold text-steel-300">{label}</dt>
+              <dt className="text-sm font-semibold text-suave">{label}</dt>
               <dd className="font-medium text-tinta">{value}</dd>
             </div>
           ) : null)}

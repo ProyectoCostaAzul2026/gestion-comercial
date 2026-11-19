@@ -25,7 +25,7 @@ export function EmpleadoFiltros({ desdeKey, hastaKey, desdeValue, hastaValue }: 
   return (
     <div className="flex flex-wrap gap-3">
       <div className="space-y-1">
-        <label className="text-xs font-bold text-steel-300">Desde</label>
+        <label className="text-sm font-semibold text-suave">Desde</label>
         <Input
           type="date"
           value={desdeValue}
@@ -34,7 +34,7 @@ export function EmpleadoFiltros({ desdeKey, hastaKey, desdeValue, hastaValue }: 
         />
       </div>
       <div className="space-y-1">
-        <label className="text-xs font-bold text-steel-300">Hasta</label>
+        <label className="text-sm font-semibold text-suave">Hasta</label>
         <Input
           type="date"
           value={hastaValue}

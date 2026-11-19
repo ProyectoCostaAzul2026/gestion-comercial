@@ -115,7 +115,7 @@ export function EmpleadoForm({ empleado }: EmpleadoFormProps) {
   }
 
   const inputCls = 'h-12 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60'
-  const labelCls = 'text-xs font-bold text-steel-300'
+  const labelCls = 'text-sm font-semibold text-suave'
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

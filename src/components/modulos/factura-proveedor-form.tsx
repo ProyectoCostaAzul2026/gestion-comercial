@@ -139,7 +139,7 @@ export function FacturaProveedorForm({ proveedorId, facturaId, inicial, onSucces
   }
 
   const inputCls = 'h-12 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60'
-  const labelCls = 'text-xs font-bold text-steel-300'
+  const labelCls = 'text-sm font-semibold text-suave'
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -187,19 +187,19 @@ export function FacturaProveedorForm({ proveedorId, facturaId, inicial, onSucces
         {pagosProgramados.map((p, idx) => (
           <div key={p.key} className="grid grid-cols-12 items-end gap-2 border-b border-linea pb-3 last:border-0">
             <div className="col-span-4 space-y-1">
-              <label className="text-xs font-bold text-steel-300">Fecha</label>
+              <label className="text-sm font-semibold text-suave">Fecha</label>
               <Input type="date" className="border-linea bg-superficie-2 text-tinta" value={p.fecha_programada}
                 onChange={e => setPagosProgramados(prev => prev.map((it, i) =>
                   i === idx ? { ...it, fecha_programada: e.target.value } : it))} />
             </div>
             <div className="col-span-3 space-y-1">
-              <label className="text-xs font-bold text-steel-300">Monto</label>
+              <label className="text-sm font-semibold text-suave">Monto</label>
               <Input type="number" className="border-linea bg-superficie-2 text-tinta" value={p.monto || ''}
                 onChange={e => setPagosProgramados(prev => prev.map((it, i) =>
                   i === idx ? { ...it, monto: parseFloat(e.target.value) || 0 } : it))} />
             </div>
             <div className="col-span-4 space-y-1">
-              <label className="text-xs font-bold text-steel-300">Nota</label>
+              <label className="text-sm font-semibold text-suave">Nota</label>
               <Input value={p.nota} placeholder="Opcional" className="border-linea bg-superficie-2 text-tinta placeholder:text-steel-500"
                 onChange={e => setPagosProgramados(prev => prev.map((it, i) =>
                   i === idx ? { ...it, nota: e.target.value } : it))} />

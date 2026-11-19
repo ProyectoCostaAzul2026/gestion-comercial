@@ -108,11 +108,11 @@ export default async function PerfilEmpleadoPage({
         <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-tinta">Información</h2>
         <dl className="grid grid-cols-2 gap-3 text-sm">
           <div>
-            <dt className="text-xs font-bold text-steel-300">Teléfono</dt>
+            <dt className="text-sm font-semibold text-suave">Teléfono</dt>
             <dd className="font-medium text-tinta">{empleado.telefono ?? '—'}</dd>
           </div>
           <div>
-            <dt className="text-xs font-bold text-steel-300">Salario base diario</dt>
+            <dt className="text-sm font-semibold text-suave">Salario base diario</dt>
             <dd className="font-medium text-tinta">
               {empleado.salario_base
                 ? `$${Number(empleado.salario_base).toLocaleString('es-CO')}`
@@ -124,15 +124,15 @@ export default async function PerfilEmpleadoPage({
 
       {/* KPIs de ventas */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-2xl border border-linea border-l-4 border-l-brand-yellow bg-superficie p-4">
-          <p className="text-xs font-bold text-steel-300">Ventas hoy</p>
+        <div className="rounded-2xl border border-linea bg-superficie p-4">
+          <p className="text-sm font-semibold text-suave">Ventas hoy</p>
           <p className="mt-1 font-display text-2xl font-bold text-tinta">
             ${totalVentasHoy.toLocaleString('es-CO')}
           </p>
           <p className="text-xs text-steel-300">{numVentasHoy} transacciones</p>
         </div>
-        <div className="rounded-2xl border border-linea border-l-4 border-l-brand-blue bg-superficie p-4">
-          <p className="text-xs font-bold text-steel-300">Ventas este mes</p>
+        <div className="rounded-2xl border border-linea bg-superficie p-4">
+          <p className="text-sm font-semibold text-suave">Ventas este mes</p>
           <p className="mt-1 font-display text-2xl font-bold text-tinta">
             ${totalVentasMes.toLocaleString('es-CO')}
           </p>
@@ -157,7 +157,7 @@ export default async function PerfilEmpleadoPage({
           <div className="mt-3 overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+                <TableRow className="bg-superficie-2 hover:bg-superficie-2 [&_th]:text-sm [&_th]:font-semibold [&_th]:text-suave">
                   <TableHead>Ticket</TableHead>
                   <TableHead>Fecha</TableHead>
                   <TableHead className="text-right">Total</TableHead>
@@ -207,7 +207,7 @@ export default async function PerfilEmpleadoPage({
           <div className="mt-3 overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-steel-700 hover:bg-steel-700 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:text-brand-yellow">
+                <TableRow className="bg-superficie-2 hover:bg-superficie-2 [&_th]:text-sm [&_th]:font-semibold [&_th]:text-suave">
                   <TableHead>Fecha</TableHead>
                   <TableHead className="text-right">Horas</TableHead>
                   <TableHead className="text-right">Total pagado</TableHead>

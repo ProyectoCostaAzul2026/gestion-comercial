@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Plus, TrendingUp, Receipt, Calculator, CreditCard, FileText } from 'lucide-react'
+import { FileText, Plus } from 'lucide-react'
+import { MedioPagoIcono } from '@/components/ui/medio-pago-icono'
 import { traerTodo } from '@/lib/supabase/traer-todo'
 import { VentasFiltros } from '@/components/modulos/ventas-filtros'
 import { VentasTable } from '@/components/modulos/ventas-table'
@@ -99,73 +100,43 @@ export default async function VentasPage({
       <div className="relative py-1">
         <div className="relative z-10 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-tinta md:text-3xl">Ventas</h1>
-            <p className="mt-0.5 text-xs text-steel-300">
+            <h1 className="text-[28px] font-bold leading-tight text-tinta">Ventas</h1>
+            <p className="text-[15px] text-suave">
               {fechaInicio === hoy && fechaFin === hoy ? 'Hoy' : `${fechaInicio} a ${fechaFin}`}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <Link href="/dashboard/ventas/cotizacion"
-              className="inline-flex h-12 items-center justify-center rounded-xl bg-brand-blue px-4 text-sm font-bold text-white transition hover:brightness-110">
+              className="inline-flex h-11 items-center justify-center rounded-xl border border-linea bg-superficie px-4 text-[15px] font-semibold text-tinta hover:bg-superficie-2">
               <FileText className="mr-2 h-4 w-4" />Cotización
             </Link>
             <Link href="/dashboard/ventas/nueva"
-              className="inline-flex h-12 items-center justify-center rounded-xl bg-brand-yellow px-4 text-sm font-bold text-steel-900 transition hover:brightness-105">
-              <Plus className="mr-2 h-4 w-4" />Nueva Venta
+              className="hidden h-11 items-center justify-center rounded-xl bg-letrero px-4 text-[15px] font-bold text-tinta-fija hover:brightness-105 lg:inline-flex">
+              <Plus className="mr-1.5 h-4 w-4" strokeWidth={2.5} />Vender
             </Link>
           </div>
         </div>
       </div>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-        <div className="rounded-2xl border border-linea border-l-4 border-l-brand-yellow bg-superficie p-4">
-          <div className="flex items-start justify-between">
-            <p className="text-xs font-bold text-steel-300">Total ventas (hoy)</p>
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-yellow/15 text-brand-yellow">
-              <TrendingUp className="size-5" />
-            </span>
-          </div>
-          <p className="mt-2 font-display text-2xl font-bold text-tinta">${totalVentasHoy.toLocaleString('es-CO')}</p>
-        </div>
-        <div className="rounded-2xl border border-linea border-l-4 border-l-brand-blue bg-superficie p-4">
-          <div className="flex items-start justify-between">
-            <p className="text-xs font-bold text-steel-300">N° tickets (hoy)</p>
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-blue/15 text-enlace">
-              <Receipt className="size-5" />
-            </span>
-          </div>
-          <p className="mt-2 font-display text-2xl font-bold text-tinta">{numTicketsHoy}</p>
-        </div>
-        <div className="rounded-2xl border border-linea border-l-4 border-l-brand-blue bg-superficie p-4">
-          <div className="flex items-start justify-between">
-            <p className="text-xs font-bold text-steel-300">Venta promedio (hoy)</p>
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-blue/15 text-enlace">
-              <Calculator className="size-5" />
-            </span>
-          </div>
-          <p className="mt-2 font-display text-2xl font-bold text-tinta">${Math.round(ventaPromedioHoy).toLocaleString('es-CO')}</p>
-        </div>
-        <div className="rounded-2xl border border-linea bg-superficie p-4">
-          <div className="flex items-start justify-between">
-            <p className="text-xs font-bold text-steel-300">Por medio de pago (hoy)</p>
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-blue/15 text-enlace">
-              <CreditCard className="size-5" />
-            </span>
-          </div>
-          <div className="mt-2 space-y-0.5">
+      {/* Lo vendido hoy */}
+      <section className="rounded-[18px] bg-superficie p-5">
+        <p className="text-[15px] font-semibold text-suave">Vendido hoy</p>
+        <p className="cifra text-[48px] font-bold leading-none text-tinta">${Math.round(totalVentasHoy).toLocaleString('es-CO')}</p>
+        <p className="mt-1 text-[15px] text-suave">
+          {numTicketsHoy} {numTicketsHoy === 1 ? 'venta' : 'ventas'}{numTicketsHoy > 0 ? `, de $${Math.round(ventaPromedioHoy).toLocaleString('es-CO')} en promedio` : ''}
+        </p>
+        {MEDIOS_ORDEN.some(m => (desgloseMedios[m] ?? 0) > 0) && (
+          <ul className="mt-4 grid gap-x-6 border-t border-linea sm:grid-cols-2">
             {MEDIOS_ORDEN.filter(m => (desgloseMedios[m] ?? 0) > 0).map(medio => (
-              <div key={medio} className="flex justify-between text-xs">
-                <span className="text-steel-300">{MEDIO_LABEL[medio]}</span>
-                <span className="font-medium text-tinta">${(desgloseMedios[medio] ?? 0).toLocaleString('es-CO')}</span>
-              </div>
+              <li key={medio} className="flex items-center gap-3 border-b border-linea py-2.5">
+                <MedioPagoIcono medio={medio} className="h-7 w-[42px] shrink-0" />
+                <span className="flex-1 text-[15px] text-tinta">{MEDIO_LABEL[medio]}</span>
+                <span className="cifra text-xl font-bold text-tinta">${(desgloseMedios[medio] ?? 0).toLocaleString('es-CO')}</span>
+              </li>
             ))}
-            {MEDIOS_ORDEN.every(m => !desgloseMedios[m]) && (
-              <p className="text-xs text-steel-500">Sin ventas hoy</p>
-            )}
-          </div>
-        </div>
-      </div>
+          </ul>
+        )}
+      </section>
 
       <VentasFiltros
         fechaInicio={fechaInicio} fechaFin={fechaFin} tipoPago={sp.tipo_pago ?? ''} estado={sp.estado ?? ''}

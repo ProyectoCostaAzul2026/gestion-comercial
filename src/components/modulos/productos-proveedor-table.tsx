@@ -320,7 +320,7 @@ export function ProductosProveedorTable({
           <div className="space-y-3 rounded-xl border border-linea bg-superficie-2 p-3">
             <div className="flex flex-wrap items-end gap-3">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-steel-300">
+                <label className="text-sm font-semibold text-suave">
                   Días hasta el próximo pedido
                 </label>
                 <Input

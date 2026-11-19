@@ -35,44 +35,27 @@ export default async function InventarioPage() {
       <div className="relative py-1">
         <div className="relative z-10">
           <div>
-            <h1 className="text-2xl font-bold text-tinta md:text-3xl">Inventario</h1>
-            <p className="mt-0.5 text-xs text-steel-300">{productos?.length ?? 0} productos registrados</p>
+            <h1 className="text-[28px] font-bold leading-tight text-tinta">Inventario</h1>
+            <p className="text-[15px] text-suave">{productos?.length ?? 0} productos registrados</p>
           </div>
 
-          <div className="mt-4 grid grid-cols-3 gap-2">
-            <Link
-              href="/dashboard/inventario/garantias"
-              className="inline-flex h-11 items-center justify-center rounded-xl bg-brand-blue px-2 text-xs font-bold sm:text-sm text-steel-900 hover:brightness-105"
-            >
-              <ShieldCheck className="mr-1.5 h-4 w-4 shrink-0" />
-              Garantías
-            </Link>
-            <Link
-              href="/dashboard/inventario/agotados"
-              className="inline-flex h-11 items-center justify-center rounded-xl bg-brand-red px-2 text-xs font-bold sm:text-sm text-steel-900 hover:brightness-105"
-            >
-              <AlertTriangle className="mr-1.5 h-4 w-4 shrink-0" />
-              Agotados
-            </Link>
-            <Link
-              href="/dashboard/inventario/desactivados"
-              className="inline-flex h-11 items-center justify-center rounded-xl bg-steel-700 px-2 text-xs font-bold sm:text-sm text-tinta hover:brightness-110"
-            >
-              <PowerOff className="mr-1.5 h-4 w-4 shrink-0" />
-              Desactivados
-            </Link>
+          <div className="mt-4 grid grid-cols-4 gap-2">
+            {[
+              { href: '/dashboard/inventario/conteo', texto: 'Contar', Icono: ClipboardCheck, color: 'text-enlace' },
+              { href: '/dashboard/inventario/agotados', texto: 'Agotados', Icono: AlertTriangle, color: 'text-sale' },
+              { href: '/dashboard/inventario/garantias', texto: 'Garantías', Icono: ShieldCheck, color: 'text-enlace' },
+              { href: '/dashboard/inventario/desactivados', texto: 'Desactivados', Icono: PowerOff, color: 'text-suave' },
+            ].map(({ href, texto, Icono, color }) => (
+              <Link key={href} href={href}
+                className="flex h-[72px] flex-col items-center justify-center gap-1.5 rounded-[14px] bg-superficie px-1 text-center text-[13px] font-semibold leading-tight text-tinta hover:bg-superficie-2 sm:text-sm">
+                <Icono className={`size-[22px] ${color}`} strokeWidth={1.75} aria-hidden />{texto}
+              </Link>
+            ))}
           </div>
-          <Link
-            href="/dashboard/inventario/conteo"
-            className="mt-2 flex h-11 items-center justify-center rounded-xl border border-linea-fuerte px-4 text-sm font-bold text-tinta hover:bg-velo/5"
-          >
-            <ClipboardCheck className="mr-2 h-4 w-4 text-brand-yellow" />
-            Conteo de inventario (también por peso)
-          </Link>
           {(porCompletar ?? 0) > 0 && (
             <Link
               href="/dashboard/inventario/por-completar"
-              className="mt-2 flex h-10 items-center justify-center rounded-xl border border-brand-yellow/60 px-4 text-sm font-bold text-brand-yellow hover:bg-brand-yellow/10"
+              className="mt-2 flex min-h-11 items-center justify-center rounded-xl bg-[color-mix(in_oklab,var(--aviso)_14%,transparent)] px-4 text-[15px] font-semibold text-tinta"
             >
               <ClipboardList className="mr-2 h-4 w-4" />
               Por completar ({porCompletar}): productos de alta rápida

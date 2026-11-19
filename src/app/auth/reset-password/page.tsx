@@ -58,7 +58,7 @@ export default function ResetPasswordPage() {
   }
 
   const CAMPO = 'w-full rounded-xl border border-linea bg-superficie-2 px-4 py-3 pr-11 text-[16px] text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60 focus:outline-none'
-  const ETIQUETA = 'mb-1 block text-xs font-bold text-steel-300'
+  const ETIQUETA = 'mb-1 block text-sm font-semibold text-suave'
 
   return (
     <div className="flex min-h-dvh items-center justify-center bg-fondo px-4 py-8 text-tinta">
