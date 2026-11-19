@@ -27,6 +27,10 @@ nómina).
   el esquema real evolucionó directamente en Supabase.
 - zod, react-hook-form, recharts, jspdf (recibos y cotizaciones en PDF), sonner, lucide-react.
 - Sin tests ni CI. Comandos: `npm run dev`, `npm run build`, `npm run lint`.
+- **Skills del proyecto** (`.claude/skills/`, versiones fijas en `skills-lock.json`): `find-skills` (buscar e instalar
+  skills con `npx skills find` / `npx skills add <fuente> --skill <nombre> -a claude-code -y`), `frontend-design` (dirección
+  visual) y `web-design-guidelines` (revisión de interfaz contra las Web Interface Guidelines de Vercel). En la nube, el
+  entorno "ProyectoCostaAzul" permite `skills.sh` (registro de skills); GitHub ya era accesible.
 
 ## Infraestructura y acceso
 
