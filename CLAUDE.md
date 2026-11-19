@@ -151,6 +151,12 @@ nómina).
   llena la columna que lee la app (`imagen_url`, `logo_url`, `foto_url`; nota 24 de `DATABASE.md`). Donde el guardado
   pasa por RPC (producto, familia, grupo) solo se manda la imagen que se muestra y, con foto subida, el enlace de
   respaldo queda bloqueado; proveedor, logo del negocio y empleado mandan las tres columnas.
+- **Gráficas** (2026-11-19): recharts con las ayudas de `src/lib/graficas.ts` (`ejeMoneda` para los ejes: "$1,5K", "-$450K";
+  `pesos` para el globo; estilos `EJE`, `CUADRICULA`, `GLOBO`, `GLOBO_ITEM`; `ANCHO_MAX_BARRA`) y `LeyendaGrafica` cuando hay
+  varias series. Un solo eje por gráfica, líneas rectas (`type="linear"`), positivos y negativos apilados con
+  `stackOffset="sign"`. Toda gráfica va dentro de `GraficaAmpliable` (`src/components/ui/grafica-ampliable.tsx`): botón
+  "Ampliar" a pantalla completa; en el celular vertical pide girar en Android y, si no se puede (iPhone), dibuja la gráfica
+  girada. Medios de pago es una barra de proporciones con lista, no un pastel.
 - **Fechas**: "hoy" siempre con `hoyBogota()` / `bogotaEnDias()` de `src/lib/fechas.ts`. Nunca
   `new Date().toISOString().slice(0, 10)` (es UTC: desde las 7 p. m. de Bogotá ya es mañana).
 - `src/app/manifest.ts` e íconos `public/icono-*.png`: la app se puede instalar en la pantalla de inicio del celular.

@@ -1,5 +1,8 @@
 'use client'
 
+import { GraficaAmpliable } from '@/components/ui/grafica-ampliable'
+import { ANCHO_MAX_BARRA, CUADRICULA, CURSOR_BARRA, EJE, GLOBO, GLOBO_ETIQUETA, GLOBO_ITEM, ejeMoneda, pesos } from '@/lib/graficas'
+import { LeyendaGrafica } from '@/components/ui/leyenda-grafica'
 import { useMemo, useState } from 'react'
 import {
   Bar, CartesianGrid, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -30,8 +33,8 @@ interface Semana {
 
 const fmt = (n: number) => `${n < 0 ? '-' : ''}$${Math.abs(Math.round(n)).toLocaleString('es-CO')}`
 const corto = (f: string) => `${Number(f.slice(8))}/${Number(f.slice(5, 7))}`
-const AXIS_TICK = { fontSize: 11, fill: 'var(--suave)' }
-const TOOLTIP_STYLE = { backgroundColor: 'var(--sup2)', border: '1px solid var(--linea)', borderRadius: 12, color: 'var(--tinta)', fontSize: 12 }
+const AXIS_TICK = EJE
+const TOOLTIP_STYLE = GLOBO
 
 /**
  * Proyección semana a semana. Lo seguro: el dinero de hoy, los créditos por cobrar y las facturas por pagar según su
@@ -157,20 +160,31 @@ export function FlujoProyectadoPanel({ hoy, disponible, cobros, pagos, promedios
       {/* Gráfica */}
       <section className="rounded-2xl bg-superficie p-4">
         <p className="mb-3 text-sm font-semibold text-tinta">Saldo al final de cada semana</p>
-        <ResponsiveContainer width="100%" height={240}>
-          <ComposedChart data={proyeccion.map(s => ({ semana: corto(s.desde), entradas: s.entradas, salidas: -s.salidas, saldo: s.saldoFinal }))}
-            margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--linea)" />
-            <XAxis dataKey="semana" tick={{ fontSize: 10, fill: 'var(--suave)' }} />
-            <YAxis tick={AXIS_TICK} tickFormatter={v => `$${(v / 1000).toFixed(0)}K`} width={50} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'color-mix(in oklab, var(--velo) 6%, transparent)' }}
-              formatter={(v: any, name: any) => [fmt(Math.abs(Number(v))), name === 'entradas' ? 'Entradas' : name === 'salidas' ? 'Salidas' : 'Saldo final']} />
-            <ReferenceLine y={0} stroke="var(--sale)" strokeDasharray="4 4" />
-            <Bar dataKey="entradas" fill="var(--entra)" radius={[3, 3, 0, 0]} />
-            <Bar dataKey="salidas" fill="var(--sale)" radius={[3, 3, 0, 0]} />
-            <Line type="monotone" dataKey="saldo" stroke="var(--chart-1)" strokeWidth={2} dot={{ r: 3, fill: 'var(--chart-1)' }} />
-          </ComposedChart>
-        </ResponsiveContainer>
+        <LeyendaGrafica items={[
+          { color: 'var(--entra)', texto: 'Entradas' },
+          { color: 'var(--sale)', texto: 'Salidas' },
+          { color: 'var(--chart-1)', texto: 'Saldo al final', forma: 'linea' },
+        ]} />
+        <GraficaAmpliable titulo="Saldo al final de cada semana">
+          {amp => (
+            <ResponsiveContainer width="100%" height={amp ? '100%' : 240}>
+              <ComposedChart stackOffset="sign" data={proyeccion.map(s => ({ semana: corto(s.desde), entradas: s.entradas, salidas: -s.salidas, saldo: s.saldoFinal }))}
+                margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                <CartesianGrid {...CUADRICULA} />
+                <XAxis dataKey="semana" tick={AXIS_TICK} />
+                <YAxis tick={AXIS_TICK} tickFormatter={ejeMoneda} width={56} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} cursor={CURSOR_BARRA} labelStyle={GLOBO_ETIQUETA} itemStyle={GLOBO_ITEM} separator=": "
+                  formatter={(v, name) => name === 'saldo'
+                    ? [pesos(Number(v)), 'Saldo al final']
+                    : [pesos(Math.abs(Number(v))), name === 'entradas' ? 'Entradas' : 'Salidas']} />
+                <ReferenceLine y={0} stroke="var(--sale)" strokeDasharray="4 4" />
+                <Bar maxBarSize={ANCHO_MAX_BARRA} dataKey="entradas" stackId="semana" fill="var(--entra)" radius={[4, 4, 0, 0]} />
+                <Bar maxBarSize={ANCHO_MAX_BARRA} dataKey="salidas" stackId="semana" fill="var(--sale)" radius={[0, 0, 4, 4]} />
+                <Line type="linear" dataKey="saldo" stroke="var(--chart-1)" strokeWidth={2} dot={{ r: 4, fill: 'var(--chart-1)', strokeWidth: 2, stroke: 'var(--sup)' }} />
+              </ComposedChart>
+            </ResponsiveContainer>
+          )}
+        </GraficaAmpliable>
       </section>
 
       {/* Semana a semana */}

@@ -49,7 +49,7 @@ próxima revisión.
 Quedan como pendientes hasta que el dueño responda las preguntas del final de `docs/plan-etapa-6.md`, donde está el plan
 completo:
 
-- **Etapa 6**: factura electrónica, mapa de la ferretería y gráficos ampliables.
+- **Etapa 6**: factura electrónica y mapa de la ferretería (los gráficos ampliables ya se hicieron el 2026-11-19).
 - **Etapa 7**: asistente de ventas por WhatsApp (con preparativos que se pueden ir haciendo desde la etapa 6).
 - **Etapa 8**: página web pública de la ferretería alimentada por la base, con el concepto de la tienda de Ranger y la
   identidad propia, instalable en el celular como app de ventas (aparte de la app del sistema). Plan, viabilidad y

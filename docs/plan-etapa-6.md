@@ -66,7 +66,7 @@ Un apartado con el plano del local y dónde está cada cosa. Primero un boceto; 
   tiene; buscar un producto resalta dónde está. En Nueva venta y en el detalle del producto, "Ver en el mapa".
 - **Conteo de inventario**: contar por estante desde el mapa.
 
-## Etapa 6. Gráficos ampliables
+## Etapa 6. Gráficos ampliables (hecho el 2026-11-19)
 
 ### Corrección
 

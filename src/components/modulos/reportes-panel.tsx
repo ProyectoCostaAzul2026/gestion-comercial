@@ -1,5 +1,8 @@
 'use client'
 
+import { GraficaAmpliable } from '@/components/ui/grafica-ampliable'
+import { ANCHO_MAX_BARRA, CUADRICULA, CURSOR_BARRA, EJE, GLOBO, GLOBO_ETIQUETA, GLOBO_ITEM, ejeMoneda, pesos } from '@/lib/graficas'
+import { LeyendaGrafica } from '@/components/ui/leyenda-grafica'
 import { MedioPagoIcono } from '@/components/ui/medio-pago-icono'
 import { useState, useMemo } from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -7,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import {
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, PieChart, Pie, Cell, BarChart,
+  ResponsiveContainer, Cell, BarChart, ReferenceLine,
 } from 'recharts'
 import { jsPDF } from 'jspdf'
 import { autoTable } from 'jspdf-autotable'
@@ -42,9 +45,8 @@ const METODO_LABEL: Record<string, string> = {
 const MEDIOS_ORDEN = ['efectivo', 'nequi', 'daviplata', 'tarjeta', 'credito']
 
 // Estilos comunes para los ejes y la cuadrícula de recharts (siguen el tema claro u oscuro)
-const AXIS_TICK = { fontSize: 11, fill: 'var(--suave)' }
-const GRID_STROKE = 'var(--linea)'
-const TOOLTIP_STYLE = { backgroundColor: 'var(--sup2)', border: '1px solid var(--linea)', borderRadius: 12, color: 'var(--tinta)', fontSize: 12 }
+const AXIS_TICK = EJE
+const TOOLTIP_STYLE = GLOBO
 
 function fmt(n: number) { return `$${Math.round(n).toLocaleString('es-CO')}` }
 function pct(n: number) { return `${n.toFixed(1)}%` }
@@ -394,37 +396,40 @@ export function ReportesPanel({
           </div>
 
           {/* Gráfico estado de resultados — barras horizontales con eje central en 0 */}
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart
-              data={[
-                { nombre: 'Ingresos', valor: kpisPeriodo.totalIngresos },
-                { nombre: 'CMV', valor: -kpisPeriodo.totalCMV },
-                { nombre: 'Nóminas', valor: -kpisPeriodo.totalNominas },
-                { nombre: 'Gastos', valor: -kpisPeriodo.totalGastos },
-                { nombre: 'Gan. Bruta', valor: kpisPeriodo.gananciaBruta },
-                { nombre: 'Resultado', valor: kpisPeriodo.resultado },
-              ]}
-              layout="vertical"
-              margin={{ top: 5, right: 80, left: 80, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
-              <XAxis type="number" tick={AXIS_TICK}
-                tickFormatter={v => `$${(Math.abs(v) / 1000000).toFixed(1)}M`}
-                domain={['auto', 'auto']} />
-              <YAxis type="category" dataKey="nombre" tick={{ fontSize: 10, fill: 'var(--suave)' }} width={75} />
-              <Tooltip formatter={(v: any) => [fmt(Math.abs(Number(v))), '']} contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'color-mix(in oklab, var(--velo) 6%, transparent)' }} />
-              <Bar dataKey="valor" radius={[0, 3, 3, 0]}>
-                {[
-                  'var(--chart-2)',   // Ingresos — azul de marca
-                  'var(--tenue)',   // CMV — acero
-                  'var(--violeta)',   // Nóminas — morado
-                  'var(--sale)',   // Gastos — rojo
-                  kpisPeriodo.gananciaBruta >= 0 ? 'var(--entra)' : 'var(--aviso)',  // Gan. Bruta
-                  kpisPeriodo.resultado >= 0 ? 'var(--chart-1)' : 'var(--aviso)',       // Resultado
-                ].map((color, i) => <Cell key={i} fill={color} />)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          <GraficaAmpliable titulo="Estado de resultados">
+            {amp => (
+              <ResponsiveContainer width="100%" height={amp ? '100%' : 220}>
+                <BarChart
+                  data={[
+                    { nombre: 'Ingresos', valor: kpisPeriodo.totalIngresos },
+                    { nombre: 'CMV', valor: -kpisPeriodo.totalCMV },
+                    { nombre: 'Nóminas', valor: -kpisPeriodo.totalNominas },
+                    { nombre: 'Gastos', valor: -kpisPeriodo.totalGastos },
+                    { nombre: 'Gan. Bruta', valor: kpisPeriodo.gananciaBruta },
+                    { nombre: 'Resultado', valor: kpisPeriodo.resultado },
+                  ]}
+                  layout="vertical"
+                  margin={{ top: 5, right: 16, left: 0, bottom: 5 }}
+                >
+                  <CartesianGrid stroke="var(--linea)" horizontal={false} />
+                  <XAxis type="number" tick={AXIS_TICK} tickFormatter={ejeMoneda} />
+                  <YAxis type="category" dataKey="nombre" tick={AXIS_TICK} width={78} />
+                  <ReferenceLine x={0} stroke="var(--linea-fuerte)" />
+                  <Tooltip formatter={(v: any) => [pesos(Number(v)), '']} contentStyle={TOOLTIP_STYLE} itemStyle={GLOBO_ITEM} separator=": " cursor={CURSOR_BARRA} labelStyle={GLOBO_ETIQUETA} />
+                  <Bar maxBarSize={28} dataKey="valor" radius={4}>
+                    {[
+                      'var(--chart-2)',   // Ingresos — azul de marca
+                      'var(--tenue)',   // CMV — acero
+                      'var(--violeta)',   // Nóminas — morado
+                      'var(--sale)',   // Gastos — rojo
+                      kpisPeriodo.gananciaBruta >= 0 ? 'var(--entra)' : 'var(--aviso)',  // Gan. Bruta
+                      kpisPeriodo.resultado >= 0 ? 'var(--chart-1)' : 'var(--aviso)',       // Resultado
+                    ].map((color, i) => <Cell key={i} fill={color} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </GraficaAmpliable>
         </div>
       </section>
 
@@ -478,25 +483,29 @@ export function ReportesPanel({
               </TableRow>
             </TableBody>
           </Table>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart
-              data={[
-                { nombre: 'Ventas', actual: kpisPeriodo.totalIngresos, anterior: ant.ingresos },
-                { nombre: 'Gan. bruta', actual: kpisPeriodo.gananciaBruta, anterior: ant.gananciaBruta },
-                { nombre: 'Gastos+nómina', actual: kpisPeriodo.totalGastos + kpisPeriodo.totalNominas, anterior: ant.gastos + ant.nominas },
-                { nombre: 'Resultado', actual: kpisPeriodo.resultado, anterior: ant.resultado },
-              ]}
-              margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
-              <XAxis dataKey="nombre" tick={{ fontSize: 10, fill: 'var(--suave)' }} />
-              <YAxis tick={AXIS_TICK} tickFormatter={v => `$${(v / 1000).toFixed(0)}K`} width={50} />
-              <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'color-mix(in oklab, var(--velo) 6%, transparent)' }}
-                formatter={(v: any, name: any) => [fmt(Number(v)), name === 'actual' ? 'Este periodo' : 'Anterior']} />
-              <Bar dataKey="anterior" fill="var(--tenue)" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="actual" fill="var(--chart-1)" radius={[3, 3, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <GraficaAmpliable titulo="Contra el periodo anterior">
+            {amp => (
+              <ResponsiveContainer width="100%" height={amp ? '100%' : 200}>
+                <BarChart
+                  data={[
+                    { nombre: 'Ventas', actual: kpisPeriodo.totalIngresos, anterior: ant.ingresos },
+                    { nombre: 'Gan. bruta', actual: kpisPeriodo.gananciaBruta, anterior: ant.gananciaBruta },
+                    { nombre: 'Gastos+nómina', actual: kpisPeriodo.totalGastos + kpisPeriodo.totalNominas, anterior: ant.gastos + ant.nominas },
+                    { nombre: 'Resultado', actual: kpisPeriodo.resultado, anterior: ant.resultado },
+                  ]}
+                  margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
+                >
+                  <CartesianGrid {...CUADRICULA} />
+                  <XAxis dataKey="nombre" tick={AXIS_TICK} />
+                  <YAxis tick={AXIS_TICK} tickFormatter={ejeMoneda} width={50} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} itemStyle={GLOBO_ITEM} separator=": " cursor={CURSOR_BARRA} labelStyle={GLOBO_ETIQUETA}
+                    formatter={(v: any, name: any) => [fmt(Number(v)), name === 'actual' ? 'Este periodo' : 'Anterior']} />
+                  <Bar maxBarSize={ANCHO_MAX_BARRA} dataKey="anterior" fill="var(--tenue)" radius={[3, 3, 0, 0]} />
+                  <Bar maxBarSize={ANCHO_MAX_BARRA} dataKey="actual" fill="var(--chart-1)" radius={[3, 3, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </GraficaAmpliable>
           <p className="text-center text-xs text-steel-500">
             <span className="mr-1 inline-block h-2 w-2 rounded-sm bg-brand-yellow" />Este periodo
             <span className="ml-3 mr-1 inline-block h-2 w-2 rounded-sm bg-tenue" />{anterior.etiqueta}
@@ -522,18 +531,20 @@ export function ReportesPanel({
           <p className="mb-1 text-sm font-semibold text-tinta">Descuentos en el tiempo</p>
           <p className="mb-4 text-xs text-steel-500">{diasPeriodo > 92 ? 'Por mes' : 'Por día'}. Incluye descuentos por línea, descuento total y total editado a mano.</p>
           {descuentos.total > 0 ? (
-            <ResponsiveContainer width="100%" height={220}>
-              <ComposedChart data={descuentos.serie} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
-                <XAxis dataKey="periodo" tick={{ fontSize: 10, fill: 'var(--suave)' }} />
-                <YAxis yAxisId="d" tick={AXIS_TICK} tickFormatter={v => `$${(v / 1000).toFixed(0)}K`} width={45} />
-                <YAxis yAxisId="t" orientation="right" tick={AXIS_TICK} allowDecimals={false} width={25} />
-                <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'color-mix(in oklab, var(--velo) 6%, transparent)' }}
-                  formatter={(v: any, name: any) => name === 'tickets' ? [v, 'Ventas con descuento'] : [fmt(Number(v)), 'Descuento']} />
-                <Bar yAxisId="d" dataKey="descuentos" fill="var(--aviso)" radius={[3, 3, 0, 0]} />
-                <Line yAxisId="t" type="monotone" dataKey="tickets" stroke="var(--chart-2)" strokeWidth={2} dot={false} />
-              </ComposedChart>
-            </ResponsiveContainer>
+            <GraficaAmpliable titulo="Descuentos en el tiempo">
+              {amp => (
+                <ResponsiveContainer width="100%" height={amp ? '100%' : 220}>
+                  <ComposedChart data={descuentos.serie} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                    <CartesianGrid {...CUADRICULA} />
+                    <XAxis dataKey="periodo" tick={AXIS_TICK} />
+                    <YAxis tick={AXIS_TICK} tickFormatter={ejeMoneda} width={52} />
+                    <Tooltip contentStyle={TOOLTIP_STYLE} itemStyle={GLOBO_ITEM} separator=": " cursor={CURSOR_BARRA} labelStyle={GLOBO_ETIQUETA}
+                      formatter={(v: any, _n: any, item: any) => [`${pesos(Number(v))} en ${item?.payload?.tickets ?? 0} venta${item?.payload?.tickets === 1 ? '' : 's'}`, 'Descuento']} />
+                    <Bar maxBarSize={ANCHO_MAX_BARRA} dataKey="descuentos" fill="var(--aviso)" radius={[4, 4, 0, 0]} />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              )}
+            </GraficaAmpliable>
           ) : (
             <p className="py-8 text-center text-sm text-steel-500">No se dieron descuentos en este periodo.</p>
           )}
@@ -551,76 +562,73 @@ export function ReportesPanel({
           <p className="mb-4 text-xs text-steel-500">
             {diasPeriodo > 30 ? 'Agrupado por mes' : 'Por día'}
           </p>
-          <ResponsiveContainer width="100%" height={280}>
-            <ComposedChart
-              data={graficaFlujoCaja.map(d => ({
-                ...d,
-                egresos: -Math.abs(d.egresos), // negativos para que vayan hacia abajo
-              }))}
-              margin={{ top: 10, right: 20, left: 10, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
-              <XAxis dataKey="periodo" tick={{ fontSize: 10, fill: 'var(--suave)' }} />
-              <YAxis tick={AXIS_TICK} tickFormatter={v => `$${(Math.abs(v) / 1000).toFixed(0)}K`} />
-              <Tooltip
-                contentStyle={TOOLTIP_STYLE}
-                cursor={{ fill: 'color-mix(in oklab, var(--velo) 6%, transparent)' }}
-                formatter={(v: any, name: any) => [
-                  fmt(Math.abs(Number(v))),
-                  name === 'ingresos' ? 'Ingresos' : name === 'egresos' ? 'Egresos' : 'Utilidad'
-                ]}
-              />
-              {/* Barras apiladas en el mismo eje: ingresos arriba (verde), egresos abajo (rojo) */}
-              <Bar dataKey="ingresos" fill="var(--entra)" radius={[3, 3, 0, 0]} name="ingresos" />
-              <Bar dataKey="egresos" fill="var(--sale)" radius={[3, 3, 0, 0]} name="egresos" />
-              <Line type="monotone" dataKey="utilidad" stroke="var(--chart-1)" strokeWidth={2}
-                dot={{ fill: 'var(--chart-1)', r: 4, strokeWidth: 2, stroke: 'var(--sup)' }} name="utilidad" />
-            </ComposedChart>
-          </ResponsiveContainer>
+          <LeyendaGrafica items={[
+            { color: 'var(--entra)', texto: 'Ingresos' },
+            { color: 'var(--sale)', texto: 'Egresos' },
+            { color: 'var(--chart-1)', texto: 'Utilidad', forma: 'linea' },
+          ]} />
+          <GraficaAmpliable titulo="Flujo de caja">
+            {amp => (
+              <ResponsiveContainer width="100%" height={amp ? '100%' : 280}>
+                <ComposedChart stackOffset="sign"
+                  data={graficaFlujoCaja.map(d => ({
+                    ...d,
+                    egresos: -Math.abs(d.egresos), // negativos para que vayan hacia abajo
+                  }))}
+                  margin={{ top: 10, right: 20, left: 10, bottom: 5 }}
+                >
+                  <CartesianGrid {...CUADRICULA} />
+                  <XAxis dataKey="periodo" tick={AXIS_TICK} />
+                  <YAxis tick={AXIS_TICK} tickFormatter={ejeMoneda} width={56} />
+                  <ReferenceLine y={0} stroke="var(--linea-fuerte)" />
+                  <Tooltip
+                    contentStyle={TOOLTIP_STYLE} itemStyle={GLOBO_ITEM} separator=": "
+                    cursor={CURSOR_BARRA} labelStyle={GLOBO_ETIQUETA}
+                    formatter={(v: any, name: any) => [
+                      fmt(Math.abs(Number(v))),
+                      name === 'ingresos' ? 'Ingresos' : name === 'egresos' ? 'Egresos' : 'Utilidad'
+                    ]}
+                  />
+                  {/* Barras apiladas en el mismo eje: ingresos arriba (verde), egresos abajo (rojo) */}
+                  <Bar maxBarSize={ANCHO_MAX_BARRA} dataKey="ingresos" stackId="flujo" fill="var(--entra)" radius={[3, 3, 0, 0]} name="ingresos" />
+                  <Bar maxBarSize={ANCHO_MAX_BARRA} dataKey="egresos" stackId="flujo" fill="var(--sale)" radius={[0, 0, 4, 4]} name="egresos" />
+                  <Line type="linear" dataKey="utilidad" stroke="var(--chart-1)" strokeWidth={2}
+                    dot={{ fill: 'var(--chart-1)', r: 4, strokeWidth: 2, stroke: 'var(--sup)' }} activeDot={{ r: 5, strokeWidth: 2, stroke: 'var(--sup)' }} name="utilidad" />
+                </ComposedChart>
+              </ResponsiveContainer>
+            )}
+          </GraficaAmpliable>
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {/* Medios de pago */}
           <div className="rounded-2xl bg-superficie p-4">
             <p className="mb-4 text-sm font-semibold text-tinta">Por medio de pago</p>
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={graficaMedios} dataKey="total" nameKey="metodo"
-                  cx="50%" cy="50%" outerRadius={70}
-                  label={({ name, percent }: any) =>
-                    `${METODO_LABEL[name] ?? name} ${((percent ?? 0) * 100).toFixed(0)}%`}
-                  labelLine={false}
-                  stroke="var(--sup)"
-                >
-                  {graficaMedios.map((entry, i) => (
-                    <Cell key={entry.metodo}
-                      fill={COLORES_MEDIO[entry.metodo] ?? COLORES_GRAFICA[i % COLORES_GRAFICA.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(v: any) => fmt(Number(v))} contentStyle={TOOLTIP_STYLE} />
-              </PieChart>
-            </ResponsiveContainer>
+            <MediosDePago datos={graficaMedios} />
           </div>
 
           {/* Ventas por hora */}
           <div className="rounded-2xl bg-superficie p-4">
             <p className="mb-1 text-sm font-semibold text-tinta">Ventas por hora del día</p>
             <SelectorModoGrafico modo={modoHoras} onChange={setModoHoras} />
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={datosHorasMostrados} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
-                <XAxis dataKey="hora" tick={AXIS_TICK} />
-                <YAxis
-                  tick={AXIS_TICK}
-                  tickFormatter={v => modoHoras === 'ticket' ? `${v}` : `$${(Math.abs(v) / 1000).toFixed(0)}K`}
-                  domain={['auto', 'auto']}
-                  allowDataOverflow={false}
-                />
-                <Tooltip formatter={(v: any) => [modoHoras === 'ticket' ? Number(v).toFixed(0) : fmt(Number(v)), ETIQUETA_MODO[modoHoras]]} contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'color-mix(in oklab, var(--velo) 6%, transparent)' }} />
-                <Bar dataKey="valor" fill="var(--chart-2)" radius={[2, 2, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <GraficaAmpliable titulo="Ventas por hora del día">
+              {amp => (
+                <ResponsiveContainer width="100%" height={amp ? '100%' : 200}>
+                  <BarChart data={datosHorasMostrados} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                    <CartesianGrid {...CUADRICULA} />
+                    <XAxis dataKey="hora" tick={AXIS_TICK} />
+                    <YAxis
+                      tick={AXIS_TICK}
+                      tickFormatter={v => modoHoras === 'ticket' ? `${v}` : ejeMoneda(v)}
+                      domain={['auto', 'auto']}
+                      allowDataOverflow={false}
+                    />
+                    <Tooltip formatter={(v: any) => [modoHoras === 'ticket' ? Number(v).toFixed(0) : fmt(Number(v)), ETIQUETA_MODO[modoHoras]]} contentStyle={TOOLTIP_STYLE} itemStyle={GLOBO_ITEM} separator=": " cursor={CURSOR_BARRA} labelStyle={GLOBO_ETIQUETA} />
+                    <Bar maxBarSize={ANCHO_MAX_BARRA} dataKey="valor" fill="var(--chart-2)" radius={[2, 2, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </GraficaAmpliable>
           </div>
         </div>
 
@@ -629,47 +637,51 @@ export function ReportesPanel({
           <p className="mb-1 text-sm font-semibold text-tinta">Ventas promedio por día de la semana</p>
           <p className="mb-3 text-xs text-steel-500">Lunes a domingo · promedio sobre el período seleccionado</p>
           <SelectorModoGrafico modo={modoDias} onChange={setModoDias} />
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={datosDiasMostrados} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
-              <XAxis dataKey="dia" tick={AXIS_TICK} />
-              <YAxis
-                tick={AXIS_TICK}
-                tickFormatter={v => modoDias === 'ticket' ? `${v.toFixed(1)}` : `$${(Math.abs(v) / 1000).toFixed(0)}K`}
-                domain={['auto', 'auto']}
-                allowDataOverflow={false}
-              />
-              <Tooltip formatter={(v: any) => [modoDias === 'ticket' ? Number(v).toFixed(1) : fmt(Number(v)), ETIQUETA_MODO[modoDias]]} contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'color-mix(in oklab, var(--velo) 6%, transparent)' }} />
-              <Bar dataKey="valor" fill="var(--chart-1)" radius={[2, 2, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <GraficaAmpliable titulo="Ventas promedio por día de la semana">
+            {amp => (
+              <ResponsiveContainer width="100%" height={amp ? '100%' : 220}>
+                <BarChart data={datosDiasMostrados} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                  <CartesianGrid {...CUADRICULA} />
+                  <XAxis dataKey="dia" tick={AXIS_TICK} />
+                  <YAxis
+                    tick={AXIS_TICK}
+                    tickFormatter={v => modoDias === 'ticket' ? `${Number(v.toFixed(1))}`.replace('.', ',') : ejeMoneda(v)}
+                    domain={['auto', 'auto']}
+                    allowDataOverflow={false}
+                  />
+                  <Tooltip formatter={(v: any) => [modoDias === 'ticket' ? Number(v).toFixed(1) : fmt(Number(v)), ETIQUETA_MODO[modoDias]]} contentStyle={TOOLTIP_STYLE} itemStyle={GLOBO_ITEM} separator=": " cursor={CURSOR_BARRA} labelStyle={GLOBO_ETIQUETA} />
+                  <Bar maxBarSize={ANCHO_MAX_BARRA} dataKey="valor" fill="var(--chart-1)" radius={[2, 2, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </GraficaAmpliable>
         </div>
 
         {/* Ventas por empleado */}
         {graficaEmpleados.length > 0 && (
           <div className="rounded-2xl bg-superficie p-4">
             <p className="mb-4 text-sm font-semibold text-tinta">Ventas por empleado</p>
-            <ResponsiveContainer width="100%" height={Math.max(120, graficaEmpleados.length * 40)}>
-              <BarChart data={graficaEmpleados} layout="vertical"
-                margin={{ top: 5, right: 60, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
-                <XAxis type="number" tick={AXIS_TICK} tickFormatter={v => `$${(v / 1000).toFixed(0)}K`} />
-                <YAxis type="category" dataKey="nombre" tick={{ fontSize: 10, fill: 'var(--suave)' }} width={100} />
-                <Tooltip
-                  contentStyle={TOOLTIP_STYLE}
-                  cursor={{ fill: 'color-mix(in oklab, var(--velo) 6%, transparent)' }}
-                  formatter={(v: any, name: any) => [
-                    name === 'total' ? fmt(Number(v)) : v,
-                    name === 'total' ? 'Ventas' : 'Tickets'
-                  ]}
-                />
-                <Bar dataKey="total" fill="var(--chart-1)" radius={[0, 3, 3, 0]}>
-                  {graficaEmpleados.map((_, i) => (
-                    <Cell key={i} fill={COLORES_GRAFICA[i % COLORES_GRAFICA.length]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <GraficaAmpliable titulo="Ventas por empleado">
+              {amp => (
+                <ResponsiveContainer width="100%" height={amp ? '100%' : Math.max(120, graficaEmpleados.length * 40)}>
+                  <BarChart data={graficaEmpleados} layout="vertical"
+                    margin={{ top: 5, right: 16, left: 0, bottom: 5 }}>
+                    <CartesianGrid {...CUADRICULA} />
+                    <XAxis type="number" tick={AXIS_TICK} tickFormatter={ejeMoneda} />
+                    <YAxis type="category" dataKey="nombre" tick={AXIS_TICK} width={100} />
+                    <Tooltip
+                      contentStyle={TOOLTIP_STYLE} itemStyle={GLOBO_ITEM} separator=": "
+                      cursor={CURSOR_BARRA} labelStyle={GLOBO_ETIQUETA}
+                      formatter={(v: any, name: any) => [
+                        name === 'total' ? fmt(Number(v)) : v,
+                        name === 'total' ? 'Ventas' : 'Tickets'
+                      ]}
+                    />
+                    <Bar maxBarSize={28} dataKey="total" fill="var(--chart-1)" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </GraficaAmpliable>
             <div className="mt-3 space-y-1">
               {graficaEmpleados.map(e => (
                 <div key={e.nombre} className="flex justify-between text-xs text-steel-300">
@@ -940,6 +952,37 @@ export function ReportesPanel({
           </div>
         </section>
       )}
+    </div>
+  )
+}
+
+/** Medios de pago: una barra con la proporción de cada medio y la lista con su ícono, valor y porcentaje */
+function MediosDePago({ datos }: { datos: { metodo: string; total: number }[] }) {
+  const filas = MEDIOS_ORDEN.map(m => datos.find(d => d.metodo === m)).filter((d): d is { metodo: string; total: number } => !!d && d.total > 0)
+  const otros = datos.filter(d => !MEDIOS_ORDEN.includes(d.metodo) && d.total > 0)
+  const todas = [...filas, ...otros]
+  const total = todas.reduce((a, d) => a + d.total, 0)
+  if (total <= 0) return <p className="py-8 text-center text-sm text-steel-500">Sin ventas en este periodo.</p>
+  return (
+    <div className="space-y-4">
+      <div className="flex h-4 w-full gap-0.5 overflow-hidden rounded-full" role="img"
+        aria-label={todas.map(d => `${METODO_LABEL[d.metodo] ?? d.metodo} ${Math.round((d.total / total) * 100)}%`).join(', ')}>
+        {todas.map((d, i) => (
+          <span key={d.metodo} title={`${METODO_LABEL[d.metodo] ?? d.metodo}: ${fmt(d.total)}`}
+            style={{ width: `${(d.total / total) * 100}%`, background: COLORES_MEDIO[d.metodo] ?? COLORES_GRAFICA[i % COLORES_GRAFICA.length] }} />
+        ))}
+      </div>
+      <ul className="divide-y divide-linea">
+        {todas.map((d, i) => (
+          <li key={d.metodo} className="flex items-center gap-3 py-2">
+            <span className="size-2.5 shrink-0 rounded-[3px]" style={{ background: COLORES_MEDIO[d.metodo] ?? COLORES_GRAFICA[i % COLORES_GRAFICA.length] }} aria-hidden />
+            <MedioPagoIcono medio={d.metodo} className="h-6 w-9" />
+            <span className="flex-1 text-sm text-tinta">{METODO_LABEL[d.metodo] ?? d.metodo}</span>
+            <span className="cifra text-base text-tinta">{fmt(d.total)}</span>
+            <span className="w-11 text-right text-sm text-suave">{Math.round((d.total / total) * 100)}%</span>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
