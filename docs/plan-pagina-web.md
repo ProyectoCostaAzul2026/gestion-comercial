@@ -23,6 +23,10 @@ No se copian sus imágenes, textos ni marca: su política de uso de contenidos l
 selector de medidas por grupo (elegir la medida y ver el precio, como en el mostrador) y el pedido por WhatsApp en lugar
 de un carrito con pago.
 
+**También como app de ventas**: igual que el sistema, la web se podrá instalar en el celular del cliente (ícono en la
+pantalla de inicio, abre a pantalla completa). Es una app distinta a la del sistema: otro nombre, otro ícono y pensada
+para comprar, no para administrar.
+
 ## Viabilidad
 
 Es viable y aprovecha casi todo lo que ya existe: la base, las fotos, las categorías, familias y grupos, y la misma app
@@ -50,6 +54,18 @@ de Next.js. Los puntos que deciden el resultado no son técnicos:
    Por eso la primera versión es **catálogo con pedido por WhatsApp**: el cliente arma su lista y la envía al número del
    negocio con el mensaje ya escrito.
 
+7. **App de ventas instalable.** Se hace como la del sistema (aplicación web instalable), sin programar dos apps:
+   - Funciona en Android y en iPhone desde el navegador ("Instalar" o "Agregar a inicio"). La tienda puede mostrar su
+     propio botón de instalar en Android; en iPhone se muestra cómo hacerlo, porque Safari no deja un botón propio.
+   - Dos apps instalables en la misma dirección se estorban. Por eso la tienda queda en el dominio principal y el sistema
+     pasa a un subdominio (por ejemplo `sistema.<dominio>`), cada una con su nombre, ícono y alcance.
+   - Lo que suma frente a la web: abre más rápido, guarda la lista de pedido y el catálogo visto aunque falle la
+     conexión, y puede mandar **avisos** al cliente (pedido confirmado, pedido listo, ofertas). Los avisos funcionan en
+     Android y en iPhone (iOS 16.4 o más reciente, solo con la app instalada) y piden permiso al cliente.
+   - **Tiendas de apps (opcional)**: en Google Play se puede publicar la misma app web empaquetada; la cuenta de
+     desarrollador cuesta USD 25 una sola vez y la revisión toma días. En la App Store de Apple la cuenta cuesta USD 99 al
+     año y Apple suele rechazar las apps que solo envuelven una web; no se recomienda al inicio.
+
 ## Qué hay que hacer
 
 1. **Datos** (base de datos, con el SQL a la vista antes de aplicar):
@@ -66,7 +82,11 @@ de Next.js. Los puntos que deciden el resultado no son técnicos:
    devoluciones y garantías).
 4. **Buscadores y redes**: metadatos por página, sitemap, datos estructurados de producto, vista previa al compartir por
    WhatsApp, y perfil de Google del negocio enlazado a la web.
-5. **Publicación**: dominio, revisión de velocidad en celular, prueba con el personal y lanzamiento.
+5. **App instalable**: manifiesto e íconos propios de la tienda, funcionamiento sin conexión del catálogo y la lista de
+   pedido, botón e instrucciones de instalación, sistema en su subdominio, y avisos al cliente (estos dependen de los
+   pedidos y reservas de la etapa 7 o de su preparación).
+6. **Publicación**: dominio, revisión de velocidad en celular, prueba con el personal y lanzamiento. Google Play, si se
+   decide.
 
 ## Cuánto demora
 
@@ -78,10 +98,13 @@ Trabajo técnico, en jornadas de trabajo con Claude, sin contar las esperas por 
 | Diseño en lienzo y ajustes | 1 a 2 |
 | Construcción de las páginas | 4 a 6 |
 | Buscadores, legales, dominio y publicación | 1 a 2 |
-| **Total** | **8 a 13** (unas 2 a 3 semanas) |
+| App instalable (sin conexión, instalar, subdominio del sistema) | 2 a 3 |
+| Avisos al cliente | 1 a 2 |
+| **Total** | **11 a 18** (unas 3 a 4 semanas) |
 
 Lo que más puede alargarlo es el material: fotos autorizadas, nombres y descripciones revisados y los textos legales. La
-venta con pago en línea sería otra fase de 1 a 2 semanas más el trámite con la pasarela.
+venta con pago en línea sería otra fase de 1 a 2 semanas más el trámite con la pasarela; publicar en Google Play, 1 a 2
+jornadas más la revisión de Google.
 
 ## Orden
 
@@ -95,4 +118,5 @@ asistente podría mandar el enlace de cada producto.
 2. ¿Se publican todos los productos o solo una selección (lo más vendido, con foto propia)?
 3. ¿Se muestra el precio en la web?
 4. ¿Hay dominio o nombre de dominio preferido, y redes sociales del negocio?
-5. ¿Aceptan pagar los planes de Supabase y Vercel (o equivalentes) cuando la web salga al público?
+5. ¿La app de ventas se publica también en Google Play, o basta con instalarla desde la web?
+6. ¿Aceptan pagar los planes de Supabase y Vercel (o equivalentes) cuando la web salga al público?

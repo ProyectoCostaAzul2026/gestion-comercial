@@ -47,7 +47,8 @@ completo:
 - **Etapa 6**: factura electrónica, mapa de la ferretería y gráficos ampliables.
 - **Etapa 7**: asistente de ventas por WhatsApp (con preparativos que se pueden ir haciendo desde la etapa 6).
 - **Etapa 8**: página web pública de la ferretería alimentada por la base, con el concepto de la tienda de Ranger y la
-  identidad propia. Plan, viabilidad y tiempos en `docs/plan-pagina-web.md`.
+  identidad propia, instalable en el celular como app de ventas (aparte de la app del sistema). Plan, viabilidad y
+  tiempos en `docs/plan-pagina-web.md`.
 
 ## Videos promocionales
 
