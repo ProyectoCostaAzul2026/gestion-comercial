@@ -143,6 +143,14 @@ nómina).
   `MiniaturaProducto` o `ProductoConFoto` (`src/components/ui/producto-miniatura.tsx`; la consulta debe traer
   `imagen_url`). Un grupo de medidas lleva una sola foto, arriba. En Reportes no va foto, pero el producto abre su detalle.
   Todo lo que alude a algo (producto, venta, cliente, proveedor, empleado, movimiento de caja) lleva a ese algo. Logo en `public/logo-costa-azul.webp`, íconos `public/icono-*.png`.
+- **Imágenes subidas** (2026-11-19): todo campo de imagen usa `CampoImagen` (`src/components/ui/campo-imagen.tsx`), con
+  "Subir foto" (cámara o galería) y el enlace de otra web. La foto se reduce en el navegador (`src/lib/imagenes.ts`: WebP,
+  800 px productos, categorías, familias y grupos; 512 px logos con transparencia; 400 px empleados) y se sube al bucket
+  público `imagenes`. La foto subida tiene prioridad sobre el enlace: se guardan por aparte (`imagen_subida` /
+  `imagen_enlace`, `logo_subido` / `logo_enlace`, `foto_subida` / `foto_enlace`) y el trigger `trg_sincronizar_imagen`
+  llena la columna que lee la app (`imagen_url`, `logo_url`, `foto_url`; nota 24 de `DATABASE.md`). Donde el guardado
+  pasa por RPC (producto, familia, grupo) solo se manda la imagen que se muestra y, con foto subida, el enlace de
+  respaldo queda bloqueado; proveedor, logo del negocio y empleado mandan las tres columnas.
 - **Fechas**: "hoy" siempre con `hoyBogota()` / `bogotaEnDias()` de `src/lib/fechas.ts`. Nunca
   `new Date().toISOString().slice(0, 10)` (es UTC: desde las 7 p. m. de Bogotá ya es mañana).
 - `src/app/manifest.ts` e íconos `public/icono-*.png`: la app se puede instalar en la pantalla de inicio del celular.

@@ -30,7 +30,7 @@ export default async function EditarProductoPage({
       id, nombre, descripcion, codigo, categoria_id, marca, ubicacion, precio_venta,
       precio_costo_base, activo, familia_id,
       tiene_iva, iva_incluido, porcentaje_iva, stock_bodega, stock_almacen, stock_minimo,
-      prioridad, unidad_medida, imagen_url,
+      prioridad, unidad_medida, imagen_url, imagen_subida, imagen_enlace,
       vender_por_fraccion, medida_venta, cantidad_total_unidad,
       cantidad_minima_venta, precio_por_unidad_medida, peso_unitario_g,
 producto_proveedores ( id, proveedor_id, precio_costo, referencia_proveedor, notas, es_costo_base_manual )    `)

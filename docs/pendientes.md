@@ -22,6 +22,9 @@ Lista viva de lo que falta. Se actualiza al cerrar cada tarea. Última revisión
 
 ## Técnicos
 
+- Imágenes subidas: al cambiar o quitar una foto, el archivo anterior se queda en el bucket `imagenes`. Cuando pese,
+  limpiar los archivos que ningún registro usa (el plan gratuito trae 1 GB de almacenamiento).
+- Probar en producción la subida de una foto desde el celular (la prueba se hizo con un servidor que imita a Supabase).
 - Imágenes: unos 1190 grupos sin foto específica y 458 productos sin imagen; algunas fotos son de productos equivalentes.
 - Recepción de mercancía: adjuntar la foto o el PDF de la factura y repartir fletes y descuentos en el costo de los renglones.
 - Reportes en celular: las secciones de gráficos y tablas de productos son largas; separarlas en vistas propias.

@@ -84,7 +84,7 @@ export function CampoImagen({
     else onCambio({ ...valor, enlace: texto })
   }
 
-  const cajaPrevia = forma === 'redonda' ? 'size-20 rounded-full' : forma === 'logo' ? 'h-20 w-28 rounded-xl' : 'size-20 rounded-2xl'
+  const cajaPrevia = forma === 'redonda' ? 'size-20 rounded-full' : forma === 'logo' ? 'h-20 w-24 rounded-xl' : 'size-20 rounded-2xl'
 
   return (
     <div className="space-y-2">
@@ -101,10 +101,10 @@ export function CampoImagen({
         <div className="min-w-0 flex-1 space-y-2">
           <div className="flex gap-2">
             <button type="button" onClick={() => archivoRef.current?.click()} disabled={subiendo || deshabilitado}
-              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-linea bg-superficie-2 px-3 text-[15px] font-semibold text-tinta hover:bg-superficie disabled:opacity-60">
+              className="flex h-11 min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-linea bg-superficie-2 px-3 text-[15px] font-semibold text-tinta hover:bg-superficie disabled:opacity-60">
               {subiendo
                 ? <><Loader2 className="size-5 animate-spin" aria-hidden />Reduciendo y subiendo…</>
-                : <><ImagePlus className="size-5 text-enlace" strokeWidth={1.75} aria-hidden />{subida ? 'Cambiar foto' : 'Subir o tomar foto'}</>}
+                : <><ImagePlus className="size-5 text-enlace" strokeWidth={1.75} aria-hidden />{subida ? 'Cambiar' : 'Subir foto'}</>}
             </button>
             {subida && !subiendo && (
               <button type="button" onClick={() => { onCambio({ ...valor, subida: '' }); setError(null) }} disabled={deshabilitado}
@@ -126,7 +126,7 @@ export function CampoImagen({
           <p id={`${id}-ayuda`} className="text-xs text-tenue">
             {enlaceBloqueado
               ? 'Para usar un enlace, quita primero la foto subida.'
-              : (ayudaEnlace ?? 'O pega el enlace de una imagen de otra web.')}
+              : (ayudaEnlace ?? 'Tómala con la cámara, elígela de la galería o pega el enlace de una imagen de otra web.')}
             {' '}La foto subida se reduce sola a {perfil.lado} px y tiene prioridad sobre el enlace.
           </p>
           {error && <p className="text-xs text-sale" role="alert">{error}</p>}

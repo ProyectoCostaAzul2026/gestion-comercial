@@ -364,6 +364,8 @@ export type Database = {
           created_at: string
           descripcion: string | null
           id: string
+          imagen_enlace: string | null
+          imagen_subida: string | null
           imagen_url: string | null
           nombre: string
         }
@@ -371,6 +373,8 @@ export type Database = {
           created_at?: string
           descripcion?: string | null
           id?: string
+          imagen_enlace?: string | null
+          imagen_subida?: string | null
           imagen_url?: string | null
           nombre: string
         }
@@ -378,6 +382,8 @@ export type Database = {
           created_at?: string
           descripcion?: string | null
           id?: string
+          imagen_enlace?: string | null
+          imagen_subida?: string | null
           imagen_url?: string | null
           nombre?: string
         }
@@ -428,6 +434,8 @@ export type Database = {
           direccion: string | null
           email: string | null
           id: string
+          logo_enlace: string | null
+          logo_subido: string | null
           logo_url: string | null
           margen_default: number | null
           max_descuento_porcentaje: number | null
@@ -447,6 +455,8 @@ export type Database = {
           direccion?: string | null
           email?: string | null
           id?: string
+          logo_enlace?: string | null
+          logo_subido?: string | null
           logo_url?: string | null
           margen_default?: number | null
           max_descuento_porcentaje?: number | null
@@ -466,6 +476,8 @@ export type Database = {
           direccion?: string | null
           email?: string | null
           id?: string
+          logo_enlace?: string | null
+          logo_subido?: string | null
           logo_url?: string | null
           margen_default?: number | null
           max_descuento_porcentaje?: number | null
@@ -1307,18 +1319,24 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          imagen_enlace: string | null
+          imagen_subida: string | null
           imagen_url: string | null
           nombre_base: string
         }
         Insert: {
           created_at?: string
           id?: string
+          imagen_enlace?: string | null
+          imagen_subida?: string | null
           imagen_url?: string | null
           nombre_base: string
         }
         Update: {
           created_at?: string
           id?: string
+          imagen_enlace?: string | null
+          imagen_subida?: string | null
           imagen_url?: string | null
           nombre_base?: string
         }
@@ -1388,6 +1406,8 @@ export type Database = {
           descripcion: string | null
           familia_id: string | null
           id: string
+          imagen_enlace: string | null
+          imagen_subida: string | null
           imagen_url: string | null
           iva_incluido: boolean
           marca: string | null
@@ -1425,6 +1445,8 @@ export type Database = {
           descripcion?: string | null
           familia_id?: string | null
           id?: string
+          imagen_enlace?: string | null
+          imagen_subida?: string | null
           imagen_url?: string | null
           iva_incluido?: boolean
           marca?: string | null
@@ -1462,6 +1484,8 @@ export type Database = {
           descripcion?: string | null
           familia_id?: string | null
           id?: string
+          imagen_enlace?: string | null
+          imagen_subida?: string | null
           imagen_url?: string | null
           iva_incluido?: boolean
           marca?: string | null
@@ -1509,6 +1533,8 @@ export type Database = {
           activo: boolean
           created_at: string
           email: string | null
+          foto_enlace: string | null
+          foto_subida: string | null
           foto_url: string | null
           id: string
           nombre_completo: string
@@ -1521,6 +1547,8 @@ export type Database = {
           activo?: boolean
           created_at?: string
           email?: string | null
+          foto_enlace?: string | null
+          foto_subida?: string | null
           foto_url?: string | null
           id?: string
           nombre_completo: string
@@ -1533,6 +1561,8 @@ export type Database = {
           activo?: boolean
           created_at?: string
           email?: string | null
+          foto_enlace?: string | null
+          foto_subida?: string | null
           foto_url?: string | null
           id?: string
           nombre_completo?: string
@@ -1551,6 +1581,8 @@ export type Database = {
           direccion: string | null
           email: string | null
           id: string
+          logo_enlace: string | null
+          logo_subido: string | null
           logo_url: string | null
           nit_ruc: string | null
           nombre: string
@@ -1566,6 +1598,8 @@ export type Database = {
           direccion?: string | null
           email?: string | null
           id?: string
+          logo_enlace?: string | null
+          logo_subido?: string | null
           logo_url?: string | null
           nit_ruc?: string | null
           nombre: string
@@ -1581,6 +1615,8 @@ export type Database = {
           direccion?: string | null
           email?: string | null
           id?: string
+          logo_enlace?: string | null
+          logo_subido?: string | null
           logo_url?: string | null
           nit_ruc?: string | null
           nombre?: string

@@ -11,7 +11,7 @@ export default async function EditarEmpleadoPage({ params }: { params: Promise<{
 
   const { data: empleado, error } = await supabase
     .from('profiles')
-    .select('id, nombre_completo, telefono, rol, salario_base, activo, foto_url, email')
+    .select('id, nombre_completo, telefono, rol, salario_base, activo, foto_url, foto_subida, foto_enlace, email')
     .eq('id', id)
     .single()
 

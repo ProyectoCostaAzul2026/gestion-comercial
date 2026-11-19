@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { useNavegacion } from '@/lib/navegacion'
+import { CampoImagen } from '@/components/ui/campo-imagen'
+import { imagenVisible, valorImagen, type ValorImagen } from '@/lib/imagenes'
 
 interface ProveedorFormState {
   nombre: string
@@ -31,6 +33,8 @@ export interface ProveedorExistente {
   nit_ruc: string | null
   notas: string | null
   logo_url: string | null
+  logo_subido?: string | null
+  logo_enlace?: string | null
   sitio_web: string | null
 }
 
@@ -58,6 +62,8 @@ export function ProveedorForm({ proveedor }: ProveedorFormProps) {
   const supabase = createClient()
   const { volver } = useNavegacion()
   const [form, setForm] = useState<ProveedorFormState>(estadoInicial(proveedor))
+  // Logo subido y enlace por aparte: el subido tiene prioridad y el enlace queda de respaldo
+  const [logo, setLogo] = useState<ValorImagen>(() => valorImagen(proveedor?.logo_url, proveedor?.logo_subido, proveedor?.logo_enlace))
   const [saving, setSaving] = useState(false)
   const [desactivando, setDesactivando] = useState(false)
 
@@ -78,7 +84,9 @@ export function ProveedorForm({ proveedor }: ProveedorFormProps) {
         direccion: form.direccion || null,
         nit_ruc: form.nit_ruc || null,
         notas: form.notas || null,
-        logo_url: form.logo_url.trim() || null,
+        logo_url: imagenVisible(logo) || null,
+        logo_subido: logo.subida.trim() || null,
+        logo_enlace: logo.enlace.trim() || null,
         sitio_web: form.sitio_web.trim() || null,
       }
       if (esEdicion) {
@@ -143,16 +151,12 @@ export function ProveedorForm({ proveedor }: ProveedorFormProps) {
         <Label htmlFor="direccion" className={labelCls}>Dirección</Label>
         <Input id="direccion" className={inputCls} value={form.direccion} onChange={e => handleChange('direccion', e.target.value)} />
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="sitio_web" className={labelCls}>Sitio web</Label>
-          <Input id="sitio_web" className={inputCls} value={form.sitio_web} placeholder="www.proveedor.com" onChange={e => handleChange('sitio_web', e.target.value)} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="logo_url" className={labelCls}>Logo (URL)</Label>
-          <Input id="logo_url" className={inputCls} value={form.logo_url} placeholder="https://…/logo.png" onChange={e => handleChange('logo_url', e.target.value)} />
-        </div>
+      <div className="space-y-2">
+        <Label htmlFor="sitio_web" className={labelCls}>Sitio web</Label>
+        <Input id="sitio_web" className={inputCls} value={form.sitio_web} placeholder="www.proveedor.com" onChange={e => handleChange('sitio_web', e.target.value)} />
       </div>
+      <CampoImagen etiqueta="Logo" carpeta="proveedores" forma="logo" valor={logo} onCambio={setLogo}
+        placeholderEnlace="https://…/logo.png" claseCampo={inputCls} claseEtiqueta={labelCls} />
       <div className="space-y-2">
         <Label htmlFor="notas" className={labelCls}>Notas</Label>
         <Textarea id="notas" className="border-linea-fuerte bg-superficie text-[16px] text-tinta placeholder:text-tenue focus:border-accion focus:ring-3 focus:ring-accion/25" value={form.notas} onChange={e => handleChange('notas', e.target.value)} rows={3} />

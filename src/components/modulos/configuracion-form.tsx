@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
+import { CampoImagen } from '@/components/ui/campo-imagen'
+import { imagenVisible, valorImagen, type ValorImagen } from '@/lib/imagenes'
 
 interface ConfigNegocio {
   id: string
@@ -20,6 +22,8 @@ interface ConfigNegocio {
   regimen: string | null
   mensaje_pie: string | null
   logo_url: string | null
+  logo_subido?: string | null
+  logo_enlace?: string | null
   monto_base_caja_menor: number | null
   monto_inicial_monedas: number | null
   monto_inicial_sencillo: number | null
@@ -49,6 +53,8 @@ export function ConfiguracionForm({ config }: { config: ConfigNegocio | null }) 
     whatsapp_negocio: config?.whatsapp_negocio ?? '',
   })
   const [saving, setSaving] = useState(false)
+  // Logo subido y enlace por aparte: el subido tiene prioridad y el enlace queda de respaldo
+  const [logo, setLogo] = useState<ValorImagen>(() => valorImagen(config?.logo_url, config?.logo_subido, config?.logo_enlace))
 
   const handleChange = (field: keyof typeof form, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -69,7 +75,9 @@ export function ConfiguracionForm({ config }: { config: ConfigNegocio | null }) 
         ciudad: form.ciudad || null,
         regimen: form.regimen || null,
         mensaje_pie: form.mensaje_pie || null,
-        logo_url: form.logo_url || null,
+        logo_url: imagenVisible(logo) || null,
+        logo_subido: logo.subida.trim() || null,
+        logo_enlace: logo.enlace.trim() || null,
         monto_base_caja_menor: Number(form.monto_base_caja_menor) || 0,
         monto_inicial_monedas: Number(form.monto_inicial_monedas) || 0,
         monto_inicial_sencillo: Number(form.monto_inicial_sencillo) || 0,
@@ -149,15 +157,9 @@ export function ConfiguracionForm({ config }: { config: ConfigNegocio | null }) 
           onChange={e => handleChange('mensaje_pie', e.target.value)} rows={2} />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="logo_url" className={labelCls}>Logo del negocio (URL)</Label>
-        <Input id="logo_url" className={inputCls} value={form.logo_url ?? ''}
-          onChange={e => handleChange('logo_url', e.target.value)}
-          placeholder="https://ejemplo.com/logo.png" />
-        {form.logo_url && (
-          <img src={form.logo_url} alt="Logo" className="h-16 w-auto rounded-xl border border-linea object-contain p-1" />
-        )}
-      </div>
+      <CampoImagen etiqueta="Logo del negocio" carpeta="negocio" forma="logo" valor={logo} onCambio={setLogo}
+        placeholderEnlace="https://ejemplo.com/logo.png" claseCampo={inputCls} claseEtiqueta={labelCls}
+        ayudaEnlace="Sale en los recibos y cotizaciones. O pega el enlace de una imagen de otra web." />
 
       <div className="space-y-3 rounded-2xl border border-linea bg-superficie-2 p-4">
         <p className="flex items-center gap-2 text-lg font-bold text-tinta">

@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { useNavegacion } from '@/lib/navegacion'
+import { CampoImagen } from '@/components/ui/campo-imagen'
+import { imagenVisible, valorImagen, type ValorImagen } from '@/lib/imagenes'
 
 export interface EmpleadoExistente {
   id: string
@@ -18,6 +20,8 @@ export interface EmpleadoExistente {
   telefono: string | null
   email: string | null
   foto_url: string | null
+  foto_subida?: string | null
+  foto_enlace?: string | null
   rol: string
   salario_base: number | null
   activo: boolean
@@ -42,6 +46,8 @@ export function EmpleadoForm({ empleado }: EmpleadoFormProps) {
     salario_base: empleado?.salario_base ?? 0,
   })
   const [saving, setSaving] = useState(false)
+  // Foto subida y enlace por aparte: la subida tiene prioridad y el enlace queda de respaldo
+  const [foto, setFoto] = useState<ValorImagen>(() => valorImagen(empleado?.foto_url, empleado?.foto_subida, empleado?.foto_enlace))
   const [accionando, setAccionando] = useState(false)
   // Enlace para que el empleado recién creado haga su contraseña
   const [enlaceNuevo, setEnlaceNuevo] = useState<string | null>(null)
@@ -61,7 +67,9 @@ export function EmpleadoForm({ empleado }: EmpleadoFormProps) {
           nombre_completo: form.nombre_completo,
           telefono: form.telefono || null,
           email: form.email || null,
-          foto_url: form.foto_url || null,
+          foto_url: imagenVisible(foto) || null,
+          foto_subida: foto.subida.trim() || null,
+          foto_enlace: foto.enlace.trim() || null,
           rol: form.rol,
           salario_base: form.salario_base || null,
         }).eq('id', empleado.id)
@@ -74,7 +82,7 @@ export function EmpleadoForm({ empleado }: EmpleadoFormProps) {
           email: form.email,
           nombre_completo: form.nombre_completo,
           telefono: form.telefono || null,
-          foto_url: form.foto_url || null,
+          foto_url: imagenVisible(foto) || null,
           rol: form.rol,
           salario_base: form.salario_base || null,
         })
@@ -201,19 +209,8 @@ export function EmpleadoForm({ empleado }: EmpleadoFormProps) {
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="foto_url" className={labelCls}>Foto (URL)</Label>
-        <Input
-          id="foto_url"
-          className={inputCls}
-          value={form.foto_url ?? ''}
-          onChange={e => handleChange('foto_url', e.target.value)}
-          placeholder="https://ejemplo.com/foto.jpg"
-        />
-        {form.foto_url && (
-          <img src={form.foto_url} alt="Foto" className="h-16 w-16 rounded-full border-2 border-brand-yellow object-cover" />
-        )}
-      </div>
+      <CampoImagen etiqueta="Foto" carpeta="empleados" forma="redonda" valor={foto} onCambio={setFoto}
+        placeholderEnlace="https://ejemplo.com/foto.jpg" claseCampo={inputCls} claseEtiqueta={labelCls} />
 
       <div className="space-y-2">
         <Label htmlFor="salario_base" className={labelCls}>Salario base</Label>

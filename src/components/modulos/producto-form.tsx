@@ -1,6 +1,8 @@
 'use client'
 
 import { MiniaturaProducto } from '@/components/ui/producto-miniatura'
+import { CampoImagen } from '@/components/ui/campo-imagen'
+import { imagenVisible, valorImagen, type ValorImagen } from '@/lib/imagenes'
 import { useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { calcularPrecioVentaSugerido, calcularMargenCalculado } from '@/lib/precio-utils'
@@ -107,6 +109,8 @@ export interface ProductoExistente {
   prioridad: number
   unidad_medida: string | null
   imagen_url: string | null
+  imagen_subida?: string | null
+  imagen_enlace?: string | null
   vender_por_fraccion: boolean
   medida_venta: string | null
   cantidad_total_unidad: number | null
@@ -292,6 +296,9 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDesactivando, setIsDesactivando] = useState(false)
   const [form, setForm] = useState<ProductoFormState>(estadoInicial(producto, margenDefault, proveedores, nuevoInicial))
+  // Foto subida y enlace por aparte; al guardar va la que se muestra (la subida tiene prioridad)
+  const [imagen, setImagen] = useState<ValorImagen>(() =>
+    producto ? valorImagen(producto.imagen_url, producto.imagen_subida, producto.imagen_enlace) : valorImagen(nuevoInicial?.imagenUrl))
   const [proveedoresEliminados, setProveedoresEliminados] = useState<string[]>([])
   // Lugares cuyo stock se llenó con "Contar por peso": el movimiento de ajuste lo dice en su nota
   const [contadoPorPeso, setContadoPorPeso] = useState<{ bodega: boolean; almacen: boolean }>({ bodega: false, almacen: false })
@@ -638,8 +645,9 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
       <div className="flex items-center gap-3">
         <MiniaturaProducto url={form.imagen_url || null} nombre={form.nombre} tam="lg" />
         <div className="min-w-0 flex-1 space-y-1.5">
-          <Label htmlFor="imagen_url" className={LABEL_CLS}>Foto (enlace de la imagen)</Label>
-          <Input id="imagen_url" className={INPUT_CLS} value={form.imagen_url} placeholder="https://…" onChange={(e) => handleChange('imagen_url', e.target.value)} />
+          <CampoImagen etiqueta="Foto" carpeta="productos" vistaPrevia={false} enlaceDeRespaldo={false}
+            valor={imagen} onCambio={v => { setImagen(v); handleChange('imagen_url', imagenVisible(v)) }}
+            claseCampo={INPUT_CLS} claseEtiqueta={LABEL_CLS} />
         </div>
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
