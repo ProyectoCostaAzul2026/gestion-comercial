@@ -37,8 +37,9 @@ ni textos copiados: cómo nombra y agrupa los productos (catálogo, sección, ca
 unidades de empaque. Con eso se proponen cambios por lotes a nombres, familias, grupos de medidas, categorías y
 descripciones de nuestras herramientas (unos 830 productos en 74 familias), siguiendo las reglas del catálogo de
 `CLAUDE.md`. Cada lote se revisa antes y se aplica con el SQL a la vista; los datos extraídos se guardan fuera del
-repositorio. **Lote 1 aplicado el 2026-11-19** (6 categorías nuevas, 450 productos reubicados). Siguen los nombres de
-característica y los grupos de medidas.
+repositorio. **Terminado el 2026-11-19** en 3 lotes (6 categorías nuevas, productos reubicados, volvedores
+separados de Rache y otros nombres en 257 descripciones; nota 23 de `DATABASE.md`). Esta sección se puede borrar en la
+próxima revisión.
 
 ## Próximas etapas (en espera)
 

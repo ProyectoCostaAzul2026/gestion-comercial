@@ -1239,3 +1239,10 @@ Desde el 2026-11-18 ninguna política queda "para public": todas son `to authent
     igual. Quedan 27 categorías, todas con imagen. Una familia puede estar en dos categorías cuando son productos distintos
     (pistola de silicona eléctrica y de calafateo, sonda para cable y para cañería, buje de PVC y de caucho, válvula de gas
     y de agua).
+    Lote 2 (`sql/catalogo_referencia_ranger_lote2.sql`): familias nuevas Volvedor y Mango En T con 4 productos que
+    estaban en Rache (mismo código), la pinza de masa a Accesorios para Herramienta Eléctrica y el soplete a Herramientas
+    Manuales. Lote 3 (`sql/catalogo_referencia_ranger_lote3.sql`): registros de gas a Gas, guaya a Herrajes y acople
+    rápido a Accesorios para Herramienta Eléctrica. En los dos lotes, 257 productos llevan al final de la descripción
+    "También se conoce como ..." con otros nombres de la herramienta (llave combinada, Stillson, ratchet, broquero,
+    garrucha...), porque `buscar_productos` también busca en la descripción. Ranger no vende eléctricos, tornillería,
+    sanitarios ni PVC, así que no hay más lotes con esa referencia.

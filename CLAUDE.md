@@ -334,8 +334,9 @@ nómina).
   descripción dice función y características, sin datos del proveedor. Los duplicados se reportan, no se unen.
 - **Referencia de Ranger** (ranger.com.co, 2.363 productos de herramienta y ferretería): se usa solo como información para
   ordenar el catálogo (cómo agrupa y nombra), nunca sus fotos ni sus textos (su política de contenidos lo prohíbe). Los
-  datos extraídos se guardan fuera del repositorio. Lote 1 aplicado (categorías); los siguientes revisan características y
-  grupos sin cambiar la identidad del producto (marca, medida, código, stock, precio).
+  datos extraídos se guardan fuera del repositorio. Lotes 1 a 3 aplicados (categorías, volvedores fuera de Rache y
+  "También se conoce como ..." en las descripciones; nota 23 de `DATABASE.md`). Terminado: Ranger no cubre las demás
+  categorías. Nunca se cambió marca, medida, código, stock ni precio.
 - 20 productos tienen dos proveedores: el de la compra más reciente es el principal y está marcado `es_costo_base_manual`.
 - **Webs de proveedores (2026-11-06)**: la imagen va por grupo de medidas (familia + característica + marca) y se enlaza
   desde la web del proveedor cuando la referencia coincide: Sumatec (GraphQL de Magento en sumatec.co/graphql),
