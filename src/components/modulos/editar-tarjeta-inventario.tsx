@@ -8,6 +8,10 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { limpiarTexto, validarImagenUrl } from '@/lib/inventario-arbol'
+import { CampoImagen } from '@/components/ui/campo-imagen'
+import { imagenVisible, valorImagen, type CarpetaImagen, type ValorImagen } from '@/lib/imagenes'
+
+const CARPETAS: Record<TarjetaEditable['tipo'], CarpetaImagen> = { categoria: 'categorias', familia: 'familias', grupo: 'grupos' }
 
 /** Qué tarjeta se edita: una categoría, una familia o un grupo de medidas (familia + característica + marca) */
 export type TarjetaEditable =
@@ -42,9 +46,9 @@ export function EditarTarjetaInventario({ tarjeta, categorias, onCerrar, onGrupo
   const supabase = useMemo(() => createClient(), [])
   const nombreInicial = tarjeta.tipo === 'grupo' ? (tarjeta.caracteristica ?? '') : tarjeta.nombre
   const [nombre, setNombre] = useState(nombreInicial)
-  const [imagen, setImagen] = useState(tarjeta.imagen ?? '')
+  const [imagen, setImagen] = useState<ValorImagen>(() => valorImagen(tarjeta.imagen))
   const [guardando, setGuardando] = useState(false)
-  const imagenLimpia = imagen.trim()
+  const imagenLimpia = imagenVisible(imagen)
   const errorImagen = validarImagenUrl(imagenLimpia)
 
   async function guardar() {
@@ -105,9 +109,8 @@ export function EditarTarjetaInventario({ tarjeta, categorias, onCerrar, onGrupo
             </p>
           )}
           <div className="space-y-1">
-            <Label htmlFor="tarjeta-imagen" className="text-xs text-steel-300">URL de la imagen</Label>
-            <Input id="tarjeta-imagen" type="url" inputMode="url" value={imagen} onChange={e => setImagen(e.target.value)}
-              placeholder="https://…" className={CAMPO} autoComplete="off" />
+            <CampoImagen etiqueta="Imagen" carpeta={CARPETAS[tarjeta.tipo]} vistaPrevia={false} enlaceDeRespaldo={false}
+              valor={imagen} onCambio={setImagen} claseCampo={CAMPO} claseEtiqueta="text-xs text-steel-300" />
             {imagenLimpia && errorImagen && <p className="text-xs text-sale">{errorImagen}</p>}
             {tarjeta.tipo === 'grupo' && (
               <p className="text-xs text-steel-500">Déjala vacía para quitar la imagen de todas las medidas. Si no la cambias, cada medida conserva la suya.</p>

@@ -11,7 +11,7 @@ export default async function EditarProveedorPage({ params }: { params: Promise<
 
   const { data: proveedor, error } = await supabase
     .from('proveedores')
-    .select('id, nombre, contacto, telefono, email, direccion, nit_ruc, notas, logo_url, sitio_web')
+    .select('id, nombre, contacto, telefono, email, direccion, nit_ruc, notas, logo_url, logo_subido, logo_enlace, sitio_web')
     .eq('id', id)
     .single()
 

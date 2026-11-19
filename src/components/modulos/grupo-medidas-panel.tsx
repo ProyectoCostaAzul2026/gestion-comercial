@@ -1,5 +1,7 @@
 'use client'
 
+import { CampoImagen } from '@/components/ui/campo-imagen'
+import { imagenVisible, valorImagen } from '@/lib/imagenes'
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -436,11 +438,10 @@ export function GrupoMedidasPanel({
                 onChange={e => setDatos(prev => ({ ...prev, descripcion: e.target.value }))} className={`${INPUT_CLS} min-h-20`} />
             </div>
 
-            <div className="space-y-1">
-              <Label htmlFor="grupo-imagen" className={LABEL_CLS}>URL imagen</Label>
-              <Input id="grupo-imagen" value={datos.imagen_url} placeholder="Sin cambiar"
-                onChange={e => setDatos(prev => ({ ...prev, imagen_url: e.target.value }))} className={INPUT_CLS} />
-            </div>
+            <CampoImagen etiqueta="Imagen" carpeta="grupos" enlaceDeRespaldo={false} placeholderEnlace="Sin cambiar"
+              ayudaEnlace="O pega el enlace de una imagen; vacío no cambia la imagen."
+              valor={valorImagen(datos.imagen_url)} onCambio={v => setDatos(prev => ({ ...prev, imagen_url: imagenVisible(v) }))}
+              claseCampo={INPUT_CLS} claseEtiqueta={LABEL_CLS} />
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="space-y-1">

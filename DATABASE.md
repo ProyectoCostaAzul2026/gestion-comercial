@@ -1251,3 +1251,15 @@ Desde el 2026-11-18 ninguna política queda "para public": todas son `to authent
     (antenas, cables y conectores, convertidores, soportes para TV, pilas, componentes) y Empaque y Amarre (amarres
     plásticos, cuerdas, piolas, hilos, pulpos, zunchos, vinipel, cartón); el pegante y la trampa para ratas van a Jardín y
     Agropecuario. Quedan 30 categorías; Eléctrico queda con la instalación eléctrica.
+
+24. **Imágenes subidas** (migración `imagenes_subidas`, 2026-11-19; SQL en `sql/imagenes_subidas.sql`): bucket público
+    `imagenes` de Supabase Storage (máximo 1 MB, solo WebP, JPEG o PNG; subir pide sesión, borrar archivos pide ser
+    administrador). Productos, categorías y familias tienen `imagen_subida` e `imagen_enlace`; proveedores y
+    `configuracion_negocio`, `logo_subido` y `logo_enlace`; `profiles`, `foto_subida` y `foto_enlace`. La columna de
+    siempre (`imagen_url`, `logo_url`, `foto_url`) es la que lee toda la app y la llena el trigger
+    `trg_sincronizar_imagen` (función `sincronizar_imagen`): la foto subida si hay, si no el enlace. Quien escribe
+    directo esa columna (guardar_producto, guardar_familia, editar_familia, editar_grupo_medidas,
+    crear_miembro_familia_renglon) sigue funcionando: una URL del bucket queda como foto subida y el enlace se conserva
+    de respaldo; otro enlace reemplaza la foto subida; vacío quita las dos. Las imágenes que había quedaron como enlace.
+    Al cambiar una foto, el archivo anterior se queda en el bucket (no se borra solo).
+

@@ -22,6 +22,9 @@ Lista viva de lo que falta. Se actualiza al cerrar cada tarea. Última revisión
 
 ## Técnicos
 
+- Imágenes subidas: al cambiar o quitar una foto, el archivo anterior se queda en el bucket `imagenes`. Cuando pese,
+  limpiar los archivos que ningún registro usa (el plan gratuito trae 1 GB de almacenamiento).
+- Probar en producción la subida de una foto desde el celular (la prueba se hizo con un servidor que imita a Supabase).
 - Imágenes: unos 1190 grupos sin foto específica y 458 productos sin imagen; algunas fotos son de productos equivalentes.
 - Recepción de mercancía: adjuntar la foto o el PDF de la factura y repartir fletes y descuentos en el costo de los renglones.
 - Reportes en celular: las secciones de gráficos y tablas de productos son largas; separarlas en vistas propias.
@@ -46,7 +49,7 @@ próxima revisión.
 Quedan como pendientes hasta que el dueño responda las preguntas del final de `docs/plan-etapa-6.md`, donde está el plan
 completo:
 
-- **Etapa 6**: factura electrónica, mapa de la ferretería y gráficos ampliables.
+- **Etapa 6**: factura electrónica y mapa de la ferretería (los gráficos ampliables ya se hicieron el 2026-11-19).
 - **Etapa 7**: asistente de ventas por WhatsApp (con preparativos que se pueden ir haciendo desde la etapa 6).
 - **Etapa 8**: página web pública de la ferretería alimentada por la base, con el concepto de la tienda de Ranger y la
   identidad propia, instalable en el celular como app de ventas (aparte de la app del sistema). Plan, viabilidad y

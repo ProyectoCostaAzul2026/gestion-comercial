@@ -1,5 +1,7 @@
 'use client'
 
+import { CampoImagen } from '@/components/ui/campo-imagen'
+import { imagenVisible, valorImagen } from '@/lib/imagenes'
 import { MiniaturaProducto } from '@/components/ui/producto-miniatura'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -695,11 +697,11 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
                 placeholder="Sin cambiar" className={`${INPUT_CLS} min-h-20`} />
             </div>
 
-            <div className="space-y-1">
-              <Label className={LABEL_CLS}>URL Imagen</Label>
-              <Input value={datosCompartidos.imagen_url} onChange={e => setDatosCompartidos(prev => ({ ...prev, imagen_url: e.target.value }))}
-                placeholder="Sin cambiar" className={INPUT_CLS} />
-            </div>
+            <CampoImagen etiqueta="Imagen" carpeta="productos" enlaceDeRespaldo={false} placeholderEnlace="Sin cambiar"
+              ayudaEnlace="O pega el enlace de una imagen; vacío no cambia la imagen."
+              valor={valorImagen(datosCompartidos.imagen_url)}
+              onCambio={v => setDatosCompartidos(prev => ({ ...prev, imagen_url: imagenVisible(v) }))}
+              claseCampo={INPUT_CLS} claseEtiqueta={LABEL_CLS} />
 
             <div className="space-y-1">
               <Label className={LABEL_CLS}>IVA incluido en el costo</Label>
