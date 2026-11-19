@@ -31,7 +31,7 @@ function TablaConteo({ titulo, items, onChange, totalEsperado }: {
   }
   return (
     <div className="space-y-3 rounded-xl border border-linea bg-superficie-2 p-4">
-      <h3 className="font-display font-bold text-tinta">{titulo}</h3>
+      <h3 className="text-lg font-bold text-tinta">{titulo}</h3>
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-linea text-xs text-steel-300">
@@ -201,7 +201,7 @@ export function ArqueoPanel({ ingresosEfectivo, egresosEfectivo, saldoEfectivo, 
           <div className="space-y-1">
             <label className="text-xs font-medium text-brand-yellow">Observación obligatoria</label>
             <Textarea value={observacion} onChange={e => setObservacion(e.target.value)}
-              rows={2} placeholder="Explica el motivo de la diferencia…" className="border-linea bg-superficie text-tinta placeholder:text-steel-500" />
+              rows={2} placeholder="Explica el motivo de la diferencia…" className="border-linea bg-superficie text-tinta placeholder:text-tenue" />
           </div>
         </div>
       )}

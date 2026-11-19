@@ -116,10 +116,10 @@ function FondoEditor({
   }
 
   return (
-    <div className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+    <div className="space-y-3 rounded-2xl bg-superficie p-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="font-display font-bold text-tinta">{titulo}</h3>
+          <h3 className="text-lg font-bold text-tinta">{titulo}</h3>
           <p className="text-xs text-steel-300">
             Monto inicial: {formatCOP(montoInicial)} · Actual: {formatCOP(totalActual)}
           </p>

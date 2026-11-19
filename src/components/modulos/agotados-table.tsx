@@ -251,7 +251,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+      <div className="overflow-hidden rounded-2xl bg-superficie">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -300,8 +300,8 @@ export function AgotadosTable({ productos, proveedores }: Props) {
       {/* Panel confirmación pedido */}
       {confirmando && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="mx-4 max-h-[80vh] w-full max-w-2xl space-y-4 overflow-y-auto rounded-2xl border border-linea bg-superficie p-6 shadow-2xl">
-            <h3 className="font-display font-bold text-tinta">
+          <div className="mx-4 max-h-[80vh] w-full max-w-2xl space-y-4 overflow-y-auto rounded-2xl bg-superficie p-6 shadow-2xl">
+            <h3 className="text-lg font-bold text-tinta">
               Vista previa — Lista de Pedido · {proveedores.find(p => p.id === filtroProveedor)?.nombre ?? ''}
             </h3>
             <p className="text-xs text-steel-300">

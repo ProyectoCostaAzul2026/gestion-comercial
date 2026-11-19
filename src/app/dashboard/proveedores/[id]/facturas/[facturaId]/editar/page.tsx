@@ -30,13 +30,13 @@ export default async function EditarFacturaPage({
       <div className="mb-6 flex items-center gap-3">
         <BotonAtras href={`/dashboard/proveedores/${id}`} />
         <div>
-          <h1 className="font-display text-2xl font-bold text-tinta">Editar Factura</h1>
+          <h1 className="text-2xl font-bold text-tinta">Editar factura</h1>
           <p className="text-xs text-steel-300">
             {factura.numero_factura ? `#${factura.numero_factura}` : 'Sin número'}
           </p>
         </div>
       </div>
-      <div className="rounded-2xl border border-linea bg-superficie p-6">
+      <div>
         <FacturaProveedorForm
           proveedorId={id}
           facturaId={facturaId}

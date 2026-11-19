@@ -18,7 +18,7 @@ export default async function MiPerfilPage() {
   return (
     <div>
       <div className="mb-6 relative py-1">
-        <h1 className="text-2xl font-bold text-tinta md:text-3xl">Mi Perfil</h1>
+        <h1 className="text-2xl font-bold text-tinta md:text-3xl">Mi perfil</h1>
         <p className="mt-0.5 text-xs text-steel-300">Tu información de cuenta</p>
       </div>
       <MiPerfilForm perfil={perfil as any} />

@@ -92,7 +92,7 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
 
   return (
     <div className="-m-4 md:-m-6">
-      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 flex items-center gap-3 bg-fondo/95 px-2 py-2 backdrop-blur lg:top-0 md:px-4">
+      <div className="sticky top-[calc(var(--alto-barra,3.5rem)+env(safe-area-inset-top))] z-20 flex items-center gap-3 bg-fondo/95 px-2 py-2 backdrop-blur lg:top-0 md:px-4">
         <BotonAtras href="/dashboard/proveedores" />
         <AvatarIniciales nombre={proveedor.nombre} foto={proveedor.logo_url} logo className="size-11 text-base" />
         <div className="min-w-0 flex-1">
@@ -170,7 +170,7 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
       />
 
       {/* Facturas */}
-      <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
+      <div className="space-y-4 rounded-2xl bg-superficie p-4">
         <div className="flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
             Facturas
@@ -276,7 +276,7 @@ export default async function PerfilProveedorPage({ params }: { params: Promise<
 
       {/* Garantías */}
       {(garantiasProveedor ?? []).length > 0 && (
-        <div className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+        <div className="space-y-3 rounded-2xl bg-superficie p-4">
           <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
             Garantías ({(garantiasProveedor as any[] ?? []).filter((g: any) => g.estado === 'pendiente').length} pendientes)
           </h2>

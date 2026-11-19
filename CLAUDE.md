@@ -127,8 +127,10 @@ nómina).
   mismo), `text-enlace`, `text-entra`, `text-sale`, `text-aviso`. El amarillo del letrero en los dos modos es `bg-letrero`
   con `text-tinta-fija` (total de la venta, Vender, logo). Nunca `text-white` ni colores fijos de fondo oscuro. Cifras de
   dinero con la clase `cifra` (Barlow Condensed). Sin mayúsculas sostenidas ni franjas decorativas.
-- **Diseño** (lienzo aprobado el 2026-11-19): celular primero; las tareas (`RUTAS_TAREA` en `NavigationShell.tsx`, hoy
-  Nueva venta) ocupan toda la pantalla sin barras; listas con divisores en vez de tarjetas; avisos con fondo suave, ícono y
+- **Diseño** (lienzo aprobado el 2026-11-19): celular primero; las tareas (`RUTAS_TAREA` en `NavigationShell.tsx`: vender,
+  cotizar, las vistas de Caja y toda ruta que termine en `/nuevo`, `/nueva` o `/editar`) ocupan toda la pantalla sin barras;
+  los encabezados fijos usan `top-[calc(var(--alto-barra,3.5rem)+env(safe-area-inset-top))]` y el botón de guardar va
+  fijo abajo con `bottom-[var(--abajo-nav,0px)]` (variables que pone `NavigationShell`); listas con divisores en vez de tarjetas; avisos con fondo suave, ícono y
   acción; medios de pago con `MedioPagoIcono`.
 - **Productos con foto y todo enlazado** (2026-11-19): todo lugar que muestre un producto lleva su foto con
   `MiniaturaProducto` o `ProductoConFoto` (`src/components/ui/producto-miniatura.tsx`; la consulta debe traer

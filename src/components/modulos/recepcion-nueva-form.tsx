@@ -60,7 +60,7 @@ export function RecepcionNuevaForm({ proveedores, hoy }: { proveedores: { id: st
   }
 
   return (
-    <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
+    <div className="space-y-4 rounded-2xl bg-superficie p-4">
       <div className="flex items-center justify-between">
         <h2 className="font-display font-bold text-tinta">Nueva recepción</h2>
         <button type="button" onClick={() => setAbierto(false)} aria-label="Cerrar" className="text-steel-300 hover:text-tinta"><X className="h-5 w-5" /></button>
@@ -98,7 +98,7 @@ export function RecepcionNuevaForm({ proveedores, hoy }: { proveedores: { id: st
       <div className="space-y-1">
         <Label htmlFor="recepcion-notas" className={LABEL_CLS}>Notas</Label>
         <Textarea id="recepcion-notas" rows={2} value={notas} onChange={e => setNotas(e.target.value)}
-          className="border-linea bg-superficie-2 text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60" />
+          className="border-linea bg-superficie-2 text-tinta placeholder:text-tenue focus:border-accion focus:ring-3 focus:ring-accion/25" />
       </div>
       <Button type="button" onClick={abrir} disabled={guardando}
         className="h-12 w-full bg-brand-yellow text-base font-bold text-steel-900 hover:bg-brand-yellow hover:brightness-105">

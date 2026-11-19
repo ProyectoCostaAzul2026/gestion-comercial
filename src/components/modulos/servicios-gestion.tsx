@@ -72,7 +72,7 @@ export function ServiciosGestion({ servicios: inicial }: { servicios: Servicio[]
   }
 
   return (
-    <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-6">
+    <div className="space-y-4 rounded-2xl bg-superficie p-6">
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium text-steel-300">
           {servicios.filter(s => s.activo).length} servicios activos

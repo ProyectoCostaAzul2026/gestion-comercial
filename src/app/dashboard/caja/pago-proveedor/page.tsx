@@ -32,7 +32,7 @@ export default async function PagoProveedorPage() {
       <EncabezadoPagina titulo="Pago a proveedor" atras="/dashboard/caja"
         subtitulo={`${lista.length} factura${lista.length === 1 ? '' : 's'} por pagar · ${fmt(total)}`} />
       {lista.length === 0 && (
-        <p className="rounded-2xl border border-linea bg-superficie p-8 text-center text-sm text-steel-500">No hay facturas por pagar.</p>
+        <p className="rounded-2xl bg-superficie p-8 text-center text-sm text-steel-500">No hay facturas por pagar.</p>
       )}
       <div className="space-y-2">
         {lista.map(f => {
@@ -40,7 +40,7 @@ export default async function PagoProveedorPage() {
           const mora = diasVencido(vence, hoy)
           return (
             <Link key={f.id} href={`/dashboard/proveedores/${f.proveedor_id}/facturas/${f.id}/pagar`}
-              className="flex items-center gap-3 rounded-2xl border border-linea bg-superficie p-3 hover:border-brand-yellow/50">
+              className="flex items-center gap-3 rounded-2xl bg-superficie p-3 hover:border-brand-yellow/50">
               <span className={`h-10 w-1.5 shrink-0 rounded-full ${mora > 30 ? 'bg-brand-red' : mora > 0 ? 'bg-amber-400' : 'bg-emerald-400'}`} aria-hidden />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-bold text-tinta">{(f.proveedores as { nombre?: string } | null)?.nombre ?? 'Proveedor'}</span>

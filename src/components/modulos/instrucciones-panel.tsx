@@ -33,7 +33,7 @@ export function InstruccionesPanel({ esAdmin }: { esAdmin: boolean }) {
       </div>
 
       {tema && (
-        <div className="space-y-5 rounded-2xl border border-linea bg-superficie p-5">
+        <div className="space-y-5 rounded-2xl bg-superficie p-5">
           <div>
             <div className="flex items-center gap-2">
               <p className="text-xs font-bold text-brand-yellow">{tema.categoria}</p>

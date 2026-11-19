@@ -62,14 +62,14 @@ function Lista({
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="Buscar por nombre, código, marca o medida…"
-          className="h-11 border-linea bg-superficie-2 pl-9 text-[16px] text-tinta placeholder:text-steel-500"
+          className="h-11 border-linea bg-superficie-2 pl-9 text-[16px] text-tinta placeholder:text-tenue"
         />
       </div>
 
       {filtrados.length === 0 ? (
         <p className="text-sm text-steel-500">Sin productos en esta lista.</p>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+        <div className="overflow-hidden rounded-2xl bg-superficie">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -167,13 +167,13 @@ export function ProductosDesactivadosPanel({
   return (
     <div className="space-y-10">
       <Lista
-        titulo="Productos Desactivados Con Registros"
+        titulo="Productos desactivados con registros"
         productos={listaConRegistros}
         mostrarEliminar={false}
         onActivar={handleActivar}
       />
       <Lista
-        titulo="Productos Desactivados Sin Registros"
+        titulo="Productos desactivados sin registros"
         productos={listaSinRegistros}
         mostrarEliminar={true}
         onActivar={handleActivar}

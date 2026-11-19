@@ -91,7 +91,7 @@ export function CrearNivelInventario({
     router.push(`/dashboard/inventario/nuevo?${sp.toString()}`)
   }
 
-  const CAMPO = 'h-11 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-steel-500'
+  const CAMPO = 'h-11 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-tenue'
   const nombreFinal = `${familiaExistente?.nombre_base ?? (limpiar(familia) || '…')}${SEPARADOR}${limpiar(caracteristica) || '…'}`
 
   return (

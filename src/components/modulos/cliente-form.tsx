@@ -125,7 +125,7 @@ export function ClienteForm({ cliente, onSuccess }: ClienteFormProps) {
     volver('/dashboard/clientes', { refrescar: true })
   }
 
-  const inputCls = 'h-12 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60'
+  const inputCls = 'h-12 border-linea-fuerte bg-superficie text-[16px] text-tinta placeholder:text-tenue focus:border-accion focus:ring-3 focus:ring-accion/25'
   const labelCls = 'text-sm font-semibold text-suave'
 
   return (
@@ -160,12 +160,14 @@ export function ClienteForm({ cliente, onSuccess }: ClienteFormProps) {
 
       <div className="space-y-2">
         <Label htmlFor="notas" className={labelCls}>Notas</Label>
-        <Textarea id="notas" className="border-linea bg-superficie-2 text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60" value={form.notas} onChange={(e) => handleChange('notas', e.target.value)} rows={3} />
+        <Textarea id="notas" className="border-linea-fuerte bg-superficie text-[16px] text-tinta placeholder:text-tenue focus:border-accion focus:ring-3 focus:ring-accion/25" value={form.notas} onChange={(e) => handleChange('notas', e.target.value)} rows={3} />
       </div>
 
-      <Button type="submit" disabled={isSubmitting} className="h-12 w-full bg-brand-yellow text-base font-bold text-steel-900 hover:bg-brand-yellow hover:brightness-105">
+      <div className="sticky bottom-[var(--abajo-nav,0px)] z-10 -mx-4 bg-gradient-to-t from-fondo via-fondo/95 to-transparent px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-5 md:-mx-6 md:px-6 lg:static lg:mx-0 lg:bg-none lg:p-0">
+<Button type="submit" disabled={isSubmitting} className="h-14 w-full rounded-xl bg-accion text-lg font-bold text-sobre-accion hover:bg-accion hover:brightness-105">
         {isSubmitting ? 'Guardando...' : esEdicion ? 'Guardar cambios' : 'Crear cliente'}
       </Button>
+</div>
 
       {esEdicion && (
         <button

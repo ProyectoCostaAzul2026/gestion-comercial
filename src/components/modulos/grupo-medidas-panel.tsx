@@ -245,7 +245,7 @@ export function GrupoMedidasPanel({
       </p>
 
       {/* Lista de medidas */}
-      <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+      <div className="overflow-hidden rounded-2xl bg-superficie">
         <div className="grid grid-cols-[1fr_auto_auto] gap-3 border-b border-linea bg-superficie-2 px-4 py-2 text-sm font-semibold text-suave">
           <span>Medida ({miembros.length})</span>
           <span className="w-14 text-right">Stock</span>
@@ -305,10 +305,10 @@ export function GrupoMedidasPanel({
       )}
 
       {editandoPesos && (
-        <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
+        <div className="space-y-4 rounded-2xl bg-superficie p-4">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <h3 className="font-display font-bold text-tinta">Peso por unidad</h3>
+              <h3 className="text-lg font-bold text-tinta">Peso por unidad</h3>
               <p className="text-xs text-steel-500">
                 Escribe cuánto pesa una unidad de cada medida, en gramos. Con eso la venta muestra cuánto pesar y el stock se
                 puede contar por peso. Déjalo vacío para no usar el peso en esa medida.
@@ -382,10 +382,10 @@ export function GrupoMedidasPanel({
 
       {/* Editar datos en bloque: lo mismo de "Editar Datos" de familias, más ubicación y stock mínimo. No toca precios. */}
       {editando && (
-        <div className="space-y-5 rounded-2xl border border-linea bg-superficie p-4">
+        <div className="space-y-5 rounded-2xl bg-superficie p-4">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <h3 className="font-display font-bold text-tinta">Editar datos del grupo</h3>
+              <h3 className="text-lg font-bold text-tinta">Editar datos del grupo</h3>
               <p className="text-xs text-steel-500">Elige las medidas y llena solo lo que quieras cambiar; lo vacío se deja como está.</p>
             </div>
             <Button type="button" variant="ghost" size="icon-sm" aria-label="Cerrar" className="text-steel-300 hover:text-tinta"

@@ -1,5 +1,6 @@
 'use client'
 
+import { MedioPagoIcono } from '@/components/ui/medio-pago-icono'
 import { useState, useMemo } from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
@@ -11,7 +12,7 @@ import {
 import { jsPDF } from 'jspdf'
 import { autoTable } from 'jspdf-autotable'
 import Link from 'next/link'
-import { Download, Banknote, Smartphone, CreditCard, Coins, Calculator, FileSpreadsheet, TrendingUp, Wallet, PackageX } from 'lucide-react'
+import { Download, FileSpreadsheet, TrendingUp, Wallet, PackageX } from 'lucide-react'
 import { SelectorPeriodo, Variacion } from './selector-periodo'
 import type { Periodo } from '@/lib/periodos'
 import type { ResumenPeriodo } from '@/lib/reportes-servidor'
@@ -40,18 +41,9 @@ const METODO_LABEL: Record<string, string> = {
 
 const MEDIOS_ORDEN = ['efectivo', 'nequi', 'daviplata', 'tarjeta', 'credito']
 
-// Ícono y color por medio — mismo lenguaje visual que las tarjetas de alerta del dashboard
-const MEDIO_ESTILO: Record<string, { icono: any; texto: string; borde: string; fondo: string; anillo: string }> = {
-  efectivo:  { icono: Banknote,   texto: 'text-emerald-400', borde: 'border-emerald-500/30', fondo: 'bg-emerald-500/10', anillo: 'bg-emerald-500/20' },
-  nequi:     { icono: Smartphone, texto: 'text-purple-400',  borde: 'border-purple-500/30',  fondo: 'bg-purple-500/10',  anillo: 'bg-purple-500/20' },
-  daviplata: { icono: Smartphone, texto: 'text-red-400',     borde: 'border-red-500/30',     fondo: 'bg-red-500/10',     anillo: 'bg-red-500/20' },
-  tarjeta:   { icono: CreditCard, texto: 'text-enlace',  borde: 'border-brand-blue/30',  fondo: 'bg-brand-blue/10',  anillo: 'bg-brand-blue/20' },
-  credito:   { icono: Coins,      texto: 'text-amber-400',   borde: 'border-amber-500/30',   fondo: 'bg-amber-500/10',   anillo: 'bg-amber-500/20' },
-}
-
-// Estilos comunes para los ejes/grids de recharts sobre fondo oscuro
-const AXIS_TICK = { fontSize: 9, fill: 'var(--suave)' }
-const GRID_STROKE = 'rgba(255,255,255,0.08)'
+// Estilos comunes para los ejes y la cuadrícula de recharts (siguen el tema claro u oscuro)
+const AXIS_TICK = { fontSize: 11, fill: 'var(--suave)' }
+const GRID_STROKE = 'var(--linea)'
 const TOOLTIP_STYLE = { backgroundColor: 'var(--sup2)', border: '1px solid var(--linea)', borderRadius: 12, color: 'var(--tinta)', fontSize: 12 }
 
 function fmt(n: number) { return `$${Math.round(n).toLocaleString('es-CO')}` }
@@ -86,11 +78,11 @@ function KPICard({ label, valor, sub, color, comparacion }: {
   comparacion?: React.ReactNode
 }) {
   return (
-    <div className="rounded-2xl border border-linea bg-superficie p-4">
+    <div className="rounded-2xl bg-superficie p-4">
       <p className="text-sm font-semibold text-suave">{label}</p>
-      <p className={`mt-1 font-display text-lg font-bold ${color ?? 'text-tinta'}`}>{valor}</p>
+      <p className={`cifra mt-0.5 text-[28px] font-bold leading-tight ${color ?? 'text-tinta'}`}>{valor}</p>
       {comparacion && <div className="mt-0.5">{comparacion}</div>}
-      {sub && <p className="mt-0.5 text-xs text-steel-500">{sub}</p>}
+      {sub && <p className="mt-0.5 text-sm text-suave">{sub}</p>}
     </div>
   )
 }
@@ -111,7 +103,7 @@ function TablaUtilidad({ porCategoria, porFamilia, desde, hasta }: {
   const mostradas = verTodo ? filas : filas.slice(0, 15)
   const total = filas.reduce((t, f) => ({ ingresos: t.ingresos + f.ingresos, costo: t.costo + f.costo }), { ingresos: 0, costo: 0 })
   return (
-    <div className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+    <div className="space-y-3 rounded-2xl bg-superficie p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="font-semibold text-tinta">Utilidad por {vista === 'categoria' ? 'categoría' : 'familia'}</p>
@@ -285,9 +277,7 @@ export function ReportesPanel({
   return (
     <div className="space-y-6 md:space-y-8">
       {/* Header diagonal */}
-      <div className="relative py-1">
-        <h1 className="text-2xl font-bold text-tinta md:text-3xl">Reportes</h1>
-      </div>
+      <h1 className="text-[28px] font-bold leading-tight text-tinta">Reportes</h1>
 
       {/* ── SELECTOR DE PERÍODO ── */}
       <SelectorPeriodo periodo={periodo} hoy={hoy} anterior={anterior.etiqueta} />
@@ -301,13 +291,13 @@ export function ReportesPanel({
           { href: `/dashboard/contabilidad/exportar?desde=${desde}&hasta=${hasta}`, icono: FileSpreadsheet, titulo: 'Excel para el contador', sub: 'Del periodo elegido', descarga: true },
         ].map(v => {
           const Icono = v.icono
-          const clase = 'flex min-h-16 items-center gap-3 rounded-2xl border border-linea bg-superficie p-3 transition-colors hover:border-brand-yellow/50'
+          const clase = 'flex min-h-16 items-center gap-3 rounded-2xl bg-superficie p-3 transition-colors hover:bg-superficie-2'
           const contenido = (
             <>
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-yellow/10 text-brand-yellow"><Icono className="h-5 w-5" /></span>
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-superficie-2 text-enlace"><Icono className="size-5" strokeWidth={1.75} aria-hidden /></span>
               <span className="min-w-0">
-                <span className="block text-sm font-bold leading-tight text-tinta">{v.titulo}</span>
-                <span className="block text-xs text-steel-500">{v.sub}</span>
+                <span className="block text-[15px] font-semibold leading-tight text-tinta">{v.titulo}</span>
+                <span className="block text-sm text-suave">{v.sub}</span>
               </span>
             </>
           )
@@ -327,56 +317,46 @@ export function ReportesPanel({
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <KPICard label="Ventas totales" valor={fmt(kpisPeriodo.totalIngresos)}
             comparacion={<Variacion actual={kpisPeriodo.totalIngresos} anterior={ant.ingresos} compacto />}
-            sub={`Promedio/día: ${fmt(kpisPeriodo.ventaPromedioDiaria)}`} color="text-emerald-400" />
+            sub={`${fmt(kpisPeriodo.ventaPromedioDiaria)} por día en promedio`} />
           <KPICard label="Venta promedio por ticket" valor={fmt(kpisPeriodo.ticketPromedioPeriodo)}
             comparacion={<Variacion actual={kpisPeriodo.ticketPromedioPeriodo} anterior={ant.ticketPromedio} compacto />} />
           <KPICard label="Tickets totales" valor={String(kpisPeriodo.numVentas)}
             comparacion={<Variacion actual={kpisPeriodo.numVentas} anterior={ant.numVentas} compacto />}
-            sub={`Promedio/día: ${kpisPeriodo.ticketsPromedioDiarios.toFixed(1)}`} />
+            sub={`${kpisPeriodo.ticketsPromedioDiarios.toFixed(1).replace('.', ',')} por día en promedio`} />
           <KPICard label="Resultado" valor={fmt(kpisPeriodo.resultado)}
             comparacion={<Variacion actual={kpisPeriodo.resultado} anterior={ant.resultado} compacto />}
-            color={kpisPeriodo.resultado >= 0 ? 'text-brand-yellow' : 'text-sale'} />
+            color={kpisPeriodo.resultado >= 0 ? 'text-entra' : 'text-sale'} />
         </div>
 
         {/* Saldos por medio período */}
         {Object.keys(mediosPeriodoStats).length > 0 && (
-          <div className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
-            <p className="text-xs font-medium text-steel-300">Ingresos por medio de pago — período</p>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
+          <div className="space-y-2.5">
+            <h3 className="text-[17px] font-semibold text-tinta">Cómo pagaron en el periodo</h3>
+            <ul className="overflow-hidden rounded-2xl bg-superficie">
               {MEDIOS_ORDEN.filter(m => mediosPeriodoStats[m]).map(medio => {
                 const stat = mediosPeriodoStats[medio]
-                const est = MEDIO_ESTILO[medio]
-                const Icono = est.icono
                 return (
-                  <div key={medio} className={`rounded-xl border ${est.borde} ${est.fondo} p-3 text-center`}>
-                    <span className={`mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full ${est.anillo} ${est.texto}`}>
-                      <Icono className="size-4" />
-                    </span>
-                    <p className="text-xs font-medium text-steel-300">{METODO_LABEL[medio]}</p>
-                    <p className={`mt-1 font-display font-bold ${est.texto}`}>{fmt(stat.total)}</p>
-                    <p className="mt-0.5 text-xs text-steel-500">
-                      Prom: {stat.count > 0 ? fmt(stat.total / stat.count) : '$0'}/tx
-                    </p>
-                  </div>
+                  <li key={medio} className="flex items-center gap-3 border-b border-linea px-4 py-2.5">
+                    <MedioPagoIcono medio={medio === 'mixto' ? 'varios' : medio} className="h-7 w-[42px] shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[15px] text-tinta">{METODO_LABEL[medio]}</p>
+                      <p className="text-sm text-suave">{stat.count} {stat.count === 1 ? 'pago' : 'pagos'}, {stat.count > 0 ? fmt(stat.total / stat.count) : '$0'} en promedio</p>
+                    </div>
+                    <span className="cifra text-xl font-bold text-tinta">{fmt(stat.total)}</span>
+                  </li>
                 )
               })}
-              <div className="rounded-xl border-2 border-brand-yellow/40 bg-brand-yellow/10 p-3 text-center">
-                <span className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-brand-yellow/20 text-brand-yellow">
-                  <Calculator className="size-4" />
-                </span>
-                <p className="text-xs font-medium text-steel-300">Gran Total</p>
-                <p className="mt-1 font-display font-bold text-brand-yellow">{fmt(granTotalMediosPeriodo)}</p>
-                <p className="mt-0.5 text-xs text-steel-500">
-                  Prom: {totalTxMediosPeriodo > 0 ? fmt(granTotalMediosPeriodo / totalTxMediosPeriodo) : '$0'}/tx
-                </p>
-              </div>
-            </div>
+              <li className="flex items-center justify-between bg-superficie-2 px-4 py-3">
+                <span className="text-[15px] font-bold text-tinta">Total</span>
+                <span className="cifra text-2xl font-bold text-tinta">{fmt(granTotalMediosPeriodo)}</span>
+              </li>
+            </ul>
           </div>
         )}
 
         {/* Estado de resultados */}
-        <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
-          <p className="text-xs font-medium text-steel-300">Estado de resultados</p>
+        <div className="space-y-4 rounded-2xl bg-superficie p-4">
+          <h3 className="text-[17px] font-semibold text-tinta">Estado de resultados</h3>
 
           {/* Tabla */}
           <div className="space-y-1">
@@ -432,7 +412,7 @@ export function ReportesPanel({
                 tickFormatter={v => `$${(Math.abs(v) / 1000000).toFixed(1)}M`}
                 domain={['auto', 'auto']} />
               <YAxis type="category" dataKey="nombre" tick={{ fontSize: 10, fill: 'var(--suave)' }} width={75} />
-              <Tooltip formatter={(v: any) => [fmt(Math.abs(Number(v))), '']} contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+              <Tooltip formatter={(v: any) => [fmt(Math.abs(Number(v))), '']} contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'color-mix(in oklab, var(--velo) 6%, transparent)' }} />
               <Bar dataKey="valor" radius={[0, 3, 3, 0]}>
                 {[
                   'var(--chart-2)',   // Ingresos — azul de marca
@@ -453,7 +433,7 @@ export function ReportesPanel({
         <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
           Contra el periodo anterior
         </h2>
-        <div className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+        <div className="space-y-3 rounded-2xl bg-superficie p-4">
           <Table>
             <TableHeader>
               <TableRow className="bg-superficie-2 hover:bg-superficie-2 [&_th]:text-sm [&_th]:font-semibold [&_th]:text-suave">
@@ -511,7 +491,7 @@ export function ReportesPanel({
               <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
               <XAxis dataKey="nombre" tick={{ fontSize: 10, fill: 'var(--suave)' }} />
               <YAxis tick={AXIS_TICK} tickFormatter={v => `$${(v / 1000).toFixed(0)}K`} width={50} />
-              <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+              <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'color-mix(in oklab, var(--velo) 6%, transparent)' }}
                 formatter={(v: any, name: any) => [fmt(Number(v)), name === 'actual' ? 'Este periodo' : 'Anterior']} />
               <Bar dataKey="anterior" fill="var(--tenue)" radius={[3, 3, 0, 0]} />
               <Bar dataKey="actual" fill="var(--chart-1)" radius={[3, 3, 0, 0]} />
@@ -538,7 +518,7 @@ export function ReportesPanel({
           <KPICard label="Ventas con descuento" valor={String(descuentos.ventasConDescuento)}
             sub={kpisPeriodo.numVentas > 0 ? `${pct((descuentos.ventasConDescuento / kpisPeriodo.numVentas) * 100)} de los tickets` : undefined} />
         </div>
-        <div className="rounded-2xl border border-linea bg-superficie p-4">
+        <div className="rounded-2xl bg-superficie p-4">
           <p className="mb-1 text-sm font-semibold text-tinta">Descuentos en el tiempo</p>
           <p className="mb-4 text-xs text-steel-500">{diasPeriodo > 92 ? 'Por mes' : 'Por día'}. Incluye descuentos por línea, descuento total y total editado a mano.</p>
           {descuentos.total > 0 ? (
@@ -548,7 +528,7 @@ export function ReportesPanel({
                 <XAxis dataKey="periodo" tick={{ fontSize: 10, fill: 'var(--suave)' }} />
                 <YAxis yAxisId="d" tick={AXIS_TICK} tickFormatter={v => `$${(v / 1000).toFixed(0)}K`} width={45} />
                 <YAxis yAxisId="t" orientation="right" tick={AXIS_TICK} allowDecimals={false} width={25} />
-                <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'color-mix(in oklab, var(--velo) 6%, transparent)' }}
                   formatter={(v: any, name: any) => name === 'tickets' ? [v, 'Ventas con descuento'] : [fmt(Number(v)), 'Descuento']} />
                 <Bar yAxisId="d" dataKey="descuentos" fill="var(--aviso)" radius={[3, 3, 0, 0]} />
                 <Line yAxisId="t" type="monotone" dataKey="tickets" stroke="var(--chart-2)" strokeWidth={2} dot={false} />
@@ -566,7 +546,7 @@ export function ReportesPanel({
           Análisis de ventas
         </h2>
 
-        <div className="rounded-2xl border border-linea bg-superficie p-4">
+        <div className="rounded-2xl bg-superficie p-4">
           <p className="mb-1 text-sm font-semibold text-tinta">Flujo de caja</p>
           <p className="mb-4 text-xs text-steel-500">
             {diasPeriodo > 30 ? 'Agrupado por mes' : 'Por día'}
@@ -584,7 +564,7 @@ export function ReportesPanel({
               <YAxis tick={AXIS_TICK} tickFormatter={v => `$${(Math.abs(v) / 1000).toFixed(0)}K`} />
               <Tooltip
                 contentStyle={TOOLTIP_STYLE}
-                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                cursor={{ fill: 'color-mix(in oklab, var(--velo) 6%, transparent)' }}
                 formatter={(v: any, name: any) => [
                   fmt(Math.abs(Number(v))),
                   name === 'ingresos' ? 'Ingresos' : name === 'egresos' ? 'Egresos' : 'Utilidad'
@@ -601,7 +581,7 @@ export function ReportesPanel({
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {/* Medios de pago */}
-          <div className="rounded-2xl border border-linea bg-superficie p-4">
+          <div className="rounded-2xl bg-superficie p-4">
             <p className="mb-4 text-sm font-semibold text-tinta">Por medio de pago</p>
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
@@ -624,7 +604,7 @@ export function ReportesPanel({
           </div>
 
           {/* Ventas por hora */}
-          <div className="rounded-2xl border border-linea bg-superficie p-4">
+          <div className="rounded-2xl bg-superficie p-4">
             <p className="mb-1 text-sm font-semibold text-tinta">Ventas por hora del día</p>
             <SelectorModoGrafico modo={modoHoras} onChange={setModoHoras} />
             <ResponsiveContainer width="100%" height={200}>
@@ -637,7 +617,7 @@ export function ReportesPanel({
                   domain={['auto', 'auto']}
                   allowDataOverflow={false}
                 />
-                <Tooltip formatter={(v: any) => [modoHoras === 'ticket' ? Number(v).toFixed(0) : fmt(Number(v)), ETIQUETA_MODO[modoHoras]]} contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+                <Tooltip formatter={(v: any) => [modoHoras === 'ticket' ? Number(v).toFixed(0) : fmt(Number(v)), ETIQUETA_MODO[modoHoras]]} contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'color-mix(in oklab, var(--velo) 6%, transparent)' }} />
                 <Bar dataKey="valor" fill="var(--chart-2)" radius={[2, 2, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -645,7 +625,7 @@ export function ReportesPanel({
         </div>
 
         {/* Ventas promedio por día de la semana */}
-        <div className="rounded-2xl border border-linea bg-superficie p-4">
+        <div className="rounded-2xl bg-superficie p-4">
           <p className="mb-1 text-sm font-semibold text-tinta">Ventas promedio por día de la semana</p>
           <p className="mb-3 text-xs text-steel-500">Lunes a domingo · promedio sobre el período seleccionado</p>
           <SelectorModoGrafico modo={modoDias} onChange={setModoDias} />
@@ -659,7 +639,7 @@ export function ReportesPanel({
                 domain={['auto', 'auto']}
                 allowDataOverflow={false}
               />
-              <Tooltip formatter={(v: any) => [modoDias === 'ticket' ? Number(v).toFixed(1) : fmt(Number(v)), ETIQUETA_MODO[modoDias]]} contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+              <Tooltip formatter={(v: any) => [modoDias === 'ticket' ? Number(v).toFixed(1) : fmt(Number(v)), ETIQUETA_MODO[modoDias]]} contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'color-mix(in oklab, var(--velo) 6%, transparent)' }} />
               <Bar dataKey="valor" fill="var(--chart-1)" radius={[2, 2, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -667,7 +647,7 @@ export function ReportesPanel({
 
         {/* Ventas por empleado */}
         {graficaEmpleados.length > 0 && (
-          <div className="rounded-2xl border border-linea bg-superficie p-4">
+          <div className="rounded-2xl bg-superficie p-4">
             <p className="mb-4 text-sm font-semibold text-tinta">Ventas por empleado</p>
             <ResponsiveContainer width="100%" height={Math.max(120, graficaEmpleados.length * 40)}>
               <BarChart data={graficaEmpleados} layout="vertical"
@@ -677,7 +657,7 @@ export function ReportesPanel({
                 <YAxis type="category" dataKey="nombre" tick={{ fontSize: 10, fill: 'var(--suave)' }} width={100} />
                 <Tooltip
                   contentStyle={TOOLTIP_STYLE}
-                  cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                  cursor={{ fill: 'color-mix(in oklab, var(--velo) 6%, transparent)' }}
                   formatter={(v: any, name: any) => [
                     name === 'total' ? fmt(Number(v)) : v,
                     name === 'total' ? 'Ventas' : 'Tickets'
@@ -720,7 +700,7 @@ export function ReportesPanel({
         </div>
 
         {/* Top por cantidad */}
-        <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+        <div className="overflow-hidden rounded-2xl bg-superficie">
           <div className="flex items-center justify-between border-b border-linea px-4 py-3">
             <p className="font-semibold text-tinta">Top {topN} — Más vendidos por cantidad</p>
             <Button variant="outline" size="sm" className="border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={() =>
@@ -773,7 +753,7 @@ export function ReportesPanel({
         </div>
 
         {/* Top por ingresos */}
-        <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+        <div className="overflow-hidden rounded-2xl bg-superficie">
           <div className="flex items-center justify-between border-b border-linea px-4 py-3">
             <p className="font-semibold text-tinta">Top {topN} — Mayor ingreso generado</p>
             <Button variant="outline" size="sm" className="border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={() =>
@@ -829,7 +809,7 @@ export function ReportesPanel({
         </div>
 
         {/* Top por rotación */}
-        <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+        <div className="overflow-hidden rounded-2xl bg-superficie">
           <div className="flex items-center justify-between border-b border-linea px-4 py-3">
             <p className="font-semibold text-tinta">Top {topN} — Mayor rotación</p>
             <Button variant="outline" size="sm" className="border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={() =>
@@ -899,7 +879,7 @@ export function ReportesPanel({
           <KPICard label="Valor inventario a precio de venta"
             valor={fmt(inventario.valorVenta)} sub="Stock actual × precio de venta" color="text-emerald-400" />
         </div>
-        <div className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+        <div className="space-y-3 rounded-2xl bg-superficie p-4">
           <div className="flex items-center justify-between">
             <p className="font-semibold text-tinta">Deuda con proveedores</p>
             <span className="font-display text-lg font-bold text-sale">{fmt(deudaProveedores.total)}</span>
@@ -924,7 +904,7 @@ export function ReportesPanel({
           <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
             Nómina del período
           </h2>
-          <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+          <div className="overflow-hidden rounded-2xl bg-superficie">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>

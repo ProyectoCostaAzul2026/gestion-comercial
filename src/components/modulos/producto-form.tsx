@@ -1,5 +1,6 @@
 'use client'
 
+import { MiniaturaProducto } from '@/components/ui/producto-miniatura'
 import { useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { calcularPrecioVentaSugerido, calcularMargenCalculado } from '@/lib/precio-utils'
@@ -32,7 +33,7 @@ import { useNavegacion } from '@/lib/navegacion'
 // Lo único que se exige es una sola medida por producto (sin ";", que en Familias separa varias).
 export const MEDIDA_REGEX = /^[^;]+$/
 
-export const INPUT_CLS = 'border-linea bg-superficie-2 text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60'
+export const INPUT_CLS = 'border-linea bg-superficie-2 text-tinta placeholder:text-tenue focus:border-accion focus:ring-3 focus:ring-accion/25'
 export const LABEL_CLS = 'text-sm font-semibold text-suave'
 
 interface ProveedorForm {
@@ -624,13 +625,23 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {fijo && contexto && (
-        <div className="rounded-xl border border-brand-yellow/30 bg-brand-yellow/5 px-3 py-2 text-xs text-steel-300">
+        <div className="rounded-[14px] bg-[color-mix(in_oklab,var(--enlace)_12%,transparent)] px-4 py-3 text-[15px] text-suave">
           Se creará en <span className="font-semibold text-tinta">{contexto.categoria}</span> › familia{' '}
           <span className="font-semibold text-tinta">{contexto.familia}</span> › grupo{' '}
           <span className="font-semibold text-tinta">{contexto.caracteristica}</span> ({contexto.marca}). Escribe la medida y los
           demás datos.
         </div>
       )}
+      <section className="space-y-4 rounded-2xl bg-superficie p-4">
+      <h3 className="text-lg font-bold text-tinta">Datos del producto</h3>
+      {/* Foto: se ve como quedará en todas partes */}
+      <div className="flex items-center gap-3">
+        <MiniaturaProducto url={form.imagen_url || null} nombre={form.nombre} tam="lg" />
+        <div className="min-w-0 flex-1 space-y-1.5">
+          <Label htmlFor="imagen_url" className={LABEL_CLS}>Foto (enlace de la imagen)</Label>
+          <Input id="imagen_url" className={INPUT_CLS} value={form.imagen_url} placeholder="https://…" onChange={(e) => handleChange('imagen_url', e.target.value)} />
+        </div>
+      </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="nombre" className={LABEL_CLS}>Nombre del producto *</Label>
@@ -706,7 +717,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
             onValueChange={(v) => handleChange('categoria_id', v)}
             value={form.categoria_id}
           >
-            <SelectTrigger className="border-linea bg-superficie-2 text-tinta">
+            <SelectTrigger className="h-12 w-full border-linea bg-superficie-2 text-[16px] text-tinta">
               <SelectValue placeholder="Selecciona una categoría" />
             </SelectTrigger>
             <SelectContent>
@@ -750,7 +761,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
                   onValueChange={(v) => v && handleChange('unidad_medida_select', v)}
                   value={form.unidad_medida_select}
                 >
-                  <SelectTrigger className="border-linea bg-superficie-2 text-tinta">
+                  <SelectTrigger className="h-12 w-full border-linea bg-superficie-2 text-[16px] text-tinta">
                     <SelectValue placeholder="Unidad de medida" />
                   </SelectTrigger>
                   <SelectContent>
@@ -772,9 +783,10 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
         <Label htmlFor="descripcion" className={LABEL_CLS}>Descripción</Label>
         <Textarea id="descripcion" className={INPUT_CLS} value={form.descripcion} onChange={(e) => handleChange('descripcion', e.target.value)} rows={2} />
       </div>
+      </section>
 
-      <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
-        <h3 className="font-display font-bold text-tinta">Configuración de IVA</h3>
+      <div className="space-y-4 rounded-2xl bg-superficie p-4">
+        <h3 className="text-lg font-bold text-tinta">Configuración de IVA</h3>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Switch id="tiene_iva" checked={form.tiene_iva} onCheckedChange={(v) => handleChange('tiene_iva', v)} />
@@ -803,9 +815,9 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
         )}
       </div>
 
-      <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
+      <div className="space-y-4 rounded-2xl bg-superficie p-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-display font-bold text-tinta">Proveedores y Precios de Costo *</h3>
+          <h3 className="text-lg font-bold text-tinta">Proveedores y Precios de Costo *</h3>
           <Button type="button" variant="outline" size="sm" className="border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={addProveedor}>
             <Plus className="mr-1 h-4 w-4" />
             Agregar proveedor
@@ -821,7 +833,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
                 onValueChange={(v) => v && handleProveedorChange(index, 'proveedor_id', v)}
                 value={proveedor.proveedor_id}
               >
-                <SelectTrigger className="border-linea bg-superficie-2 text-tinta">
+                <SelectTrigger className="h-12 w-full border-linea bg-superficie-2 text-[16px] text-tinta">
                   <SelectValue placeholder="Selecciona proveedor" />
                 </SelectTrigger>
                 <SelectContent>
@@ -914,8 +926,8 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
         )}
       </div>
 
-      <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
-        <h3 className="font-display font-bold text-tinta">Stock</h3>
+      <div className="space-y-4 rounded-2xl bg-superficie p-4">
+        <h3 className="text-lg font-bold text-tinta">Stock</h3>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {!esEdicion && nuevoInicial?.stockDesdeRecepcion ? (
             <p className="text-sm text-steel-300 md:col-span-2">
@@ -1003,6 +1015,8 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
         )}
       </div>
 
+      <section className="space-y-3 rounded-2xl bg-superficie p-4">
+      <h3 className="text-lg font-bold text-tinta">Prioridad de pedido</h3>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="prioridad" className={LABEL_CLS}>Prioridad (1-5)</Label>
@@ -1017,7 +1031,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
             onValueChange={(v) => v && handleChange('prioridad', parseInt(v))}
             value={String(form.prioridad)}
           >
-            <SelectTrigger className="border-linea bg-superficie-2 text-tinta">
+            <SelectTrigger className="h-12 w-full border-linea bg-superficie-2 text-[16px] text-tinta">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -1030,10 +1044,11 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
           </Select>
         </div>
       </div>
+      </section>
 
-      <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
+      <div className="space-y-4 rounded-2xl bg-superficie p-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-display font-bold text-tinta">Venta por fracción</h3>
+          <h3 className="text-lg font-bold text-tinta">Venta por fracción</h3>
           <div className="flex items-center gap-2">
             <Switch
               id="vender_por_fraccion"
@@ -1116,10 +1131,10 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
       </div>
 
       {(puedeEditarTramos || preciosCantidad.length > 0) && (
-        <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
+        <div className="space-y-4 rounded-2xl bg-superficie p-4">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h3 className="font-display font-bold text-tinta">Precios por cantidad</h3>
+              <h3 className="text-lg font-bold text-tinta">Precios por cantidad</h3>
               <p className="text-xs text-steel-500">Desde cierta cantidad, cada unidad vale menos: un precio por paquete. Hasta 5.</p>
             </div>
             {puedeEditarTramos && (
@@ -1166,10 +1181,10 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
         </div>
       )}
 
-      <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
+      <div className="space-y-4 rounded-2xl bg-superficie p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h3 className="font-display font-bold text-tinta">Peso por unidad</h3>
+            <h3 className="text-lg font-bold text-tinta">Peso por unidad</h3>
             <p className="text-xs text-steel-500">Para contar pesando: en la venta muestra cuánto pesar y en el stock permite contar por peso.</p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
@@ -1207,14 +1222,11 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
         )}
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="imagen_url" className={LABEL_CLS}>Imagen (URL)</Label>
-        <Input id="imagen_url" className={INPUT_CLS} value={form.imagen_url} onChange={(e) => handleChange('imagen_url', e.target.value)} />
-      </div>
-
-      <Button type="submit" disabled={isSubmitting} className="h-12 w-full bg-brand-yellow text-base font-bold text-steel-900 hover:bg-brand-yellow hover:brightness-105">
+      <div className="sticky bottom-[var(--abajo-nav,0px)] z-10 -mx-4 bg-gradient-to-t from-fondo via-fondo/95 to-transparent px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-5 md:-mx-6 md:px-6 lg:static lg:mx-0 lg:bg-none lg:p-0">
+<Button type="submit" disabled={isSubmitting} className="h-14 w-full rounded-xl bg-accion text-lg font-bold text-sobre-accion hover:bg-accion hover:brightness-105">
         {isSubmitting ? 'Guardando...' : esEdicion ? 'Guardar cambios' : 'Crear producto'}
       </Button>
+</div>
 
       {esEdicion && esAdmin(rol) && (
         <button

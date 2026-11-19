@@ -198,7 +198,7 @@ export function ProductosProveedorTable({
   }
 
   return (
-    <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-4">
+    <div className="space-y-4 rounded-2xl bg-superficie p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
           Productos asociados ({productosFiltrados.length}{familiaSeleccionada ? ` de ${productos.length}` : ''})
@@ -219,7 +219,7 @@ export function ProductosProveedorTable({
             onChange={e => { setQueryFamilia(e.target.value); setFamiliaSeleccionada(null); setMostrarOpcionesFamilia(true) }}
             onFocus={() => setMostrarOpcionesFamilia(true)}
             placeholder="Filtrar por familia…"
-            className="h-9 border-linea bg-superficie-2 pl-9 pr-8 text-sm text-tinta placeholder:text-steel-500"
+            className="h-9 border-linea bg-superficie-2 pl-9 pr-8 text-sm text-tinta placeholder:text-tenue"
           />
           {(familiaSeleccionada || queryFamilia) && (
             <button type="button"

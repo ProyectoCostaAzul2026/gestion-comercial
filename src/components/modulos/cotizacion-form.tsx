@@ -63,7 +63,7 @@ function fmtFecha(f: string) {
   return `${d}/${meses[parseInt(m)-1]}/${y}`
 }
 
-const INPUT_CLS = 'border-linea bg-superficie-2 text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60'
+const INPUT_CLS = 'border-linea bg-superficie-2 text-tinta placeholder:text-tenue focus:border-accion focus:ring-3 focus:ring-accion/25'
 const LABEL_CLS = 'text-sm font-semibold text-suave'
 
 export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
@@ -312,7 +312,7 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
         </div>
 
         {/* Datos del cotizante */}
-        <section className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+        <section className="space-y-3 rounded-2xl bg-superficie p-4">
           <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
             Datos del cliente
           </h2>
@@ -334,7 +334,7 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
         </section>
 
         {/* Productos */}
-        <section className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+        <section className="space-y-3 rounded-2xl bg-superficie p-4">
           <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
             Productos
           </h2>
@@ -417,7 +417,7 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
         </section>
 
         {/* Servicios */}
-        <section className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+        <section className="space-y-3 rounded-2xl bg-superficie p-4">
           <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
             Servicios
           </h2>
@@ -445,7 +445,7 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
         </section>
 
         {/* Descuentos */}
-        <section className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+        <section className="space-y-3 rounded-2xl bg-superficie p-4">
           <div className="flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
               Descuentos
@@ -506,7 +506,7 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
         </section>
 
         {/* Observaciones */}
-        <section className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+        <section className="space-y-3 rounded-2xl bg-superficie p-4">
           <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
             Observaciones
           </h2>
@@ -532,7 +532,7 @@ export function CotizacionForm({ catalogo, config, maxDescuentoPct = 0.10 }: {
 
       {/* Resumen sticky */}
       <div className="lg:w-72 lg:shrink-0">
-        <div className="sticky top-4 space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+        <div className="sticky top-4 space-y-3 rounded-2xl bg-superficie p-4">
           <h2 className="flex items-center gap-2 text-lg font-bold text-tinta">
             Resumen
           </h2>

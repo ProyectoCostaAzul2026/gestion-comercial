@@ -41,11 +41,11 @@ export default async function NuevoProductoRecepcionPage({ params, searchParams 
 
   return (
     <div className="-m-4 md:-m-6">
-      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 border-b lg:top-0 border-linea bg-fondo px-4 py-3">
+      <div className="sticky top-[calc(var(--alto-barra,3.5rem)+env(safe-area-inset-top))] z-20 bg-fondo/95 px-2 py-2 backdrop-blur lg:top-0 md:px-4">
         <div className="flex items-center gap-3">
           <BotonAtras href={volver} />
           <div className="min-w-0">
-            <h1 className="font-display text-lg font-bold text-tinta">Nuevo producto de la recepción</h1>
+            <h1 className="text-xl font-bold text-tinta">Nuevo producto de la recepción</h1>
             <p className="truncate text-xs text-steel-300">En la factura: {renglon.descripcion}</p>
           </div>
         </div>

@@ -117,7 +117,7 @@ export function ConteoInventario({ productos, categorias, inicial }: Props) {
   }
 
   const SELECT = 'h-11 w-full rounded-lg border border-linea bg-superficie-2 px-3 text-[16px] text-tinta'
-  const CAMPO = 'h-11 border-linea bg-superficie-2 text-center text-[16px] font-bold text-tinta placeholder:font-normal placeholder:text-steel-500'
+  const CAMPO = 'h-11 border-linea bg-superficie-2 text-center text-[16px] font-bold text-tinta placeholder:font-normal placeholder:text-tenue'
 
   return (
     <div className="space-y-3 pb-24">
@@ -125,7 +125,7 @@ export function ConteoInventario({ productos, categorias, inicial }: Props) {
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-500" />
         <Input value={texto} onChange={e => { setTexto(e.target.value); setLimite(POR_PAGINA) }}
           placeholder="Buscar por nombre, código, marca o medida…"
-          className="h-12 border-linea bg-superficie-2 pl-9 pr-10 text-[16px] text-tinta placeholder:text-steel-500" />
+          className="h-12 border-linea bg-superficie-2 pl-9 pr-10 text-[16px] text-tinta placeholder:text-tenue" />
         {texto && (
           <button type="button" onClick={() => setTexto('')} aria-label="Borrar búsqueda"
             className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-steel-300 hover:bg-velo/10">
@@ -150,7 +150,7 @@ export function ConteoInventario({ productos, categorias, inicial }: Props) {
       </label>
 
       {!hayFiltro ? (
-        <div className="rounded-2xl border border-linea bg-superficie p-6 text-center text-sm text-steel-300">
+        <div className="rounded-2xl bg-superficie p-6 text-center text-sm text-steel-300">
           <ClipboardCheck className="mx-auto mb-2 h-8 w-8 text-brand-yellow/60" aria-hidden />
           Elige una ubicación o una categoría, o busca un producto, para empezar a contar.
           <p className="mt-1 text-xs text-steel-500">Deja en blanco lo que no cuentes: su stock no cambia.</p>

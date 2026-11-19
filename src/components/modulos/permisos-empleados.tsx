@@ -74,10 +74,10 @@ export function PermisosEmpleados({ permisos, empleados, esAdmin, usuarioId, fec
     router.refresh()
   }
 
-  const CAMPO = 'h-11 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-steel-500'
+  const CAMPO = 'h-11 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-tenue'
 
   return (
-    <section className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+    <section className="space-y-3 rounded-2xl bg-superficie p-4">
       <div>
         <h2 className="flex items-center gap-2 font-display text-lg font-bold text-tinta">
           <CalendarOff className="h-5 w-5 text-sale" />Permisos

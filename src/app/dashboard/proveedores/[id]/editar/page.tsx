@@ -22,11 +22,11 @@ export default async function EditarProveedorPage({ params }: { params: Promise<
       <div className="mb-6 flex items-center gap-3">
         <BotonAtras href={`/dashboard/proveedores/${id}`} />
         <div>
-          <h1 className="font-display text-2xl font-bold text-tinta">Editar Proveedor</h1>
+          <h1 className="text-2xl font-bold text-tinta">Editar proveedor</h1>
           <p className="text-xs text-steel-300">{proveedor.nombre}</p>
         </div>
       </div>
-      <div className="rounded-2xl border border-linea bg-superficie p-6">
+      <div className="rounded-2xl bg-superficie p-6">
         <ProveedorForm proveedor={proveedor} />
       </div>
     </div>

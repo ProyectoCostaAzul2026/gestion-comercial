@@ -89,11 +89,11 @@ export function ConfiguracionForm({ config }: { config: ConfigNegocio | null }) 
     }
   }
 
-  const inputCls = 'h-12 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60'
+  const inputCls = 'h-12 border-linea-fuerte bg-superficie text-[16px] text-tinta placeholder:text-tenue focus:border-accion focus:ring-3 focus:ring-accion/25'
   const labelCls = 'text-sm font-semibold text-suave'
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-linea bg-superficie p-6">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="nombre" className={labelCls}>Nombre del negocio *</Label>
         <Input id="nombre" className={inputCls} value={form.nombre} onChange={e => handleChange('nombre', e.target.value)} />
@@ -145,7 +145,7 @@ export function ConfiguracionForm({ config }: { config: ConfigNegocio | null }) 
 
       <div className="space-y-2">
         <Label htmlFor="mensaje_pie" className={labelCls}>Mensaje al pie del recibo</Label>
-        <Textarea id="mensaje_pie" className="border-linea bg-superficie-2 text-tinta placeholder:text-steel-500 focus:border-brand-yellow/60" value={form.mensaje_pie}
+        <Textarea id="mensaje_pie" className="border-linea-fuerte bg-superficie text-[16px] text-tinta placeholder:text-tenue focus:border-accion focus:ring-3 focus:ring-accion/25" value={form.mensaje_pie}
           onChange={e => handleChange('mensaje_pie', e.target.value)} rows={2} />
       </div>
 
@@ -197,9 +197,11 @@ export function ConfiguracionForm({ config }: { config: ConfigNegocio | null }) 
         </div>
       </div>
 
-      <Button type="submit" disabled={saving} className="h-12 w-full bg-brand-yellow text-base font-bold text-steel-900 hover:bg-brand-yellow hover:brightness-105">
+      <div className="sticky bottom-[var(--abajo-nav,0px)] z-10 -mx-4 bg-gradient-to-t from-fondo via-fondo/95 to-transparent px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-5 md:-mx-6 md:px-6 lg:static lg:mx-0 lg:bg-none lg:p-0">
+<Button type="submit" disabled={saving} className="h-14 w-full rounded-xl bg-accion text-lg font-bold text-sobre-accion hover:bg-accion hover:brightness-105">
         {saving ? 'Guardando…' : 'Guardar configuración'}
       </Button>
+</div>
     </form>
   )
 }

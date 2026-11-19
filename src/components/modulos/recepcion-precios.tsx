@@ -85,7 +85,7 @@ export function RecepcionPrecios({ recepcion, renglones, margenDefault }: {
 
   return (
     <div className="space-y-4">
-      <div className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+      <div className="space-y-3 rounded-2xl bg-superficie p-4">
         <div className="flex items-end gap-2">
           <div className="w-28 space-y-1">
             <Label htmlFor="recepcion-margen" className={LABEL_CLS}>Margen %</Label>
@@ -119,7 +119,7 @@ export function RecepcionPrecios({ recepcion, renglones, margenDefault }: {
             ? Math.round(((calc.costoNuevo - r.costo_anterior) / r.costo_anterior) * 1000) / 10 : null
           const aprobado = r.precio_aprobado != null && Number(r.precio_aprobado) === precioNum
           return (
-            <li key={r.id} className="space-y-2 rounded-2xl border border-linea bg-superficie p-3">
+            <li key={r.id} className="space-y-2 rounded-2xl bg-superficie p-3">
               <div className="flex flex-wrap items-center gap-2">
                 <MiniaturaProducto url={p.imagen_url} nombre={p.nombre} tam="sm" />
                 <Link href={`/dashboard/inventario/${p.id}`} className="text-[15px] font-semibold text-tinta hover:underline">{nombreConMedida(p)}</Link>

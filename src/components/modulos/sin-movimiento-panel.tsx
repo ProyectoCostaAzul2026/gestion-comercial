@@ -58,7 +58,7 @@ export function SinMovimientoPanel({ productos }: { productos: ProductoQuieto[];
 
   return (
     <div className="space-y-4">
-      <section className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+      <section className="space-y-3 rounded-2xl bg-superficie p-4">
         <p className="text-sm font-semibold text-suave">Sin vender hace al menos</p>
         <div className="grid grid-cols-4 gap-1 rounded-xl bg-fondo p-1">
           {UMBRALES.map(u => (
@@ -117,13 +117,13 @@ export function SinMovimientoPanel({ productos }: { productos: ProductoQuieto[];
 
       <section className="space-y-2">
         {lista.length === 0 && (
-          <p className="rounded-2xl border border-linea bg-superficie p-8 text-center text-sm text-steel-500">
+          <p className="rounded-2xl bg-superficie p-8 text-center text-sm text-steel-500">
             Ningún producto con stock lleva {umbral} días o más sin venderse.
           </p>
         )}
         {lista.slice(0, limite).map(p => (
           <Link key={p.id} href={`/dashboard/inventario/${p.id}`}
-            className="flex items-center gap-3 rounded-2xl border border-linea bg-superficie p-3 hover:border-brand-yellow/50">
+            className="flex items-center gap-3 rounded-2xl bg-superficie p-3 hover:border-brand-yellow/50">
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-bold text-tinta">{p.nombre}</span>
               <span className="block truncate text-xs text-steel-500">

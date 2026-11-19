@@ -163,7 +163,7 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy, permisos 
       </div>
 
       {/* Semana que se está viendo */}
-      <div className="flex items-center gap-2 rounded-2xl border border-linea bg-superficie p-2">
+      <div className="flex items-center gap-2 rounded-2xl bg-superficie p-2">
         <button type="button" onClick={() => setSemana(s => s - 1)} disabled={semana <= 0} aria-label="Semana anterior"
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-linea text-tinta hover:bg-velo/5 disabled:opacity-30">
           <ChevronLeft className="h-5 w-5" />
@@ -308,7 +308,7 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy, permisos 
             const turnosEmp = turnos.filter(t => t.empleado_id === emp.id)
             const horasSemanales = horasPorEmpleado(emp.id)
             return (
-              <div key={emp.id} className="rounded-2xl border border-linea bg-superficie p-4">
+              <div key={emp.id} className="rounded-2xl bg-superficie p-4">
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <h3 className="min-w-0 truncate font-medium text-tinta">{emp.nombre_completo}</h3>
                   <span className="inline-flex shrink-0 items-center rounded-full border border-brand-yellow/30 bg-brand-yellow/20 px-2.5 py-0.5 text-xs font-semibold text-brand-yellow">{horasSemanales.toFixed(1)}h esta semana</span>

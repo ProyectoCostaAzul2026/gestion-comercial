@@ -37,7 +37,7 @@ export function CarteraPanel({ hoy, negocio, clientes, proveedores }: {
       </div>
 
       {/* Resumen por tramos */}
-      <section className="space-y-3 rounded-2xl border border-linea bg-superficie p-4">
+      <section className="space-y-3 rounded-2xl bg-superficie p-4">
         <div className="flex items-baseline justify-between gap-2">
           <p className="text-sm font-semibold text-tinta">{vista === 'clientes' ? 'Por cobrar' : 'Por pagar'}</p>
           <p className="text-xs text-steel-300">
@@ -73,7 +73,7 @@ export function CarteraPanel({ hoy, negocio, clientes, proveedores }: {
       {/* Lista por cliente o proveedor */}
       <section className="space-y-2">
         {filas.length === 0 && (
-          <p className="rounded-2xl border border-linea bg-superficie p-8 text-center text-sm text-steel-500">
+          <p className="rounded-2xl bg-superficie p-8 text-center text-sm text-steel-500">
             {vista === 'clientes' ? 'Ningún cliente tiene saldo pendiente.' : 'No hay facturas por pagar.'}
           </p>
         )}
@@ -86,7 +86,7 @@ export function CarteraPanel({ hoy, negocio, clientes, proveedores }: {
                 f.documentos.map(d => ({ ticket: Number(d.referencia.replace(/\D/g, '')) || null, saldo: d.saldo, vence: d.vencimiento })), hoy))
             : null
           return (
-            <div key={clave} className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+            <div key={clave} className="overflow-hidden rounded-2xl bg-superficie">
               <button type="button" onClick={() => setAbierto(abiertoAqui ? null : clave)} aria-expanded={abiertoAqui}
                 className="flex w-full items-center gap-3 p-3 text-left hover:bg-velo/5">
                 <span className="h-10 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: peor.color }} aria-hidden />

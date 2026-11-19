@@ -80,12 +80,12 @@ export function ServiciosTable({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar por servicio, ticket, cliente o empleado…"
-            className="h-12 border-linea bg-superficie-2 pl-9 text-[16px] text-tinta placeholder:text-steel-500"
+            className="h-12 border-linea bg-superficie-2 pl-9 text-[16px] text-tinta placeholder:text-tenue"
           />
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+      <div className="overflow-hidden rounded-2xl bg-superficie">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>

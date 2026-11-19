@@ -67,7 +67,7 @@ export function VentasTable({ ventas }: { ventas: VentaListItem[] }) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Buscar por ticket o cliente…"
-          className="h-12 border-linea bg-superficie-2 pl-9 text-[16px] text-tinta placeholder:text-steel-500"
+          className="h-12 border-linea bg-superficie-2 pl-9 text-[16px] text-tinta placeholder:text-tenue"
         />
       </div>
 
@@ -76,7 +76,7 @@ export function VentasTable({ ventas }: { ventas: VentaListItem[] }) {
         {filtradas.map((venta) => (
           <li key={venta.id}>
             <Link href={`/dashboard/ventas/${venta.id}`}
-              className="flex items-center gap-3 rounded-2xl border border-linea bg-superficie px-3 py-3 active:bg-velo/5">
+              className="flex items-center gap-3 rounded-2xl bg-superficie px-3 py-3 active:bg-velo/5">
               <div className="min-w-0 flex-1">
                 <p className="flex items-center gap-2 text-sm">
                   <span className="font-mono font-bold text-enlace">#{venta.numero_ticket}</span>
@@ -98,12 +98,12 @@ export function VentasTable({ ventas }: { ventas: VentaListItem[] }) {
         ))}
       </ul>
       {filtradas.length === 0 && (
-        <p className="rounded-2xl border border-linea bg-superficie p-8 text-center text-sm text-steel-500 md:hidden">
+        <p className="rounded-2xl bg-superficie p-8 text-center text-sm text-steel-500 md:hidden">
           {ventas.length === 0 ? 'No hay ventas registradas para este filtro.' : 'No se encontraron ventas con esa búsqueda.'}
         </p>
       )}
 
-      <div className="hidden overflow-hidden rounded-2xl border border-linea bg-superficie md:block">
+      <div className="hidden overflow-hidden rounded-2xl bg-superficie md:block">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>

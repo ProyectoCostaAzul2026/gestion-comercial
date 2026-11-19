@@ -10,7 +10,7 @@ import { cantidadDePeso, formatearPeso, pesoDeCantidad, pesoUnitarioDeMuestra, r
 // Ayudas del peso por unidad: calcular el peso de una unidad con una muestra, contar el inventario por peso y saber
 // cuánto pesar al vender. Todo en gramos.
 
-const INPUT = 'h-10 border-linea bg-superficie text-[16px] text-tinta placeholder:text-steel-500'
+const INPUT = 'h-10 border-linea bg-superficie text-[16px] text-tinta placeholder:text-tenue'
 const ETIQUETA = 'text-sm font-semibold text-suave'
 
 const numero = (texto: string): number => {

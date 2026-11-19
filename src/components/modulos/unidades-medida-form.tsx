@@ -57,7 +57,7 @@ export function UnidadesMedidaForm({ unidades }: { unidades: Unidad[] }) {
   }
 
   return (
-    <div className="space-y-4 rounded-2xl border border-linea bg-superficie p-6">
+    <div className="space-y-4 rounded-2xl bg-superficie p-6">
       <p className="text-sm text-steel-300">
         Las unidades activas aparecen al crear o editar productos, y al armar una Familia de productos.
       </p>
@@ -93,7 +93,7 @@ export function UnidadesMedidaForm({ unidades }: { unidades: Unidad[] }) {
           onChange={e => setNueva(e.target.value)}
           placeholder="Nueva unidad… (ej: Tonelada, Rollo)"
           onKeyDown={e => e.key === 'Enter' && handleAgregar()}
-          className="h-12 flex-1 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-steel-500"
+          className="h-12 flex-1 border-linea bg-superficie-2 text-[16px] text-tinta placeholder:text-tenue"
         />
         <Button type="button" onClick={handleAgregar} disabled={guardando} className="h-12 bg-brand-yellow font-bold text-steel-900 hover:brightness-105">
           <Plus className="mr-1 h-4 w-4" />

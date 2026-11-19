@@ -67,13 +67,13 @@ function SeccionTabla({ titulo, total, color, headerBg, children }: {
 }) {
   const [abierta, setAbierta] = useState(true)
   return (
-    <div className="overflow-hidden rounded-2xl border border-linea bg-superficie">
+    <div className="overflow-hidden rounded-2xl bg-superficie">
       <button type="button" onClick={() => setAbierta(v => !v)}
         aria-expanded={abierta} data-encabezado={headerBg ? 'destacado' : undefined}
         className="flex min-h-14 w-full items-center justify-between gap-3 px-4 py-3 text-left text-tinta transition-colors hover:bg-velo/5">
         <span className="text-lg font-bold">{titulo}</span>
         <div className="flex items-center gap-3">
-          <span className={`cifra text-xl font-bold ${color}`}>${total.toLocaleString('es-CO')}</span>
+          <span className={`cifra text-xl font-bold ${color}`}>{pesosRedondos(total)}</span>
           {abierta ? <ChevronUp className="size-5 text-suave" /> : <ChevronDown className="size-5 text-suave" />}
         </div>
       </button>
@@ -188,17 +188,16 @@ export function ContabilidadPanel({
 
   return (
     <div className="space-y-4 md:space-y-6">
-      {/* Header diagonal */}
-      <div className="relative py-1">
-        <div className="relative z-10 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-          <h1 className="text-2xl font-bold text-tinta md:text-3xl">Contabilidad</h1>
+      <div>
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+          <h1 className="text-[28px] font-bold leading-tight text-tinta">Contabilidad</h1>
           <div className="flex flex-wrap gap-2">
             {/* Libro de Excel con resumen, ventas, compras, gastos, nómina, caja y cartera (lo arma el servidor) */}
             <a href={`/dashboard/contabilidad/exportar?desde=${desde}&hasta=${hasta}`}
-              className="inline-flex h-10 items-center gap-2 rounded-xl bg-brand-yellow px-4 text-sm font-bold text-steel-900 hover:brightness-105">
+              className="inline-flex h-11 items-center gap-2 rounded-xl bg-accion px-4 text-[15px] font-bold text-sobre-accion hover:brightness-105">
               <FileSpreadsheet className="h-4 w-4" />Excel para el contador
             </a>
-            <Button variant="outline" className="h-10 border-linea bg-transparent font-semibold text-steel-300 hover:bg-velo/5 hover:text-tinta" onClick={() => exportarCSVCompleto({ ventas, ventaServicios, ventaItems, gastos, nominas, desde, hasta })}>
+            <Button variant="outline" className="h-11 border-linea bg-superficie text-[15px] font-semibold text-tinta hover:bg-superficie-2" onClick={() => exportarCSVCompleto({ ventas, ventaServicios, ventaItems, gastos, nominas, desde, hasta })}>
               <Download className="mr-2 h-4 w-4" />CSV
             </Button>
           </div>
@@ -208,32 +207,31 @@ export function ContabilidadPanel({
       {/* Selector período */}
       <SelectorPeriodo periodo={periodo} hoy={hoyBogota()} />
 
-      {/* Balance cards */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-        <div className="rounded-2xl border border-linea bg-superficie p-4">
-          <p className="text-sm font-semibold text-suave">Ingresos</p>
-          <p className="mt-1 font-display text-lg font-bold text-emerald-400">${balance.totalIngresos.toLocaleString('es-CO')}</p>
+      {/* Resultado del periodo: la cifra principal y cómo se llega a ella */}
+      <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+        <div className="rounded-[18px] bg-superficie p-5">
+          <p className="text-[15px] font-semibold text-suave">{balance.resultado >= 0 ? 'Utilidad del periodo' : 'Pérdida del periodo'}</p>
+          <p className={`cifra text-[48px] font-bold leading-none ${balance.resultado >= 0 ? 'text-entra' : 'text-sale'}`}>{pesosRedondos(balance.resultado)}</p>
+          <p className="mt-1 text-[15px] text-suave">Lo que queda de las ventas después de la mercancía vendida, los gastos y la nómina.</p>
         </div>
-        <div className="rounded-2xl border border-linea bg-superficie p-4">
-          <p className="text-sm font-semibold text-suave">Costo mercancía</p>
-          <p className="mt-1 font-display text-lg font-bold text-sale">${balance.totalCMV.toLocaleString('es-CO')}</p>
-        </div>
-        <div className="rounded-2xl border border-linea bg-superficie p-4">
-          <p className="text-sm font-semibold text-suave">Gastos</p>
-          <p className="mt-1 font-display text-lg font-bold text-sale">${balance.totalGastos.toLocaleString('es-CO')}</p>
-        </div>
-        <div className="rounded-2xl border border-linea bg-superficie p-4">
-          <p className="text-sm font-semibold text-suave">Nóminas</p>
-          <p className="mt-1 font-display text-lg font-bold text-sale">${balance.totalNominas.toLocaleString('es-CO')}</p>
-        </div>
-        <div className="rounded-2xl border-2 border-brand-yellow bg-superficie p-4">
-          <p className="text-sm font-semibold text-suave">Resultado</p>
-          <p className={`mt-1 font-display text-xl font-bold ${balance.resultado >= 0 ? 'text-emerald-400' : 'text-sale'}`}>
-            ${balance.resultado.toLocaleString('es-CO')}
-          </p>
-          <p className="mt-0.5 text-xs text-steel-500">{balance.resultado >= 0 ? 'Utilidad' : 'Pérdida'}</p>
-        </div>
-      </div>
+        <dl className="overflow-hidden rounded-2xl bg-superficie">
+          {([
+            ['Ventas', balance.totalIngresos, 'entra'],
+            ['Costo de la mercancía vendida', -balance.totalCMV, 'sale'],
+            ['Gastos', -balance.totalGastos, 'sale'],
+            ['Nómina', -balance.totalNominas, 'sale'],
+          ] as const).map(([nombre, valor, tono]) => (
+            <div key={nombre} className="flex items-center justify-between gap-3 border-b border-linea px-4 py-3">
+              <dt className="text-[15px] text-tinta">{nombre}</dt>
+              <dd className={`cifra text-xl font-bold ${tono === 'entra' ? 'text-entra' : 'text-sale'}`}>{tono === 'sale' ? '−' : '+'}{pesosRedondos(Math.abs(valor))}</dd>
+            </div>
+          ))}
+          <div className="flex items-center justify-between gap-3 bg-superficie-2 px-4 py-3">
+            <dt className="text-[15px] font-bold text-tinta">Resultado</dt>
+            <dd className={`cifra text-2xl font-bold ${balance.resultado >= 0 ? 'text-entra' : 'text-sale'}`}>{pesosRedondos(balance.resultado)}</dd>
+          </div>
+        </dl>
+      </section>
 
       {/* Ingresos */}
       <SeccionTabla titulo="Ingresos" total={totalIngresosTabla} color="text-emerald-400">
@@ -290,7 +288,7 @@ export function ContabilidadPanel({
       </SeccionTabla>
 
       {/* Costos */}
-      <SeccionTabla titulo="Costo de Mercancía Vendida" total={totalCMVTabla} color="text-sale" headerBg="bg-brand-yellow text-steel-900">
+      <SeccionTabla titulo="Costo de la mercancía vendida" total={totalCMVTabla} color="text-sale" headerBg="bg-brand-yellow text-steel-900">
         <div className="border-b border-linea bg-superficie-2 p-3">
           <Select items={[{ value: 'todos', label: 'Todos los proveedores' }, ...proveedores.map(p => ({ value: p.id, label: p.nombre }))]}
             onValueChange={v => v && setFiltroProveedorCosto(v)} value={filtroProveedorCosto}>
@@ -337,7 +335,7 @@ export function ContabilidadPanel({
       </SeccionTabla>
 
       {/* Gastos */}
-      <SeccionTabla titulo="Gastos Operativos" total={totalGastosTabla} color="text-sale">
+      <SeccionTabla titulo="Gastos operativos" total={totalGastosTabla} color="text-sale">
         <div className="flex items-center justify-between gap-3 border-b border-linea bg-superficie-2 p-3">
           <Select items={[{ value: 'todas', label: 'Todas las categorías' }, ...categoriasEnTabla.map(c => ({ value: c, label: c }))]}
             onValueChange={v => v && setFiltroCategoriaGasto(v)} value={filtroCategoriaGasto}>
@@ -558,4 +556,9 @@ export function ContabilidadPanel({
       </SeccionTabla>
     </div>
   )
+}
+
+/** Pesos sin centavos (el costo de la mercancía puede traer decimales por las fracciones) */
+function pesosRedondos(n: number) {
+  return `${n < 0 ? '−' : ''}$${Math.round(Math.abs(n)).toLocaleString('es-CO')}`
 }

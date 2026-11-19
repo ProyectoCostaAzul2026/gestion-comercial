@@ -53,9 +53,9 @@ export default async function PorCompletarPage() {
       {error && <p className="text-sm text-sale">No se pudieron cargar: {error.message}</p>}
 
       {productos.length === 0 ? (
-        <p className="rounded-2xl border border-linea bg-superficie p-8 text-center text-sm text-steel-500">No hay productos por completar.</p>
+        <p className="rounded-2xl bg-superficie p-8 text-center text-sm text-steel-500">No hay productos por completar.</p>
       ) : (
-        <ul className="divide-y divide-linea overflow-hidden rounded-2xl border border-linea bg-superficie">
+        <ul className="divide-y divide-linea overflow-hidden rounded-2xl bg-superficie">
           {productos.map(p => (
             <li key={p.id} className="flex items-center gap-3 px-3 py-3">
               <MiniaturaProducto url={(p as any).imagen_url} nombre={p.nombre} tam="sm" />

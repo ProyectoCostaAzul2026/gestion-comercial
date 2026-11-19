@@ -138,7 +138,7 @@ export function BitacoraPanel({ registros, borrados, filtros, hayMas }: Props) {
       </div>
 
       {registros.length === 0 ? (
-        <p className="rounded-2xl border border-linea bg-superficie p-8 text-center text-sm text-steel-500">
+        <p className="rounded-2xl bg-superficie p-8 text-center text-sm text-steel-500">
           {sinFiltro ? 'Todavía no hay cambios registrados.' : 'No hay registros con ese filtro.'}
         </p>
       ) : (

@@ -254,7 +254,7 @@ function CreditoCard({ credito }: { credito: Credito }) {
 
               <div className="space-y-1">
                 <Label className="text-sm font-semibold text-suave">Observaciones</Label>
-                <Textarea value={observaciones} onChange={e => setObservaciones(e.target.value)} rows={2} className="border-linea bg-superficie text-tinta placeholder:text-steel-500" />
+                <Textarea value={observaciones} onChange={e => setObservaciones(e.target.value)} rows={2} className="border-linea bg-superficie text-tinta placeholder:text-tenue" />
               </div>
 
               {!confirmar ? (
@@ -283,7 +283,7 @@ function CreditoCard({ credito }: { credito: Credito }) {
               <Input type="date" value={nuevaFecha} onChange={e => setNuevaFecha(e.target.value)} className="w-44 border-linea bg-superficie text-tinta" />
               <div className="space-y-1">
                 <Label className="text-sm font-semibold text-suave">Nota (opcional)</Label>
-                <Input value={notaFecha} onChange={e => setNotaFecha(e.target.value)} placeholder="Ej: Acordado con el cliente" className="border-linea bg-superficie text-tinta placeholder:text-steel-500" />
+                <Input value={notaFecha} onChange={e => setNotaFecha(e.target.value)} placeholder="Ej: Acordado con el cliente" className="border-linea bg-superficie text-tinta placeholder:text-tenue" />
               </div>
               <div className="flex gap-2">
                 <Button type="button" size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={handleActualizarFecha} disabled={actualizandoFecha}>
