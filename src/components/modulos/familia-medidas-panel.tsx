@@ -786,7 +786,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
                 onClick={agregarProveedorAAsignar}>
                 <Plus className="mr-1 h-4 w-4" />Proveedor
               </Button>
-              <p className="text-xs text-steel-500">El costo de estos proveedores queda en $0 — ajústalo luego desde "Editar producto".</p>
+              <p className="text-xs text-steel-500">El costo de estos proveedores queda en $0. Ajústalo luego en Editar producto.</p>
             </div>
           </div>
 

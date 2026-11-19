@@ -95,21 +95,21 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
       }
       let plantillaId = borrador.plantilla_id
       if (borrador.guardarPlantilla) {
-        const { data, error } = await supabase.from('tareas_plantillas' as never)
+        const { data, error } = await supabase.from('tareas_plantillas')
           .insert({ titulo: datos.titulo, descripcion: datos.descripcion, prioridad: datos.prioridad, asignado_a: datos.asignado_a } as never)
           .select('id').single()
         if (error) throw error
         plantillaId = (data as unknown as { id: string }).id
       }
       if (borrador.id) {
-        const { error } = await supabase.from('tareas' as never).update(datos as never).eq('id', borrador.id)
+        const { error } = await supabase.from('tareas').update(datos as never).eq('id', borrador.id)
         if (error) throw error
       } else {
-        const { error } = await supabase.from('tareas' as never).insert({ ...datos, plantilla_id: plantillaId } as never)
+        const { error } = await supabase.from('tareas').insert({ ...datos, plantilla_id: plantillaId } as never)
         if (error) throw error
         if (plantillaId) {
           const usada = plantillas.find(p => p.id === plantillaId)
-          if (usada) await supabase.from('tareas_plantillas' as never).update({ veces_usada: usada.veces_usada + 1 } as never).eq('id', plantillaId)
+          if (usada) await supabase.from('tareas_plantillas').update({ veces_usada: usada.veces_usada + 1 } as never).eq('id', plantillaId)
         }
       }
       toast.success(borrador.id ? 'Tarea actualizada' : 'Tarea creada')
@@ -124,7 +124,7 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
 
   async function borrarTarea(t: Tarea) {
     if (!window.confirm(`¿Borrar la tarea "${t.titulo}"?`)) return
-    const { error } = await supabase.from('tareas' as never).delete().eq('id', t.id)
+    const { error } = await supabase.from('tareas').delete().eq('id', t.id)
     if (error) { toast.error('No se pudo borrar: ' + error.message); return }
     toast.success('Tarea borrada')
     router.refresh()
@@ -132,7 +132,7 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
 
   async function borrarPlantilla(p: PlantillaTarea) {
     if (!window.confirm(`¿Borrar la plantilla "${p.titulo}"? Las tareas ya creadas no cambian.`)) return
-    const { error } = await supabase.from('tareas_plantillas' as never).delete().eq('id', p.id)
+    const { error } = await supabase.from('tareas_plantillas').delete().eq('id', p.id)
     if (error) { toast.error('No se pudo borrar: ' + error.message); return }
     toast.success('Plantilla borrada')
     router.refresh()
@@ -141,7 +141,7 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
   // ── Marcar hecha o devolver a pendiente ──
   async function marcar(t: Tarea, hecha: boolean, notaCierre?: string) {
     setMarcando(t.id)
-    const { error } = await supabase.rpc('marcar_tarea' as never, { p_tarea_id: t.id, p_hecha: hecha, p_nota: notaCierre ?? null } as never)
+    const { error } = await supabase.rpc('marcar_tarea', { p_tarea_id: t.id, p_hecha: hecha, p_nota: notaCierre ?? undefined })
     setMarcando(null)
     if (error) { toast.error(error.message); return }
     toast.success(hecha ? '¡Tarea hecha!' : 'La tarea volvió a pendientes')

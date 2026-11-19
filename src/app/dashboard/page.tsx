@@ -39,7 +39,7 @@ export default async function DashboardPage({
   const hoy = hoyBogota()
 
   // Tareas pendientes que le tocan a quien entra (si la tabla aún no existe, no se muestra el número)
-  const { count: tareasPendientes } = await supabase.from('tareas' as never)
+  const { count: tareasPendientes } = await supabase.from('tareas')
     .select('id', { count: 'exact', head: true }).eq('estado', 'pendiente')
 
   const { data: config } = await supabase

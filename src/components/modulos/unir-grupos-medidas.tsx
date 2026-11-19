@@ -34,9 +34,9 @@ export function UnirGruposMedidas({ familia, origen, destino, onCerrar, onUnido 
 
   /** Lleva las medidas a la característica y marca del grupo dado, en una sola transacción. Devuelve el error, o null. */
   async function llevar(a: NivelGrupo): Promise<string | null> {
-    const { error } = await supabase.rpc('unir_grupos_medidas' as never, {
+    const { error } = await supabase.rpc('unir_grupos_medidas', {
       p_producto_ids: ids, p_caracteristica: a.caracteristica ?? '', p_marca: a.marca ?? '',
-    } as never)
+    })
     return error?.message ?? null
   }
 

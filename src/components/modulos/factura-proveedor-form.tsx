@@ -74,14 +74,15 @@ export function FacturaProveedorForm({ proveedorId, facturaId, inicial, onSucces
       let fId = facturaId
       if (esEdicion) {
         // La base recalcula el saldo y el estado con lo ya pagado (antes el saldo quedaba igual al total)
-        const { error } = await supabase.rpc('editar_factura_proveedor' as never, {
+        const { error } = await supabase.rpc('editar_factura_proveedor', {
           p_factura_id: facturaId!,
           p_numero_factura: form.numero_factura,
           p_fecha_emision: form.fecha_emision,
-          p_fecha_vencimiento: form.fecha_vencimiento || null,
+          // Sin fecha se manda null para quitarla (los tipos generados no marcan los parámetros que aceptan null)
+          p_fecha_vencimiento: (form.fecha_vencimiento || null) as string,
           p_monto_total: form.monto_total,
           p_notas: form.notas,
-        } as never)
+        })
         if (error) {
           throw new Error(error.code === 'PGRST202'
             ? 'falta activar la edición de facturas en la base de datos (migración iva_fraccion_y_editar_factura)'

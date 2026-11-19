@@ -20,7 +20,7 @@ export default async function BitacoraPage({
   if (perfil?.rol !== 'administrador') redirect('/dashboard')
 
   // Las tablas de la bitácora nacen con una migración posterior a los tipos generados
-  let consulta = supabase.from('bitacora' as never).select('*').order('numero', { ascending: false }).limit(LIMITE + 1)
+  let consulta = supabase.from('bitacora').select('*').order('numero', { ascending: false }).limit(LIMITE + 1)
   if (sp.tabla) consulta = consulta.eq('tabla', sp.tabla)
   if (sp.origen) consulta = consulta.eq('origen', sp.origen)
   // Fechas del filtro en hora de Bogotá (UTC-5 todo el año)
@@ -29,7 +29,7 @@ export default async function BitacoraPage({
 
   const [{ data: filas, error }, { data: borrados }] = await Promise.all([
     consulta,
-    supabase.from('bitacora_borrados' as never).select('*').order('id', { ascending: false }).limit(100),
+    supabase.from('bitacora_borrados').select('*').order('id', { ascending: false }).limit(100),
   ])
   const registros = ((filas ?? []) as unknown as RegistroBitacora[])
 

@@ -74,9 +74,9 @@ export function MovimientoCajaForm({ tipo, saldos, categoriasGasto = [], proveed
             p_monto: monto, p_observaciones: notas.trim(),
             p_fuentes: fuentes.map(f => ({ fuente: f.fuente, monto: f.monto })) as never,
           })
-        : supabase.rpc('transferir_entre_fondos' as never, {
-            p_origen: medioDeFuente(origen), p_destino: medioDeFuente(destino), p_monto: monto, p_observaciones: notas.trim() || null,
-          } as never)
+        : supabase.rpc('transferir_entre_fondos', {
+            p_origen: medioDeFuente(origen), p_destino: medioDeFuente(destino), p_monto: monto, p_observaciones: notas.trim() || undefined,
+          })
     const { error: errRpc } = await llamada
     setGuardando(false)
     if (errRpc) { toast.error('No se pudo guardar: ' + errRpc.message); setConfirmando(false); return }

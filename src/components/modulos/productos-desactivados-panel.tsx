@@ -148,7 +148,7 @@ export function ProductosDesactivadosPanel({
     setProcesando(p.id)
     try {
       // La base revisa que esté desactivado, sin stock y sin ventas, devoluciones, garantías ni recepciones
-      const { error } = await supabase.rpc('eliminar_producto_desactivado' as never, { p_producto_id: p.id } as never)
+      const { error } = await supabase.rpc('eliminar_producto_desactivado', { p_producto_id: p.id })
       if (error) {
         throw new Error(error.code === 'PGRST202'
           ? 'falta activar el borrado en la base de datos (migración bitacora_y_borrado_productos). El producto sigue desactivado.'

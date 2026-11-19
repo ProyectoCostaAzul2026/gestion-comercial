@@ -86,18 +86,6 @@ export function FlujoProyectadoPanel({ hoy, disponible, cobros, pagos, promedios
   const vencidoCobrar = cobros.filter(d => d.fecha < hoy).reduce((s, d) => s + d.monto, 0)
   const vencidoPagar = pagos.filter(d => d.fecha < hoy).reduce((s, d) => s + d.monto, 0)
 
-  const Interruptor = ({ activo, onCambio, titulo, detalle }: { activo: boolean; onCambio: (v: boolean) => void; titulo: string; detalle: string }) => (
-    <button type="button" role="switch" aria-checked={activo} onClick={() => onCambio(!activo)}
-      className={`flex items-start gap-3 rounded-xl border p-3 text-left ${activo ? 'border-brand-yellow/50 bg-brand-yellow/5' : 'border-linea'}`}>
-      <span className={`mt-0.5 flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors ${activo ? 'bg-brand-yellow' : 'bg-steel-700'}`}>
-        <span className={`h-4 w-4 rounded-full bg-white transition-transform ${activo ? 'translate-x-4' : ''}`} />
-      </span>
-      <span>
-        <span className="block text-sm font-semibold text-tinta">{titulo}</span>
-        <span className="block text-xs text-steel-500">{detalle}</span>
-      </span>
-    </button>
-  )
 
   return (
     <div className="space-y-4">
@@ -254,3 +242,17 @@ function Detalle({ d, hoy }: { d: Documento; hoy: string }) {
     </div>
   )
 }
+
+/** Interruptor con título y detalle, para activar o quitar una parte de la proyección */
+const Interruptor = ({ activo, onCambio, titulo, detalle }: { activo: boolean; onCambio: (v: boolean) => void; titulo: string; detalle: string }) => (
+  <button type="button" role="switch" aria-checked={activo} onClick={() => onCambio(!activo)}
+    className={`flex items-start gap-3 rounded-xl border p-3 text-left ${activo ? 'border-accion bg-accion/5' : 'border-linea'}`}>
+    <span className={`mt-0.5 flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors ${activo ? 'bg-accion' : 'bg-realce'}`}>
+      <span className={`h-4 w-4 rounded-full bg-white transition-transform ${activo ? 'translate-x-4' : ''}`} />
+    </span>
+    <span>
+      <span className="block text-[15px] font-semibold text-tinta">{titulo}</span>
+      <span className="block text-sm text-suave">{detalle}</span>
+    </span>
+  </button>
+)

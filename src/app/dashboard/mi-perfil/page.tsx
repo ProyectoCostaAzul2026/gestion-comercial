@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
+import { COOKIE_TEMA, leerTema } from '@/lib/tema'
 import { MiPerfilForm } from '@/components/modulos/mi-perfil-form'
 
 export default async function MiPerfilPage() {
@@ -21,7 +23,7 @@ export default async function MiPerfilPage() {
         <h1 className="text-2xl font-bold text-tinta md:text-3xl">Mi perfil</h1>
         <p className="mt-0.5 text-xs text-steel-300">Tu información de cuenta</p>
       </div>
-      <MiPerfilForm perfil={perfil as any} />
+      <MiPerfilForm perfil={perfil as any} temaInicial={leerTema((await cookies()).get(COOKIE_TEMA)?.value)} />
     </div>
   )
 }
