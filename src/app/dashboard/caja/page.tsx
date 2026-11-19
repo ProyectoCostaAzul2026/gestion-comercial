@@ -15,19 +15,14 @@ export default async function CajaPage() {
   const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' })
 
   const [
-    { data: cajaMayor },
     { data: movimientos },
     { data: fondos },
     { data: config },
-    { data: proveedores },
     { data: nominasHoy },
     { data: empleadosActivos },
     { data: arqueoHoy },
     { data: saldos },
-    { data: categoriasGasto },
-    { data: empleados },
   ] = await Promise.all([
-    supabase.from('caja_mayor').select('saldo_actual').maybeSingle(),
     supabase.from('movimientos_caja')
       .select('id, fecha, hora, tipo_movimiento, origen_destino, monto, observaciones, referencia_tipo')
       .eq('fecha', hoy)
@@ -38,16 +33,10 @@ export default async function CajaPage() {
     supabase.from('configuracion_negocio')
       .select('monto_base_caja_menor, monto_inicial_monedas, monto_inicial_sencillo')
       .maybeSingle(),
-    supabase.from('proveedores').select('id, nombre').eq('activo', true).order('nombre'),
     supabase.from('nominas').select('id, empleado_id').eq('periodo_inicio', hoy).eq('estado', 'pagada'),
     empleadosEnTurno(supabase, hoy).then(ids => ({ data: ids })),
     supabase.from('arqueo_caja').select('id').eq('fecha', hoy).maybeSingle(),
     supabase.from('saldos_medios_pago').select('medio, saldo_acumulado'),
-    supabase.from('categorias_gasto').select('id, nombre').eq('activo', true).order('nombre'),
-    supabase.from('profiles')
-      .select('id, nombre_completo, salario_base')
-      .eq('activo', true)
-      .order('nombre_completo'),
   ])
 
   const { data: ventasPagos } = await supabase
@@ -82,7 +71,6 @@ export default async function CajaPage() {
 
   return (
     <CajaPanel
-      cajaMayorSaldo={Number(cajaMayor?.saldo_actual ?? 0)}
       ventasEfectivo={ventasEfectivo}
       ventasNequi={ventasNequi}
       ventasDaviplata={ventasDaviplata}
@@ -94,14 +82,10 @@ export default async function CajaPage() {
       fondos={(fondos as any) ?? []}
       saldos={saldos ?? []}
       config={config ?? { monto_base_caja_menor: 300000, monto_inicial_monedas: 400000, monto_inicial_sencillo: 800000 }}
-      proveedores={proveedores ?? []}
       fechaHoy={hoy}
       nominasPagadasHoy={nominasHoy?.length ?? 0}
       empleadosActivos={enNominaHoy.size}
       arqueoHoy={arqueoHoy}
-      categoriasGasto={categoriasGasto ?? []}
-      empleados={((empleados as any) ?? []).filter((e: { id: string }) => enNominaHoy.has(e.id))}
-      empleadosPagadosHoy={[...empleadosPagadosHoy]}
     />
   )
 }

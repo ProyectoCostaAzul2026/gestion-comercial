@@ -16,9 +16,13 @@ interface PagoFacturaFormProps {
   facturaId: string
   saldoPendiente: number
   proveedorId?: string
+  /** Saldo de cada medio: si viene, no deja pagar más de lo que hay */
+  saldos?: Record<string, number>
 }
 
-export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId }: PagoFacturaFormProps) {
+const NOMBRE_MEDIO: Record<string, string> = { efectivo: 'caja menor', caja_mayor: 'caja mayor', nequi: 'Nequi', daviplata: 'Daviplata', tarjeta: 'tarjeta' }
+
+export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId, saldos }: PagoFacturaFormProps) {
   const supabase = createClient()
   const router = useRouter()
   const { volver } = useNavegacion()
@@ -30,12 +34,19 @@ export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId }: Pago
   const [observaciones, setObservaciones] = useState('')
   const [saving, setSaving] = useState(false)
   const [confirmar, setConfirmar] = useState(false)
+  // Medio del que sale el dinero (caja menor es el saldo "efectivo")
+  const medio = metodoPago === 'efectivo' ? (origenCaja === 'caja_menor' ? 'efectivo' : origenCaja) : metodoPago
+  const disponible = saldos ? Math.round(saldos[medio] ?? 0) : null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (monto <= 0) { toast.error('El monto debe ser mayor a 0'); return }
     if (monto > saldoPendiente) {
       toast.error(`El monto supera el saldo pendiente ($${saldoPendiente.toLocaleString('es-CO')})`)
+      return
+    }
+    if (disponible !== null && monto > disponible) {
+      toast.error(`No alcanza: en ${NOMBRE_MEDIO[medio] ?? medio} hay $${disponible.toLocaleString('es-CO')}`)
       return
     }
     setSaving(true)
@@ -118,6 +129,10 @@ export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId }: Pago
           </SelectContent>
         </Select>
       </div>
+
+      {disponible !== null && (
+        <p className="-mt-2 text-xs text-steel-500">Hay ${disponible.toLocaleString('es-CO')} en {NOMBRE_MEDIO[medio] ?? medio}</p>
+      )}
 
       {metodoPago === 'efectivo' && (
         <div className="space-y-2">

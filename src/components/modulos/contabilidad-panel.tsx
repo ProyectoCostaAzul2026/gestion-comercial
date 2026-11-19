@@ -1,35 +1,17 @@
 'use client'
 
+import Link from 'next/link'
 import { useState, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Download, ChevronDown, ChevronUp, FileSpreadsheet, Plus, Trash2 } from 'lucide-react'
+import { Download, ChevronDown, ChevronUp, FileSpreadsheet, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { hoyBogota } from '@/lib/fechas'
 import { cantidadVendida, costoLineaVenta, costoPorUnidadVendida } from '@/lib/costo-venta'
 import type { Periodo } from '@/lib/periodos'
 import { SelectorPeriodo } from './selector-periodo'
-
-const FUENTES = [
-  { value: 'caja_menor', label: 'Caja menor' },
-  { value: 'caja_mayor', label: 'Caja mayor' },
-  { value: 'nequi', label: 'Nequi' },
-  { value: 'daviplata', label: 'Daviplata' },
-  { value: 'tarjeta', label: 'Tarjeta' },
-]
-
-interface FuentePago {
-  key: string
-  fuente: string
-  monto: number
-}
 
 function exportarCSVCompleto(data: {
   ventas: any[]
@@ -132,8 +114,6 @@ export function ContabilidadPanel({
   cuentasCobrar, cuentasPagar, nombresClientesCredito,
   desde, hasta, periodo, balance,
 }: ContabilidadPanelProps) {
-  const router = useRouter()
-  const supabase = createClient()
 
   const [filtroTipoIngreso, setFiltroTipoIngreso] = useState('todos')
   const [filtroProveedorCosto, setFiltroProveedorCosto] = useState('todos')
@@ -144,11 +124,6 @@ export function ContabilidadPanel({
   const [filtroEstadoPagar, setFiltroEstadoPagar] = useState('todos')
   const [filtroProveedorPagar, setFiltroProveedorPagar] = useState('todos')
 
-  const [mostrarNuevoGasto, setMostrarNuevoGasto] = useState(false)
-  const [nuevoGasto, setNuevoGasto] = useState({ concepto: '', categoria: '', monto: 0, proveedor_id: '', notas: '' })
-  const [fuentesGasto, setFuentesGasto] = useState<FuentePago[]>([{ key: '1', fuente: 'caja_menor', monto: 0 }])
-  const [guardandoGasto, setGuardandoGasto] = useState(false)
-  const [confirmarGasto, setConfirmarGasto] = useState(false)
 
   const categoriasEnTabla = useMemo(() => categoriasGasto.map(c => c.nombre), [categoriasGasto])
 
@@ -209,34 +184,6 @@ export function ContabilidadPanel({
     cuentasPagarFiltradas.reduce((s: number, f: any) => s + Number(f.saldo_pendiente), 0),
     [cuentasPagarFiltradas])
 
-  const handleGuardarGasto = async () => {
-    if (!nuevoGasto.concepto.trim()) { toast.error('El concepto es obligatorio'); return }
-    if (nuevoGasto.monto <= 0) { toast.error('El monto debe ser mayor a 0'); return }
-    const suma = fuentesGasto.reduce((s, f) => s + f.monto, 0)
-    if (Math.abs(suma - nuevoGasto.monto) > 1) { toast.error('La suma de fuentes no coincide con el monto'); return }
-    setGuardandoGasto(true)
-    try {
-      const { error } = await supabase.rpc('registrar_gasto_caja', {
-        p_concepto: nuevoGasto.concepto,
-        p_categoria: nuevoGasto.categoria || 'Otros',
-        p_monto: nuevoGasto.monto,
-        p_fuentes: fuentesGasto.map(f => ({ fuente: f.fuente, monto: f.monto })) as any,
-        p_proveedor_id: nuevoGasto.proveedor_id || undefined,
-        p_notas: nuevoGasto.notas || undefined,
-      })
-      if (error) throw error
-      toast.success('Gasto registrado')
-      setMostrarNuevoGasto(false)
-      setNuevoGasto({ concepto: '', categoria: '', monto: 0, proveedor_id: '', notas: '' })
-      setFuentesGasto([{ key: '1', fuente: 'caja_menor', monto: 0 }])
-      setConfirmarGasto(false)
-      router.refresh()
-    } catch (err: any) {
-      toast.error('Error: ' + err.message)
-    } finally {
-      setGuardandoGasto(false)
-    }
-  }
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -402,101 +349,11 @@ export function ContabilidadPanel({
               {categoriasEnTabla.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Button size="sm" variant="outline" className="border-brand-yellow/60 bg-transparent font-semibold text-brand-yellow hover:bg-brand-yellow/10 hover:text-brand-yellow" onClick={() => setMostrarNuevoGasto(v => !v)}>
-            <Plus className="mr-1 h-4 w-4" />Registrar Gasto
-          </Button>
+          <Link href="/dashboard/caja/gasto?desde=contabilidad"
+            className="inline-flex h-9 items-center gap-1 rounded-lg border border-brand-yellow/60 px-3 text-sm font-semibold text-brand-yellow hover:bg-brand-yellow/10">
+            <Plus className="h-4 w-4" />Registrar gasto
+          </Link>
         </div>
-
-        {mostrarNuevoGasto && (
-          <div className="space-y-3 border-b border-white/10 bg-[#1a2430] p-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Concepto *</Label>
-                <Input value={nuevoGasto.concepto} onChange={e => setNuevoGasto(p => ({ ...p, concepto: e.target.value }))} className="border-white/10 bg-[#111820] text-white" />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Categoría</Label>
-                <Select items={categoriasGasto.map(c => ({ value: c.nombre, label: c.nombre }))}
-                  onValueChange={v => v && setNuevoGasto(p => ({ ...p, categoria: v }))} value={nuevoGasto.categoria || ''}>
-                  <SelectTrigger className="border-white/10 bg-[#111820] text-white"><SelectValue placeholder="Selecciona categoría…" /></SelectTrigger>
-                  <SelectContent>
-                    {categoriasGasto.map(c => <SelectItem key={c.id} value={c.nombre}>{c.nombre}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Monto *</Label>
-                <Input type="number" value={nuevoGasto.monto || ''}
-                  className="border-white/10 bg-[#111820] text-white"
-                  onChange={e => {
-                    const m = parseFloat(e.target.value) || 0
-                    setNuevoGasto(p => ({ ...p, monto: m }))
-                    setFuentesGasto([{ key: '1', fuente: 'caja_menor', monto: m }])
-                  }} />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Proveedor (opcional)</Label>
-                <Select items={[{ value: 'ninguno', label: 'Ninguno' }, ...proveedores.map(p => ({ value: p.id, label: p.nombre }))]}
-                  onValueChange={v => setNuevoGasto(p => ({ ...p, proveedor_id: v === 'ninguno' ? '' : (v ?? '') }))}
-                  value={nuevoGasto.proveedor_id || 'ninguno'}>
-                  <SelectTrigger className="border-white/10 bg-[#111820] text-white"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ninguno">Ninguno</SelectItem>
-                    {proveedores.map(p => <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Fuentes de pago</Label>
-                <button type="button" onClick={() => setFuentesGasto(prev => [...prev, { key: Date.now().toString(), fuente: 'caja_menor', monto: 0 }])}
-                  className="flex items-center gap-1 text-xs text-steel-300 hover:text-white">
-                  <Plus className="h-3 w-3" />Agregar fuente
-                </button>
-              </div>
-              {fuentesGasto.map((f, idx) => (
-                <div key={f.key} className="flex items-center gap-2">
-                  <Select items={FUENTES} onValueChange={v => v && setFuentesGasto(prev => prev.map((it, i) => i === idx ? { ...it, fuente: v } : it))} value={f.fuente}>
-                    <SelectTrigger className="h-8 w-36 border-white/10 bg-[#111820] text-xs text-white"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {FUENTES.map(fd => <SelectItem key={fd.value} value={fd.value}>{fd.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <Input type="number" value={f.monto || ''}
-                    onChange={e => setFuentesGasto(prev => prev.map((it, i) => i === idx ? { ...it, monto: parseFloat(e.target.value) || 0 } : it))}
-                    className="h-8 border-white/10 bg-[#111820] text-xs text-white" placeholder="Monto" />
-                  {fuentesGasto.length > 1 && (
-                    <button type="button" onClick={() => setFuentesGasto(prev => prev.filter((_, i) => i !== idx))} className="text-steel-300 hover:text-brand-red">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-              ))}
-              {nuevoGasto.monto > 0 && Math.abs(fuentesGasto.reduce((s, f) => s + f.monto, 0) - nuevoGasto.monto) > 0 && (
-                <p className="text-xs text-brand-yellow">Falta: ${(nuevoGasto.monto - fuentesGasto.reduce((s, f) => s + f.monto, 0)).toLocaleString('es-CO')}</p>
-              )}
-            </div>
-            <div className="space-y-1">
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-steel-300">Notas</Label>
-              <Textarea value={nuevoGasto.notas} onChange={e => setNuevoGasto(p => ({ ...p, notas: e.target.value }))} rows={2} className="border-white/10 bg-[#111820] text-white placeholder:text-steel-500" />
-            </div>
-            {!confirmarGasto ? (
-              <div className="flex gap-2">
-                <Button className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={() => setConfirmarGasto(true)}>Registrar gasto</Button>
-                <Button variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => { setMostrarNuevoGasto(false); setConfirmarGasto(false) }}>Cancelar</Button>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-white">¿Confirmas el gasto de ${nuevoGasto.monto.toLocaleString('es-CO')} — {nuevoGasto.concepto}?</p>
-                <div className="flex gap-2">
-                  <Button className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={handleGuardarGasto} disabled={guardandoGasto}>{guardandoGasto ? 'Registrando…' : 'Sí, registrar'}</Button>
-                  <Button variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => setConfirmarGasto(false)}>Cancelar</Button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
 
         <div className="max-h-96 overflow-y-auto overflow-x-auto">
         <Table>

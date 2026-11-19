@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { BotonAtras } from '@/components/ui/boton-atras'
 import { PagoFacturaForm } from '@/components/modulos/pago-factura-form'
+import { saldosMedios } from '@/lib/caja-servidor'
 
 export default async function PagarFacturaPage({
   params,
@@ -21,6 +22,7 @@ export default async function PagarFacturaPage({
 
   if (error || !factura) notFound()
   if (factura.estado === 'pagada') redirect(`/dashboard/proveedores/${id}`)
+  const saldos = await saldosMedios(supabase)
 
   return (
     <div className="max-w-md">
@@ -39,6 +41,7 @@ export default async function PagarFacturaPage({
           facturaId={facturaId}
           saldoPendiente={Number(factura.saldo_pendiente)}
           proveedorId={id}
+          saldos={saldos}
         />
       </div>
     </div>
