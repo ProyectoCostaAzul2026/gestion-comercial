@@ -30,9 +30,27 @@ Lista viva de lo que falta. Se actualiza al cerrar cada tarea. Última revisión
 - Lint: unos 300 avisos de `any` heredados; no bloquean el build.
 - No hay pruebas automáticas ni CI.
 
-## Próximas etapas
+## Próximas etapas (en espera)
 
-Ver `docs/plan-etapa-6.md`:
+Quedan como pendientes hasta que el dueño responda las preguntas del final de `docs/plan-etapa-6.md`, donde está el plan
+completo:
 
 - **Etapa 6**: factura electrónica, mapa de la ferretería y gráficos ampliables.
 - **Etapa 7**: asistente de ventas por WhatsApp (con preparativos que se pueden ir haciendo desde la etapa 6).
+
+## Videos promocionales
+
+Se harán con Remotion (videos escritos en React, el mismo lenguaje de la app); las skills `remotion-*` ya están instaladas
+en `.claude/skills/`. Los videos se arman en una carpeta propia (`videos/`), fuera de la app, y el resultado (MP4) no se
+sube al repositorio.
+
+1. **Video de la ferretería (largo, unos 2 a 3 minutos)**: qué es Ferreléctricos Costa Azul, dónde está y qué vende,
+   recorriendo las categorías del catálogo (eléctricos, plomería, tornillería, herramientas y demás) con las fotos de los
+   productos, la atención en el mostrador y cómo contactarla (WhatsApp, dirección, horario). Formato horizontal para
+   YouTube y Facebook, y una versión vertical para estados e Instagram.
+2. **Video del sistema de información (corto, 30 a 45 segundos)**: muestra la app en el celular (vender, inventario con
+   fotos, caja, reportes) con capturas hechas sobre datos de prueba, nunca con cifras reales. Formato vertical.
+
+Antes de empezar se necesita del dueño: el logo en buena calidad, fotos o videos del local y del equipo, la música (con
+licencia libre) y si el video lleva voz (grabada por alguien del negocio o generada). La licencia de Remotion es gratuita
+para personas y empresas de hasta 3 empleados; si el negocio tiene más, confirmar si aplica la licencia de empresa.

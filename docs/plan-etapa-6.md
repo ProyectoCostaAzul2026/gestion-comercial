@@ -1,6 +1,6 @@
 # Plan de las etapas 6 y 7
 
-Fecha: 2026-11-19. Estado: propuesta, pendiente de las respuestas del dueño (al final).
+Fecha: 2026-11-19. Estado: en espera, como pendiente, hasta las respuestas del dueño (al final).
 
 ## Etapa 6. Factura electrónica
 
