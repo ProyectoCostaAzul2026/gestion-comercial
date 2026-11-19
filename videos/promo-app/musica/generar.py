@@ -157,7 +157,7 @@ for c in range(0, TOTAL_PULSOS, 4):
 t = t_(2 * PULSO)
 zumbido = (np.sin(2 * np.pi * 55 * t) + 0.5 * np.sin(2 * np.pi * 82.4 * t)) * (0.6 + 0.4 * np.sin(2 * np.pi * 6 * t)) * (t / t[-1]) ** 1.5
 poner(zumbido, inicio['gancho'], 0.35)
-poner(platillo(1.6, 1.3), inicio['gancho'] + 2, 0.9)
+poner(platillo(1.6, 1.3), inicio['gancho'] + 2, 0.45)
 
 # Ritmo
 for b8 in np.arange(0, TOTAL_PULSOS, 0.5):

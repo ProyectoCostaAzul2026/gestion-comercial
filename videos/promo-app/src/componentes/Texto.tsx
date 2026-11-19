@@ -79,7 +79,7 @@ export const Cifra: React.FC<{ valor: number; desde?: number; dura?: number; tam
 /** Tarjeta blanca flotante (como una notificación) que entra con un rebote */
 export const Tarjeta: React.FC<{ desde: number; hasta?: number; icono?: React.ReactNode; titulo: string; texto?: string; style?: React.CSSProperties; ancho?: number; sonido?: string }> = ({ desde, hasta, icono, titulo, texto, style, ancho = 620, sonido }) => {
   const f = useCurrentFrame();
-  const efecto = sonido ? <Sonido nombre={sonido} en={desde} vol={0.7} /> : null;
+  const efecto = sonido ? <Sonido nombre={sonido} en={desde} vol={0.55} /> : null;
   const t = interpolate(f, [desde, desde + 14], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: Easing.bezier(0.34, 1.56, 0.64, 1) });
   const salida = hasta != null ? interpolate(f, [hasta - 6, hasta], [1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }) : 1;
   if (f < desde) return efecto;

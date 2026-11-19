@@ -34,6 +34,6 @@ export const PromoApp: React.FC<{ conMusica: boolean }> = ({ conMusica }) => (
         </Sequence>
       );
     })}
-    {conMusica && <Audio src={staticFile('musica.wav')} volume={0.75} />}
+    {conMusica && <Audio src={staticFile('musica.wav')} volume={0.65} />}
   </AbsoluteFill>
 );

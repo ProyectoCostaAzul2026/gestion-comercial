@@ -171,7 +171,7 @@ const Montaje: React.FC = () => {
           </div>
         );
       })}
-      {CORTES.map(en => <Sonido key={en} nombre="carta" en={en} vol={0.7} />)}
+      {CORTES.map(en => <Sonido key={en} nombre="carta" en={en} vol={0.5} />)}
     </AbsoluteFill>
   );
 };
@@ -244,10 +244,10 @@ export const Gancho: React.FC = () => {
       <Sonido nombre="golpe" en={14} vol={0.75} />
       <Sonido nombre="tachon" en={21} vol={0.7} />
       <Sonido nombre="succion" en={21} vol={0.6} />
-      <Sonido nombre="explosion" en={30} vol={0.7} />
-      <Sonido nombre="golpe" en={45} vol={0.55} />
+      <Sonido nombre="explosion" en={30} vol={0.4} />
+      <Sonido nombre="golpe" en={45} vol={0.4} />
       <Sonido nombre="monedas" en={45} vol={0.45} />
-      <Sonido nombre="golpe" en={60} vol={0.55} />
+      <Sonido nombre="golpe" en={60} vol={0.4} />
       <Sonido nombre="subir" en={61} vol={0.5} />
       <Sonido nombre="soplo" en={101} vol={0.7} />
       <Sonido nombre="soplo_corto" en={120} vol={0.5} />
@@ -278,13 +278,15 @@ export const Vender: React.FC = () => (
     <Fondo />
     <Arriba><Titulo lineas={['Busca', 'con _foto._']} hasta={82} /></Arriba>
     <Sequence from={82}><Arriba><Titulo lineas={['Agrega al', '*carrito.*']} hasta={36} /></Arriba></Sequence>
-    <Sequence from={118}><Arriba><Titulo lineas={['Cobra con', 'cualquier *medio.*']} hasta={68} /></Arriba></Sequence>
-    <Sequence from={186}><Arriba><Titulo lineas={['Recibo por', '_WhatsApp._']} /></Arriba></Sequence>
+    <Sequence from={118}><Arriba><Titulo lineas={['Cobra con', 'cualquier *medio.*']} hasta={59} /></Arriba></Sequence>
+    <Sequence from={177}><Arriba><Titulo lineas={['Recibo por', '_WhatsApp._']} /></Arriba></Sequence>
     <TelefonoEnEscena dura={p(19)} giro={[-12, 12]}>
-      <Sequence durationInFrames={186}><Clip nombre="venta" velocidad={2} /></Sequence>
-      <Sequence from={186}><Clip nombre="venta" desde={14} velocidad={1.6} /></Sequence>
+      {/* venta y cobro; el detalle de la venta; el recibo ya cargado */}
+      <Sequence durationInFrames={177}><Clip nombre="venta" velocidad={2} /></Sequence>
+      <Sequence from={177} durationInFrames={23}><Clip nombre="venta" desde={13.9} velocidad={1.6} /></Sequence>
+      <Sequence from={200}><Clip nombre="venta" desde={15.95} velocidad={1.2} /></Sequence>
     </TelefonoEnEscena>
-    <Sequence from={237}>
+    <Sequence from={230}>
       <AbsoluteFill style={{ alignItems: 'center' }}>
         <Tarjeta desde={0} icono={<IconoWhatsApp />} titulo="Recibo enviado" texto="Ticket con el detalle de la compra" style={{ top: 1320 }} ancho={640} sonido="notificacion" />
       </AbsoluteFill>
