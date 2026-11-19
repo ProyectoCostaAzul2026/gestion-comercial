@@ -148,7 +148,7 @@ nómina).
 - Las operaciones de dinero y stock pasan por **funciones RPC `SECURITY DEFINER`**: `registrar_venta`,
   `registrar_venta_credito`, `anular_venta`, `devolver_productos`, `cambiar_productos`,
   `registrar_abono_credito`, `actualizar_fecha_pago_credito`, `registrar_gasto_caja`, `registrar_retiro`,
-  `registrar_pago_factura`, `registrar_nomina`, `abrir_caja`, `cerrar_caja_arqueo`, `transferir_entre_fondos`,
+  `registrar_pago_factura`, `registrar_nomina`, `cerrar_caja_arqueo`, `transferir_entre_fondos`,
   `actualizar_denominaciones`, `mover_stock_bodega_almacen`, `recibir_garantia`, `buscar_productos`,
   `buscar_clientes`, `calcular_rotacion_productos`. Las de administrador validan `profiles.rol` por dentro.
 - Cada RPC debe tener **una sola versión**: si se agrega un parámetro, borrar la firma vieja en la misma migración, o

@@ -966,9 +966,9 @@ servicios ─────────────────────── 
 | `cerrar_caja_arqueo(p_conteo_base, p_conteo_sobrante, p_observacion_diferencia)` | Cierre de caja con arqueo físico. Espera el saldo `efectivo` desde el último cierre (nota 21) |
 | `transferir_entre_fondos(p_origen, p_destino, p_monto, p_observaciones)` | Mueve dinero entre medios: exige saldo en el origen y deja dos movimientos (salida y llegada) |
 | `editar_factura_proveedor(p_factura_id, p_numero_factura, p_fecha_emision, p_fecha_vencimiento, p_monto_total, p_notas)` | Edita una factura y recalcula saldo y estado con lo pagado (administrador) |
-| `abrir_caja(...)` | Apertura de caja menor |
+| `abrir_caja(...)` | Apertura de caja menor (sin uso; nadie la puede ejecutar desde el 2026-11-19) |
 | `actualizar_denominaciones(...)` | Actualiza configuración de denominaciones |
-| `cerrar_caja(...)` | Versión legacy de cierre |
+| `cerrar_caja(...)` | Versión vieja del cierre (sin uso; nadie la puede ejecutar desde el 2026-11-19, se usa `cerrar_caja_arqueo`) |
 
 ### Garantías
 | Función | Descripción |
@@ -1228,3 +1228,7 @@ Desde el 2026-11-18 ninguna política queda "para public": todas son `to authent
     - Otras del 2026-11-18: `hoja_de_tareas` (tablas `tareas` y `tareas_plantillas`, `marcar_tarea`), `garantias_y_fraccion`
       (`registrar_garantia`), `iva_fraccion_y_editar_factura` (`editar_factura_proveedor`) y
       `unir_grupos_y_politicas_con_sesion` (`unir_grupos_medidas`; políticas `to authenticated`).
+22. **Funciones sin uso cerradas** (migración `cerrar_funciones_sin_uso`, 2026-11-19; SQL en `sql/`): `abrir_caja`, `cerrar_caja`
+    y `rls_auto_enable` ya no se pueden ejecutar con sesión (la app no las usa). Revisión del mismo día: ninguna función
+    `SECURITY DEFINER` se ejecuta sin sesión y todas las de administrador validan el rol por dentro; los tipos de
+    `database.types.ts` coinciden con el esquema.
