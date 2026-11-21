@@ -305,3 +305,20 @@
 @media (prefers-reduced-motion: reduce) {
   .anim-letrero, .anim-cinta, .anim-carcasa, .anim-formulario { animation: none; }
 }
+
+/* ── Rejillas parejas para botones y filtros ──
+   rejilla-2: dos columnas iguales; si quedan impares, el último ocupa toda la fila.
+   rejilla-3: en el celular, tres columnas que se reparten sin huecos (5 botones: 3 arriba y 2 abajo a lo ancho;
+   4: 3 y 1 a lo ancho). Desde sm manda la clase de columnas que lleve (p. ej. sm:grid-cols-5). */
+@layer components {
+  .rejilla-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
+  .rejilla-2 > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .rejilla-3 { display: grid; gap: 0.5rem; }
+  @media (max-width: 639.98px) {
+    .rejilla-3 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .rejilla-3 > * { grid-column: span 2; }
+    .rejilla-3 > :last-child:nth-child(3n + 1) { grid-column: 1 / -1; }
+    .rejilla-3 > :nth-last-child(2):nth-child(3n + 1),
+    .rejilla-3 > :last-child:nth-child(3n + 2) { grid-column: span 3; }
+  }
+}

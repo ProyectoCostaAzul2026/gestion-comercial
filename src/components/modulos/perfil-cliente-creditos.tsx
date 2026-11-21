@@ -187,11 +187,11 @@ function CreditoCard({ credito }: { credito: Credito }) {
 
           {/* Acciones */}
           {!cerrado && (
-            <div className="flex flex-wrap gap-2 pt-1">
-              <Button type="button" size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={() => { setMostrarAbono(v => !v); setMostrarFecha(false) }}>
+            <div className="rejilla-2 pt-1">
+              <Button type="button" className="h-11 bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={() => { setMostrarAbono(v => !v); setMostrarFecha(false) }}>
                 Registrar abono
               </Button>
-              <Button type="button" size="sm" variant="outline" className="border-linea bg-superficie-2 text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => { setMostrarFecha(v => !v); setMostrarAbono(false) }}>
+              <Button type="button" variant="outline" className="h-11 border-linea bg-superficie-2 text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => { setMostrarFecha(v => !v); setMostrarAbono(false) }}>
                 {credito.fecha_pago_programada ? 'Cambiar fecha' : 'Programar fecha'}
               </Button>
             </div>
@@ -281,7 +281,7 @@ function CreditoCard({ credito }: { credito: Credito }) {
           {mostrarFecha && !cerrado && (
             <div className="space-y-2 rounded-xl border border-linea bg-superficie-2 p-3">
               <p className="text-xs font-medium text-steel-300">Programar fecha de pago</p>
-              <Input type="date" value={nuevaFecha} onChange={e => setNuevaFecha(e.target.value)} className="w-44 border-linea bg-superficie text-tinta" />
+              <Input type="date" value={nuevaFecha} onChange={e => setNuevaFecha(e.target.value)} className="h-11 w-full border-linea bg-superficie text-tinta sm:w-48" />
               <div className="space-y-1">
                 <Label className="text-sm font-semibold text-suave">Nota (opcional)</Label>
                 <Input value={notaFecha} onChange={e => setNotaFecha(e.target.value)} placeholder="Ej: Acordado con el cliente" className="border-linea bg-superficie text-tinta placeholder:text-tenue" />

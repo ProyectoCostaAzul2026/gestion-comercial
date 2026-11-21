@@ -868,7 +868,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                         <Input placeholder="NIT o cédula" aria-label="NIT o cédula" className={CAMPO} value={nuevoCliente.nit_cc} onChange={e => setNuevoCliente(p => ({ ...p, nit_cc: e.target.value }))} />
                       </div>
                       <Input placeholder="Correo" aria-label="Correo" type="email" className={CAMPO} value={nuevoCliente.email} onChange={e => setNuevoCliente(p => ({ ...p, email: e.target.value }))} />
-                      <div className="flex gap-2">
+                      <div className="grid grid-cols-2 gap-2">
                         <Button type="button" className="h-11 bg-accion font-bold text-sobre-accion" onClick={guardarNuevoCliente} disabled={guardandoCliente}>
                           {guardandoCliente ? 'Guardando…' : 'Guardar cliente'}
                         </Button>
@@ -963,7 +963,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                   {altaRapida.precio > 0 && (
                     <p className="text-sm text-suave">Costo calculado: <span className="cifra text-base text-tinta">{pesos(altaRapida.precio * (1 - altaRapida.margen / 100) / 1.19)}</span></p>
                   )}
-                  <div className="flex gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     <Button type="button" className="h-11 bg-accion font-bold text-sobre-accion" onClick={guardarAltaRapida} disabled={guardandoAltaRapida}>
                       {guardandoAltaRapida ? 'Creando…' : 'Crear y agregar'}
                     </Button>
@@ -1298,7 +1298,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                   </div>
                   <div className="space-y-1">
                     <label htmlFor={`${prefijoId}fecha-credito`} className={ETIQUETA}>Fecha en que pagará (opcional)</label>
-                    <Input id={`${prefijoId}fecha-credito`} type="date" value={fechaPagoCredito} onChange={e => setFechaPagoCredito(e.target.value)} className={`${CAMPO} w-48`} />
+                    <Input id={`${prefijoId}fecha-credito`} type="date" value={fechaPagoCredito} onChange={e => setFechaPagoCredito(e.target.value)} className={`${CAMPO} w-full sm:w-56`} />
                   </div>
                 </section>
               )}

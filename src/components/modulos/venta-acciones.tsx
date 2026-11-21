@@ -400,19 +400,19 @@ export function VentaAcciones({
 
       {accionActiva === 'ninguna' && (
         <div className="space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="rejilla-2 sm:flex sm:flex-wrap sm:items-center">
             {/* Cada acción abre su propia vista; Atrás vuelve a este detalle */}
             <Link href={`/dashboard/ventas/${ventaId}?accion=devolver`}
-              className="inline-flex h-11 items-center gap-2 rounded-xl border border-brand-yellow/40 px-4 text-sm font-semibold text-brand-yellow hover:bg-brand-yellow/10">
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-brand-yellow/40 px-4 text-sm font-semibold text-brand-yellow hover:bg-brand-yellow/10">
               <Undo2 className="h-4 w-4" />Devolver productos
             </Link>
             <Link href={`/dashboard/ventas/${ventaId}?accion=cambiar`}
-              className="inline-flex h-11 items-center gap-2 rounded-xl border border-brand-blue/40 px-4 text-sm font-semibold text-enlace hover:bg-brand-blue/10">
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-brand-blue/40 px-4 text-sm font-semibold text-enlace hover:bg-brand-blue/10">
               <Repeat className="h-4 w-4" />Cambiar productos
             </Link>
             {!tieneAjustes && (
               <Link href={`/dashboard/ventas/${ventaId}?accion=anular`}
-                className="inline-flex h-11 items-center gap-2 rounded-xl border border-brand-red/40 px-4 text-sm font-semibold text-sale hover:bg-brand-red/10">
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-brand-red/40 px-4 text-sm font-semibold text-sale hover:bg-brand-red/10">
                 <Ban className="h-4 w-4" />Anular venta
               </Link>
             )}
@@ -446,11 +446,11 @@ export function VentaAcciones({
             <Label className="text-xs text-sale">Motivo (obligatorio)</Label>
             <Textarea value={motivo} onChange={e => setMotivo(e.target.value)} rows={2} className="border-linea bg-superficie text-tinta placeholder:text-tenue" />
           </div>
-          <div className="flex gap-2">
-            <Button size="sm" onClick={handleAnular} disabled={anulando} className="bg-brand-red font-bold text-white hover:bg-brand-red hover:brightness-95">
+          <div className="grid grid-cols-2 gap-2">
+            <Button onClick={handleAnular} disabled={anulando} className="h-11 bg-brand-red font-bold text-white hover:bg-brand-red hover:brightness-95">
               {anulando ? 'Anulando…' : 'Confirmar anulación'}
             </Button>
-            <Button size="sm" variant="outline" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={cerrar}>Cancelar</Button>
+            <Button variant="outline" className="h-11 border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={cerrar}>Cancelar</Button>
           </div>
         </div>
       )}
@@ -584,11 +584,11 @@ export function VentaAcciones({
             <Label className="text-xs text-brand-yellow">Observación (obligatoria)</Label>
             <Textarea value={observacionDev} onChange={e => setObservacionDev(e.target.value)} rows={2} className="border-linea bg-superficie text-tinta placeholder:text-tenue" />
           </div>
-          <div className="flex gap-2">
-            <Button size="sm" onClick={handleDevolver} disabled={devolviendo} className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105">
+          <div className="grid grid-cols-2 gap-2">
+            <Button onClick={handleDevolver} disabled={devolviendo} className="h-11 bg-brand-yellow font-bold text-steel-900 hover:brightness-105">
               {devolviendo ? 'Registrando…' : 'Confirmar devolución'}
             </Button>
-            <Button size="sm" variant="outline" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={cerrar}>Cancelar</Button>
+            <Button variant="outline" className="h-11 border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={cerrar}>Cancelar</Button>
           </div>
         </div>
       )}
@@ -677,11 +677,11 @@ export function VentaAcciones({
                   </div>
                 ))}
               </div>
-              <div className="flex gap-2">
-                <Button size="sm" onClick={() => { if (seleccionadosCambio.length === 0) { toast.error('Selecciona al menos un producto'); return } setPaso(2) }} className="bg-brand-blue font-bold text-white hover:brightness-110">
+              <div className="grid grid-cols-2 gap-2">
+                <Button onClick={() => { if (seleccionadosCambio.length === 0) { toast.error('Selecciona al menos un producto'); return } setPaso(2) }} className="h-11 bg-brand-blue font-bold text-white hover:brightness-110">
                   Siguiente →
                 </Button>
-                <Button size="sm" variant="outline" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={cerrar}>Cancelar</Button>
+                <Button variant="outline" className="h-11 border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={cerrar}>Cancelar</Button>
               </div>
             </>
           )}
@@ -777,12 +777,12 @@ export function VentaAcciones({
                 <Label className="text-xs text-enlace">Observación (obligatoria)</Label>
                 <Textarea value={observacionCambio} onChange={e => setObservacionCambio(e.target.value)} rows={2} className="border-linea bg-superficie text-tinta placeholder:text-tenue" />
               </div>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setPaso(1)}>← Atrás</Button>
-                <Button size="sm" onClick={handleCambiar} disabled={cambiando} className="bg-brand-blue font-bold text-white hover:brightness-110">
+              <div className="grid grid-cols-2 gap-2">
+                <Button variant="outline" className="h-11 border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setPaso(1)}>← Atrás</Button>
+                <Button onClick={handleCambiar} disabled={cambiando} className="h-11 bg-brand-blue font-bold text-white hover:brightness-110">
                   {cambiando ? 'Registrando…' : 'Confirmar cambio'}
                 </Button>
-                <Button size="sm" variant="outline" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={cerrar}>Cancelar</Button>
+                <Button variant="outline" className="h-11 border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={cerrar}>Cancelar</Button>
               </div>
             </>
           )}

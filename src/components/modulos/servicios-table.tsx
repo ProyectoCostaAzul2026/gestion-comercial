@@ -55,26 +55,26 @@ export function ServiciosTable({
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-end gap-3">
+      <div className="mb-4 grid grid-cols-2 items-end gap-3 sm:grid-cols-[10rem_10rem_1fr]">
         <div className="space-y-1">
-          <label className="text-sm font-semibold text-suave">Desde</label>
+          <label className="block text-sm font-semibold text-suave">Desde</label>
           <Input
             type="date"
             value={desde}
             onChange={(e) => actualizarFecha('desde', e.target.value)}
-            className="w-40 border-linea bg-superficie-2 text-tinta"
+            className="h-12 w-full border-linea bg-superficie-2 text-tinta"
           />
         </div>
         <div className="space-y-1">
-          <label className="text-sm font-semibold text-suave">Hasta</label>
+          <label className="block text-sm font-semibold text-suave">Hasta</label>
           <Input
             type="date"
             value={hasta}
             onChange={(e) => actualizarFecha('hasta', e.target.value)}
-            className="w-40 border-linea bg-superficie-2 text-tinta"
+            className="h-12 w-full border-linea bg-superficie-2 text-tinta"
           />
         </div>
-        <div className="relative min-w-48 flex-1">
+        <div className="relative col-span-2 sm:col-span-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-500" />
           <Input
             value={query}

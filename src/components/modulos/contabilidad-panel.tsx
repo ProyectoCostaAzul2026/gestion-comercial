@@ -191,10 +191,10 @@ export function ContabilidadPanel({
       <div>
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
           <h1 className="text-[28px] font-bold leading-tight text-tinta">Contabilidad</h1>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid w-full grid-cols-[1fr_auto] gap-2 sm:flex sm:w-auto">
             {/* Libro de Excel con resumen, ventas, compras, gastos, nómina, caja y cartera (lo arma el servidor) */}
             <a href={`/dashboard/contabilidad/exportar?desde=${desde}&hasta=${hasta}`}
-              className="inline-flex h-11 items-center gap-2 rounded-xl bg-accion px-4 text-[15px] font-bold text-sobre-accion hover:brightness-105">
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-accion px-4 text-[15px] font-bold text-sobre-accion hover:brightness-105">
               <FileSpreadsheet className="h-4 w-4" />Excel para el contador
             </a>
             <Button variant="outline" className="h-11 border-linea bg-superficie text-[15px] font-semibold text-tinta hover:bg-superficie-2" onClick={() => exportarCSVCompleto({ ventas, ventaServicios, ventaItems, gastos, nominas, desde, hasta })}>

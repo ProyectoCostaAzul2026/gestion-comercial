@@ -82,20 +82,20 @@ export function GarantiasPanel({ garantias, proveedores, soloProveedor }: Garant
     <div className="space-y-4">
       {/* Filtros */}
       {!soloProveedor && (
-        <div className="flex flex-wrap gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-[1fr_1fr_2fr]">
           <div className="space-y-1">
-            <label className="text-sm font-semibold text-suave">Desde</label>
-            <Input type="date" value={filtroDesde} onChange={e => setFiltroDesde(e.target.value)} className="w-36 border-linea bg-superficie-2 text-tinta" />
+            <label htmlFor="gar-desde" className="block text-sm font-semibold text-suave">Desde</label>
+            <Input id="gar-desde" type="date" value={filtroDesde} onChange={e => setFiltroDesde(e.target.value)} className="h-11 w-full border-linea bg-superficie-2 text-tinta" />
           </div>
           <div className="space-y-1">
-            <label className="text-sm font-semibold text-suave">Hasta</label>
-            <Input type="date" value={filtroHasta} onChange={e => setFiltroHasta(e.target.value)} className="w-36 border-linea bg-superficie-2 text-tinta" />
+            <label htmlFor="gar-hasta" className="block text-sm font-semibold text-suave">Hasta</label>
+            <Input id="gar-hasta" type="date" value={filtroHasta} onChange={e => setFiltroHasta(e.target.value)} className="h-11 w-full border-linea bg-superficie-2 text-tinta" />
           </div>
-          <div className="space-y-1">
-            <label className="text-sm font-semibold text-suave">Proveedor</label>
+          <div className="col-span-2 space-y-1 sm:col-span-1">
+            <label className="block text-sm font-semibold text-suave">Proveedor</label>
             <Select items={[{ value: 'todos', label: 'Todos' }, ...proveedores.map(p => ({ value: p.nombre, label: p.nombre }))]}
               value={filtroProveedor} onValueChange={v => v && setFiltroProveedor(v)}>
-              <SelectTrigger className="w-48 border-linea bg-superficie-2 text-tinta"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-11 w-full border-linea bg-superficie-2 text-tinta"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos</SelectItem>
                 {proveedores.map(p => <SelectItem key={p.id} value={p.nombre}>{p.nombre}</SelectItem>)}

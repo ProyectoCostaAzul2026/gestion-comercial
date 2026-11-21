@@ -191,7 +191,7 @@ export function CajaPanel({
           {/* Registrar: cada acción abre su vista */}
           <section className="space-y-2.5">
             <h2 className={TITULO}>Registrar</h2>
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+            <div className="rejilla-3 sm:grid-cols-5">
               {acciones.map(a => {
                 const Icono = a.icono
                 return (

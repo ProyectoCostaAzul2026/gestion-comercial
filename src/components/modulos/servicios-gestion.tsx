@@ -99,11 +99,11 @@ export function ServiciosGestion({ servicios: inicial }: { servicios: Servicio[]
               <Input value={form.descripcion} className="border-linea bg-superficie text-tinta" onChange={e => setForm(p => ({ ...p, descripcion: e.target.value }))} />
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={handleCrear} disabled={saving}>
+          <div className="grid grid-cols-2 gap-2">
+            <Button className="h-11 bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={handleCrear} disabled={saving}>
               {saving ? 'Guardando…' : 'Crear'}
             </Button>
-            <Button size="sm" variant="outline" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setMostrarNuevo(false)}>Cancelar</Button>
+            <Button variant="outline" className="h-11 border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setMostrarNuevo(false)}>Cancelar</Button>
           </div>
         </div>
       )}

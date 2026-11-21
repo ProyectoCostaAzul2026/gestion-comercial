@@ -53,7 +53,6 @@ export default async function EditarFacturaPage({
               nota: p.nota,
             })),
           }}
-          onSuccess={() => {}}
         />
       </div>
     </div>

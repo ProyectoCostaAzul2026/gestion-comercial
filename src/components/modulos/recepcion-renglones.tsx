@@ -171,7 +171,7 @@ function FormularioRenglon({ recepcion, productosProveedor, renglon, onListo }: 
         </div>
       )}
 
-      <div className="flex gap-2">
+      <div className="rejilla-2">
         <Button type="button" onClick={guardar} disabled={guardando}
           className="h-11 flex-1 bg-brand-yellow font-bold text-steel-900 hover:bg-brand-yellow hover:brightness-105">
           {guardando ? 'Guardando…' : renglon ? 'Guardar renglón' : 'Agregar renglón'}
