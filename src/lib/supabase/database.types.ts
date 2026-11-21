@@ -430,6 +430,7 @@ export type Database = {
       }
       configuracion_negocio: {
         Row: {
+          bonos_ventas: Json
           ciudad: string | null
           direccion: string | null
           email: string | null
@@ -438,7 +439,6 @@ export type Database = {
           logo_subido: string | null
           logo_url: string | null
           margen_default: number | null
-          bonos_ventas: Json
           max_descuento_porcentaje: number | null
           mensaje_pie: string | null
           monto_base_caja_menor: number
@@ -452,6 +452,7 @@ export type Database = {
           whatsapp_negocio: string | null
         }
         Insert: {
+          bonos_ventas?: Json
           ciudad?: string | null
           direccion?: string | null
           email?: string | null
@@ -460,7 +461,6 @@ export type Database = {
           logo_subido?: string | null
           logo_url?: string | null
           margen_default?: number | null
-          bonos_ventas?: Json
           max_descuento_porcentaje?: number | null
           mensaje_pie?: string | null
           monto_base_caja_menor?: number
@@ -474,6 +474,7 @@ export type Database = {
           whatsapp_negocio?: string | null
         }
         Update: {
+          bonos_ventas?: Json
           ciudad?: string | null
           direccion?: string | null
           email?: string | null
@@ -482,7 +483,6 @@ export type Database = {
           logo_subido?: string | null
           logo_url?: string | null
           margen_default?: number | null
-          bonos_ventas?: Json
           max_descuento_porcentaje?: number | null
           mensaje_pie?: string | null
           monto_base_caja_menor?: number
@@ -2414,13 +2414,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      aceptar_venta_en_curso: { Args: { p_id: string }; Returns: undefined }
-      rechazar_venta_en_curso: { Args: { p_id: string }; Returns: undefined }
-      transferir_venta_en_curso: {
-        Args: { p_destino: string; p_id: string }
-        Returns: undefined
-      }
       abrir_caja: { Args: { p_monto_base: number }; Returns: string }
+      aceptar_venta_en_curso: { Args: { p_id: string }; Returns: undefined }
       actualizar_denominaciones: {
         Args: { p_denominaciones: Json; p_tipo: string }
         Returns: undefined
@@ -2676,6 +2671,7 @@ export type Database = {
         Args: { p_renglon_id: string }
         Returns: undefined
       }
+      rechazar_venta_en_curso: { Args: { p_id: string }; Returns: undefined }
       recibir_garantia: {
         Args: { p_garantia_id: string; p_stock_destino?: string }
         Returns: undefined
@@ -2798,6 +2794,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      transferir_venta_en_curso: {
+        Args: { p_destino: string; p_id: string }
+        Returns: undefined
+      }
       unir_grupos_medidas: {
         Args: {
           p_caracteristica: string
@@ -2806,6 +2806,7 @@ export type Database = {
         }
         Returns: number
       }
+      vencer_ventas_en_curso: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
