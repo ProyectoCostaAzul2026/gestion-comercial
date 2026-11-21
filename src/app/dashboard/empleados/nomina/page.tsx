@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { NominaTable } from '@/components/modulos/nomina-table'
 import { EmpleadosSecciones } from '@/components/modulos/empleados-secciones'
+import { traerTodo } from '@/lib/supabase/traer-todo'
+import { totalNetoVenta } from '@/lib/costo-venta'
 
 export default async function NominaPage() {
   const supabase = await createClient()
@@ -36,6 +38,12 @@ export default async function NominaPage() {
 
   // Quién tiene permiso hoy: no asiste y no entra en el pago del día
   const { data: permisosHoy } = await supabase.from('permisos_empleado').select('empleado_id').eq('fecha', hoy)
+
+  // Bonos por ventas: lo configurado y las ventas de hoy (sin anuladas, con devoluciones descontadas)
+  const { data: config } = await supabase.from('configuracion_negocio').select('*').single()
+  const { data: ventasHoy } = await traerTodo<{ empleado_id: string; total: number; monto_devolucion: number | null; estado: string }>(
+    (desde, hasta) => supabase.from('ventas').select('id, empleado_id, total, monto_devolucion, estado').eq('fecha', hoy).neq('estado', 'anulada').order('id').range(desde, hasta) as any,
+  )
 
   const { data: turnos } = await supabase
     .from('horario_laboral')
@@ -72,6 +80,8 @@ export default async function NominaPage() {
         historial={(historial as any) ?? []}
         fechaHoy={hoy}
         permisosHoy={(permisosHoy ?? []).map(p => p.empleado_id)}
+        bonosVentas={(config as any)?.bonos_ventas}
+        ventasHoy={ventasHoy.map(v => ({ empleado_id: v.empleado_id, neto: totalNetoVenta(v) }))}
       />
     </div>
   )

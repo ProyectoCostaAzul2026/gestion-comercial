@@ -229,7 +229,7 @@ const garantias = [
   { id: 'g1', producto_id: productos[0].id, proveedor_id: 'pr1', cantidad: 1, estado: 'pendiente', observaciones: 'Mango partido', fecha_envio: diaB(-4), created_at: diaB(-4), productos: { nombre: productos[0].nombre, codigo: productos[0].codigo, imagen_url: productos[0].imagen_url, unidad_medida: productos[0].unidad_medida }, proveedores: { nombre: 'Distribuidora Ferretera Andina' } },
 ]
 const config = {
-  id: 'cfg1', nombre: 'Ferreléctricos Costa Azul', nit: null, direccion: 'Bogotá, Colombia', telefono: null, email: null, ciudad: 'Bogotá', regimen: 'No responsable de IVA',
+  id: 'cfg1', nombre: 'Ferreléctricos Costa Azul', bonos_ventas: { equipo: [{ tope: 200000, bono: 5000 }, { tope: 350000, bono: 10000 }, { tope: 600000, bono: 20000 }], individual: [{ tope: 20000, bono: 1000 }, { tope: 50000, bono: 3000 }] }, nit: null, direccion: 'Bogotá, Colombia', telefono: null, email: null, ciudad: 'Bogotá', regimen: 'No responsable de IVA',
   mensaje_pie: 'Gracias por su compra', logo_url: `${BASE}/demo/img/logo.webp`, logo_subido: null, logo_enlace: null, monto_base_caja_menor: 300000, monto_inicial_monedas: 400000,
   monto_inicial_sencillo: 800000, margen_default: 0.4, max_descuento_porcentaje: 0.1, whatsapp_negocio: '3000000000', updated_at: diaB(-1),
 }

@@ -142,6 +142,7 @@ http.createServer(async (req, res) => {
     return enviar(204)
   }
   if (req.method === 'PATCH' || req.method === 'POST') console.log(req.method, tabla, cuerpo)
+  if (req.method === 'PATCH' && tablas[tabla]) { const id = (url.searchParams.get('id') || '').replace(/^eq\./, ''); const c = JSON.parse(cuerpo || '{}'); [].concat(tablas[tabla]()).filter(f => f && f.id === id).forEach(f => Object.assign(f, c)); return enviar(204) }
   let filas = tablas[tabla] ? tablas[tabla]() : []
   // Filtros de igualdad sencillos (id=eq.x) para las páginas de detalle
   // Filtros como PostgREST (eq, neq, gt, gte, lt, lte, in, is), también sobre campos anidados ("ventas.fecha").

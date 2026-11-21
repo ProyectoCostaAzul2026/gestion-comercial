@@ -14,7 +14,9 @@ import { DetalleDialogo, Dialogo, PieDialogo } from '@/components/ui/dialogo'
 import { calcularPagoDia, horasPagarPorFecha, turnoEnFecha } from '@/lib/festivos-colombia'
 import { toast } from '@/lib/avisos'
 import { useRouter } from 'next/navigation'
-import { Minus, Plus, SlidersHorizontal } from 'lucide-react'
+import { Minus, Plus, SlidersHorizontal, Trophy } from 'lucide-react'
+import { Switch } from '@/components/ui/switch'
+import { bonoEquipoDelDia, bonosIndividualesDelDia, leerBonos, type BonoSugerido } from '@/lib/bonos-ventas'
 
 interface TurnoSemana {
   dia_semana: string
@@ -84,13 +86,17 @@ function calcularHorasTurno(inicio: string, fin: string): number {
 }
 
 export function NominaTable({
-  empleados, historial, fechaHoy, permisosHoy = [],
+  empleados, historial, fechaHoy, permisosHoy = [], bonosVentas, ventasHoy = [],
 }: {
   empleados: EmpleadoNomina[]
   historial: HistorialNomina[]
   fechaHoy: string
   /** Empleados con permiso hoy (no asisten): no entran en el pago del día */
   permisosHoy?: string[]
+  /** configuracion_negocio.bonos_ventas */
+  bonosVentas?: unknown
+  /** Ventas de hoy (netas, sin anuladas) con su vendedor, para los bonos por ventas */
+  ventasHoy?: { empleado_id: string; neto: number }[]
 }) {
   const supabase = createClient()
   const router = useRouter()
@@ -103,6 +109,8 @@ export function NominaTable({
   const [metodosPago, setMetodosPago] = useState<Record<string, string>>({})
   const [ajustes, setAjustes] = useState<Record<string, Ajuste>>({})
   const [ajustando, setAjustando] = useState<string | null>(null)
+  // Bonos por ventas que el administrador quitó (por empleado); los demás quedan aprobados
+  const [quitados, setQuitados] = useState<Record<string, string[]>>({})
 
   const diaHoy = new Date(fechaHoy + 'T12:00:00').getDay()
   const horasEstandarHoy = horasPagarPorFecha(fechaHoy)
@@ -125,11 +133,29 @@ export function NominaTable({
     empleadosConCalculo.filter(e => e.tieneHorario && !e.conPermiso),
     [empleadosConCalculo])
 
+  // Bonos por ventas sugeridos: para todos (ventas del día) e individuales (cada venta del vendedor)
+  const bonos = useMemo(() => leerBonos(bonosVentas), [bonosVentas])
+  const ventasDelDia = useMemo(() => ventasHoy.reduce((s, v) => s + v.neto, 0), [ventasHoy])
+  const sugeridosDe = useMemo(() => {
+    const equipo = bonoEquipoDelDia(ventasDelDia, bonos)
+    return (id: string): BonoSugerido[] => [
+      ...(equipo ? [equipo] : []),
+      ...bonosIndividualesDelDia(ventasHoy.filter(v => v.empleado_id === id).map(v => v.neto), bonos),
+    ]
+  }, [bonos, ventasDelDia, ventasHoy])
+  const aprobadosDe = (id: string) => sugeridosDe(id).filter(b => !(quitados[id] ?? []).includes(b.clave))
+  const bonoVentasDe = (id: string) => aprobadosDe(id).reduce((s, b) => s + b.monto, 0)
+  const alternarBono = (id: string, clave: string) =>
+    setQuitados(prev => {
+      const l = prev[id] ?? []
+      return { ...prev, [id]: l.includes(clave) ? l.filter(c => c !== clave) : [...l, clave] }
+    })
+
   const pendientes = empleadosEnTurno.filter(e => !e.nominaHoy)
   const getMetodo = (id: string) => metodosPago[id] ?? 'efectivo'
   const nombreMetodo = (id: string) => METODOS_NOMINA.find(m => m.value === getMetodo(id))?.label ?? getMetodo(id)
   const ajusteDe = (id: string) => ajustes[id] ?? SIN_AJUSTE
-  const totalDe = (e: { id: string; pagoSugerido: number }) => e.pagoSugerido + ajusteDe(e.id).bono - ajusteDe(e.id).deduccion
+  const totalDe = (e: { id: string; pagoSugerido: number }) => e.pagoSugerido + ajusteDe(e.id).bono + bonoVentasDe(e.id) - ajusteDe(e.id).deduccion
   const totalPagarTodos = pendientes.reduce((s, e) => s + totalDe(e), 0)
 
   /** Filas del resumen de un pago: día, bono, deducción y total */
@@ -137,6 +163,7 @@ export function NominaTable({
     const a = ajusteDe(e.id)
     return [
       { etiqueta: `Pago del día${e.horasTurno != null ? ` (${e.horasTurno.toFixed(1)} h)` : ''}`, valor: pesos(e.pagoSugerido) },
+      ...aprobadosDe(e.id).map(b => ({ etiqueta: `Bono por ventas: ${b.concepto}`, valor: <span className="text-entra">+{pesos(b.monto)}</span> })),
       ...(a.bono > 0 ? [{ etiqueta: `Bono: ${a.conceptoBono}`, valor: <span className="text-entra">+{pesos(a.bono)}</span> }] : []),
       ...(a.deduccion > 0 ? [{ etiqueta: `Deducción: ${a.conceptoDeduccion}`, valor: <span className="text-sale">−{pesos(a.deduccion)}</span> }] : []),
       { etiqueta: 'Sale de', valor: nombreMetodo(e.id) },
@@ -146,13 +173,16 @@ export function NominaTable({
 
   const pagarEmpleado = async (e: typeof empleadosConCalculo[0], metodo: string) => {
     const a = ajusteDe(e.id)
+    const porVentas = aprobadosDe(e.id)
+    const bonoTotal = a.bono + porVentas.reduce((s, b) => s + b.monto, 0)
+    const concepto = [...porVentas.map(b => `Bono por ventas: ${b.concepto}`), ...(a.bono > 0 ? [a.conceptoBono.trim()] : [])].join('; ')
     const { error } = await supabase.rpc('registrar_nomina', {
       p_empleado_id: e.id,
       p_fecha: fechaHoy,
       p_horas_trabajadas: e.horasTurno ?? horasEstandarHoy,
       p_salario_base: e.pagoSugerido,
-      p_bonificaciones: a.bono,
-      p_concepto_bonificacion: a.bono > 0 ? a.conceptoBono.trim() : undefined,
+      p_bonificaciones: bonoTotal,
+      p_concepto_bonificacion: bonoTotal > 0 ? concepto : undefined,
       p_deducciones: a.deduccion,
       p_concepto_deduccion: a.deduccion > 0 ? a.conceptoDeduccion.trim() : undefined,
       p_metodo_pago: metodo,
@@ -175,6 +205,7 @@ export function NominaTable({
       await pagarEmpleado(emp, getMetodo(empleadoId))
       toast.success(`Nómina de ${emp.nombre_completo} pagada`, { description: `${pesos(totalDe(emp))} desde ${nombreMetodo(emp.id)}.` })
       setAjustes(prev => { const { [emp.id]: _, ...resto } = prev; return resto })
+      setQuitados(prev => { const { [emp.id]: _, ...resto } = prev; return resto })
       router.refresh()
     } catch (err: any) {
       toast.error('No se pudo registrar la nómina', { description: err.message })
@@ -194,7 +225,8 @@ export function NominaTable({
       detalle: [
         ...pendientes.map(e => {
           const a = ajusteDe(e.id)
-          const extra = [a.bono > 0 ? `+${pesos(a.bono)}` : '', a.deduccion > 0 ? `−${pesos(a.deduccion)}` : ''].filter(Boolean).join(' ')
+          const bonoT = a.bono + bonoVentasDe(e.id)
+          const extra = [bonoT > 0 ? `+${pesos(bonoT)}` : '', a.deduccion > 0 ? `−${pesos(a.deduccion)}` : ''].filter(Boolean).join(' ')
           return { etiqueta: <span>{e.nombre_completo}<span className="block text-xs text-tenue">{nombreMetodo(e.id)}{extra ? ` · ${extra}` : ''}</span></span>, valor: pesos(totalDe(e)) }
         }),
         { etiqueta: 'Total', valor: pesos(totalPagarTodos), fuerte: true },
@@ -295,6 +327,25 @@ export function NominaTable({
                           : <span className="inline-flex items-center rounded-full bg-aviso/15 px-2.5 py-0.5 text-xs font-semibold text-aviso">Pendiente</span>}
                       </div>
                     </div>
+
+                    {/* Bonos por ventas: se sugieren solos; el administrador los aprueba o los quita */}
+                    {!pagado && sugeridosDe(e.id).length > 0 && (
+                      <div className="space-y-1.5 rounded-xl border border-entra/30 bg-entra/8 p-3">
+                        <p className="flex items-center gap-1.5 text-sm font-semibold text-entra"><Trophy className="size-4" aria-hidden />Bonos por ventas</p>
+                        {sugeridosDe(e.id).map(b => {
+                          const aprobado = !(quitados[e.id] ?? []).includes(b.clave)
+                          return (
+                            <label key={b.clave} className="flex items-center justify-between gap-3 text-sm">
+                              <span className={aprobado ? 'text-tinta' : 'text-tenue line-through'}>{b.concepto}</span>
+                              <span className="flex shrink-0 items-center gap-2">
+                                <span className={`cifra font-bold ${aprobado ? 'text-entra' : 'text-tenue'}`}>+{pesos(b.monto)}</span>
+                                <Switch checked={aprobado} onCheckedChange={() => alternarBono(e.id, b.clave)} aria-label={`Aprobar el bono: ${b.concepto}`} />
+                              </span>
+                            </label>
+                          )
+                        })}
+                      </div>
+                    )}
 
                     {/* Ajustes del pago */}
                     {!pagado && (a.bono > 0 || a.deduccion > 0) && (

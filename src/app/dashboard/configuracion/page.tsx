@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { ConfiguracionForm } from '@/components/modulos/configuracion-form'
+import { BonosVentasForm } from '@/components/modulos/bonos-ventas-form'
 import { CategoriasGastoForm } from '@/components/modulos/categorias-gasto-form'
 import { ServiciosGestion } from '@/components/modulos/servicios-gestion'
 import { UnidadesMedidaForm } from '@/components/modulos/unidades-medida-form'
@@ -31,6 +32,11 @@ export default async function ConfiguracionPage() {
       <section>
         <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-tinta">Datos del negocio</h2>
         <ConfiguracionForm config={config as any} />
+      </section>
+
+      <section>
+        <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-tinta">Bonos por ventas</h2>
+        <BonosVentasForm configId={(config as any)?.id ?? null} inicial={(config as any)?.bonos_ventas} />
       </section>
 
       <section>
