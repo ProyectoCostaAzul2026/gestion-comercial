@@ -23,7 +23,7 @@ export default async function TareasPage() {
     esAdmin
       ? supabase.from('tareas_plantillas').select('id, titulo, descripcion, prioridad, asignado_a, veces_usada').order('veces_usada', { ascending: false })
       : Promise.resolve({ data: [], error: null }),
-    supabase.from('profiles').select('id, nombre_completo, rol').eq('activo', true).order('nombre_completo'),
+    supabase.from('profiles').select('id, nombre_completo, rol, foto_url').eq('activo', true).order('nombre_completo'),
   ])
 
   const error = pendientes.error ?? hechas.error
@@ -48,7 +48,7 @@ export default async function TareasPage() {
           pendientes={(pendientes.data ?? []) as unknown as Tarea[]}
           hechas={(hechas.data ?? []) as unknown as Tarea[]}
           plantillas={(plantillas.data ?? []) as unknown as PlantillaTarea[]}
-          personas={(empleados ?? []).map(e => ({ id: e.id, nombre: e.nombre_completo, rol: e.rol }))}
+          personas={(empleados ?? []).map(e => ({ id: e.id, nombre: e.nombre_completo, rol: e.rol, foto: (e as any).foto_url ?? null }))}
           esAdmin={esAdmin}
           usuarioId={user.id}
           hoy={hoyBogota()}

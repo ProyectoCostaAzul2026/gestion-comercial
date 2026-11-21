@@ -16,7 +16,7 @@ export default async function NominaPage() {
 
   const { data: empleados } = await supabase
     .from('profiles')
-    .select('id, nombre_completo, salario_base, activo')
+    .select('id, nombre_completo, salario_base, activo, foto_url')
     .eq('activo', true)
     .order('nombre_completo')
 

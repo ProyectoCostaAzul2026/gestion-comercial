@@ -5,6 +5,7 @@ export interface RegistroBitacora {
   numero: number
   ocurrido_en: string
   origen: 'sistema' | 'base_de_datos' | 'automatico'
+  usuario_id?: string | null
   usuario_nombre: string | null
   rol_bd: string
   accion: 'crear' | 'cambiar' | 'borrar' | 'vaciar'

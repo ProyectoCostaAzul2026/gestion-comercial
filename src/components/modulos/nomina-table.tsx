@@ -17,6 +17,7 @@ import { useRouter } from 'next/navigation'
 import { Minus, Plus, SlidersHorizontal, Trophy } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import { bonoEquipoDelDia, bonosIndividualesDelDia, leerBonos, type BonoSugerido } from '@/lib/bonos-ventas'
+import { AvatarPersona } from '@/components/ui/avatar-persona'
 
 interface TurnoSemana {
   dia_semana: string
@@ -63,6 +64,7 @@ const pesos = (n: number) => `$${Math.round(n).toLocaleString('es-CO')}`
 interface EmpleadoNomina {
   id: string
   nombre_completo: string
+  foto_url?: string | null
   salario_base: number
   nominaHoy: NominaHoy | null
   turnosSemana: TurnoSemana[]
@@ -331,11 +333,14 @@ export function NominaTable({
                 return (
                   <li key={e.id} className="space-y-3 p-4">
                     <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-3">
+                      <AvatarPersona nombre={e.nombre_completo} foto={e.foto_url} tam="lg" />
                       <div className="min-w-0">
                         <Link href={`/dashboard/empleados/${e.id}`} className="font-semibold text-tinta underline-offset-2 hover:text-enlace hover:underline">{e.nombre_completo}</Link>
                         <p className="text-sm text-suave">
                           {e.horasTurno != null ? `${e.horasTurno.toFixed(1)} h de ${horasEstandarHoy} h` : 'Sin turno'} · base {pesos(e.salario_base)}
                         </p>
+                      </div>
                       </div>
                       <div className="shrink-0 text-right">
                         <p className="cifra text-xl font-bold text-tinta">{pesos(pagado ? Number(pagado.total_pago) : totalDe(e))}</p>
@@ -410,6 +415,7 @@ export function NominaTable({
           key={empleadoAjustando.id}
           nombre={empleadoAjustando.nombre_completo}
           pagoDia={empleadoAjustando.pagoSugerido}
+          sueldoDia={empleadoAjustando.salario_base}
           horas={empleadoAjustando.horasTurno ?? horasEstandarHoy}
           inicial={ajusteDe(empleadoAjustando.id)}
           alCerrar={() => setAjustando(null)}
@@ -476,10 +482,12 @@ export function NominaTable({
   )
 }
 /** Ventana para poner bono, deducción, llegada tarde y tiempo extra al pago de hoy de un empleado */
-function AjusteDialogo({ nombre, pagoDia, horas, inicial, alCerrar, alGuardar }: {
+function AjusteDialogo({ nombre, pagoDia, sueldoDia, horas, inicial, alCerrar, alGuardar }: {
   nombre: string
   pagoDia: number
-  /** Horas del turno de hoy: con ellas se calcula lo que vale un minuto */
+  /** Sueldo del día del empleado (salario_base) */
+  sueldoDia: number
+  /** Horas trabajadas de hoy: de la entrada a la salida del turno (normal, domingo o festivo) menos 1 hora de almuerzo */
   horas: number
   inicial: Ajuste
   alCerrar: () => void
@@ -490,7 +498,9 @@ function AjusteDialogo({ nombre, pagoDia, horas, inicial, alCerrar, alGuardar }:
     bonoManual: inicial.bono, conceptoBonoManual: inicial.conceptoBono,
     deduccionManual: inicial.deduccion, conceptoDeduccionManual: inicial.conceptoDeduccion,
   })
-  const valorMinuto = horas > 0 ? pagoDia / (horas * 60) : 0
+  // Sueldo por hora = sueldo del día / horas trabajadas; el minuto es la sesentava parte
+  const valorHora = horas > 0 ? sueldoDia / horas : 0
+  const valorMinuto = valorHora / 60
   const valorTarde = p.tarde ? Math.round(valorMinuto * p.minutosTarde) : 0
   const valorExtra = p.extra ? Math.round(valorMinuto * (1 + p.recargoExtra) * p.minutosExtra) : 0
   const bono = p.bonoManual + valorExtra
@@ -534,7 +544,7 @@ function AjusteDialogo({ nombre, pagoDia, horas, inicial, alCerrar, alGuardar }:
       <div className="space-y-4">
         {/* Llegada tarde */}
         <div className="space-y-2 rounded-xl border border-linea p-3">
-          {interruptor(p.tarde, v => setP({ ...p, tarde: v }), 'Llegada tarde', `Se descuenta lo que vale cada minuto: ${pesos(valorMinuto)} (pago del día entre ${horas} h).`, 'text-sale')}
+          {interruptor(p.tarde, v => setP({ ...p, tarde: v }), 'Llegada tarde', `Sueldo por hora: ${pesos(valorHora)} (${pesos(sueldoDia)} entre ${horas} h trabajadas: turno menos 1 h de almuerzo). Cada minuto vale ${pesos(valorMinuto)}.`, 'text-sale')}
           {p.tarde && (
             <div className="grid grid-cols-[1fr_auto] items-center gap-3">
               <div className="flex items-center gap-2">

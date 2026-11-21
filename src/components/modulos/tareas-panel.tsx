@@ -4,14 +4,15 @@ import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from '@/lib/avisos'
 import {
-  BookmarkPlus, Check, ChevronDown, ChevronUp, CopyPlus, Flag, Pencil, Plus, RotateCcw, Trash2, User, Users, X,
+  BookmarkPlus, Check, ChevronDown, ChevronUp, CopyPlus, Flag, Pencil, Plus, RotateCcw, Trash2, Users, X,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { PRIORIDADES, ordenarPendientes, textoVencimiento, type PlantillaTarea, type Prioridad, type Tarea } from '@/lib/tareas'
 import { confirmar } from '@/components/ui/confirmar'
+import { AvatarPersona } from '@/components/ui/avatar-persona'
 
-interface Persona { id: string; nombre: string; rol: string }
+interface Persona { id: string; nombre: string; rol: string; foto?: string | null }
 
 interface Props {
   pendientes: Tarea[]
@@ -183,7 +184,9 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
               </span>
             )}
             <span className="inline-flex items-center gap-1 text-steel-300">
-              {t.asignado_a ? <User className="h-3 w-3" aria-hidden /> : <Users className="h-3 w-3" aria-hidden />}
+              {t.asignado_a
+                ? <AvatarPersona nombre={nombre(t.asignado_a) ?? '?'} foto={personas.find(p => p.id === t.asignado_a)?.foto} tam="xs" />
+                : <Users className="h-3 w-3" aria-hidden />}
               {t.asignado_a ? (t.asignado_a === usuarioId ? 'Para ti' : nombre(t.asignado_a)) : 'Libre'}
             </span>
             {venc && !hecha && (

@@ -30,7 +30,7 @@ export default async function PerfilEmpleadoPage({
 
   const { data: empleado, error } = await supabase
     .from('profiles')
-    .select('id, nombre_completo, rol, telefono, salario_base, activo, created_at')
+    .select('id, nombre_completo, rol, telefono, salario_base, activo, created_at, foto_url')
     .eq('id', id)
     .single()
 
@@ -97,7 +97,7 @@ export default async function PerfilEmpleadoPage({
     <div className="-m-4 md:-m-6">
       <div className="sticky top-[calc(var(--alto-barra,3.5rem)+env(safe-area-inset-top))] z-20 flex items-center gap-3 bg-fondo/95 px-2 py-2 backdrop-blur lg:top-0 md:px-4">
         <BotonAtras href="/dashboard/empleados" />
-        <AvatarIniciales nombre={empleado.nombre_completo} className="size-11 text-base" />
+        <AvatarIniciales nombre={empleado.nombre_completo} foto={(empleado as any).foto_url} className="size-11 text-base" />
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-xl font-bold text-tinta">{empleado.nombre_completo}</h1>
           <p className="flex items-center gap-2 text-sm text-suave">

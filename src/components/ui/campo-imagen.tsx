@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { CamaraDialogo } from '@/components/ui/camara-dialogo'
+import { RecortarDialogo } from '@/components/ui/recortar-dialogo'
 import { type CarpetaImagen, esImagenDelSistema, formatoPeso, PERFILES_IMAGEN, subirImagen, type ValorImagen } from '@/lib/imagenes'
 
 /**
@@ -54,6 +55,9 @@ export function CampoImagen({
   const archivoRef = useRef<HTMLInputElement>(null)
   const camaraRef = useRef<HTMLInputElement>(null)
   const [camaraAbierta, setCamaraAbierta] = useState(false)
+  // Foto elegida que espera el recorte (los logos no se recortan: conservan su forma y transparencia)
+  const [porRecortar, setPorRecortar] = useState<File | null>(null)
+  const recortar = forma !== 'logo'
   const [subiendo, setSubiendo] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const perfil = PERFILES_IMAGEN[carpeta]
@@ -65,7 +69,13 @@ export function CampoImagen({
   async function alElegir(e: React.ChangeEvent<HTMLInputElement>) {
     const archivo = e.target.files?.[0]
     e.target.value = '' // permite volver a elegir el mismo archivo
-    if (archivo) await procesar(archivo)
+    if (archivo) elegida(archivo)
+  }
+
+  /** Toda foto nueva pasa por el recorte, salvo los logos */
+  function elegida(archivo: File) {
+    if (recortar) setPorRecortar(archivo)
+    else procesar(archivo)
   }
 
   /** En el celular (pantalla táctil) usa la cámara del sistema; en el computador, la ventana con la cámara */
@@ -121,11 +131,11 @@ export function CampoImagen({
             ) : (
               <div className="grid min-w-0 flex-1 grid-cols-2 gap-2">
                 <button type="button" onClick={tomarFoto} disabled={deshabilitado}
-                  className="flex h-11 min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-linea bg-superficie-2 px-2 text-[15px] font-semibold text-tinta hover:bg-superficie disabled:opacity-60">
+                  className="flex h-11 min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-linea bg-superficie-2 px-1.5 text-sm font-semibold text-tinta hover:bg-superficie disabled:opacity-60">
                   <Camera className="size-5 shrink-0 text-enlace" strokeWidth={1.75} aria-hidden />Tomar foto
                 </button>
                 <button type="button" onClick={() => archivoRef.current?.click()} disabled={deshabilitado}
-                  className="flex h-11 min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-linea bg-superficie-2 px-2 text-[15px] font-semibold text-tinta hover:bg-superficie disabled:opacity-60">
+                  className="flex h-11 min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-linea bg-superficie-2 px-1.5 text-sm font-semibold text-tinta hover:bg-superficie disabled:opacity-60">
                   <ImagePlus className="size-5 shrink-0 text-enlace" strokeWidth={1.75} aria-hidden />{subida ? 'Cambiar' : 'Subir foto'}
                 </button>
               </div>
@@ -157,7 +167,9 @@ export function CampoImagen({
           {error && <p className="text-xs text-sale" role="alert">{error}</p>}
         </div>
       </div>
-      <CamaraDialogo abierto={camaraAbierta} alCerrar={() => setCamaraAbierta(false)} alCapturar={procesar} frontal={forma === 'redonda'} />
+      <CamaraDialogo abierto={camaraAbierta} alCerrar={() => setCamaraAbierta(false)} alCapturar={elegida} frontal={forma === 'redonda'} />
+      <RecortarDialogo archivo={porRecortar} redonda={forma === 'redonda'} lado={perfil.lado}
+        alCancelar={() => setPorRecortar(null)} alRecortar={f => { setPorRecortar(null); procesar(f) }} />
     </div>
   )
 }

@@ -11,6 +11,7 @@ import { JORNADA_FESTIVO, JORNADA_NORMAL, nombreFestivo, turnoEnFecha } from '@/
 import { fechaLarga, sumarDias } from '@/lib/permisos'
 import type { PermisoVista } from './permisos-empleados'
 import { confirmar } from '@/components/ui/confirmar'
+import { AvatarPersona } from '@/components/ui/avatar-persona'
 
 // La semana va de lunes a domingo
 const DIAS = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'] as const
@@ -235,7 +236,8 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy, permisos 
                       <div key={t.id} className={`rounded-xl border border-linea bg-superficie-2 px-2 py-1 text-xs ${tienePermiso(fecha, t.empleado_id) ? 'opacity-40 line-through' : ''}`}>
                         <div className="flex items-start justify-between gap-1">
                           <div className="min-w-0">
-                            <p className="truncate font-medium leading-tight text-tinta">
+                            <p className="flex items-center gap-1.5 truncate font-medium leading-tight text-tinta">
+                              <AvatarPersona nombre={t.profiles?.nombre_completo ?? '?'} foto={(t.profiles as { foto_url?: string | null } | null)?.foto_url} tam="xs" />
                               {t.profiles?.nombre_completo?.split(' ')[0] ?? '?'}
                             </p>
                             <p className={real.ajustado ? 'font-semibold text-brand-yellow' : 'text-steel-300'}>{real.inicio} – {real.fin}</p>
