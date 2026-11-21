@@ -35,12 +35,29 @@ interface NominaHoy {
 
 /** Bono y deducción de un empleado para el pago de hoy (se mandan a registrar_nomina) */
 interface Ajuste {
+  /** Totales que se mandan a registrar_nomina (incluyen llegada tarde y tiempo extra) */
   bono: number
   conceptoBono: string
   deduccion: number
   conceptoDeduccion: string
+  /** Partes, para volver a abrir el ajuste tal como quedó */
+  partes?: PartesAjuste
+}
+interface PartesAjuste {
+  bonoManual: number
+  conceptoBonoManual: string
+  deduccionManual: number
+  conceptoDeduccionManual: string
+  tarde: boolean
+  minutosTarde: number
+  extra: boolean
+  minutosExtra: number
+  /** Recargo del tiempo extra: 0, 0.25 (hora extra diurna) o 0.75 (nocturna) */
+  recargoExtra: number
 }
 const SIN_AJUSTE: Ajuste = { bono: 0, conceptoBono: '', deduccion: 0, conceptoDeduccion: '' }
+const PARTES_VACIAS: PartesAjuste = { bonoManual: 0, conceptoBonoManual: '', deduccionManual: 0, conceptoDeduccionManual: '', tarde: false, minutosTarde: 0, extra: false, minutosExtra: 0, recargoExtra: 0.25 }
+const RECARGOS = [{ valor: 0, nombre: 'Sin recargo' }, { valor: 0.25, nombre: '+25 % diurna' }, { valor: 0.75, nombre: '+75 % nocturna' }]
 const pesos = (n: number) => `$${Math.round(n).toLocaleString('es-CO')}`
 
 interface EmpleadoNomina {
@@ -373,7 +390,7 @@ export function NominaTable({
                           </SelectContent>
                         </Select>
                         <Button type="button" variant="outline" className="h-11 border-linea bg-superficie-2 px-4 text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setAjustando(e.id)}>
-                          <SlidersHorizontal className="size-4" aria-hidden />Bono o deducción
+                          <SlidersHorizontal className="size-4" aria-hidden />Ajustes
                         </Button>
                         <Button type="button" className="h-11 bg-brand-yellow px-5 font-bold text-steel-900 hover:brightness-105" onClick={() => handlePagarUno(e.id)} disabled={pagando === e.id || pagandoTodos}>
                           {pagando === e.id ? 'Pagando…' : 'Pagar'}
@@ -393,12 +410,13 @@ export function NominaTable({
           key={empleadoAjustando.id}
           nombre={empleadoAjustando.nombre_completo}
           pagoDia={empleadoAjustando.pagoSugerido}
+          horas={empleadoAjustando.horasTurno ?? horasEstandarHoy}
           inicial={ajusteDe(empleadoAjustando.id)}
           alCerrar={() => setAjustando(null)}
           alGuardar={a => {
             setAjustes(prev => ({ ...prev, [empleadoAjustando.id]: a }))
             setAjustando(null)
-            toast.success(`Ajuste guardado para ${empleadoAjustando.nombre_completo}`, { description: `Total a pagar: ${pesos(empleadoAjustando.pagoSugerido + a.bono - a.deduccion)}. Se aplica al pagar.` })
+            toast.success(`Ajuste guardado para ${empleadoAjustando.nombre_completo}`, { description: `Total a pagar: ${pesos(empleadoAjustando.pagoSugerido + a.bono + bonoVentasDe(empleadoAjustando.id) - a.deduccion)}. Se aplica al pagar.` })
           }}
         />
       )}
@@ -457,65 +475,130 @@ export function NominaTable({
     </div>
   )
 }
-/** Ventana para poner bono y deducción al pago de hoy de un empleado */
-function AjusteDialogo({ nombre, pagoDia, inicial, alCerrar, alGuardar }: {
+/** Ventana para poner bono, deducción, llegada tarde y tiempo extra al pago de hoy de un empleado */
+function AjusteDialogo({ nombre, pagoDia, horas, inicial, alCerrar, alGuardar }: {
   nombre: string
   pagoDia: number
+  /** Horas del turno de hoy: con ellas se calcula lo que vale un minuto */
+  horas: number
   inicial: Ajuste
   alCerrar: () => void
   alGuardar: (a: Ajuste) => void
 }) {
-  const [a, setA] = useState<Ajuste>(inicial)
-  const total = pagoDia + a.bono - a.deduccion
+  const [p, setP] = useState<PartesAjuste>(() => inicial.partes ?? {
+    ...PARTES_VACIAS,
+    bonoManual: inicial.bono, conceptoBonoManual: inicial.conceptoBono,
+    deduccionManual: inicial.deduccion, conceptoDeduccionManual: inicial.conceptoDeduccion,
+  })
+  const valorMinuto = horas > 0 ? pagoDia / (horas * 60) : 0
+  const valorTarde = p.tarde ? Math.round(valorMinuto * p.minutosTarde) : 0
+  const valorExtra = p.extra ? Math.round(valorMinuto * (1 + p.recargoExtra) * p.minutosExtra) : 0
+  const bono = p.bonoManual + valorExtra
+  const deduccion = p.deduccionManual + valorTarde
+  const total = pagoDia + bono - deduccion
+  const recargoNombre = RECARGOS.find(r => r.valor === p.recargoExtra)?.nombre ?? ''
   const errores = [
-    a.bono < 0 || a.deduccion < 0 ? 'Los montos no pueden ser negativos.' : '',
-    a.bono > 0 && !a.conceptoBono.trim() ? 'Escribe el motivo del bono.' : '',
-    a.deduccion > 0 && !a.conceptoDeduccion.trim() ? 'Escribe el motivo de la deducción.' : '',
-    total < 0 ? 'La deducción no puede ser mayor que el pago del día más el bono.' : '',
+    p.bonoManual > 0 && !p.conceptoBonoManual.trim() ? 'Escribe el motivo del bono.' : '',
+    p.deduccionManual > 0 && !p.conceptoDeduccionManual.trim() ? 'Escribe el motivo de la deducción.' : '',
+    p.tarde && !(p.minutosTarde > 0) ? 'Escribe cuántos minutos llegó tarde.' : '',
+    p.extra && !(p.minutosExtra > 0) ? 'Escribe cuántos minutos de tiempo extra.' : '',
+    total < 0 ? 'Lo que se descuenta no puede ser mayor que el pago del día más los bonos.' : '',
   ].filter(Boolean)
   const num = (v: string) => Math.max(0, Math.round(Number(v.replace(/[^0-9]/g, '')) || 0))
   const campo = 'h-11 border-linea bg-superficie-2 text-tinta placeholder:text-tenue'
 
+  const guardar = () => {
+    const conceptosBono = [
+      ...(valorExtra > 0 ? [`Tiempo extra: ${p.minutosExtra} min${p.recargoExtra ? ` (${recargoNombre})` : ''}`] : []),
+      ...(p.bonoManual > 0 ? [p.conceptoBonoManual.trim()] : []),
+    ]
+    const conceptosDeduccion = [
+      ...(valorTarde > 0 ? [`Llegada tarde: ${p.minutosTarde} min`] : []),
+      ...(p.deduccionManual > 0 ? [p.conceptoDeduccionManual.trim()] : []),
+    ]
+    alGuardar({ bono, conceptoBono: conceptosBono.join('; '), deduccion, conceptoDeduccion: conceptosDeduccion.join('; '), partes: p })
+  }
+
+  const interruptor = (activo: boolean, cambiar: (v: boolean) => void, titulo: string, ayuda: string, color: string) => (
+    <label className="flex items-center justify-between gap-3">
+      <span>
+        <span className={`block text-sm font-semibold ${color}`}>{titulo}</span>
+        <span className="block text-xs text-tenue">{ayuda}</span>
+      </span>
+      <Switch checked={activo} onCheckedChange={cambiar} aria-label={titulo} />
+    </label>
+  )
+
   return (
-    <Dialogo abierto alCambiar={ab => { if (!ab) alCerrar() }} titulo={`Bono o deducción de ${nombre}`} descripcion="Se suma o se resta al pago de hoy. El motivo queda en el historial de nómina.">
+    <Dialogo abierto alCambiar={ab => { if (!ab) alCerrar() }} titulo={`Ajustes del pago de ${nombre}`} descripcion="Se suman o se restan al pago de hoy. Los motivos quedan en el historial de nómina.">
       <div className="space-y-4">
+        {/* Llegada tarde */}
+        <div className="space-y-2 rounded-xl border border-linea p-3">
+          {interruptor(p.tarde, v => setP({ ...p, tarde: v }), 'Llegada tarde', `Se descuenta lo que vale cada minuto: ${pesos(valorMinuto)} (pago del día entre ${horas} h).`, 'text-sale')}
+          {p.tarde && (
+            <div className="grid grid-cols-[1fr_auto] items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Input inputMode="numeric" aria-label="Minutos tarde" placeholder="0" value={p.minutosTarde || ''} onChange={ev => setP({ ...p, minutosTarde: num(ev.target.value) })} className={`${campo} cifra w-24 text-right`} />
+                <span className="text-sm text-suave">minutos</span>
+              </div>
+              <span className="cifra font-bold text-sale">−{pesos(valorTarde)}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Tiempo extra */}
+        <div className="space-y-2 rounded-xl border border-linea p-3">
+          {interruptor(p.extra, v => setP({ ...p, extra: v }), 'Tiempo extra', 'Se suma lo que vale cada minuto, con el recargo que elijas.', 'text-entra')}
+          {p.extra && (
+            <>
+              <div className="grid grid-cols-[1fr_auto] items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Input inputMode="numeric" aria-label="Minutos de tiempo extra" placeholder="0" value={p.minutosExtra || ''} onChange={ev => setP({ ...p, minutosExtra: num(ev.target.value) })} className={`${campo} cifra w-24 text-right`} />
+                  <span className="text-sm text-suave">minutos</span>
+                </div>
+                <span className="cifra font-bold text-entra">+{pesos(valorExtra)}</span>
+              </div>
+              <div className="grid grid-cols-3 gap-1.5" role="radiogroup" aria-label="Recargo del tiempo extra">
+                {RECARGOS.map(r => (
+                  <button key={r.valor} type="button" role="radio" aria-checked={p.recargoExtra === r.valor} onClick={() => setP({ ...p, recargoExtra: r.valor })}
+                    className={`h-10 rounded-lg border text-xs font-semibold ${p.recargoExtra === r.valor ? 'border-accion bg-accion/12 text-enlace' : 'border-linea bg-superficie-2 text-suave'}`}>
+                    {r.nombre}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Bono y deducción con monto libre */}
         <fieldset className="space-y-2">
-          <legend className="mb-1 text-sm font-semibold text-entra">Bono</legend>
+          <legend className="mb-1 text-sm font-semibold text-entra">Otro bono</legend>
           <div className="grid grid-cols-[8.5rem_1fr] gap-2">
-            <div>
-              <Label htmlFor="ajuste-bono" className="sr-only">Monto del bono</Label>
-              <Input id="ajuste-bono" inputMode="numeric" placeholder="$0" value={a.bono ? a.bono.toLocaleString('es-CO') : ''} onChange={ev => setA({ ...a, bono: num(ev.target.value) })} className={`${campo} cifra text-right`} />
-            </div>
-            <div>
-              <Label htmlFor="ajuste-concepto-bono" className="sr-only">Motivo del bono</Label>
-              <Input id="ajuste-concepto-bono" placeholder="Motivo (ej.: horas extra)" value={a.conceptoBono} onChange={ev => setA({ ...a, conceptoBono: ev.target.value })} className={campo} />
-            </div>
+            <Input aria-label="Monto del bono" inputMode="numeric" placeholder="$0" value={p.bonoManual ? p.bonoManual.toLocaleString('es-CO') : ''} onChange={ev => setP({ ...p, bonoManual: num(ev.target.value) })} className={`${campo} cifra text-right`} />
+            <Input aria-label="Motivo del bono" placeholder="Motivo" value={p.conceptoBonoManual} onChange={ev => setP({ ...p, conceptoBonoManual: ev.target.value })} className={campo} />
           </div>
         </fieldset>
         <fieldset className="space-y-2">
-          <legend className="mb-1 text-sm font-semibold text-sale">Deducción</legend>
+          <legend className="mb-1 text-sm font-semibold text-sale">Otra deducción</legend>
           <div className="grid grid-cols-[8.5rem_1fr] gap-2">
-            <div>
-              <Label htmlFor="ajuste-deduccion" className="sr-only">Monto de la deducción</Label>
-              <Input id="ajuste-deduccion" inputMode="numeric" placeholder="$0" value={a.deduccion ? a.deduccion.toLocaleString('es-CO') : ''} onChange={ev => setA({ ...a, deduccion: num(ev.target.value) })} className={`${campo} cifra text-right`} />
-            </div>
-            <div>
-              <Label htmlFor="ajuste-concepto-deduccion" className="sr-only">Motivo de la deducción</Label>
-              <Input id="ajuste-concepto-deduccion" placeholder="Motivo (ej.: adelanto)" value={a.conceptoDeduccion} onChange={ev => setA({ ...a, conceptoDeduccion: ev.target.value })} className={campo} />
-            </div>
+            <Input aria-label="Monto de la deducción" inputMode="numeric" placeholder="$0" value={p.deduccionManual ? p.deduccionManual.toLocaleString('es-CO') : ''} onChange={ev => setP({ ...p, deduccionManual: num(ev.target.value) })} className={`${campo} cifra text-right`} />
+            <Input aria-label="Motivo de la deducción" placeholder="Motivo (ej.: adelanto)" value={p.conceptoDeduccionManual} onChange={ev => setP({ ...p, conceptoDeduccionManual: ev.target.value })} className={campo} />
           </div>
         </fieldset>
+
         <DetalleDialogo filas={[
           { etiqueta: 'Pago del día', valor: pesos(pagoDia) },
-          { etiqueta: 'Bono', valor: <span className="text-entra">+{pesos(a.bono)}</span> },
-          { etiqueta: 'Deducción', valor: <span className="text-sale">−{pesos(a.deduccion)}</span> },
-          { etiqueta: 'Total a pagar', valor: pesos(total), fuerte: true },
+          ...(valorExtra > 0 ? [{ etiqueta: `Tiempo extra (${p.minutosExtra} min)`, valor: <span className="text-entra">+{pesos(valorExtra)}</span> }] : []),
+          ...(p.bonoManual > 0 ? [{ etiqueta: 'Otro bono', valor: <span className="text-entra">+{pesos(p.bonoManual)}</span> }] : []),
+          ...(valorTarde > 0 ? [{ etiqueta: `Llegada tarde (${p.minutosTarde} min)`, valor: <span className="text-sale">−{pesos(valorTarde)}</span> }] : []),
+          ...(p.deduccionManual > 0 ? [{ etiqueta: 'Otra deducción', valor: <span className="text-sale">−{pesos(p.deduccionManual)}</span> }] : []),
+          { etiqueta: 'Total a pagar (sin bonos por ventas)', valor: pesos(total), fuerte: true },
         ]} />
         {errores.length > 0 && <p role="alert" className="rounded-xl bg-sale/10 px-3.5 py-2.5 text-sm text-sale">{errores[0]}</p>}
       </div>
       <PieDialogo>
-        <Button type="button" variant="outline" className="border-linea bg-superficie-2 text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setA(SIN_AJUSTE)}>Quitar ajustes</Button>
-        <Button type="button" className="bg-accion font-bold text-sobre-accion hover:brightness-105" disabled={errores.length > 0} onClick={() => alGuardar({ ...a, conceptoBono: a.conceptoBono.trim(), conceptoDeduccion: a.conceptoDeduccion.trim() })}>Guardar</Button>
+        <Button type="button" variant="outline" className="border-linea bg-superficie-2 text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setP(PARTES_VACIAS)}>Quitar todo</Button>
+        <Button type="button" className="bg-accion font-bold text-sobre-accion hover:brightness-105" disabled={errores.length > 0} onClick={guardar}>Guardar</Button>
       </PieDialogo>
     </Dialogo>
   )

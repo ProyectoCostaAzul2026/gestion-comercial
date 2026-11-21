@@ -21,7 +21,7 @@ const hoy = diaB(0)
 
 const USER = { id: '00000000-0000-0000-0000-000000000001', aud: 'authenticated', role: 'authenticated', email: 'admin@demo.co', app_metadata: {}, user_metadata: {} }
 const ROL = process.env.ROL || 'administrador'
-const PERFIL = { id: USER.id, rol: ROL, activo: true, nombre_completo: 'Daniela Pérez', telefono: '3001234567', salario_base: 0, foto_url: null, email: USER.email, created_at: diaB(-200) }
+const PERFIL = { id: USER.id, rol: ROL, activo: true, nombre_completo: 'Daniela Pérez', telefono: '3001234567', salario_base: 54750, foto_url: null, email: USER.email, created_at: diaB(-200) }
 const perfiles = [
   PERFIL,
   { id: 'e2', rol: 'empleado', activo: true, nombre_completo: 'Jhon Castro', telefono: '3017654321', salario_base: 1423500, foto_url: null, email: 'jhon@demo.co', created_at: diaB(-150) },
