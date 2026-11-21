@@ -1,0 +1,20 @@
+node_modules
+dist
+.DS_Store
+.env
+
+# Ignore the output video from Git but not videos you import into src/.
+out
+
+# Material generado para el video (se regenera con demo/ y musica/)
+public/capturas
+public/musica.wav
+demo/img/*.webp
+demo/img/*.jpg
+demo/img/*.png
+demo/fotos.json
+!demo/img/.gitkeep
+public/grabaciones
+public/fotos
+public/sfx
+demo/subidas

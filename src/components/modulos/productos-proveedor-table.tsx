@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Trash2, ShoppingCart, FileDown, Search, X } from 'lucide-react'
 import { jsPDF } from 'jspdf'
 import { autoTable } from 'jspdf-autotable'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { cantidadSugerida } from '@/lib/pedido'
 import { hoyBogota } from '@/lib/fechas'
 import { enlaceWhatsApp, textoPedido } from '@/lib/whatsapp'
@@ -148,7 +148,7 @@ export function ProductosProveedorTable({
       setPedido(items)
       setCalculado(true)
     } catch (err: any) {
-      toast.error('Error al calcular rotación: ' + err.message)
+      toast.error('No se pudo calcular la rotación', { description: err.message })
     } finally {
       setCalculando(false)
     }

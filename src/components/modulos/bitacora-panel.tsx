@@ -3,12 +3,15 @@
 import { useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { ChevronDown, ChevronUp, Database, ShieldAlert, Timer, User } from 'lucide-react'
+import { AvatarPersona } from '@/components/ui/avatar-persona'
 import {
   ACCION_BITACORA, ORIGEN_BITACORA, TABLA_BITACORA, cambiosDeDetalle, textoValor,
   type BorradoBitacora, type RegistroBitacora,
 } from '@/lib/bitacora'
 
 interface Props {
+  /** Foto de cada persona (id → url), para mostrarla junto a lo que hizo */
+  fotos?: Record<string, string | null>
   registros: RegistroBitacora[]
   borrados: BorradoBitacora[]
   filtros: { tabla: string; origen: string; desde: string; hasta: string }
@@ -27,7 +30,7 @@ const COLOR_ACCION: Record<RegistroBitacora['accion'], string> = {
   vaciar: 'border-brand-red/40 bg-brand-red/15 text-sale',
 }
 
-function Registro({ r }: { r: RegistroBitacora }) {
+function Registro({ r, foto }: { r: RegistroBitacora; foto?: string | null }) {
   const [abierto, setAbierto] = useState(false)
   const cambios = cambiosDeDetalle(r.detalle)
   const tieneDetalle = r.detalle !== null && r.detalle !== undefined
@@ -45,7 +48,9 @@ function Registro({ r }: { r: RegistroBitacora }) {
           </p>
           <p className="mt-1 text-sm text-tinta">{r.resumen}</p>
           <p className={`mt-1 flex items-center gap-1.5 text-xs ${r.origen === 'base_de_datos' ? 'text-sale' : 'text-steel-300'}`}>
-            <IconoOrigen className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            {r.origen === 'sistema' && r.usuario_nombre
+              ? <AvatarPersona nombre={r.usuario_nombre} foto={foto} tam="xs" />
+              : <IconoOrigen className="h-3.5 w-3.5 shrink-0" aria-hidden />}
             {r.origen === 'sistema' ? (r.usuario_nombre ?? 'Usuario del sistema') : `${ORIGEN_BITACORA[r.origen]} (${r.rol_bd})`}
           </p>
         </div>
@@ -74,7 +79,7 @@ function Registro({ r }: { r: RegistroBitacora }) {
 }
 
 /** Bitácora de cambios importantes: solo lectura. Nadie puede cambiarla ni borrarla desde la app. */
-export function BitacoraPanel({ registros, borrados, filtros, hayMas }: Props) {
+export function BitacoraPanel({ registros, borrados, filtros, hayMas, fotos = {} }: Props) {
   const router = useRouter()
   const pathname = usePathname()
   const params = useSearchParams()
@@ -143,7 +148,7 @@ export function BitacoraPanel({ registros, borrados, filtros, hayMas }: Props) {
         </p>
       ) : (
         <ul className="space-y-2">
-          {registros.map(r => <Registro key={r.numero} r={r} />)}
+          {registros.map(r => <Registro key={r.numero} r={r} foto={r.usuario_id ? fotos[r.usuario_id] : null} />)}
         </ul>
       )}
       {hayMas && <p className="text-center text-xs text-steel-500">Se muestran los {registros.length} más recientes. Usa las fechas para ver más atrás.</p>}

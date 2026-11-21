@@ -6,8 +6,9 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { useNavegacion } from '@/lib/navegacion'
+import { confirmar } from '@/components/ui/confirmar'
 
 interface ClienteFormState {
   nombre: string
@@ -104,7 +105,7 @@ export function ClienteForm({ cliente, onSuccess }: ClienteFormProps) {
       volver('/dashboard/clientes', { refrescar: true })
       onSuccess?.()
     } catch (err: any) {
-      toast.error('Error al guardar: ' + err.message)
+      toast.error('No se pudo guardar', { description: err.message })
     } finally {
       setIsSubmitting(false)
     }
@@ -112,13 +113,13 @@ export function ClienteForm({ cliente, onSuccess }: ClienteFormProps) {
 
   const handleDesactivar = async () => {
     if (!cliente) return
-    const confirmado = window.confirm(`¿Seguro que deseas desactivar a "${cliente.nombre}"?`)
+    const confirmado = await confirmar({ titulo: `¿Desactivar a "${cliente.nombre}"?`, mensaje: 'Deja de aparecer al buscar clientes en Ventas. Su historial y sus créditos se conservan.', tono: 'peligro', textoConfirmar: 'Desactivar' })
     if (!confirmado) return
     setIsDesactivando(true)
     const { error } = await supabase.from('clientes').update({ activo: false }).eq('id', cliente.id)
     setIsDesactivando(false)
     if (error) {
-      toast.error('Error al desactivar: ' + error.message)
+      toast.error('No se pudo desactivar', { description: error.message })
       return
     }
     toast.success('Cliente desactivado')

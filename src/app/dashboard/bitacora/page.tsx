@@ -27,9 +27,10 @@ export default async function BitacoraPage({
   if (sp.desde) consulta = consulta.gte('ocurrido_en', `${sp.desde}T00:00:00-05:00`)
   if (sp.hasta) consulta = consulta.lte('ocurrido_en', `${sp.hasta}T23:59:59-05:00`)
 
-  const [{ data: filas, error }, { data: borrados }] = await Promise.all([
+  const [{ data: filas, error }, { data: borrados }, { data: personas }] = await Promise.all([
     consulta,
     supabase.from('bitacora_borrados').select('*').order('id', { ascending: false }).limit(100),
+    supabase.from('profiles').select('id, foto_url'),
   ])
   const registros = ((filas ?? []) as unknown as RegistroBitacora[])
 
@@ -56,6 +57,7 @@ export default async function BitacoraPage({
             borrados={((borrados ?? []) as unknown as BorradoBitacora[])}
             filtros={{ tabla: sp.tabla ?? '', origen: sp.origen ?? '', desde: sp.desde ?? '', hasta: sp.hasta ?? '' }}
             hayMas={registros.length > LIMITE}
+            fotos={Object.fromEntries((personas ?? []).map(p => [p.id, p.foto_url]))}
           />
         </Suspense>
       )}

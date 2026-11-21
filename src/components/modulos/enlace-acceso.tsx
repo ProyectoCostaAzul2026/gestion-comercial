@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { Check, Copy, KeyRound, MessageCircle } from 'lucide-react'
 import { enlaceNuevaContrasena } from '@/app/actions/empleados'
 import { enlaceWhatsApp } from '@/lib/whatsapp'

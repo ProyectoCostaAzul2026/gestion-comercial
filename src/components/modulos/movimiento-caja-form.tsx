@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
+import { confirmar } from '@/components/ui/confirmar'
 import { ArrowDown } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useNavegacion } from '@/lib/navegacion'
@@ -41,10 +42,9 @@ export function MovimientoCajaForm({ tipo, saldos, categoriasGasto = [], proveed
   const [proveedorId, setProveedorId] = useState('')
   const [origen, setOrigen] = useState('nequi')
   const [destino, setDestino] = useState('caja_mayor')
-  const [confirmando, setConfirmando] = useState(false)
   const [guardando, setGuardando] = useState(false)
 
-  const cambiarMonto = (m: number) => { setMonto(m); setFuentes(f => ajustarFuenteUnica(f, m)); setConfirmando(false) }
+  const cambiarMonto = (m: number) => { setMonto(m); setFuentes(f => ajustarFuenteUnica(f, m)) }
 
   const error = (): string | null => {
     if (tipo === 'gasto' && !concepto.trim()) return 'Escribe en qué se gastó'
@@ -61,7 +61,18 @@ export function MovimientoCajaForm({ tipo, saldos, categoriasGasto = [], proveed
 
   const guardar = async () => {
     const e = error()
-    if (e) { toast.error(e); setConfirmando(false); return }
+    if (e) { toast.error(e); return }
+    const nombre = (v: string) => FUENTES_DISPONIBLES.find(f => f.value === v)?.label ?? v
+    const titulo = tipo === 'gasto' ? `¿Registrar el gasto de ${pesos(monto)}?` : tipo === 'retiro' ? `¿Registrar el retiro de ${pesos(monto)}?` : `¿Pasar ${pesos(monto)}?`
+    const detalle = tipo === 'traslado'
+      ? [{ etiqueta: 'Sale de', valor: nombre(origen) }, { etiqueta: 'Llega a', valor: nombre(destino) }, { etiqueta: 'Monto', valor: pesos(monto), fuerte: true }]
+      : [
+          ...(tipo === 'gasto' ? [{ etiqueta: 'En qué', valor: concepto.trim() || '—' }] : [{ etiqueta: 'Motivo', valor: notas.trim() || '—' }]),
+          ...fuentes.filter(f => f.monto > 0).map(f => ({ etiqueta: `Sale de ${nombre(f.fuente)}`, valor: pesos(f.monto) })),
+          { etiqueta: 'Total', valor: pesos(monto), fuerte: true },
+        ]
+    const ok = await confirmar({ titulo, mensaje: 'Revisa que los datos sean correctos: el dinero sale de inmediato de los saldos.', detalle, textoConfirmar: textoBoton })
+    if (!ok) return
     setGuardando(true)
     const llamada = tipo === 'gasto'
       ? supabase.rpc('registrar_gasto_caja', {
@@ -79,8 +90,8 @@ export function MovimientoCajaForm({ tipo, saldos, categoriasGasto = [], proveed
           })
     const { error: errRpc } = await llamada
     setGuardando(false)
-    if (errRpc) { toast.error('No se pudo guardar: ' + errRpc.message); setConfirmando(false); return }
-    toast.success(tipo === 'gasto' ? 'Gasto registrado' : tipo === 'retiro' ? 'Retiro registrado' : 'Traslado registrado')
+    if (errRpc) { toast.error('No se pudo guardar', { description: errRpc.message }); return }
+    toast.success(tipo === 'gasto' ? 'Gasto registrado' : tipo === 'retiro' ? 'Retiro registrado' : 'Traslado registrado', { description: resumen + '.' })
     volver(volverA, { refrescar: true })
   }
 
@@ -139,12 +150,12 @@ export function MovimientoCajaForm({ tipo, saldos, categoriasGasto = [], proveed
         <div className="space-y-4">
           <div className="space-y-2.5">
             <p className={TITULO}>Sale de</p>
-            <SelectorMedio valor={origen} saldos={saldos} onElegir={v => { setOrigen(v); setConfirmando(false) }} />
+            <SelectorMedio valor={origen} saldos={saldos} onElegir={v => setOrigen(v)} />
           </div>
           <div className="flex justify-center" aria-hidden><ArrowDown className="size-6 text-tenue" /></div>
           <div className="space-y-2.5">
             <p className={TITULO}>Llega a</p>
-            <SelectorMedio valor={destino} saldos={saldos} deshabilitado={origen} onElegir={v => { setDestino(v); setConfirmando(false) }} />
+            <SelectorMedio valor={destino} saldos={saldos} deshabilitado={origen} onElegir={v => setDestino(v)} />
           </div>
         </div>
       ) : (
@@ -160,22 +171,10 @@ export function MovimientoCajaForm({ tipo, saldos, categoriasGasto = [], proveed
 
       {/* Acción fija abajo en el celular */}
       <div className="fixed inset-x-0 bottom-0 z-30 bg-gradient-to-t from-fondo via-fondo/95 to-transparent px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-6 lg:static lg:bg-none lg:p-0">
-        {!confirmando ? (
-          <Button onClick={() => { const e = error(); if (e) toast.error(e); else setConfirmando(true) }}
-            className="h-14 w-full rounded-xl bg-accion text-lg font-bold text-sobre-accion hover:brightness-105">
-            {textoBoton}
-          </Button>
-        ) : (
-          <div className="space-y-3 rounded-2xl border-2 border-accion bg-superficie p-3 shadow-xl">
-            <p className="text-[15px] font-semibold text-tinta">{resumen}. ¿Confirmas?</p>
-            <div className="flex gap-2">
-              <Button onClick={guardar} disabled={guardando} className="h-12 flex-1 bg-accion text-base font-bold text-sobre-accion hover:brightness-105">
-                {guardando ? 'Guardando…' : 'Sí, registrar'}
-              </Button>
-              <Button variant="outline" onClick={() => setConfirmando(false)} className="h-12 border-linea bg-transparent text-tinta hover:bg-velo/5">Revisar</Button>
-            </div>
-          </div>
-        )}
+        <Button onClick={guardar} disabled={guardando}
+          className="h-14 w-full rounded-xl bg-accion text-lg font-bold text-sobre-accion hover:brightness-105">
+          {guardando ? 'Guardando…' : textoBoton}
+        </Button>
       </div>
     </div>
   )

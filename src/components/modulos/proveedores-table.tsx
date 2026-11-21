@@ -178,7 +178,7 @@ export function ProveedoresTable({
           onValueChange={v => v && setFiltroEstado(v)}
           value={filtroEstado}
         >
-          <SelectTrigger className="h-12 w-56 border-linea bg-superficie-2 text-tinta"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-12 w-full border-linea bg-superficie-2 text-tinta sm:w-56"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos los estados</SelectItem>
             <SelectItem value="factura_vencida">Factura vencida</SelectItem>

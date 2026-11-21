@@ -1,6 +1,8 @@
 'use client'
 
 import Link from 'next/link'
+import { VigilanteVentas } from './vigilante-ventas'
+import { AvatarPersona } from '@/components/ui/avatar-persona'
 import { usePathname, useRouter } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import {
@@ -100,11 +102,10 @@ function Letrero({ className = '' }: { className?: string }) {
   )
 }
 
-function Persona({ nombre, rol, onNavegar, lateral = false }: { nombre: string; rol: string; onNavegar?: () => void; lateral?: boolean }) {
-  const iniciales = nombre.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]?.toUpperCase()).join('') || 'CA'
+function Persona({ nombre, rol, foto, onNavegar, lateral = false }: { nombre: string; rol: string; foto?: string | null; onNavegar?: () => void; lateral?: boolean }) {
   return (
     <Link href="/dashboard/mi-perfil" onClick={onNavegar} className="flex min-w-0 flex-1 items-center gap-2.5 rounded-xl py-1">
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-blue text-sm font-bold text-white">{iniciales}</span>
+      <AvatarPersona nombre={nombre} foto={foto} tam="md" />
       <span className="min-w-0">
         <span className={`block truncate text-[15px] font-semibold ${lateral ? 'text-white' : 'text-tinta'}`}>{nombre}</span>
         <span className={`block text-[13px] ${lateral ? 'text-sidebar-foreground' : 'text-suave'}`}>{rol === 'administrador' ? 'Administrador' : 'Empleado'}, mi perfil</span>
@@ -116,10 +117,14 @@ function Persona({ nombre, rol, onNavegar, lateral = false }: { nombre: string; 
 export default function NavigationShell({
   rol,
   nombre,
+  usuarioId,
+  fotoUrl,
   children,
 }: {
   rol: string
   nombre: string
+  usuarioId: string
+  fotoUrl?: string | null
   children: React.ReactNode
 }) {
   const pathname = usePathname()
@@ -194,7 +199,7 @@ export default function NavigationShell({
         </div>
         <ListaMenu items={visibleItems} pathname={pathname} onSalir={handleLogout} lateral />
         <div className="mx-3 border-t border-white/10 px-1 py-3">
-          <Persona nombre={nombre} rol={rol} lateral />
+          <Persona foto={fotoUrl} nombre={nombre} rol={rol} lateral />
           <p className="mt-2 px-1 text-xs italic text-sidebar-foreground/70">By: Luis Ortiz</p>
         </div>
       </aside>
@@ -221,6 +226,7 @@ export default function NavigationShell({
       <main style={{ '--alto-barra': tarea ? '0px' : '3.5rem', '--abajo-nav': tarea ? '0px' : 'calc(4.25rem + env(safe-area-inset-bottom))' } as React.CSSProperties}
         className={`p-4 md:p-6 lg:ml-64 lg:pb-6 print:m-0 print:p-0 ${tarea ? 'pb-6 pt-[calc(1rem+env(safe-area-inset-top))] md:pt-[calc(1.5rem+env(safe-area-inset-top))] lg:pt-6' : 'pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-[calc(5.5rem+env(safe-area-inset-bottom))]'}`}>
         <div className="mx-auto w-full max-w-7xl">{children}</div>
+        <VigilanteVentas usuarioId={usuarioId} />
       </main>
 
       {/* ── BARRA INFERIOR (celular): cuatro destinos y Vender en amarillo al centro; se oculta en las tareas ── */}
@@ -266,7 +272,7 @@ export default function NavigationShell({
       >
         <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-velo/20" aria-hidden />
         <div className="flex items-center gap-3 border-b border-linea px-4 py-3">
-          <Persona nombre={nombre} rol={rol} onNavegar={cerrar} />
+          <Persona foto={fotoUrl} nombre={nombre} rol={rol} onNavegar={cerrar} />
           <button onClick={cerrar} aria-label="Cerrar menú"
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-steel-300 transition-colors active:bg-velo/10">
             <X size={20} />

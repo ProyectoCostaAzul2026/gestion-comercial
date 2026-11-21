@@ -1,0 +1,19 @@
+[
+  {"id": "gancho", "pulsos": 11},
+  {"id": "presentacion", "pulsos": 8},
+  {"id": "vender", "pulsos": 19},
+  {"id": "inventario", "pulsos": 13},
+  {"id": "caja", "pulsos": 12},
+  {"id": "reportes", "pulsos": 8},
+  {"id": "cifra", "pulsos": 6},
+  {"id": "graficas", "pulsos": 13},
+  {"id": "creditos", "pulsos": 11},
+  {"id": "recepcion", "pulsos": 11},
+  {"id": "masTitulo", "pulsos": 3},
+  {"id": "secundarias", "pulsos": 28},
+  {"id": "tema", "pulsos": 12},
+  {"id": "computador", "pulsos": 9},
+  {"id": "instalar", "pulsos": 11},
+  {"id": "final", "pulsos": 10},
+  {"id": "creditosFotos", "pulsos": 5}
+]

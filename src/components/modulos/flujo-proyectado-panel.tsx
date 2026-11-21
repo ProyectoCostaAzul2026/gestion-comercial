@@ -113,10 +113,10 @@ export function FlujoProyectadoPanel({ hoy, disponible, cobros, pagos, promedios
       <section className="space-y-3 rounded-2xl bg-superficie p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm font-semibold text-tinta">Supuestos</p>
-          <div className="flex gap-1 rounded-xl bg-fondo p-1">
+          <div className="grid w-full grid-cols-3 gap-1 rounded-xl bg-fondo p-1 sm:w-auto">
             {[4, 8, 12].map(n => (
               <button key={n} type="button" onClick={() => setSemanas(n)}
-                className={`h-9 rounded-lg px-3 text-xs font-bold ${semanas === n ? 'bg-brand-yellow text-steel-900' : 'text-steel-300 hover:text-tinta'}`}>
+                className={`h-10 rounded-lg px-3 text-sm font-bold ${semanas === n ? 'bg-brand-yellow text-steel-900' : 'text-steel-300 hover:text-tinta'}`}>
                 {n} semanas
               </button>
             ))}

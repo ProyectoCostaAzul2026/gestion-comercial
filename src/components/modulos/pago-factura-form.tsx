@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
+import { confirmar } from '@/components/ui/confirmar'
 import { useRouter } from 'next/navigation'
 import { hoyBogota } from '@/lib/fechas'
 import { useNavegacion } from '@/lib/navegacion'
@@ -33,7 +34,6 @@ export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId, saldos
   const [fechaPago, setFechaPago] = useState(hoy)
   const [observaciones, setObservaciones] = useState('')
   const [saving, setSaving] = useState(false)
-  const [confirmar, setConfirmar] = useState(false)
   // Medio del que sale el dinero (caja menor es el saldo "efectivo")
   const medio = metodoPago === 'efectivo' ? (origenCaja === 'caja_menor' ? 'efectivo' : origenCaja) : metodoPago
   const disponible = saldos ? Math.round(saldos[medio] ?? 0) : null
@@ -49,6 +49,18 @@ export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId, saldos
       toast.error(`No alcanza: en ${NOMBRE_MEDIO[medio] ?? medio} hay $${disponible.toLocaleString('es-CO')}`)
       return
     }
+    const ok = await confirmar({
+      titulo: `¿Registrar el pago de $${monto.toLocaleString('es-CO')}?`,
+      mensaje: 'El dinero sale del medio elegido y baja el saldo de la factura.',
+      detalle: [
+        { etiqueta: 'Saldo de la factura', valor: `$${saldoPendiente.toLocaleString('es-CO')}` },
+        { etiqueta: 'Sale de', valor: NOMBRE_MEDIO[medio] ?? medio },
+        { etiqueta: 'Fecha del pago', valor: fechaPago },
+        { etiqueta: 'Queda debiendo', valor: `$${(saldoPendiente - monto).toLocaleString('es-CO')}`, fuerte: true },
+      ],
+      textoConfirmar: 'Registrar pago',
+    })
+    if (!ok) return
     setSaving(true)
     try {
       const fuentes = metodoPago === 'efectivo'
@@ -63,14 +75,13 @@ export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId, saldos
         p_observaciones: observaciones || undefined,
       })
       if (error) throw error
-      toast.success('Pago registrado')
+      toast.success(`Pago de $${monto.toLocaleString('es-CO')} registrado`, { description: saldoPendiente - monto <= 0 ? 'La factura quedó pagada.' : `La factura queda debiendo $${(saldoPendiente - monto).toLocaleString('es-CO')}.` })
       if (proveedorId) volver(`/dashboard/proveedores/${proveedorId}`, { refrescar: true })
       router.refresh()
     } catch (err: any) {
-      toast.error('Error: ' + err.message)
+      toast.error('No se pudo registrar el pago', { description: err.message })
     } finally {
       setSaving(false)
-      setConfirmar(false)
     }
   }
 
@@ -165,25 +176,9 @@ export function PagoFacturaForm({ facturaId, saldoPendiente, proveedorId, saldos
         />
       </div>
 
-      {!confirmar ? (
-        <Button type="button" onClick={() => setConfirmar(true)} className="h-12 w-full bg-brand-yellow text-base font-bold text-steel-900 hover:bg-brand-yellow hover:brightness-105">
-          Registrar pago
-        </Button>
-      ) : (
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-tinta">
-            ¿Confirmas el pago de ${monto.toLocaleString('es-CO')}?
-          </p>
-          <div className="flex gap-2">
-            <Button type="submit" disabled={saving} className="h-12 flex-1 bg-brand-yellow font-bold text-steel-900 hover:brightness-105">
-              {saving ? 'Registrando…' : 'Sí, registrar'}
-            </Button>
-            <Button type="button" variant="outline" onClick={() => setConfirmar(false)} className="h-12 flex-1 border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta">
-              Cancelar
-            </Button>
-          </div>
-        </div>
-      )}
+      <Button type="submit" disabled={saving} className="h-12 w-full bg-brand-yellow text-base font-bold text-steel-900 hover:bg-brand-yellow hover:brightness-105">
+        {saving ? 'Registrando…' : 'Registrar pago'}
+      </Button>
     </form>
   )
 }

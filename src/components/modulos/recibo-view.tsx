@@ -4,7 +4,7 @@ import { useRef } from 'react'
 import { Printer, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { enlaceWhatsApp } from '@/lib/whatsapp'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 
 const METODO_LABEL: Record<string, string> = {
   efectivo: 'Efectivo', nequi: 'Nequi', daviplata: 'Daviplata',

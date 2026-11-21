@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { calcularIvaUnitario } from '@/lib/precio-utils'
 import { precioConCantidad, type TramoPrecio } from '@/lib/precios-cantidad'
 import { AvisoPrecioCantidad } from './precios-cantidad'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -116,11 +116,56 @@ interface AlertaStockInfo {
   cantidadNecesaria: number
 }
 
+/**
+ * Lo que hay que guardar de una venta sin registrar para retomarla (ventas paralelas, borradores y transferencias).
+ * Debe ser JSON: se guarda en ventas_en_curso.datos.
+ */
+export interface EstadoVenta {
+  cliente: ClienteSearch
+  carrito: ItemCarrito[]
+  serviciosCarrito: ServicioCarrito[]
+  descuentoHabilitado: boolean
+  descuentoTotalActivo: boolean
+  descuentoTotalPct: number
+  editandoTotalManual: boolean
+  totalManual: string
+  esCredito: boolean
+  fechaPagoCredito: string
+  esMixto: boolean
+  metodoPagoUnico: MetodoPago
+  pagos: PagoItem[]
+  facturaElectronica: boolean
+  emailFactura: string
+  observaciones: string
+  paso: 'venta' | 'cobro'
+}
+
+/** Lo que se ve de una venta en su pestaña */
+export interface ResumenVenta {
+  cliente: string
+  lineas: number
+  total: number
+}
+
 interface NuevaVentaFormProps {
   clienteGeneral: ClienteSearch
   catalogo: ServicioSearch[]
   maxDescuentoPct?: number
   whatsappNegocio?: string | null
+  /** Para retomar una venta guardada */
+  inicial?: Partial<EstadoVenta>
+  /** Cada cambio de la venta (para guardarla y mostrarla en su pestaña) */
+  onCambio?: (estado: EstadoVenta, resumen: ResumenVenta) => void
+  /** Al registrarla: si se pasa, quien la contiene decide a dónde ir */
+  onRegistrada?: (ventaId: string, conRecibo: boolean) => void
+  /** Botón atrás del encabezado (en el paso de armar la venta) */
+  onSalir?: () => void
+  /** Pestañas de ventas paralelas, debajo del encabezado */
+  pestanas?: React.ReactNode
+  /** Botones extra del encabezado (pasar la venta, nueva venta paralela) */
+  accionesCabecera?: React.ReactNode
+  /** Prefijo de los id de los campos (hay varias ventas en la misma página) */
+  prefijoId?: string
 }
 
 const METODOS: MetodoPago[] = ['efectivo', 'nequi', 'daviplata', 'tarjeta']
@@ -168,12 +213,12 @@ function esMultiplo(cantidad: number, minimo: number): boolean {
   return Math.abs(veces * minimo - cantidad) < 1e-6
 }
 
-export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.10, whatsappNegocio }: NuevaVentaFormProps) {
+export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.10, whatsappNegocio, inicial, onCambio, onRegistrada, onSalir, pestanas, accionesCabecera, prefijoId = '' }: NuevaVentaFormProps) {
   const { volver, reemplazar } = useNavegacion()
   const supabase = createClient()
 
   // ── Cliente ──
-  const [cliente, setCliente] = useState<ClienteSearch>(clienteGeneral)
+  const [cliente, setCliente] = useState<ClienteSearch>(inicial?.cliente ?? clienteGeneral)
   const [queryCliente, setQueryCliente] = useState('')
   const [resultadosCliente, setResultadosCliente] = useState<ClienteSearch[]>([])
   const [mostrarNuevoCliente, setMostrarNuevoCliente] = useState(false)
@@ -181,9 +226,9 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
   const [guardandoCliente, setGuardandoCliente] = useState(false)
 
   // ── Carrito ──
-  const [carrito, setCarrito] = useState<ItemCarrito[]>([])
+  const [carrito, setCarrito] = useState<ItemCarrito[]>(inicial?.carrito ?? [])
   // Pantalla: armar la venta o cobrar; paneles que se abren a pedido
-  const [paso, setPaso] = useState<'venta' | 'cobro'>('venta')
+  const [paso, setPaso] = useState<'venta' | 'cobro'>(inicial?.paso ?? 'venta')
   const [mostrarCliente, setMostrarCliente] = useState(false)
   const [mostrarServicios, setMostrarServicios] = useState(false)
   const [queryProducto, setQueryProducto] = useState('')
@@ -196,33 +241,33 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
   const [cantidadTransferir, setCantidadTransferir] = useState(1)
 
   // ── Servicios ──
-  const [serviciosCarrito, setServiciosCarrito] = useState<ServicioCarrito[]>([])
+  const [serviciosCarrito, setServiciosCarrito] = useState<ServicioCarrito[]>(inicial?.serviciosCarrito ?? [])
   const [mostrarNuevoServicio, setMostrarNuevoServicio] = useState(false)
   const [nuevoServicio, setNuevoServicio] = useState({ nombre: '', descripcion: '', precio: 0 })
   const [guardandoServicio, setGuardandoServicio] = useState(false)
 
   // ── Descuentos ──
-  const [descuentoHabilitado, setDescuentoHabilitado] = useState(false)
-  const [descuentoTotalActivo, setDescuentoTotalActivo] = useState(false)
-  const [descuentoTotalPct, setDescuentoTotalPct] = useState(5)
-  const [editandoTotalManual, setEditandoTotalManual] = useState(false)
-  const [totalManual, setTotalManual] = useState('')
+  const [descuentoHabilitado, setDescuentoHabilitado] = useState(inicial?.descuentoHabilitado ?? false)
+  const [descuentoTotalActivo, setDescuentoTotalActivo] = useState(inicial?.descuentoTotalActivo ?? false)
+  const [descuentoTotalPct, setDescuentoTotalPct] = useState(inicial?.descuentoTotalPct ?? 5)
+  const [editandoTotalManual, setEditandoTotalManual] = useState(inicial?.editandoTotalManual ?? false)
+  const [totalManual, setTotalManual] = useState(inicial?.totalManual ?? '')
 
   // ── Crédito ──
-  const [esCredito, setEsCredito] = useState(false)
-  const [fechaPagoCredito, setFechaPagoCredito] = useState('')
+  const [esCredito, setEsCredito] = useState(inicial?.esCredito ?? false)
+  const [fechaPagoCredito, setFechaPagoCredito] = useState(inicial?.fechaPagoCredito ?? '')
 
   // ── Pago ──
-  const [esMixto, setEsMixto] = useState(false)
-  const [metodoPagoUnico, setMetodoPagoUnico] = useState<MetodoPago>('efectivo')
-  const [pagos, setPagos] = useState<PagoItem[]>([
+  const [esMixto, setEsMixto] = useState(inicial?.esMixto ?? false)
+  const [metodoPagoUnico, setMetodoPagoUnico] = useState<MetodoPago>(inicial?.metodoPagoUnico ?? 'efectivo')
+  const [pagos, setPagos] = useState<PagoItem[]>(inicial?.pagos ?? [
     { metodo: 'efectivo', monto: 0, monto_recibido: 0, vueltas: 0 },
   ])
 
   // ── Otros ──
-  const [facturaElectronica, setFacturaElectronica] = useState(false)
-  const [emailFactura, setEmailFactura] = useState('')
-  const [observaciones, setObservaciones] = useState('')
+  const [facturaElectronica, setFacturaElectronica] = useState(inicial?.facturaElectronica ?? false)
+  const [emailFactura, setEmailFactura] = useState(inicial?.emailFactura ?? '')
+  const [observaciones, setObservaciones] = useState(inicial?.observaciones ?? '')
   const [submitting, setSubmitting] = useState(false)
   const [submitAction, setSubmitAction] = useState<'con_recibo' | 'sin_recibo'>('sin_recibo')
 
@@ -313,7 +358,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
       .insert({ nombre: nuevoCliente.nombre, telefono: nuevoCliente.telefono || null, nit_cc: nuevoCliente.nit_cc || null, email: nuevoCliente.email || null, activo: true, es_cliente_generico: false })
       .single()
     setGuardandoCliente(false)
-    if (error) { toast.error('Error: ' + error.message); return }
+    if (error) { toast.error('No se pudo completar la acción', { description: error.message }); return }
     setCliente(data)
     if (facturaElectronica && (data as any)?.email) setEmailFactura((data as any).email)
     setMostrarNuevoCliente(false)
@@ -419,7 +464,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
         : it))
       setAlertaStock(null)
     } catch (err: any) {
-      toast.error('Error al transferir: ' + err.message)
+      toast.error('No se pudo transferir', { description: err.message })
     } finally {
       setTransfiriendo(false)
     }
@@ -438,7 +483,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
       por_completar: true,
     }).select('id, nombre, precio_venta, tiene_iva, iva_incluido, porcentaje_iva').single()
     setGuardandoAltaRapida(false)
-    if (error) { toast.error('Error: ' + error.message); return }
+    if (error) { toast.error('No se pudo completar la acción', { description: error.message }); return }
     const iva = calcularIva(data)
     setCarrito(prev => [...prev, {
       key: `${data.id}-${Date.now()}`, producto_id: data.id, nombre: data.nombre,
@@ -469,7 +514,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
       .insert({ nombre: nuevoServicio.nombre, descripcion: nuevoServicio.descripcion || null, precio: nuevoServicio.precio, activo: true })
       .select('id, nombre, descripcion, precio').single()
     setGuardandoServicio(false)
-    if (error) { toast.error('Error: ' + error.message); return }
+    if (error) { toast.error('No se pudo completar la acción', { description: error.message }); return }
     agregarServicio(data)
     setMostrarNuevoServicio(false)
     setNuevoServicio({ nombre: '', descripcion: '', precio: 0 })
@@ -575,9 +620,8 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
           p_total_manual: totalManualPayload,
         })
         if (rpcError) throw rpcError
-        toast.success('Venta a crédito registrada')
-        if (action === 'con_recibo') reemplazar(`/dashboard/ventas/${data}?recibo=1`)
-        else volver('/dashboard/ventas', { refrescar: true })
+        toast.success('Venta a crédito registrada', { description: `${cliente.nombre} · ${pesos(totalRedondeado)}`, action: { label: 'Ver venta', onClick: () => reemplazar(`/dashboard/ventas/${data}`) } })
+        terminar(String(data), action === 'con_recibo')
         return
       }
 
@@ -612,7 +656,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
       })
 
       if (rpcError) throw rpcError
-      toast.success('Venta registrada')
+      toast.success('Venta registrada', { description: `${pesos(totalRedondeado)} · ${esMixto ? 'Varios medios' : METODO_LABEL[metodoPagoUnico]}`, action: { label: 'Ver venta', onClick: () => reemplazar(`/dashboard/ventas/${data}`) } })
 
       // WhatsApp automático si factura electrónica está activa
       if (facturaElectronica && whatsappNegocio) {
@@ -638,15 +682,35 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
         window.open(`https://wa.me/${numero}?text=${encodeURIComponent(texto)}`, '_blank')
       }
 
-      if (action === 'con_recibo') reemplazar(`/dashboard/ventas/${data}?recibo=1`)
-      else volver('/dashboard/ventas', { refrescar: true })
+      terminar(String(data), action === 'con_recibo')
 
     } catch (err: any) {
-      toast.error('Error al registrar venta: ' + err.message)
+      toast.error('No se pudo registrar la venta', { description: err.message })
     } finally {
       setSubmitting(false)
     }
   }
+
+  // Quien contiene la venta (ventas paralelas) decide qué pasa al registrarla; si no, como siempre
+  const terminar = (ventaId: string, conRecibo: boolean) => {
+    if (onRegistrada) { onRegistrada(ventaId, conRecibo); return }
+    if (conRecibo) reemplazar(`/dashboard/ventas/${ventaId}?recibo=1`)
+    else volver('/dashboard/ventas', { refrescar: true })
+  }
+
+  // Avisa cada cambio de la venta (no en el primer dibujo)
+  const onCambioRef = useRef(onCambio)
+  useEffect(() => { onCambioRef.current = onCambio }, [onCambio])
+  const primerDibujo = useRef(true)
+  useEffect(() => {
+    if (primerDibujo.current) { primerDibujo.current = false; return }
+    onCambioRef.current?.(
+      { cliente, carrito, serviciosCarrito, descuentoHabilitado, descuentoTotalActivo, descuentoTotalPct, editandoTotalManual, totalManual,
+        esCredito, fechaPagoCredito, esMixto, metodoPagoUnico, pagos, facturaElectronica, emailFactura, observaciones, paso },
+      { cliente: cliente.es_cliente_generico ? 'Mostrador' : cliente.nombre, lineas: carrito.length + serviciosCarrito.length, total: totalRedondeado },
+    )
+  }, [cliente, carrito, serviciosCarrito, descuentoHabilitado, descuentoTotalActivo, descuentoTotalPct, editandoTotalManual, totalManual,
+    esCredito, fechaPagoCredito, esMixto, metodoPagoUnico, pagos, facturaElectronica, emailFactura, observaciones, paso, totalRedondeado])
 
   // ─── Render ───────────────────────────────────────────────────────────────
   // Dos pasos en modo tarea (sin la barra de navegación): armar la venta y cobrar. El total vive en el letrero amarillo.
@@ -730,19 +794,21 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
       {/* Encabezado de la tarea */}
       <header className="sticky top-[env(safe-area-inset-top)] z-20 flex items-center gap-1 bg-fondo/95 px-2 pb-2 pt-3 backdrop-blur md:px-4 lg:top-0 lg:pt-4">
         <button type="button" aria-label={paso === 'cobro' ? 'Volver a la venta' : 'Salir de la venta'}
-          onClick={() => (paso === 'cobro' ? setPaso('venta') : volver('/dashboard/ventas'))}
+          onClick={() => (paso === 'cobro' ? setPaso('venta') : onSalir ? onSalir() : volver('/dashboard/ventas'))}
           className="flex size-12 items-center justify-center rounded-xl text-tinta hover:bg-velo/5">
           <ChevronLeft className="size-6" strokeWidth={2} aria-hidden />
         </button>
-        <h1 className="flex-1 text-[22px] font-bold text-tinta">{paso === 'cobro' ? 'Cobrar' : 'Nueva venta'}</h1>
+        <h1 className="min-w-0 flex-1 truncate whitespace-nowrap text-[20px] font-bold text-tinta sm:text-[22px]">{paso === 'cobro' ? 'Cobrar' : 'Nueva venta'}</h1>
         {paso === 'venta' && (
           <button type="button" onClick={() => setMostrarCliente(v => !v)} aria-expanded={mostrarCliente}
-            className="mr-2 flex h-10 max-w-[55%] items-center gap-1.5 rounded-full border border-linea bg-superficie pl-2.5 pr-3 text-[15px] font-semibold text-tinta">
+            className="mr-1 flex h-10 max-w-[40%] shrink-0 items-center gap-1.5 rounded-full border border-linea bg-superficie pl-2.5 pr-3 text-[15px] font-semibold text-tinta">
             <UserRound className="size-[18px] shrink-0" strokeWidth={1.75} aria-hidden />
             <span className="truncate">{cliente.es_cliente_generico ? 'Mostrador' : cliente.nombre}</span>
           </button>
         )}
+        {accionesCabecera}
       </header>
+      {pestanas}
 
       <div className="flex flex-col gap-6 px-4 pb-40 md:px-6 lg:flex-row lg:items-start lg:pb-10">
         <div className="min-w-0 flex-1 space-y-4">
@@ -802,7 +868,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                         <Input placeholder="NIT o cédula" aria-label="NIT o cédula" className={CAMPO} value={nuevoCliente.nit_cc} onChange={e => setNuevoCliente(p => ({ ...p, nit_cc: e.target.value }))} />
                       </div>
                       <Input placeholder="Correo" aria-label="Correo" type="email" className={CAMPO} value={nuevoCliente.email} onChange={e => setNuevoCliente(p => ({ ...p, email: e.target.value }))} />
-                      <div className="flex gap-2">
+                      <div className="grid grid-cols-2 gap-2">
                         <Button type="button" className="h-11 bg-accion font-bold text-sobre-accion" onClick={guardarNuevoCliente} disabled={guardandoCliente}>
                           {guardandoCliente ? 'Guardando…' : 'Guardar cliente'}
                         </Button>
@@ -886,18 +952,18 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                   <Input placeholder="Nombre del producto *" aria-label="Nombre del producto" className={CAMPO} value={altaRapida.nombre} onChange={e => setAltaRapida(p => ({ ...p, nombre: e.target.value }))} />
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
-                      <label htmlFor="alta-precio" className={ETIQUETA}>Precio de venta *</label>
-                      <Input id="alta-precio" type="number" inputMode="numeric" className={CAMPO} value={altaRapida.precio || ''} onChange={e => setAltaRapida(p => ({ ...p, precio: parseFloat(e.target.value) || 0 }))} />
+                      <label htmlFor={`${prefijoId}alta-precio`} className={ETIQUETA}>Precio de venta *</label>
+                      <Input id={`${prefijoId}alta-precio`} type="number" inputMode="numeric" className={CAMPO} value={altaRapida.precio || ''} onChange={e => setAltaRapida(p => ({ ...p, precio: parseFloat(e.target.value) || 0 }))} />
                     </div>
                     <div className="space-y-1">
-                      <label htmlFor="alta-margen" className={ETIQUETA}>Margen %</label>
-                      <Input id="alta-margen" type="number" inputMode="numeric" min={0} max={99} className={CAMPO} value={altaRapida.margen || ''} onChange={e => setAltaRapida(p => ({ ...p, margen: parseFloat(e.target.value) || 0 }))} />
+                      <label htmlFor={`${prefijoId}alta-margen`} className={ETIQUETA}>Margen %</label>
+                      <Input id={`${prefijoId}alta-margen`} type="number" inputMode="numeric" min={0} max={99} className={CAMPO} value={altaRapida.margen || ''} onChange={e => setAltaRapida(p => ({ ...p, margen: parseFloat(e.target.value) || 0 }))} />
                     </div>
                   </div>
                   {altaRapida.precio > 0 && (
                     <p className="text-sm text-suave">Costo calculado: <span className="cifra text-base text-tinta">{pesos(altaRapida.precio * (1 - altaRapida.margen / 100) / 1.19)}</span></p>
                   )}
-                  <div className="flex gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     <Button type="button" className="h-11 bg-accion font-bold text-sobre-accion" onClick={guardarAltaRapida} disabled={guardandoAltaRapida}>
                       {guardandoAltaRapida ? 'Creando…' : 'Crear y agregar'}
                     </Button>
@@ -1111,8 +1177,8 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                       <Input placeholder="Nombre *" aria-label="Nombre del servicio" className={CAMPO} value={nuevoServicio.nombre} onChange={e => setNuevoServicio(p => ({ ...p, nombre: e.target.value }))} />
                       <Input placeholder="Descripción" aria-label="Descripción" className={CAMPO} value={nuevoServicio.descripcion} onChange={e => setNuevoServicio(p => ({ ...p, descripcion: e.target.value }))} />
                       <div className="space-y-1">
-                        <label htmlFor="serv-precio" className={ETIQUETA}>Precio *</label>
-                        <Input id="serv-precio" type="number" inputMode="numeric" className={CAMPO} value={nuevoServicio.precio || ''} onChange={e => setNuevoServicio(p => ({ ...p, precio: parseFloat(e.target.value) || 0 }))} />
+                        <label htmlFor={`${prefijoId}serv-precio`} className={ETIQUETA}>Precio *</label>
+                        <Input id={`${prefijoId}serv-precio`} type="number" inputMode="numeric" className={CAMPO} value={nuevoServicio.precio || ''} onChange={e => setNuevoServicio(p => ({ ...p, precio: parseFloat(e.target.value) || 0 }))} />
                       </div>
                       <Button type="button" className="h-11 bg-accion font-bold text-sobre-accion" onClick={guardarNuevoServicio} disabled={guardandoServicio}>
                         {guardandoServicio ? 'Guardando…' : 'Guardar y agregar'}
@@ -1208,8 +1274,8 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                     ))}
                   </div>
                   <div className="space-y-1">
-                    <label htmlFor="recibido" className={ETIQUETA}>Otro valor</label>
-                    <Input id="recibido" type="number" inputMode="numeric" value={recibido || ''} onFocus={e => e.target.select()}
+                    <label htmlFor={`${prefijoId}recibido`} className={ETIQUETA}>Otro valor</label>
+                    <Input id={`${prefijoId}recibido`} type="number" inputMode="numeric" value={recibido || ''} onFocus={e => e.target.select()}
                       onChange={e => cambiarRecibido(parseFloat(e.target.value) || 0)} placeholder="Lo que entrega el cliente"
                       className={`${CAMPO} cifra text-xl`} />
                   </div>
@@ -1231,8 +1297,8 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                     <p className="text-[15px] text-suave">El inventario se descuenta ya y el saldo queda en la cuenta del cliente.</p>
                   </div>
                   <div className="space-y-1">
-                    <label htmlFor="fecha-credito" className={ETIQUETA}>Fecha en que pagará (opcional)</label>
-                    <Input id="fecha-credito" type="date" value={fechaPagoCredito} onChange={e => setFechaPagoCredito(e.target.value)} className={`${CAMPO} w-48`} />
+                    <label htmlFor={`${prefijoId}fecha-credito`} className={ETIQUETA}>Fecha en que pagará (opcional)</label>
+                    <Input id={`${prefijoId}fecha-credito`} type="date" value={fechaPagoCredito} onChange={e => setFechaPagoCredito(e.target.value)} className={`${CAMPO} w-full sm:w-56`} />
                   </div>
                 </section>
               )}
@@ -1257,8 +1323,8 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                             </div>
                             {m === 'efectivo' && (
                               <div className="space-y-1">
-                                <label htmlFor="recibido-mixto" className={ETIQUETA}>Recibido *</label>
-                                <Input id="recibido-mixto" type="number" inputMode="numeric" className={`${CAMPO} cifra text-lg`} value={pagoActivo.monto_recibido || ''} onFocus={e => e.target.select()} onChange={e => actualizarPago(m, 'monto_recibido', parseFloat(e.target.value) || 0)} />
+                                <label htmlFor={`${prefijoId}recibido-mixto`} className={ETIQUETA}>Recibido *</label>
+                                <Input id={`${prefijoId}recibido-mixto`} type="number" inputMode="numeric" className={`${CAMPO} cifra text-lg`} value={pagoActivo.monto_recibido || ''} onFocus={e => e.target.select()} onChange={e => actualizarPago(m, 'monto_recibido', parseFloat(e.target.value) || 0)} />
                               </div>
                             )}
                             {m === 'efectivo' && pagoActivo.vueltas > 0 && (
@@ -1294,18 +1360,18 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
                   {facturaElectronica && (
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">
-                        <label htmlFor="nit-fe" className={ETIQUETA}>NIT del cliente</label>
-                        <Input id="nit-fe" value={cliente.nit_cc ?? ''} readOnly className={`${CAMPO} bg-superficie-2`} />
+                        <label htmlFor={`${prefijoId}nit-fe`} className={ETIQUETA}>NIT del cliente</label>
+                        <Input id={`${prefijoId}nit-fe`} value={cliente.nit_cc ?? ''} readOnly className={`${CAMPO} bg-superficie-2`} />
                       </div>
                       <div className="space-y-1">
-                        <label htmlFor="email-fe" className={ETIQUETA}>Correo del cliente</label>
-                        <Input id="email-fe" type="email" className={CAMPO} placeholder="correo@ejemplo.com" value={emailFactura} onChange={e => setEmailFactura(e.target.value)} />
+                        <label htmlFor={`${prefijoId}email-fe`} className={ETIQUETA}>Correo del cliente</label>
+                        <Input id={`${prefijoId}email-fe`} type="email" className={CAMPO} placeholder="correo@ejemplo.com" value={emailFactura} onChange={e => setEmailFactura(e.target.value)} />
                       </div>
                     </div>
                   )}
                   <div className="space-y-1">
-                    <Label htmlFor="obs" className={ETIQUETA}>Observaciones</Label>
-                    <Textarea id="obs" className="border-linea bg-superficie-2 text-tinta placeholder:text-tenue" value={observaciones} onChange={e => setObservaciones(e.target.value)} rows={2} placeholder="Opcional" />
+                    <Label htmlFor={`${prefijoId}obs`} className={ETIQUETA}>Observaciones</Label>
+                    <Textarea id={`${prefijoId}obs`} className="border-linea bg-superficie-2 text-tinta placeholder:text-tenue" value={observaciones} onChange={e => setObservaciones(e.target.value)} rows={2} placeholder="Opcional" />
                   </div>
                 </div>
               </details>

@@ -430,6 +430,7 @@ export type Database = {
       }
       configuracion_negocio: {
         Row: {
+          bonos_ventas: Json
           ciudad: string | null
           direccion: string | null
           email: string | null
@@ -451,6 +452,7 @@ export type Database = {
           whatsapp_negocio: string | null
         }
         Insert: {
+          bonos_ventas?: Json
           ciudad?: string | null
           direccion?: string | null
           email?: string | null
@@ -472,6 +474,7 @@ export type Database = {
           whatsapp_negocio?: string | null
         }
         Update: {
+          bonos_ventas?: Json
           ciudad?: string | null
           direccion?: string | null
           email?: string | null
@@ -2343,12 +2346,76 @@ export type Database = {
           },
         ]
       }
+      ventas_en_curso: {
+        Row: {
+          actualizado_en: string
+          borrador_desde: string | null
+          cliente_nombre: string | null
+          creado_en: string
+          datos: Json
+          estado: string
+          id: string
+          lineas: number
+          nota: string | null
+          total: number
+          transferida_en: string | null
+          transferida_por: string | null
+          vendedor_id: string
+        }
+        Insert: {
+          actualizado_en?: string
+          borrador_desde?: string | null
+          cliente_nombre?: string | null
+          creado_en?: string
+          datos?: Json
+          estado?: string
+          id?: string
+          lineas?: number
+          nota?: string | null
+          total?: number
+          transferida_en?: string | null
+          transferida_por?: string | null
+          vendedor_id: string
+        }
+        Update: {
+          actualizado_en?: string
+          borrador_desde?: string | null
+          cliente_nombre?: string | null
+          creado_en?: string
+          datos?: Json
+          estado?: string
+          id?: string
+          lineas?: number
+          nota?: string | null
+          total?: number
+          transferida_en?: string | null
+          transferida_por?: string | null
+          vendedor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ventas_en_curso_transferida_por_fkey"
+            columns: ["transferida_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ventas_en_curso_vendedor_id_fkey"
+            columns: ["vendedor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       abrir_caja: { Args: { p_monto_base: number }; Returns: string }
+      aceptar_venta_en_curso: { Args: { p_id: string }; Returns: undefined }
       actualizar_denominaciones: {
         Args: { p_denominaciones: Json; p_tipo: string }
         Returns: undefined
@@ -2604,6 +2671,7 @@ export type Database = {
         Args: { p_renglon_id: string }
         Returns: undefined
       }
+      rechazar_venta_en_curso: { Args: { p_id: string }; Returns: undefined }
       recibir_garantia: {
         Args: { p_garantia_id: string; p_stock_destino?: string }
         Returns: undefined
@@ -2726,6 +2794,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      transferir_venta_en_curso: {
+        Args: { p_destino: string; p_id: string }
+        Returns: undefined
+      }
       unir_grupos_medidas: {
         Args: {
           p_caracteristica: string
@@ -2734,6 +2806,7 @@ export type Database = {
         }
         Returns: number
       }
+      vencer_ventas_en_curso: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

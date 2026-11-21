@@ -106,7 +106,7 @@ export function DashboardAdmin({ profile, config, fechaHoy, kpisHoy, ultimasVent
           {/* Accesos */}
           <section className="space-y-2.5">
             <h2 className={TITULO}>Ir a</h2>
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+            <div className="rejilla-3 sm:grid-cols-5">
               {[
                 { href: '/dashboard/caja', icon: Wallet, label: 'Caja' },
                 { href: '/dashboard/inventario', icon: Package, label: 'Inventario' },

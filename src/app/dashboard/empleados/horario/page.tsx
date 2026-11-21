@@ -25,7 +25,7 @@ export default async function HorarioPage() {
 
   const { data: turnos } = await supabase
     .from('horario_laboral')
-    .select('id, empleado_id, dia_semana, hora_inicio, hora_fin, activo, profiles(nombre_completo)')
+    .select('id, empleado_id, dia_semana, hora_inicio, hora_fin, activo, profiles(nombre_completo, foto_url)')
     .eq('activo', true)
 
   // Permisos desde el lunes de esta semana (para marcarlos en la vista semanal) en adelante

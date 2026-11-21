@@ -1,17 +1,20 @@
 'use client'
 
 import { useId, useMemo, useRef, useState } from 'react'
-import { toast } from 'sonner'
-import { ImagePlus, Loader2, Package, X } from 'lucide-react'
+import { toast } from '@/lib/avisos'
+import { Camera, ImagePlus, Loader2, Package, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { CamaraDialogo } from '@/components/ui/camara-dialogo'
+import { RecortarDialogo } from '@/components/ui/recortar-dialogo'
 import { type CarpetaImagen, esImagenDelSistema, formatoPeso, PERFILES_IMAGEN, subirImagen, type ValorImagen } from '@/lib/imagenes'
 
 /**
- * Campo de imagen con las dos opciones: subir una foto (o tomarla con la cámara del celular), que se reduce sola y se
- * guarda en Supabase Storage, y el enlace de una imagen de otra web. La foto subida tiene prioridad: si hay, es la que
- * se muestra y el enlace queda de respaldo.
+ * Campo de imagen con tres opciones: tomar una foto (en el celular abre su cámara; en el computador, una ventana con
+ * la cámara), elegirla de la galería o del equipo, o pegar el enlace de una imagen de otra web. La foto se reduce sola y
+ * se guarda en Supabase Storage. La foto subida tiene prioridad: si hay, es la que se muestra y el enlace queda de
+ * respaldo.
  */
 export function CampoImagen({
   etiqueta,
@@ -50,6 +53,11 @@ export function CampoImagen({
   const id = useId()
   const supabase = useMemo(() => createClient(), [])
   const archivoRef = useRef<HTMLInputElement>(null)
+  const camaraRef = useRef<HTMLInputElement>(null)
+  const [camaraAbierta, setCamaraAbierta] = useState(false)
+  // Foto elegida que espera el recorte (los logos no se recortan: conservan su forma y transparencia)
+  const [porRecortar, setPorRecortar] = useState<File | null>(null)
+  const recortar = forma !== 'logo'
   const [subiendo, setSubiendo] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const perfil = PERFILES_IMAGEN[carpeta]
@@ -61,17 +69,33 @@ export function CampoImagen({
   async function alElegir(e: React.ChangeEvent<HTMLInputElement>) {
     const archivo = e.target.files?.[0]
     e.target.value = '' // permite volver a elegir el mismo archivo
-    if (!archivo) return
+    if (archivo) elegida(archivo)
+  }
+
+  /** Toda foto nueva pasa por el recorte, salvo los logos */
+  function elegida(archivo: File) {
+    if (recortar) setPorRecortar(archivo)
+    else procesar(archivo)
+  }
+
+  /** En el celular (pantalla táctil) usa la cámara del sistema; en el computador, la ventana con la cámara */
+  function tomarFoto() {
+    const tactil = window.matchMedia('(pointer: coarse)').matches
+    if (tactil || !navigator.mediaDevices?.getUserMedia) camaraRef.current?.click()
+    else setCamaraAbierta(true)
+  }
+
+  async function procesar(archivo: File) {
     setSubiendo(true)
     setError(null)
     try {
       const r = await subirImagen(supabase, archivo, carpeta)
       onCambio({ ...valor, subida: r.url })
-      toast.success(`Foto cargada: ${r.ancho}×${r.alto} px, ${formatoPeso(r.bytes)} (antes ${formatoPeso(r.bytesOriginal)})`)
+      toast.success('Foto lista', { description: `Se redujo a ${r.ancho}×${r.alto} px y ${formatoPeso(r.bytes)} (antes ${formatoPeso(r.bytesOriginal)}). Se guarda al guardar el formulario.` })
     } catch (err) {
       const msg = (err as Error).message || 'No se pudo subir la imagen'
       setError(msg)
-      toast.error('No se pudo subir la imagen: ' + msg)
+      toast.error('No se pudo subir la foto', { description: msg })
     } finally {
       setSubiendo(false)
     }
@@ -100,12 +124,22 @@ export function CampoImagen({
         )}
         <div className="min-w-0 flex-1 space-y-2">
           <div className="flex gap-2">
-            <button type="button" onClick={() => archivoRef.current?.click()} disabled={subiendo || deshabilitado}
-              className="flex h-11 min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-linea bg-superficie-2 px-3 text-[15px] font-semibold text-tinta hover:bg-superficie disabled:opacity-60">
-              {subiendo
-                ? <><Loader2 className="size-5 animate-spin" aria-hidden />Reduciendo y subiendo…</>
-                : <><ImagePlus className="size-5 text-enlace" strokeWidth={1.75} aria-hidden />{subida ? 'Cambiar' : 'Subir foto'}</>}
-            </button>
+            {subiendo ? (
+              <p className="flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-linea bg-superficie-2 px-3 text-[15px] font-semibold text-tinta">
+                <Loader2 className="size-5 animate-spin" aria-hidden />Reduciendo y subiendo…
+              </p>
+            ) : (
+              <div className="grid min-w-0 flex-1 grid-cols-2 gap-2">
+                <button type="button" onClick={tomarFoto} disabled={deshabilitado}
+                  className="flex h-11 min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-linea bg-superficie-2 px-1.5 text-sm font-semibold text-tinta hover:bg-superficie disabled:opacity-60">
+                  <Camera className="size-5 shrink-0 text-enlace" strokeWidth={1.75} aria-hidden />Tomar foto
+                </button>
+                <button type="button" onClick={() => archivoRef.current?.click()} disabled={deshabilitado}
+                  className="flex h-11 min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-linea bg-superficie-2 px-1.5 text-sm font-semibold text-tinta hover:bg-superficie disabled:opacity-60">
+                  <ImagePlus className="size-5 shrink-0 text-enlace" strokeWidth={1.75} aria-hidden />{subida ? 'Cambiar' : 'Subir foto'}
+                </button>
+              </div>
+            )}
             {subida && !subiendo && (
               <button type="button" onClick={() => { onCambio({ ...valor, subida: '' }); setError(null) }} disabled={deshabilitado}
                 aria-label="Quitar la foto subida" title="Quitar la foto subida"
@@ -120,18 +154,22 @@ export function CampoImagen({
             </p>
           )}
           <input ref={archivoRef} type="file" accept="image/*" className="hidden" onChange={alElegir} tabIndex={-1} aria-hidden />
+          <input ref={camaraRef} type="file" accept="image/*" capture={forma === 'redonda' ? 'user' : 'environment'} className="hidden" onChange={alElegir} tabIndex={-1} aria-hidden />
           <Input id={`${id}-enlace`} type="url" inputMode="url" autoComplete="off" value={valor.enlace} placeholder={placeholderEnlace}
             onChange={e => alEscribirEnlace(e.target.value)} disabled={subiendo || deshabilitado || enlaceBloqueado}
             className={claseCampo} aria-describedby={`${id}-ayuda`} aria-label="Enlace de una imagen de otra web" />
           <p id={`${id}-ayuda`} className="text-xs text-tenue">
             {enlaceBloqueado
               ? 'Para usar un enlace, quita primero la foto subida.'
-              : (ayudaEnlace ?? 'Tómala con la cámara, elígela de la galería o pega el enlace de una imagen de otra web.')}
+              : (ayudaEnlace ?? 'Tómala con la cámara, elígela de la galería o pega aquí el enlace de una imagen de otra web.')}
             {' '}La foto subida se reduce sola a {perfil.lado} px y tiene prioridad sobre el enlace.
           </p>
           {error && <p className="text-xs text-sale" role="alert">{error}</p>}
         </div>
       </div>
+      <CamaraDialogo abierto={camaraAbierta} alCerrar={() => setCamaraAbierta(false)} alCapturar={elegida} frontal={forma === 'redonda'} />
+      <RecortarDialogo archivo={porRecortar} redonda={forma === 'redonda'} lado={perfil.lado}
+        alCancelar={() => setPorRecortar(null)} alRecortar={f => { setPorRecortar(null); procesar(f) }} />
     </div>
   )
 }

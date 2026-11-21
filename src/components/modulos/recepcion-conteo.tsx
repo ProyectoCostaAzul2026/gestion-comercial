@@ -3,7 +3,7 @@
 import { MiniaturaProducto } from '@/components/ui/producto-miniatura'
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { CheckCircle2, AlertTriangle, Clock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'

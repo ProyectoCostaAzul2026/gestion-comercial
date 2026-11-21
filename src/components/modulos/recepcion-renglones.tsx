@@ -4,7 +4,7 @@ import { MiniaturaProducto } from '@/components/ui/producto-miniatura'
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { Layers, Link2, PackagePlus, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -16,6 +16,7 @@ import { INPUT_CLS, LABEL_CLS } from './producto-form'
 import { BuscadorProducto, type ProductoElegido } from './recepcion-buscador'
 import { RecepcionFamiliaForm } from './recepcion-familia-form'
 import { nombreConMedida, pesos, type ProductoDelProveedor, type RecepcionVista, type RenglonVista } from './recepcion-tipos'
+import { confirmar } from '@/components/ui/confirmar'
 
 const numero = (texto: string) => (texto.trim() === '' ? NaN : Number(texto))
 
@@ -170,7 +171,7 @@ function FormularioRenglon({ recepcion, productosProveedor, renglon, onListo }: 
         </div>
       )}
 
-      <div className="flex gap-2">
+      <div className="rejilla-2">
         <Button type="button" onClick={guardar} disabled={guardando}
           className="h-11 flex-1 bg-brand-yellow font-bold text-steel-900 hover:bg-brand-yellow hover:brightness-105">
           {guardando ? 'Guardando…' : renglon ? 'Guardar renglón' : 'Agregar renglón'}
@@ -202,7 +203,7 @@ export function RecepcionRenglones({ recepcion, renglones, productosProveedor, e
   const pendientes = renglones.filter(r => !r.producto_id).length
 
   const quitar = async (r: RenglonVista) => {
-    if (!window.confirm(`¿Quitar "${r.descripcion}" de la recepción?`)) return
+    if (!(await confirmar({ titulo: '¿Quitar este renglón de la recepción?', mensaje: `"${r.descripcion}"`, tono: 'peligro', textoConfirmar: 'Quitar' }))) return
     setTrabajando(r.id)
     const { error } = await supabase.rpc('quitar_renglon_recepcion', { p_renglon_id: r.id })
     setTrabajando(null)

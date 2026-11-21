@@ -5,11 +5,13 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ChevronLeft, ChevronRight, PartyPopper, Plus, Trash2 } from 'lucide-react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { useRouter } from 'next/navigation'
 import { JORNADA_FESTIVO, JORNADA_NORMAL, nombreFestivo, turnoEnFecha } from '@/lib/festivos-colombia'
 import { fechaLarga, sumarDias } from '@/lib/permisos'
 import type { PermisoVista } from './permisos-empleados'
+import { confirmar } from '@/components/ui/confirmar'
+import { AvatarPersona } from '@/components/ui/avatar-persona'
 
 // La semana va de lunes a domingo
 const DIAS = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'] as const
@@ -124,7 +126,7 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy, permisos 
       setNuevoTurno(prev => ({ ...prev, empleado_id: '' }))
       router.refresh()
     } catch (err) {
-      toast.error('Error: ' + (err as Error).message)
+      toast.error('No se pudo completar la acción', { description: (err as Error).message })
     } finally {
       setGuardando(false)
     }
@@ -132,7 +134,7 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy, permisos 
 
   const handleEliminarTurno = async (t: Turno) => {
     const nombre = t.profiles?.nombre_completo ?? 'este empleado'
-    if (!window.confirm(`¿Quitar el turno de ${nombre} de todos los ${DIAS_LABEL[t.dia_semana]}?`)) return
+    if (!(await confirmar({ titulo: `¿Quitar el turno de ${nombre}?`, mensaje: `Se quita de todos los ${DIAS_LABEL[t.dia_semana]}, no solo de esta semana.`, tono: 'peligro', textoConfirmar: 'Quitar turno' }))) return
     setEliminando(t.id)
     try {
       const { error } = await supabase.from('horario_laboral').update({ activo: false }).eq('id', t.id)
@@ -140,7 +142,7 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy, permisos 
       toast.success('Turno eliminado')
       router.refresh()
     } catch (err) {
-      toast.error('Error: ' + (err as Error).message)
+      toast.error('No se pudo completar la acción', { description: (err as Error).message })
     } finally {
       setEliminando(null)
     }
@@ -234,7 +236,8 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy, permisos 
                       <div key={t.id} className={`rounded-xl border border-linea bg-superficie-2 px-2 py-1 text-xs ${tienePermiso(fecha, t.empleado_id) ? 'opacity-40 line-through' : ''}`}>
                         <div className="flex items-start justify-between gap-1">
                           <div className="min-w-0">
-                            <p className="truncate font-medium leading-tight text-tinta">
+                            <p className="flex items-center gap-1.5 truncate font-medium leading-tight text-tinta">
+                              <AvatarPersona nombre={t.profiles?.nombre_completo ?? '?'} foto={(t.profiles as { foto_url?: string | null } | null)?.foto_url} tam="xs" />
                               {t.profiles?.nombre_completo?.split(' ')[0] ?? '?'}
                             </p>
                             <p className={real.ajustado ? 'font-semibold text-brand-yellow' : 'text-steel-300'}>{real.inicio} – {real.fin}</p>

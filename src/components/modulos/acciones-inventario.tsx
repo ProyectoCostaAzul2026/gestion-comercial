@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { createClient } from '@/lib/supabase/client'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Input } from '@/components/ui/input'
@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label'
 import {
   ArrowLeft, Eye, FolderInput, Layers, Pencil, Plus, PowerOff, Scissors, Shapes, SlidersHorizontal, Tags,
 } from 'lucide-react'
+import { confirmar } from '@/components/ui/confirmar'
 
 /** Lo mínimo de un producto que necesitan las acciones de mover y sacar */
 export interface ProductoAccion {
@@ -141,11 +142,11 @@ export function AccionesInventario({ objetivo, onCerrar, categorias, familias, e
 
   async function desactivar() {
     if (esGrupo) return
-    if (!window.confirm(`¿Seguro que deseas desactivar "${base.nombre}"${base.unidad_medida ? ` ${base.unidad_medida}` : ''}? Ya no aparecerá en el inventario activo.`)) return
+    if (!(await confirmar({ titulo: `¿Desactivar "${base.nombre}"${base.unidad_medida ? ` ${base.unidad_medida}` : ''}?`, mensaje: 'Ya no aparecerá en el inventario activo ni en Ventas. Puedes activarlo de nuevo desde Desactivados.', tono: 'peligro', textoConfirmar: 'Desactivar' }))) return
     setGuardando(true)
     const { error } = await supabase.from('productos').update({ activo: false }).eq('id', base.id)
     setGuardando(false)
-    if (error) { toast.error('Error al desactivar: ' + error.message); return }
+    if (error) { toast.error('No se pudo desactivar', { description: error.message }); return }
     toast.success('Producto desactivado')
     onCerrar()
     router.refresh()

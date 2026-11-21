@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Plus, Pencil, Check, X } from 'lucide-react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { useRouter } from 'next/navigation'
 
 interface Servicio {
@@ -38,7 +38,7 @@ export function ServiciosGestion({ servicios: inicial }: { servicios: Servicio[]
       .select()
       .single()
     setSaving(false)
-    if (error) { toast.error('Error: ' + error.message); return }
+    if (error) { toast.error('No se pudo completar la acción', { description: error.message }); return }
     setServicios(prev => [...prev, data])
     setForm({ nombre: '', descripcion: '', precio: 0 })
     setMostrarNuevo(false)
@@ -57,7 +57,7 @@ export function ServiciosGestion({ servicios: inicial }: { servicios: Servicio[]
       .update({ nombre: editForm.nombre, descripcion: editForm.descripcion || null, precio: editForm.precio })
       .eq('id', id)
     setSaving(false)
-    if (error) { toast.error('Error: ' + error.message); return }
+    if (error) { toast.error('No se pudo completar la acción', { description: error.message }); return }
     setServicios(prev => prev.map(s => s.id === id ? { ...s, ...editForm, descripcion: editForm.descripcion || null } : s))
     setEditandoId(null)
     toast.success('Servicio actualizado')
@@ -66,7 +66,7 @@ export function ServiciosGestion({ servicios: inicial }: { servicios: Servicio[]
   const handleToggle = async (s: Servicio) => {
     const { error } = await supabase
       .from('servicios').update({ activo: !s.activo }).eq('id', s.id)
-    if (error) { toast.error('Error: ' + error.message); return }
+    if (error) { toast.error('No se pudo completar la acción', { description: error.message }); return }
     setServicios(prev => prev.map(sv => sv.id === s.id ? { ...sv, activo: !sv.activo } : sv))
     toast.success(s.activo ? 'Servicio desactivado' : 'Servicio activado')
   }
@@ -99,11 +99,11 @@ export function ServiciosGestion({ servicios: inicial }: { servicios: Servicio[]
               <Input value={form.descripcion} className="border-linea bg-superficie text-tinta" onChange={e => setForm(p => ({ ...p, descripcion: e.target.value }))} />
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={handleCrear} disabled={saving}>
+          <div className="grid grid-cols-2 gap-2">
+            <Button className="h-11 bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={handleCrear} disabled={saving}>
               {saving ? 'Guardando…' : 'Crear'}
             </Button>
-            <Button size="sm" variant="outline" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setMostrarNuevo(false)}>Cancelar</Button>
+            <Button variant="outline" className="h-11 border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setMostrarNuevo(false)}>Cancelar</Button>
           </div>
         </div>
       )}

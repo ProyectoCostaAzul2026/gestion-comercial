@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { jsPDF } from 'jspdf'
 import { autoTable } from 'jspdf-autotable'
 import { createClient } from '@/lib/supabase/client'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { cantidadSugerida } from '@/lib/pedido'
 import { MiniaturaProducto } from '@/components/ui/producto-miniatura'
 import { hoyBogota } from '@/lib/fechas'
@@ -116,7 +116,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
       setListaPedido(lista)
       setConfirmando(true)
     } catch (err: any) {
-      toast.error('Error al calcular: ' + err.message)
+      toast.error('No se pudo calcular', { description: err.message })
     } finally {
       setCalculando(false)
     }
@@ -169,7 +169,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="grid w-full grid-cols-2 gap-2 md:flex md:w-auto md:flex-wrap md:gap-3">
+        <div className="rejilla-2 w-full md:flex md:w-auto md:flex-wrap md:gap-3">
           <Select
             items={[
               { value: 'todos', label: 'Todos los estados' },
@@ -212,7 +212,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
             onValueChange={(v) => v && setFiltroProveedor(v)}
             value={filtroProveedor}
           >
-            <SelectTrigger className="h-11 w-full border-linea bg-superficie-2 text-tinta md:w-52"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="col-span-2 h-11 w-full border-linea bg-superficie-2 text-tinta md:w-52"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos los proveedores</SelectItem>
               {proveedores.map((p) => (

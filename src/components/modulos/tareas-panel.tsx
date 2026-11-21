@@ -2,15 +2,17 @@
 
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import {
-  BookmarkPlus, Check, ChevronDown, ChevronUp, CopyPlus, Flag, Pencil, Plus, RotateCcw, Trash2, User, Users, X,
+  BookmarkPlus, Check, ChevronDown, ChevronUp, CopyPlus, Flag, Pencil, Plus, RotateCcw, Trash2, Users, X,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { PRIORIDADES, ordenarPendientes, textoVencimiento, type PlantillaTarea, type Prioridad, type Tarea } from '@/lib/tareas'
+import { confirmar } from '@/components/ui/confirmar'
+import { AvatarPersona } from '@/components/ui/avatar-persona'
 
-interface Persona { id: string; nombre: string; rol: string }
+interface Persona { id: string; nombre: string; rol: string; foto?: string | null }
 
 interface Props {
   pendientes: Tarea[]
@@ -123,7 +125,7 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
   }
 
   async function borrarTarea(t: Tarea) {
-    if (!window.confirm(`¿Borrar la tarea "${t.titulo}"?`)) return
+    if (!(await confirmar({ titulo: '¿Borrar esta tarea?', mensaje: `"${t.titulo}". No se puede deshacer.`, tono: 'peligro', textoConfirmar: 'Borrar' }))) return
     const { error } = await supabase.from('tareas').delete().eq('id', t.id)
     if (error) { toast.error('No se pudo borrar: ' + error.message); return }
     toast.success('Tarea borrada')
@@ -131,7 +133,7 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
   }
 
   async function borrarPlantilla(p: PlantillaTarea) {
-    if (!window.confirm(`¿Borrar la plantilla "${p.titulo}"? Las tareas ya creadas no cambian.`)) return
+    if (!(await confirmar({ titulo: '¿Borrar esta plantilla?', mensaje: `"${p.titulo}". Las tareas ya creadas con ella no cambian.`, tono: 'peligro', textoConfirmar: 'Borrar' }))) return
     const { error } = await supabase.from('tareas_plantillas').delete().eq('id', p.id)
     if (error) { toast.error('No se pudo borrar: ' + error.message); return }
     toast.success('Plantilla borrada')
@@ -182,7 +184,9 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
               </span>
             )}
             <span className="inline-flex items-center gap-1 text-steel-300">
-              {t.asignado_a ? <User className="h-3 w-3" aria-hidden /> : <Users className="h-3 w-3" aria-hidden />}
+              {t.asignado_a
+                ? <AvatarPersona nombre={nombre(t.asignado_a) ?? '?'} foto={personas.find(p => p.id === t.asignado_a)?.foto} tam="xs" />
+                : <Users className="h-3 w-3" aria-hidden />}
               {t.asignado_a ? (t.asignado_a === usuarioId ? 'Para ti' : nombre(t.asignado_a)) : 'Libre'}
             </span>
             {venc && !hecha && (
@@ -249,10 +253,10 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
       )}
 
       {/* Filtros */}
-      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 md:mx-0 md:flex-wrap md:px-0">
+      <div className="grid grid-cols-3 gap-2 md:flex md:flex-wrap">
         {FILTROS.map(f => (
           <button key={f.valor} type="button" onClick={() => setFiltro(f.valor)}
-            className={`flex h-10 shrink-0 items-center gap-2 rounded-xl px-4 text-sm font-semibold transition ${
+            className={`flex h-10 min-w-0 shrink-0 items-center justify-center gap-2 rounded-xl px-3 text-sm font-semibold transition md:px-4 ${
               filtro === f.valor ? 'bg-brand-yellow text-steel-900' : 'border border-linea bg-superficie-2 text-steel-300 hover:text-tinta'
             }`}>
             {f.etiqueta}
@@ -261,7 +265,7 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
         ))}
         {esAdmin && (
           <select value={['todas', 'mias', 'libres'].includes(filtro) ? '' : filtro} onChange={e => setFiltro(e.target.value || 'todas')}
-            aria-label="Ver tareas de una persona" className="h-10 shrink-0 rounded-xl border border-linea bg-superficie-2 px-3 text-sm text-tinta">
+            aria-label="Ver tareas de una persona" className="col-span-3 h-10 w-full rounded-xl border border-linea bg-superficie-2 px-3 text-sm text-tinta md:w-auto">
             <option value="">Por persona…</option>
             {personas.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
           </select>

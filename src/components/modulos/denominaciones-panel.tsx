@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { AlertTriangle } from 'lucide-react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 
 interface FondoDenominacion {
   tipo: string
@@ -109,7 +109,7 @@ function FondoEditor({
       setModo(null)
       router.refresh()
     } catch (err: any) {
-      toast.error('Error: ' + err.message)
+      toast.error('No se pudo completar la acción', { description: err.message })
     } finally {
       setGuardando(false)
     }
@@ -244,11 +244,11 @@ function FondoEditor({
             </p>
           )}
 
-          <div className="flex gap-2">
-            <Button type="button" size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={handleGuardar} disabled={guardando}>
+          <div className="grid grid-cols-2 gap-2">
+            <Button type="button" className="h-11 bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={handleGuardar} disabled={guardando}>
               {guardando ? 'Guardando…' : 'Guardar'}
             </Button>
-            <Button type="button" variant="outline" size="sm" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setModo(null)}>Cancelar</Button>
+            <Button type="button" variant="outline" className="h-11 border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setModo(null)}>Cancelar</Button>
           </div>
         </div>
       )}

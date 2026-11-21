@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { useRouter } from 'next/navigation'
 import { Plus, X, Check } from 'lucide-react'
 
@@ -33,7 +33,7 @@ export function UnidadesMedidaForm({ unidades }: { unidades: Unidad[] }) {
       setNueva('')
       router.refresh()
     } catch (err: any) {
-      toast.error('Error: ' + err.message)
+      toast.error('No se pudo completar la acción', { description: err.message })
     } finally {
       setGuardando(false)
     }
@@ -50,7 +50,7 @@ export function UnidadesMedidaForm({ unidades }: { unidades: Unidad[] }) {
       toast.success(u.activo ? 'Unidad desactivada' : 'Unidad reactivada')
       router.refresh()
     } catch (err: any) {
-      toast.error('Error: ' + err.message)
+      toast.error('No se pudo completar la acción', { description: err.message })
     } finally {
       setToggling(null)
     }

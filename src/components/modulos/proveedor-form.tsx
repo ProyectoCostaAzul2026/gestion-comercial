@@ -6,10 +6,11 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { useNavegacion } from '@/lib/navegacion'
 import { CampoImagen } from '@/components/ui/campo-imagen'
 import { imagenVisible, valorImagen, type ValorImagen } from '@/lib/imagenes'
+import { confirmar } from '@/components/ui/confirmar'
 
 interface ProveedorFormState {
   nombre: string
@@ -100,7 +101,7 @@ export function ProveedorForm({ proveedor }: ProveedorFormProps) {
       }
       volver('/dashboard/proveedores', { refrescar: true })
     } catch (err: any) {
-      toast.error('Error: ' + err.message)
+      toast.error('No se pudo completar la acción', { description: err.message })
     } finally {
       setSaving(false)
     }
@@ -108,12 +109,12 @@ export function ProveedorForm({ proveedor }: ProveedorFormProps) {
 
   const handleDesactivar = async () => {
     if (!proveedor) return
-    const confirmado = window.confirm(`¿Desactivar a "${proveedor.nombre}"?`)
+    const confirmado = await confirmar({ titulo: `¿Desactivar a "${proveedor.nombre}"?`, mensaje: 'Deja de aparecer en las listas de proveedores. Sus facturas y pagos se conservan.', tono: 'peligro', textoConfirmar: 'Desactivar' })
     if (!confirmado) return
     setDesactivando(true)
     const { error } = await supabase.from('proveedores').update({ activo: false }).eq('id', proveedor.id)
     setDesactivando(false)
-    if (error) { toast.error('Error: ' + error.message); return }
+    if (error) { toast.error('No se pudo completar la acción', { description: error.message }); return }
     toast.success('Proveedor desactivado')
     volver('/dashboard/proveedores', { refrescar: true })
   }

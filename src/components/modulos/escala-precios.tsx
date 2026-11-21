@@ -2,7 +2,7 @@
 
 import { Fragment, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { AlertTriangle, ArrowDownRight, Equal, TrendingUp } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -140,7 +140,7 @@ export function EscalaPrecios({ miembros, margenDefault, onGuardado, paginaCompl
       onGuardado?.(Object.fromEntries(precios.map(p => [p.producto_id, p.precio_venta])))
       router.refresh()
     } catch (err) {
-      toast.error('Error al guardar los precios: ' + mensajeError(err))
+      toast.error('No se pudieron guardar los precios', { description: mensajeError(err) })
     } finally {
       setGuardando(false)
     }

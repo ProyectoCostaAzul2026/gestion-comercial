@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Trash2, Plus } from 'lucide-react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { useRouter } from 'next/navigation'
 import { hoyBogota } from '@/lib/fechas'
 
@@ -133,7 +133,7 @@ export function FacturaProveedorForm({ proveedorId, facturaId, inicial, onSucces
       router.refresh()
       onSuccess?.()
     } catch (err: any) {
-      toast.error('Error: ' + err.message)
+      toast.error('No se pudo completar la acción', { description: err.message })
     } finally {
       setSaving(false)
     }

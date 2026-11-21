@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { parseUnidadMedida, SEPARADOR_FAMILIA, INPUT_CLS, LABEL_CLS } from './producto-form'
 import { TEMAS_AYUDA } from '@/lib/temas-ayuda'
 
@@ -270,7 +270,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
       router.refresh()
       if (producto.familia_id) await recargarMiembros(producto.familia_id)
     } catch (err: any) {
-      toast.error('Error al aplicar los datos: ' + err.message)
+      toast.error('No se pudieron aplicar los datos', { description: err.message })
     } finally {
       setAplicandoDatos(false)
     }
@@ -536,7 +536,7 @@ export function FamiliaMedidasPanel({ empleadoId, productoActualId, nombreBase, 
       } else if (err.code === '23505' && err.message?.includes('productos_codigo_key')) {
         toast.error('El código generado ya existe en otro producto (activo o inactivo). No se guardó ningún cambio de este intento.')
       } else {
-        toast.error('Error al guardar la familia: ' + err.message)
+        toast.error('No se pudo guardar la familia', { description: err.message })
       }
     } finally {
       setGuardando(false)

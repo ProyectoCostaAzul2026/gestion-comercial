@@ -5,7 +5,8 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useNavegacion } from '@/lib/navegacion'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
+import { confirmar } from '@/components/ui/confirmar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { MiniaturaProducto } from '@/components/ui/producto-miniatura'
@@ -184,15 +185,26 @@ export function VentaAcciones({
 
   const handleAnular = async () => {
     if (!motivo.trim()) { toast.error('El motivo es obligatorio'); return }
+    const ok = await confirmar({
+      titulo: '¿Anular esta venta?',
+      mensaje: 'Los productos vuelven al inventario y el dinero cobrado se devuelve. No se puede deshacer.',
+      detalle: [
+        { etiqueta: 'Total de la venta', valor: `$${ventaTotal.toLocaleString('es-CO')}` },
+        { etiqueta: 'Motivo', valor: motivo.trim() },
+      ],
+      tono: 'peligro',
+      textoConfirmar: 'Anular venta',
+    })
+    if (!ok) return
     setAnulando(true)
     try {
       const { error } = await supabase.rpc('anular_venta', { p_venta_id: ventaId, p_motivo: motivo })
       if (error) throw error
-      toast.success('Venta anulada')
+      toast.success('Venta anulada', { description: 'Los productos volvieron al inventario.' })
       router.refresh()
       if (accion) cerrar()
     } catch (err: any) {
-      toast.error('Error al anular: ' + err.message)
+      toast.error('No se pudo anular la venta', { description: err.message })
     } finally {
       setAnulando(false)
     }
@@ -248,6 +260,18 @@ export function VentaAcciones({
     if (garantiaSinProveedor(garantiasDevolucion, seleccionadosDevolucion.map(i => i.venta_item_id))) {
       toast.error('Elige el proveedor de cada producto que va a garantía'); return
     }
+    const okDev = await confirmar({
+      titulo: '¿Registrar la devolución?',
+      mensaje: 'Los productos vuelven al inventario (o van a garantía si los marcaste).',
+      detalle: [
+        { etiqueta: 'Productos', valor: String(seleccionadosDevolucion.length) },
+        ...(devolucionADeuda > 0 ? [{ etiqueta: 'Se descuenta de la deuda', valor: `$${devolucionADeuda.toLocaleString('es-CO')}` }] : []),
+        ...(devolucionEnDinero > 0 ? [{ etiqueta: `Devolver por ${MEDIO_AJUSTE_LABEL[medioDevolucion]}`, valor: `$${devolucionEnDinero.toLocaleString('es-CO')}`, fuerte: true }] : []),
+      ],
+      tono: 'aviso',
+      textoConfirmar: 'Registrar devolución',
+    })
+    if (!okDev) return
     setDevolviendo(true)
     try {
       const payload = seleccionadosDevolucion.map(i =>
@@ -265,11 +289,11 @@ export function VentaAcciones({
         devolucionADeuda > 0 ? `Descontado de la deuda: $${devolucionADeuda.toLocaleString('es-CO')}` : '',
         devolucionEnDinero > 0 ? `Devolver: $${devolucionEnDinero.toLocaleString('es-CO')} (${MEDIO_AJUSTE_LABEL[medioDevolucion]})` : '',
       ].filter(Boolean)
-      toast.success(partes.length > 0 ? `Devolución registrada. ${partes.join('. ')}` : 'Devolución registrada')
+      toast.success('Devolución registrada', partes.length > 0 ? { description: partes.join('. ') + '.' } : undefined)
       router.refresh()
       cerrar()
     } catch (err: any) {
-      toast.error('Error: ' + err.message)
+      toast.error('No se pudo completar la acción', { description: err.message })
     } finally {
       setDevolviendo(false)
     }
@@ -321,6 +345,19 @@ export function VentaAcciones({
     if (garantiaSinProveedor(garantiasCambio, seleccionadosCambio.map(i => i.venta_item_id))) {
       toast.error('Elige el proveedor de cada producto que va a garantía'); return
     }
+    const okCambio = await confirmar({
+      titulo: '¿Registrar el cambio de productos?',
+      mensaje: 'Lo retirado vuelve al inventario y lo nuevo sale de él.',
+      detalle: [
+        { etiqueta: 'Se retiran', valor: `${seleccionadosCambio.length} producto${seleccionadosCambio.length === 1 ? '' : 's'}` },
+        { etiqueta: 'Se entregan', valor: `${itemsAgregar.length} producto${itemsAgregar.length === 1 ? '' : 's'}` },
+        ...(deudaCambio !== 0 ? [{ etiqueta: deudaCambio > 0 ? 'Se suma a la deuda' : 'Se descuenta de la deuda', valor: `$${Math.abs(deudaCambio).toLocaleString('es-CO')}` }] : []),
+        ...(cajaCambio !== 0 ? [{ etiqueta: `${cajaCambio > 0 ? 'Cobrar' : 'Devolver'} por ${MEDIO_AJUSTE_LABEL[medioCambio]}`, valor: `$${Math.abs(cajaCambio).toLocaleString('es-CO')}`, fuerte: true }] : []),
+      ],
+      tono: 'aviso',
+      textoConfirmar: 'Registrar cambio',
+    })
+    if (!okCambio) return
     setCambiando(true)
     try {
       const { data, error } = await supabase.rpc('cambiar_productos', {
@@ -342,10 +379,10 @@ export function VentaAcciones({
         r.cobrar_al_cliente > 0 ? `Cobrar: $${Number(r.cobrar_al_cliente).toLocaleString('es-CO')} (${medio})` : '',
         r.devolver_al_cliente > 0 ? `Devolver: $${Number(r.devolver_al_cliente).toLocaleString('es-CO')} (${medio})` : '',
       ].filter(Boolean)
-      toast.success(partes.length > 0 ? `Cambio registrado. ${partes.join('. ')}` : 'Cambio registrado sin diferencia')
+      toast.success('Cambio registrado', { description: partes.length > 0 ? partes.join('. ') + '.' : 'Sin diferencia de dinero.' })
       router.refresh(); cerrar()
     } catch (err: any) {
-      toast.error('Error: ' + err.message)
+      toast.error('No se pudo completar la acción', { description: err.message })
     } finally {
       setCambiando(false)
     }
@@ -363,19 +400,19 @@ export function VentaAcciones({
 
       {accionActiva === 'ninguna' && (
         <div className="space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="rejilla-2 sm:flex sm:flex-wrap sm:items-center">
             {/* Cada acción abre su propia vista; Atrás vuelve a este detalle */}
             <Link href={`/dashboard/ventas/${ventaId}?accion=devolver`}
-              className="inline-flex h-11 items-center gap-2 rounded-xl border border-brand-yellow/40 px-4 text-sm font-semibold text-brand-yellow hover:bg-brand-yellow/10">
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-brand-yellow/40 px-4 text-sm font-semibold text-brand-yellow hover:bg-brand-yellow/10">
               <Undo2 className="h-4 w-4" />Devolver productos
             </Link>
             <Link href={`/dashboard/ventas/${ventaId}?accion=cambiar`}
-              className="inline-flex h-11 items-center gap-2 rounded-xl border border-brand-blue/40 px-4 text-sm font-semibold text-enlace hover:bg-brand-blue/10">
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-brand-blue/40 px-4 text-sm font-semibold text-enlace hover:bg-brand-blue/10">
               <Repeat className="h-4 w-4" />Cambiar productos
             </Link>
             {!tieneAjustes && (
               <Link href={`/dashboard/ventas/${ventaId}?accion=anular`}
-                className="inline-flex h-11 items-center gap-2 rounded-xl border border-brand-red/40 px-4 text-sm font-semibold text-sale hover:bg-brand-red/10">
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-brand-red/40 px-4 text-sm font-semibold text-sale hover:bg-brand-red/10">
                 <Ban className="h-4 w-4" />Anular venta
               </Link>
             )}
@@ -409,11 +446,11 @@ export function VentaAcciones({
             <Label className="text-xs text-sale">Motivo (obligatorio)</Label>
             <Textarea value={motivo} onChange={e => setMotivo(e.target.value)} rows={2} className="border-linea bg-superficie text-tinta placeholder:text-tenue" />
           </div>
-          <div className="flex gap-2">
-            <Button size="sm" onClick={handleAnular} disabled={anulando} className="bg-brand-red font-bold text-white hover:bg-brand-red hover:brightness-95">
+          <div className="grid grid-cols-2 gap-2">
+            <Button onClick={handleAnular} disabled={anulando} className="h-11 bg-brand-red font-bold text-white hover:bg-brand-red hover:brightness-95">
               {anulando ? 'Anulando…' : 'Confirmar anulación'}
             </Button>
-            <Button size="sm" variant="outline" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={cerrar}>Cancelar</Button>
+            <Button variant="outline" className="h-11 border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={cerrar}>Cancelar</Button>
           </div>
         </div>
       )}
@@ -547,11 +584,11 @@ export function VentaAcciones({
             <Label className="text-xs text-brand-yellow">Observación (obligatoria)</Label>
             <Textarea value={observacionDev} onChange={e => setObservacionDev(e.target.value)} rows={2} className="border-linea bg-superficie text-tinta placeholder:text-tenue" />
           </div>
-          <div className="flex gap-2">
-            <Button size="sm" onClick={handleDevolver} disabled={devolviendo} className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105">
+          <div className="grid grid-cols-2 gap-2">
+            <Button onClick={handleDevolver} disabled={devolviendo} className="h-11 bg-brand-yellow font-bold text-steel-900 hover:brightness-105">
               {devolviendo ? 'Registrando…' : 'Confirmar devolución'}
             </Button>
-            <Button size="sm" variant="outline" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={cerrar}>Cancelar</Button>
+            <Button variant="outline" className="h-11 border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={cerrar}>Cancelar</Button>
           </div>
         </div>
       )}
@@ -640,11 +677,11 @@ export function VentaAcciones({
                   </div>
                 ))}
               </div>
-              <div className="flex gap-2">
-                <Button size="sm" onClick={() => { if (seleccionadosCambio.length === 0) { toast.error('Selecciona al menos un producto'); return } setPaso(2) }} className="bg-brand-blue font-bold text-white hover:brightness-110">
+              <div className="grid grid-cols-2 gap-2">
+                <Button onClick={() => { if (seleccionadosCambio.length === 0) { toast.error('Selecciona al menos un producto'); return } setPaso(2) }} className="h-11 bg-brand-blue font-bold text-white hover:brightness-110">
                   Siguiente →
                 </Button>
-                <Button size="sm" variant="outline" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={cerrar}>Cancelar</Button>
+                <Button variant="outline" className="h-11 border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={cerrar}>Cancelar</Button>
               </div>
             </>
           )}
@@ -740,12 +777,12 @@ export function VentaAcciones({
                 <Label className="text-xs text-enlace">Observación (obligatoria)</Label>
                 <Textarea value={observacionCambio} onChange={e => setObservacionCambio(e.target.value)} rows={2} className="border-linea bg-superficie text-tinta placeholder:text-tenue" />
               </div>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setPaso(1)}>← Atrás</Button>
-                <Button size="sm" onClick={handleCambiar} disabled={cambiando} className="bg-brand-blue font-bold text-white hover:brightness-110">
+              <div className="grid grid-cols-2 gap-2">
+                <Button variant="outline" className="h-11 border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setPaso(1)}>← Atrás</Button>
+                <Button onClick={handleCambiar} disabled={cambiando} className="h-11 bg-brand-blue font-bold text-white hover:brightness-110">
                   {cambiando ? 'Registrando…' : 'Confirmar cambio'}
                 </Button>
-                <Button size="sm" variant="outline" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={cerrar}>Cancelar</Button>
+                <Button variant="outline" className="h-11 border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={cerrar}>Cancelar</Button>
               </div>
             </>
           )}

@@ -4,7 +4,8 @@ import Link from 'next/link'
 import { MiniaturaProducto } from '@/components/ui/producto-miniatura'
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
+import { confirmar } from '@/components/ui/confirmar'
 import { ArrowRight, CheckCircle2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -69,11 +70,17 @@ export function RecepcionPrecios({ recepcion, renglones, margenDefault }: {
       toast.error(`Escribe el precio de "${nombreConMedida(r.producto!)}"`)
       return
     }
+    const ok = await confirmar({
+      titulo: `¿Aprobar los precios de ${lista.length} producto${lista.length === 1 ? '' : 's'}?`,
+      mensaje: 'El precio de venta de cada producto cambia ya mismo en Ventas y en el inventario.',
+      textoConfirmar: 'Aprobar precios',
+    })
+    if (!ok) return
     setGuardando(true)
     const { data, error } = await supabase.rpc('aprobar_precios_recepcion', { p_recepcion_id: recepcion.id, p_precios: lista })
     setGuardando(false)
-    if (error) { toast.error(error.message); return }
-    toast.success(`Precios aprobados: ${data} producto${data === 1 ? '' : 's'}`)
+    if (error) { toast.error('No se pudieron aprobar los precios', { description: error.message }); return }
+    toast.success(`Precios aprobados: ${data} producto${data === 1 ? '' : 's'}`, { description: 'Ya se puede contar la mercancía.' })
     setReproponer(false)
     setEditados({})
     router.refresh()

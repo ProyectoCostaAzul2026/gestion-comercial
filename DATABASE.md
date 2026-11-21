@@ -791,7 +791,28 @@ Singleton (un solo registro).
 | max_descuento_porcentaje | numeric | 0.10 | 10% |
 | whatsapp_negocio | varchar | null | |
 | margen_default | numeric | 0.40 | 40% |
+| bonos_ventas | jsonb | `{"equipo": [], "individual": []}` | Topes de bonos por ventas (nota 25) |
 | updated_at | timestamptz | now() | |
+
+### `ventas_en_curso`
+Ventas sin registrar que se guardan: ventas paralelas (hasta 3 por vendedor), borradores y ventas pasadas a otro
+vendedor (nota 25). Al registrar la venta la fila se borra.
+
+| Columna | Tipo | Nullable | Default | Notas |
+|---|---|---|---|---|
+| id | uuid | NO | gen_random_uuid() | PK (lo genera la app) |
+| vendedor_id | uuid | NO | — | FK → profiles (on delete cascade). Dueño actual |
+| datos | jsonb | NO | '{}' | Estado de la pantalla de Nueva venta (`EstadoVenta`) |
+| cliente_nombre | text | YES | — | Para mostrarla en listas y avisos |
+| lineas | int4 | NO | 0 | |
+| total | numeric(14,2) | NO | 0 | |
+| estado | text | NO | 'abierta' | abierta / borrador / transferida |
+| transferida_por | uuid | YES | — | FK → profiles (on delete set null) |
+| transferida_en | timestamptz | YES | — | |
+| nota | text | YES | — | "Rechazada por …" / "No la aceptó a tiempo …" (la app la limpia al avisar) |
+| creado_en | timestamptz | NO | now() | |
+| actualizado_en | timestamptz | NO | now() | Último cambio: cuenta para pasar a borrador |
+| borrador_desde | timestamptz | YES | — | |
 
 ---
 
@@ -963,6 +984,10 @@ servicios ─────────────────────── 
 | `registrar_retiro(p_monto, p_observaciones, p_fuentes)` | Registra retiro de caja |
 | `registrar_pago_factura(p_factura_id, p_monto, p_fuentes, p_fecha_pago, p_observaciones)` | Pago a proveedor |
 | `registrar_nomina(p_empleado_id, p_fecha, p_horas_trabajadas, p_salario_base, p_bonificaciones, p_concepto_bonificacion, p_deducciones, p_concepto_deduccion, p_metodo_pago, p_notas)` | Registra nómina diaria |
+| `transferir_venta_en_curso(p_id, p_destino)` | Pasa una venta en curso (con líneas) a otro vendedor activo; queda `transferida` |
+| `aceptar_venta_en_curso(p_id)` | Quien la recibe la acepta (máximo 3 abiertas); queda `abierta` |
+| `rechazar_venta_en_curso(p_id)` | Vuelve a quien la pasó, con la nota "Rechazada por …" |
+| `vencer_ventas_en_curso()` | Tarea `pg_cron` de cada minuto (no ejecutable desde la app); ver nota 25 |
 | `cerrar_caja_arqueo(p_conteo_base, p_conteo_sobrante, p_observacion_diferencia)` | Cierre de caja con arqueo físico. Espera el saldo `efectivo` desde el último cierre (nota 21) |
 | `transferir_entre_fondos(p_origen, p_destino, p_monto, p_observaciones)` | Mueve dinero entre medios: exige saldo en el origen y deja dos movimientos (salida y llegada) |
 | `editar_factura_proveedor(p_factura_id, p_numero_factura, p_fecha_emision, p_fecha_vencimiento, p_monto_total, p_notas)` | Edita una factura y recalcula saldo y estado con lo pagado (administrador) |
@@ -1091,6 +1116,8 @@ servicios ─────────────────────── 
 - `tareas` — SELECT (admin todas; el empleado las suyas y las libres), INSERT/UPDATE/DELETE (admin). Marcar hecha va por
   `marcar_tarea`
 - `tareas_plantillas` — ALL (admin)
+- `ventas_en_curso` — SELECT (las propias, las que pasó o admin), INSERT y UPDATE (las propias, quedan `abierta`),
+  DELETE (las propias que no están esperando aceptación). Pasar, aceptar y rechazar van por RPC
 
 Desde el 2026-11-18 ninguna política queda "para public": todas son `to authenticated` (antes exigían sesión por dentro).
 
@@ -1263,3 +1290,13 @@ Desde el 2026-11-18 ninguna política queda "para public": todas son `to authent
     de respaldo; otro enlace reemplaza la foto subida; vacío quita las dos. Las imágenes que había quedaron como enlace.
     Al cambiar una foto, el archivo anterior se queda en el bucket (no se borra solo).
 
+25. **Ventas paralelas, borradores, transferencias y bonos por ventas** (migración `ventas_en_curso_y_bonos_ventas`,
+    2026-11-21; SQL en `sql/ventas_en_curso_y_bonos_ventas.sql`). Tabla `ventas_en_curso`: la app guarda ahí las ventas
+    paralelas con productos (una venta normal, sola, no se guarda). El trigger `trg_limitar_ventas_en_curso` impide más de
+    3 abiertas o en borrador por vendedor. La tarea `pg_cron` `vencer-ventas-en-curso` (cada minuto, función
+    `vencer_ventas_en_curso`) devuelve a quien la pasó una venta no aceptada en 15 minutos, pasa a borrador las que llevan
+    15 minutos sin cambios y elimina los borradores con más de 15 minutos, dejando cada eliminación en la bitácora
+    (origen automático). La app (vigilante en `src/components/layout/vigilante-ventas.tsx`) revisa cada 15 segundos y
+    avisa en ventana. `configuracion_negocio.bonos_ventas`: `{"equipo": [{tope, bono}], "individual": [{tope, bono}]}`,
+    hasta 3 de cada uno; la nómina los sugiere (`src/lib/bonos-ventas.ts`) y el administrador los aprueba antes de
+    pagar; se guardan dentro de `nominas.bonificaciones` con su motivo.
