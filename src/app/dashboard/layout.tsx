@@ -16,12 +16,12 @@ export default async function DashboardLayout({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('rol, nombre_completo')
+    .select('rol, nombre_completo, foto_url')
     .eq('id', user.id)
     .single()
 
   return (
-    <NavigationShell rol={profile?.rol ?? 'empleado'} nombre={profile?.nombre_completo ?? user.email ?? ''}>
+    <NavigationShell rol={profile?.rol ?? 'empleado'} nombre={profile?.nombre_completo ?? user.email ?? ''} usuarioId={user.id} fotoUrl={profile?.foto_url ?? null}>
       {children}
     </NavigationShell>
   )

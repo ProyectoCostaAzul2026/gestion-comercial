@@ -438,6 +438,7 @@ export type Database = {
           logo_subido: string | null
           logo_url: string | null
           margen_default: number | null
+          bonos_ventas: Json
           max_descuento_porcentaje: number | null
           mensaje_pie: string | null
           monto_base_caja_menor: number
@@ -459,6 +460,7 @@ export type Database = {
           logo_subido?: string | null
           logo_url?: string | null
           margen_default?: number | null
+          bonos_ventas?: Json
           max_descuento_porcentaje?: number | null
           mensaje_pie?: string | null
           monto_base_caja_menor?: number
@@ -480,6 +482,7 @@ export type Database = {
           logo_subido?: string | null
           logo_url?: string | null
           margen_default?: number | null
+          bonos_ventas?: Json
           max_descuento_porcentaje?: number | null
           mensaje_pie?: string | null
           monto_base_caja_menor?: number
@@ -2343,11 +2346,80 @@ export type Database = {
           },
         ]
       }
+      ventas_en_curso: {
+        Row: {
+          actualizado_en: string
+          borrador_desde: string | null
+          cliente_nombre: string | null
+          creado_en: string
+          datos: Json
+          estado: string
+          id: string
+          lineas: number
+          nota: string | null
+          total: number
+          transferida_en: string | null
+          transferida_por: string | null
+          vendedor_id: string
+        }
+        Insert: {
+          actualizado_en?: string
+          borrador_desde?: string | null
+          cliente_nombre?: string | null
+          creado_en?: string
+          datos?: Json
+          estado?: string
+          id?: string
+          lineas?: number
+          nota?: string | null
+          total?: number
+          transferida_en?: string | null
+          transferida_por?: string | null
+          vendedor_id: string
+        }
+        Update: {
+          actualizado_en?: string
+          borrador_desde?: string | null
+          cliente_nombre?: string | null
+          creado_en?: string
+          datos?: Json
+          estado?: string
+          id?: string
+          lineas?: number
+          nota?: string | null
+          total?: number
+          transferida_en?: string | null
+          transferida_por?: string | null
+          vendedor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ventas_en_curso_transferida_por_fkey"
+            columns: ["transferida_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ventas_en_curso_vendedor_id_fkey"
+            columns: ["vendedor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      aceptar_venta_en_curso: { Args: { p_id: string }; Returns: undefined }
+      rechazar_venta_en_curso: { Args: { p_id: string }; Returns: undefined }
+      transferir_venta_en_curso: {
+        Args: { p_destino: string; p_id: string }
+        Returns: undefined
+      }
       abrir_caja: { Args: { p_monto_base: number }; Returns: string }
       actualizar_denominaciones: {
         Args: { p_denominaciones: Json; p_tipo: string }

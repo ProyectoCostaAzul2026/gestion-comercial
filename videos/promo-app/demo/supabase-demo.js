@@ -4,6 +4,7 @@ const fs = require('fs')
 const path = require('path')
 const { USER, ROL, productos, clientes, tablas } = require('./datos')
 
+let ventasEnCurso = []
 const leer = req => new Promise(r => { let b = ''; req.on('data', c => (b += c)); req.on('end', () => r(b)) })
 
 http.createServer(async (req, res) => {
@@ -73,6 +74,63 @@ http.createServer(async (req, res) => {
   if (url.pathname === '/rest/v1/rpc/registrar_venta' || url.pathname === '/rest/v1/rpc/registrar_venta_credito') { console.log('RPC venta', cuerpo.slice(0, 300)); return enviar(200, 'v1200') }
   if (url.pathname === '/rest/v1/rpc/calcular_rotacion_productos') return enviar(200, productos.map((p, i) => ({ producto_id: p.id, unidades_vendidas: (i * 7) % 40, rotacion_diaria: ((i * 7) % 40) / 90 })))
   if (url.pathname === '/rest/v1/rpc/is_admin') return enviar(200, ROL === 'administrador')
+
+  // ── Ventas en curso (ventas paralelas, borradores y transferencias) ──
+  if (url.pathname.startsWith('/rest/v1/ventas_en_curso') || url.pathname.startsWith('/rest/v1/rpc/') && /venta_en_curso$/.test(url.pathname) || url.pathname.startsWith('/demo/vec')) {
+    const ahora = () => new Date().toISOString()
+    const conNombre = v => ({ ...v, quien_paso: v.transferida_por ? { nombre_completo: v.transferida_por === USER.id ? 'Daniela Pérez' : 'Jhon Castro' } : null })
+    if (url.pathname === '/demo/vec/transferir-a-mi') {
+      const v = { id: 'vec-' + Date.now(), vendedor_id: USER.id, datos: JSON.parse(cuerpo || '{}'), cliente_nombre: 'Obras Rivera SAS', lineas: 2, total: 74000, estado: 'transferida', transferida_por: 'e2', transferida_en: ahora(), nota: null, creado_en: ahora(), actualizado_en: ahora(), borrador_desde: null }
+      ventasEnCurso.push(v); return enviar(200, v)
+    }
+    if (url.pathname === '/demo/vec/vencer') {
+      // Simula la tarea de cada minuto con N minutos de más (?min=)
+      const min = Number(url.searchParams.get('min') || 16) * 60000
+      for (const v of ventasEnCurso) {
+        if (v.estado === 'abierta' && Date.now() - new Date(v.actualizado_en).getTime() + min > 15 * 60000) { v.estado = 'borrador'; v.borrador_desde = new Date(Date.now() - (Number(url.searchParams.get('yaborrador') || 0) * 60000)).toISOString() }
+      }
+      if (url.searchParams.get('eliminar')) ventasEnCurso = ventasEnCurso.filter(v => v.estado !== 'borrador')
+      return enviar(200, ventasEnCurso)
+    }
+    if (url.pathname === '/demo/vec/todas') return enviar(200, ventasEnCurso)
+    if (url.pathname.startsWith('/rest/v1/rpc/')) {
+      const a = JSON.parse(cuerpo || '{}')
+      const v = ventasEnCurso.find(x => x.id === a.p_id)
+      console.log('RPC', url.pathname.slice(13), cuerpo)
+      if (!v) return enviar(400, { message: 'No se encontró la venta' })
+      if (url.pathname.endsWith('transferir_venta_en_curso')) Object.assign(v, { estado: 'transferida', transferida_por: USER.id, transferida_en: ahora(), vendedor_id: a.p_destino })
+      if (url.pathname.endsWith('aceptar_venta_en_curso')) {
+        if (ventasEnCurso.filter(x => x.vendedor_id === USER.id && x.estado !== 'transferida').length >= 3) return enviar(400, { message: 'Ya tienes 3 ventas abiertas: registra o cancela una para aceptar esta' })
+        Object.assign(v, { estado: 'abierta', actualizado_en: ahora(), nota: null })
+      }
+      if (url.pathname.endsWith('rechazar_venta_en_curso')) Object.assign(v, { vendedor_id: v.transferida_por, estado: 'abierta', nota: 'Rechazada por Daniela Pérez' })
+      return enviar(200, null)
+    }
+    const filtroId = (url.searchParams.get('id') || '').replace(/^eq\./, '')
+    if (req.method === 'POST') {
+      const filas = [].concat(JSON.parse(cuerpo || '[]'))
+      for (const f of filas) {
+        const i = ventasEnCurso.findIndex(x => x.id === f.id)
+        if (i >= 0) Object.assign(ventasEnCurso[i], f)
+        else {
+          if (ventasEnCurso.filter(x => x.vendedor_id === f.vendedor_id && x.estado !== 'transferida').length >= 3) return enviar(400, { message: 'Ya tienes 3 ventas abiertas: registra o cancela una' })
+          ventasEnCurso.push({ estado: 'abierta', transferida_por: null, transferida_en: null, nota: null, creado_en: ahora(), borrador_desde: null, ...f })
+        }
+      }
+      console.log('UPSERT ventas_en_curso', filas.map(f => `${f.id.slice(0, 8)} ${f.lineas}l $${f.total}`).join(', '))
+      return enviar(201, null)
+    }
+    if (req.method === 'PATCH') { const c = JSON.parse(cuerpo || '{}'); ventasEnCurso.filter(x => x.id === filtroId).forEach(x => Object.assign(x, c)); return enviar(204) }
+    if (req.method === 'DELETE') { console.log('DELETE ventas_en_curso', filtroId); ventasEnCurso = ventasEnCurso.filter(x => x.id !== filtroId); return enviar(204) }
+    let filas = ventasEnCurso.map(conNombre)
+    const vend = (url.searchParams.get('vendedor_id') || '').replace(/^eq\./, '')
+    if (vend) filas = filas.filter(x => x.vendedor_id === vend)
+    if (filtroId) filas = filas.filter(x => x.id === filtroId)
+    const est = url.searchParams.get('estado')
+    if (est && est.startsWith('in.')) { const l = est.slice(3).replace(/[()"]/g, '').split(','); filas = filas.filter(x => l.includes(x.estado)) }
+    if ((req.headers.accept || '').includes('vnd.pgrst.object')) return filas.length ? enviar(200, filas[0]) : enviar(406, { code: 'PGRST116', message: 'no rows' })
+    return enviar(200, filas)
+  }
   if (url.pathname.startsWith('/rest/v1/rpc/')) { console.log('RPC', url.pathname.slice(13), cuerpo.slice(0, 400)); return enviar(200, []) }
 
   const tabla = url.pathname.replace('/rest/v1/', '')
