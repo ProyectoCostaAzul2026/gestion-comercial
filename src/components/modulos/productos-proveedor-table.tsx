@@ -148,7 +148,7 @@ export function ProductosProveedorTable({
       setPedido(items)
       setCalculado(true)
     } catch (err: any) {
-      toast.error('Error al calcular rotación: ' + err.message)
+      toast.error('No se pudo calcular la rotación', { description: err.message })
     } finally {
       setCalculando(false)
     }

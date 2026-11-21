@@ -103,7 +103,7 @@ export function GrupoMedidasPanel({
       setOrdenEdicion(null)
       toast.success(restablecer ? 'Las medidas vuelven al orden automático por tamaño' : 'Orden guardado')
     } catch (err) {
-      toast.error('Error al guardar el orden: ' + mensajeError(err))
+      toast.error('No se pudo guardar el orden', { description: mensajeError(err) })
     } finally {
       setGuardandoOrden(false)
     }
@@ -188,7 +188,7 @@ export function GrupoMedidasPanel({
       setEditando(false)
       router.refresh()
     } catch (err) {
-      toast.error('Error al aplicar los datos: ' + mensajeError(err))
+      toast.error('No se pudieron aplicar los datos', { description: mensajeError(err) })
     } finally {
       setAplicando(false)
     }
@@ -233,7 +233,7 @@ export function GrupoMedidasPanel({
       toast.success(`Peso por unidad guardado en ${p_pesos.length} medida(s)`)
       router.refresh()
     } catch (err) {
-      toast.error('Error al guardar los pesos: ' + mensajeError(err))
+      toast.error('No se pudieron guardar los pesos', { description: mensajeError(err) })
     } finally {
       setGuardandoPesos(false)
     }

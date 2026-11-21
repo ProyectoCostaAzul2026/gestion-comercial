@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button'
 import { toast } from '@/lib/avisos'
 import { Search, Power, Trash2 } from 'lucide-react'
+import { confirmar } from '@/components/ui/confirmar'
 
 export interface ProductoDesactivado {
   id: string
@@ -132,18 +133,14 @@ export function ProductosDesactivadosPanel({
   const [listaSinRegistros, setListaSinRegistros] = useState(sinRegistros)
   const [procesando, setProcesando] = useState<string | null>(null)
 
-  const handleActivar = (p: ProductoDesactivado) => {
-    const confirmado = window.confirm(
-      `Vas a activar "${p.nombre}". A continuación se abrirá la pantalla de edición — revisa al menos el stock y el precio de venta antes de guardar. ¿Continuar?`
-    )
+  const handleActivar = async (p: ProductoDesactivado) => {
+    const confirmado = await confirmar({ titulo: `¿Activar "${p.nombre}"?`, mensaje: 'Se abre la pantalla de edición: revisa al menos el stock y el precio de venta antes de guardar.', textoConfirmar: 'Continuar' })
     if (!confirmado) return
     router.push(`/dashboard/inventario/${p.id}/editar?activar=1`)
   }
 
   const handleEliminar = async (p: ProductoDesactivado) => {
-    const confirmado = window.confirm(
-      `¿Eliminar "${p.nombre}" definitivamente? Esta acción no se puede deshacer.`
-    )
+    const confirmado = await confirmar({ titulo: `¿Eliminar "${p.nombre}" definitivamente?`, mensaje: 'Esta acción no se puede deshacer.', tono: 'peligro', textoConfirmar: 'Eliminar' })
     if (!confirmado) return
     setProcesando(p.id)
     try {

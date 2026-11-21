@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from '@/lib/avisos'
+import { confirmar } from '@/components/ui/confirmar'
 import { AlertTriangle, CheckCircle2, ExternalLink } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -44,17 +45,27 @@ export function RecepcionCierre({ recepcion, renglones, totalFactura, estadoPago
 
   const cerrar = async () => {
     if (conDiferencias && !nota.trim()) { toast.error('Escribe la nota de reclamación o devolución'); return }
+    const ok = await confirmar({
+      titulo: '¿Cerrar la recepción?',
+      mensaje: conDiferencias
+        ? 'Hay diferencias en el conteo: la recepción queda cerrada con la reclamación pendiente.'
+        : 'La mercancía ya entró al stock. Después de cerrar ya no se puede editar.',
+      tono: conDiferencias ? 'aviso' : 'normal',
+      textoConfirmar: 'Cerrar recepción',
+    })
+    if (!ok) return
     setGuardando(true)
     const { data, error } = await supabase.rpc('cerrar_recepcion', { p_recepcion_id: recepcion.id, p_nota: nota.trim() || undefined })
     setGuardando(false)
-    if (error) { toast.error(error.message); return }
-    toast.success(data === 'reclamacion' ? 'Recepción cerrada con la reclamación pendiente' : 'Recepción cerrada')
+    if (error) { toast.error('No se pudo cerrar la recepción', { description: error.message }); return }
+    toast.success(data === 'reclamacion' ? 'Recepción cerrada con la reclamación pendiente' : 'Recepción cerrada', { description: data === 'reclamacion' ? 'Cuando el proveedor responda, marca la reclamación como resuelta.' : 'Ya no se puede editar.' })
     setNota('')
     router.refresh()
   }
 
   const resolver = async () => {
     if (!nota.trim()) { toast.error('Escribe cómo se resolvió la reclamación'); return }
+    if (!(await confirmar({ titulo: '¿Marcar la reclamación como resuelta?', mensaje: nota.trim(), textoConfirmar: 'Marcar resuelta' }))) return
     setGuardando(true)
     const { error } = await supabase.rpc('resolver_reclamacion_recepcion', { p_recepcion_id: recepcion.id, p_nota: nota.trim() })
     setGuardando(false)

@@ -33,7 +33,7 @@ export function UnidadesMedidaForm({ unidades }: { unidades: Unidad[] }) {
       setNueva('')
       router.refresh()
     } catch (err: any) {
-      toast.error('Error: ' + err.message)
+      toast.error('No se pudo completar la acción', { description: err.message })
     } finally {
       setGuardando(false)
     }
@@ -50,7 +50,7 @@ export function UnidadesMedidaForm({ unidades }: { unidades: Unidad[] }) {
       toast.success(u.activo ? 'Unidad desactivada' : 'Unidad reactivada')
       router.refresh()
     } catch (err: any) {
-      toast.error('Error: ' + err.message)
+      toast.error('No se pudo completar la acción', { description: err.message })
     } finally {
       setToggling(null)
     }

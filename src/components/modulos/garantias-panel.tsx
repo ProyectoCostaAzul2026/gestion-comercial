@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { toast } from '@/lib/avisos'
+import { confirmar } from '@/components/ui/confirmar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -38,7 +39,6 @@ export function GarantiasPanel({ garantias, proveedores, soloProveedor }: Garant
   const [filtroProveedor, setFiltroProveedor] = useState(soloProveedor ?? 'todos')
   const [recibiendoId, setRecibiendoId] = useState<string | null>(null)
   const [destino, setDestino] = useState<Record<string, string>>({})
-  const [confirmandoId, setConfirmandoId] = useState<string | null>(null)
 
   const filtradas = garantias.filter(g => {
     if (filtroDesde && g.fecha_registro < filtroDesde) return false
@@ -52,6 +52,16 @@ export function GarantiasPanel({ garantias, proveedores, soloProveedor }: Garant
 
   const handleRecibir = async (garantia: Garantia) => {
     const stock = destino[garantia.id] ?? 'almacen'
+    const ok = await confirmar({
+      titulo: '¿Registrar la garantía como recibida?',
+      mensaje: `El proveedor devolvió "${garantia.nombre_producto}". La unidad vuelve a entrar al stock.`,
+      detalle: [
+        { etiqueta: 'Proveedor', valor: garantia.proveedores?.nombre ?? '—' },
+        { etiqueta: 'Entra a', valor: stock === 'bodega' ? 'Bodega' : 'Almacén', fuerte: true },
+      ],
+      textoConfirmar: 'Registrar recibida',
+    })
+    if (!ok) return
     setRecibiendoId(garantia.id)
     try {
       const { error } = await (supabase.rpc as any)('recibir_garantia', {
@@ -59,11 +69,10 @@ export function GarantiasPanel({ garantias, proveedores, soloProveedor }: Garant
         p_stock_destino: stock,
       })
       if (error) throw error
-      toast.success(`Garantía recibida — ${garantia.nombre_producto} regresó al ${stock}`)
-      setConfirmandoId(null)
+      toast.success('Garantía recibida', { description: `${garantia.nombre_producto} volvió al stock de ${stock === 'bodega' ? 'bodega' : 'almacén'}.` })
       router.refresh()
     } catch (err: any) {
-      toast.error('Error: ' + err.message)
+      toast.error('No se pudo registrar la garantía', { description: err.message })
     } finally {
       setRecibiendoId(null)
     }
@@ -133,21 +142,10 @@ export function GarantiasPanel({ garantias, proveedores, soloProveedor }: Garant
                     </select>
                   </TableCell>
                   <TableCell className="text-right">
-                    {confirmandoId === g.id ? (
-                      <div className="flex items-center justify-end gap-2">
-                        <span className="text-xs text-steel-300">¿Confirmar?</span>
-                        <Button size="sm" onClick={() => handleRecibir(g)} disabled={recibiendoId === g.id}
-                          className="h-7 bg-emerald-500 text-xs font-bold text-white hover:brightness-105">
-                          {recibiendoId === g.id ? 'Registrando…' : 'Sí'}
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => setConfirmandoId(null)} className="h-7 border-linea bg-transparent text-xs text-tinta hover:bg-velo/5 hover:text-tinta">No</Button>
-                      </div>
-                    ) : (
-                      <Button size="sm" variant="outline" onClick={() => setConfirmandoId(g.id)}
-                        className="flex h-7 items-center gap-1 border-emerald-500/40 bg-transparent text-xs font-semibold text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-400">
-                        <ShieldCheck className="h-3 w-3" />Garantía recibida
-                      </Button>
-                    )}
+                    <Button size="sm" variant="outline" onClick={() => handleRecibir(g)} disabled={recibiendoId === g.id}
+                      className="flex h-9 items-center gap-1 border-emerald-500/40 bg-transparent text-xs font-semibold text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-400">
+                      <ShieldCheck className="h-3.5 w-3.5" />{recibiendoId === g.id ? 'Registrando…' : 'Garantía recibida'}
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

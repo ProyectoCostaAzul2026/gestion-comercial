@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useNavegacion } from '@/lib/navegacion'
 import { toast } from '@/lib/avisos'
+import { confirmar } from '@/components/ui/confirmar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -106,7 +107,6 @@ export function ArqueoPanel({ ingresosEfectivo, egresosEfectivo, saldoEfectivo, 
   const [conteoBase, setConteoBase] = useState<ConteoItem[]>(crearConteoVacio())
   const [conteoSobrante, setConteoSobrante] = useState<ConteoItem[]>(crearConteoVacio())
   const [observacion, setObservacion] = useState('')
-  const [confirmando, setConfirmando] = useState(false)
   const [cerrando, setCerrando] = useState(false)
 
   // Lo que debe haber sobre la base: el saldo del efectivo desde el último cierre. Si quedó efectivo de días que no se
@@ -128,6 +128,19 @@ export function ArqueoPanel({ ingresosEfectivo, egresosEfectivo, saldoEfectivo, 
       toast.error('Hay una diferencia. Debes ingresar una observación.')
       return
     }
+    const pesos = (n: number) => `$${Math.round(n).toLocaleString('es-CO')}`
+    const ok = await confirmar({
+      titulo: '¿Cerrar la caja?',
+      mensaje: cadraCaja ? 'La caja cuadra. El sobrante pasa a Caja Mayor y la base queda para mañana.' : 'La caja no cuadra: la diferencia queda registrada con tu observación.',
+      tono: cadraCaja ? 'normal' : 'aviso',
+      detalle: [
+        { etiqueta: 'Base para mañana', valor: pesos(totalBase) },
+        { etiqueta: 'Sobrante a Caja Mayor', valor: pesos(totalSobrante) },
+        ...(!cadraCaja ? [{ etiqueta: 'Diferencia', valor: <span className={diferencia < 0 ? 'text-sale' : 'text-aviso'}>{diferencia > 0 ? '+' : ''}{pesos(diferencia)}</span>, fuerte: true }] : []),
+      ],
+      textoConfirmar: 'Cerrar caja',
+    })
+    if (!ok) return
     setCerrando(true)
     try {
       const { error } = await supabase.rpc('cerrar_caja_arqueo', {
@@ -136,14 +149,13 @@ export function ArqueoPanel({ ingresosEfectivo, egresosEfectivo, saldoEfectivo, 
         p_observacion_diferencia: observacion || undefined,
       })
       if (error) throw error
-      toast.success('Caja cerrada y sobrante transferido a Caja Mayor')
+      toast.success('Caja cerrada', { description: `El sobrante de $${Math.round(totalSobrante).toLocaleString('es-CO')} pasó a Caja Mayor y la base de $${Math.round(totalBase).toLocaleString('es-CO')} queda para mañana.` })
       router.refresh()
       salir(true)
     } catch (err: any) {
-      toast.error('Error: ' + err.message)
+      toast.error('No se pudo cerrar la caja', { description: err.message })
     } finally {
       setCerrando(false)
-      setConfirmando(false)
     }
   }
 
@@ -206,28 +218,11 @@ export function ArqueoPanel({ ingresosEfectivo, egresosEfectivo, saldoEfectivo, 
         </div>
       )}
 
-      {!confirmando ? (
-        <Button onClick={() => setConfirmando(true)}
-          disabled={!baseValida || (!cadraCaja && !observacion.trim())}
-          className="h-12 w-full bg-brand-red text-base font-bold text-white hover:bg-brand-red hover:brightness-95">
-          Proceder al cierre
-        </Button>
-      ) : (
-        <div className="space-y-3 rounded-xl border border-linea bg-superficie p-3">
-          <p className="text-sm font-medium text-tinta">¿Confirmas el cierre de caja?</p>
-          <ul className="space-y-0.5 text-xs text-steel-300">
-            <li>• Base para mañana: ${totalBase.toLocaleString('es-CO')}</li>
-            <li>• Sobrante a Caja Mayor: ${totalSobrante.toLocaleString('es-CO')}</li>
-            {!cadraCaja && <li className="text-brand-yellow">• Diferencia: ${diferencia.toLocaleString('es-CO')}</li>}
-          </ul>
-          <div className="flex gap-2">
-            <Button onClick={handleCerrar} disabled={cerrando} className="bg-brand-red font-bold text-white hover:bg-brand-red hover:brightness-95">
-              {cerrando ? 'Cerrando…' : 'Sí, cerrar caja'}
-            </Button>
-            <Button variant="outline" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setConfirmando(false)}>Cancelar</Button>
-          </div>
-        </div>
-      )}
+      <Button onClick={handleCerrar}
+        disabled={cerrando || !baseValida || (!cadraCaja && !observacion.trim())}
+        className="h-12 w-full bg-brand-red text-base font-bold text-white hover:bg-brand-red hover:brightness-95">
+        {cerrando ? 'Cerrando…' : 'Cerrar caja'}
+      </Button>
     </div>
   )
 }

@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation'
 import { JORNADA_FESTIVO, JORNADA_NORMAL, nombreFestivo, turnoEnFecha } from '@/lib/festivos-colombia'
 import { fechaLarga, sumarDias } from '@/lib/permisos'
 import type { PermisoVista } from './permisos-empleados'
+import { confirmar } from '@/components/ui/confirmar'
 
 // La semana va de lunes a domingo
 const DIAS = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'] as const
@@ -124,7 +125,7 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy, permisos 
       setNuevoTurno(prev => ({ ...prev, empleado_id: '' }))
       router.refresh()
     } catch (err) {
-      toast.error('Error: ' + (err as Error).message)
+      toast.error('No se pudo completar la acción', { description: (err as Error).message })
     } finally {
       setGuardando(false)
     }
@@ -132,7 +133,7 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy, permisos 
 
   const handleEliminarTurno = async (t: Turno) => {
     const nombre = t.profiles?.nombre_completo ?? 'este empleado'
-    if (!window.confirm(`¿Quitar el turno de ${nombre} de todos los ${DIAS_LABEL[t.dia_semana]}?`)) return
+    if (!(await confirmar({ titulo: `¿Quitar el turno de ${nombre}?`, mensaje: `Se quita de todos los ${DIAS_LABEL[t.dia_semana]}, no solo de esta semana.`, tono: 'peligro', textoConfirmar: 'Quitar turno' }))) return
     setEliminando(t.id)
     try {
       const { error } = await supabase.from('horario_laboral').update({ activo: false }).eq('id', t.id)
@@ -140,7 +141,7 @@ export function HorarioSemanal({ turnos, empleados, esAdmin, fechaHoy, permisos 
       toast.success('Turno eliminado')
       router.refresh()
     } catch (err) {
-      toast.error('Error: ' + (err as Error).message)
+      toast.error('No se pudo completar la acción', { description: (err as Error).message })
     } finally {
       setEliminando(null)
     }

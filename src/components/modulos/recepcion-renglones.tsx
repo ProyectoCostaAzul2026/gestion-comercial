@@ -16,6 +16,7 @@ import { INPUT_CLS, LABEL_CLS } from './producto-form'
 import { BuscadorProducto, type ProductoElegido } from './recepcion-buscador'
 import { RecepcionFamiliaForm } from './recepcion-familia-form'
 import { nombreConMedida, pesos, type ProductoDelProveedor, type RecepcionVista, type RenglonVista } from './recepcion-tipos'
+import { confirmar } from '@/components/ui/confirmar'
 
 const numero = (texto: string) => (texto.trim() === '' ? NaN : Number(texto))
 
@@ -202,7 +203,7 @@ export function RecepcionRenglones({ recepcion, renglones, productosProveedor, e
   const pendientes = renglones.filter(r => !r.producto_id).length
 
   const quitar = async (r: RenglonVista) => {
-    if (!window.confirm(`¿Quitar "${r.descripcion}" de la recepción?`)) return
+    if (!(await confirmar({ titulo: '¿Quitar este renglón de la recepción?', mensaje: `"${r.descripcion}"`, tono: 'peligro', textoConfirmar: 'Quitar' }))) return
     setTrabajando(r.id)
     const { error } = await supabase.rpc('quitar_renglon_recepcion', { p_renglon_id: r.id })
     setTrabajando(null)

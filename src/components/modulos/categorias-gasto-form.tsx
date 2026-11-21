@@ -34,7 +34,7 @@ export function CategoriasGastoForm({ categorias }: { categorias: Categoria[] })
       setNueva('')
       router.refresh()
     } catch (err: any) {
-      toast.error('Error: ' + err.message)
+      toast.error('No se pudo completar la acción', { description: err.message })
     } finally {
       setGuardando(false)
     }
@@ -51,7 +51,7 @@ export function CategoriasGastoForm({ categorias }: { categorias: Categoria[] })
       toast.success(cat.activo ? 'Categoría desactivada' : 'Categoría reactivada')
       router.refresh()
     } catch (err: any) {
-      toast.error('Error: ' + err.message)
+      toast.error('No se pudo completar la acción', { description: err.message })
     } finally {
       setToggling(null)
     }

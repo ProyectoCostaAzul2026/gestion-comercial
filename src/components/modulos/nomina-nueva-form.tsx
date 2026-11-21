@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { calcularPagoDia, horasPagarPorFecha, esDomingoOFestivo } from '@/lib/festivos-colombia'
 import { Sun } from 'lucide-react'
 import { toast } from '@/lib/avisos'
+import { confirmar } from '@/components/ui/confirmar'
 import { useNavegacion } from '@/lib/navegacion'
 
 interface Empleado {
@@ -69,6 +70,23 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
     if (!empleadoId) { toast.error('Selecciona un empleado'); return }
     if (!fecha) { toast.error('La fecha es obligatoria'); return }
     if (salarioBase <= 0) { toast.error('El salario base debe ser mayor a 0'); return }
+    if (bonificaciones > 0 && !conceptoBonificacion.trim()) { toast.error('Escribe el motivo de la bonificación'); return }
+    if (deducciones > 0 && !conceptoDeduccion.trim()) { toast.error('Escribe el motivo de la deducción'); return }
+    if (totalPago < 0) { toast.error('La deducción no puede ser mayor que el pago'); return }
+    const pesos = (n: number) => `$${Math.round(n).toLocaleString('es-CO')}`
+    const nombre = empleados.find(e => e.id === empleadoId)?.nombre_completo ?? 'el empleado'
+    const ok = await confirmar({
+      titulo: `¿Registrar el pago a ${nombre}?`,
+      mensaje: `Nómina del ${fecha}. El dinero sale del medio elegido.`,
+      detalle: [
+        { etiqueta: 'Pago del día', valor: pesos(pagoDia) },
+        ...(bonificaciones > 0 ? [{ etiqueta: `Bono: ${conceptoBonificacion}`, valor: `+${pesos(bonificaciones)}` }] : []),
+        ...(deducciones > 0 ? [{ etiqueta: `Deducción: ${conceptoDeduccion}`, valor: `−${pesos(deducciones)}` }] : []),
+        { etiqueta: 'Total a pagar', valor: pesos(totalPago), fuerte: true },
+      ],
+      textoConfirmar: `Pagar ${pesos(totalPago)}`,
+    })
+    if (!ok) return
     setSaving(true)
     try {
       const { error } = await supabase.rpc('registrar_nomina', {
@@ -84,10 +102,10 @@ export function NominaNuevaForm({ empleados, inicial }: NominaNuevaFormProps) {
         p_notas: notas || undefined,
       })
       if (error) throw error
-      toast.success('Nómina registrada')
+      toast.success(`Nómina de ${empleados.find(e => e.id === empleadoId)?.nombre_completo ?? 'empleado'} registrada`, { description: `$${Math.round(totalPago).toLocaleString('es-CO')} del ${fecha}.` })
       volver('/dashboard/empleados/nomina', { refrescar: true })
     } catch (err: any) {
-      toast.error('Error: ' + err.message)
+      toast.error('No se pudo completar la acción', { description: err.message })
     } finally {
       setSaving(false)
     }

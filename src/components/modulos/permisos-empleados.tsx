@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { fechaLarga } from '@/lib/permisos'
+import { confirmar } from '@/components/ui/confirmar'
 
 /** Un permiso: el empleado no asiste ese día */
 export interface PermisoVista {
@@ -65,7 +66,7 @@ export function PermisosEmpleados({ permisos, empleados, esAdmin, usuarioId, fec
   }
 
   const borrar = async (p: PermisoVista) => {
-    if (!window.confirm(`¿Quitar el permiso de ${p.nombre} del ${fechaLarga(p.fecha)}?`)) return
+    if (!(await confirmar({ titulo: `¿Quitar el permiso de ${p.nombre}?`, mensaje: `Del ${fechaLarga(p.fecha)}. Ese día vuelve a contar en el horario y en la nómina.`, tono: 'peligro', textoConfirmar: 'Quitar permiso' }))) return
     setBorrando(p.id)
     const { error } = await supabase.from('permisos_empleado').delete().eq('id', p.id)
     setBorrando(null)

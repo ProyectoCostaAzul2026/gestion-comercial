@@ -313,7 +313,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
       .insert({ nombre: nuevoCliente.nombre, telefono: nuevoCliente.telefono || null, nit_cc: nuevoCliente.nit_cc || null, email: nuevoCliente.email || null, activo: true, es_cliente_generico: false })
       .single()
     setGuardandoCliente(false)
-    if (error) { toast.error('Error: ' + error.message); return }
+    if (error) { toast.error('No se pudo completar la acción', { description: error.message }); return }
     setCliente(data)
     if (facturaElectronica && (data as any)?.email) setEmailFactura((data as any).email)
     setMostrarNuevoCliente(false)
@@ -419,7 +419,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
         : it))
       setAlertaStock(null)
     } catch (err: any) {
-      toast.error('Error al transferir: ' + err.message)
+      toast.error('No se pudo transferir', { description: err.message })
     } finally {
       setTransfiriendo(false)
     }
@@ -438,7 +438,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
       por_completar: true,
     }).select('id, nombre, precio_venta, tiene_iva, iva_incluido, porcentaje_iva').single()
     setGuardandoAltaRapida(false)
-    if (error) { toast.error('Error: ' + error.message); return }
+    if (error) { toast.error('No se pudo completar la acción', { description: error.message }); return }
     const iva = calcularIva(data)
     setCarrito(prev => [...prev, {
       key: `${data.id}-${Date.now()}`, producto_id: data.id, nombre: data.nombre,
@@ -469,7 +469,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
       .insert({ nombre: nuevoServicio.nombre, descripcion: nuevoServicio.descripcion || null, precio: nuevoServicio.precio, activo: true })
       .select('id, nombre, descripcion, precio').single()
     setGuardandoServicio(false)
-    if (error) { toast.error('Error: ' + error.message); return }
+    if (error) { toast.error('No se pudo completar la acción', { description: error.message }); return }
     agregarServicio(data)
     setMostrarNuevoServicio(false)
     setNuevoServicio({ nombre: '', descripcion: '', precio: 0 })
@@ -642,7 +642,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
       else volver('/dashboard/ventas', { refrescar: true })
 
     } catch (err: any) {
-      toast.error('Error al registrar venta: ' + err.message)
+      toast.error('No se pudo registrar la venta', { description: err.message })
     } finally {
       setSubmitting(false)
     }

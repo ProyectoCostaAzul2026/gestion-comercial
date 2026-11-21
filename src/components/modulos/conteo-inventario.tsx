@@ -11,6 +11,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '
 import { normalizar } from '@/lib/inventario-arbol'
 import { cargaConteo, leerCantidad, lineasContadas, type Contado, type ProductoConteo } from '@/lib/conteo'
 import { ContarPorPeso } from './peso-por-unidad'
+import { confirmar } from '@/components/ui/confirmar'
 
 interface Props {
   productos: ProductoConteo[]
@@ -91,8 +92,8 @@ export function ConteoInventario({ productos, categorias, inicial }: Props) {
     return copia
   })
 
-  const descartar = () => {
-    if (lineas.length > 0 && !window.confirm(`¿Descartar lo contado en ${lineas.length} producto${lineas.length === 1 ? '' : 's'}? No se cambia ningún stock.`)) return
+  const descartar = async () => {
+    if (lineas.length > 0 && !(await confirmar({ titulo: '¿Descartar lo contado?', mensaje: `Se borra lo escrito en ${lineas.length} producto${lineas.length === 1 ? '' : 's'}. No se cambia ningún stock.`, tono: 'peligro', textoConfirmar: 'Descartar' }))) return
     setContados({})
     setSoloContados(false)
   }

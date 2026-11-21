@@ -28,6 +28,7 @@ import { Plus, Trash2, ArrowLeftRight, AlertTriangle } from 'lucide-react'
 import { toast } from '@/lib/avisos'
 import { useRouter } from 'next/navigation'
 import { useNavegacion } from '@/lib/navegacion'
+import { confirmar } from '@/components/ui/confirmar'
 
 // La medida acepta el mismo texto libre que el panel de Familias (enteros, fracciones, decimales,
 // varias dimensiones o rangos: 50, 3/4, 1-1/4, 2.5, 1/2x1/2x40, 4 A 32). Antes se exigía un formato
@@ -373,7 +374,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
       .select('id, nombre')
       .single()
     if (error) {
-      toast.error('Error al crear categoría: ' + error.message)
+      toast.error('No se pudo crear categoría', { description: error.message })
       return
     }
     setCategoriasList((prev) => [...prev, data])
@@ -391,7 +392,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
         .from('unidades_medida')
         .insert({ nombre, activo: true, orden: 9999 })
       if (error && !error.message.includes('duplicate')) {
-        toast.error('Error al guardar la unidad: ' + error.message)
+        toast.error('No se pudo guardar la unidad', { description: error.message })
       }
       setUnidadesList((prev) => [...prev, nombre])
     }
@@ -607,7 +608,7 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
       if (err.code === '23505' && err.message?.includes('idx_productos_unicos_nombre_marca_medida')) {
         toast.error('Ya existe un producto activo con el mismo Nombre, Marca y Medida.')
       } else {
-        toast.error('Error al guardar: ' + err.message)
+        toast.error('No se pudo guardar', { description: err.message })
       }
     } finally {
       setIsSubmitting(false)
@@ -616,13 +617,13 @@ export function ProductoForm({ categorias, proveedores, unidades, empleadoId, ro
 
   const handleDesactivar = async () => {
     if (!producto) return
-    const confirmado = window.confirm(`¿Seguro que deseas desactivar "${producto.nombre}"? Ya no aparecerá en el inventario activo.`)
+    const confirmado = await confirmar({ titulo: `¿Desactivar "${producto.nombre}"?`, mensaje: 'Ya no aparecerá en el inventario activo ni en Ventas. Puedes activarlo de nuevo desde Desactivados.', tono: 'peligro', textoConfirmar: 'Desactivar' })
     if (!confirmado) return
     setIsDesactivando(true)
     const { error } = await supabase.from('productos').update({ activo: false }).eq('id', producto.id)
     setIsDesactivando(false)
     if (error) {
-      toast.error('Error al desactivar: ' + error.message)
+      toast.error('No se pudo desactivar', { description: error.message })
       return
     }
     toast.success('Producto desactivado')

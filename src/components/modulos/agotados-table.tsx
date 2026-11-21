@@ -116,7 +116,7 @@ export function AgotadosTable({ productos, proveedores }: Props) {
       setListaPedido(lista)
       setConfirmando(true)
     } catch (err: any) {
-      toast.error('Error al calcular: ' + err.message)
+      toast.error('No se pudo calcular', { description: err.message })
     } finally {
       setCalculando(false)
     }

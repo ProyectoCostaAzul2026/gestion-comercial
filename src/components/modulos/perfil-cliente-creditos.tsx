@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { toast } from '@/lib/avisos'
+import { confirmar } from '@/components/ui/confirmar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -73,13 +74,24 @@ function CreditoCard({ credito }: { credito: Credito }) {
   const [notaFecha, setNotaFecha] = useState('')
   const [registrando, setRegistrando] = useState(false)
   const [actualizandoFecha, setActualizandoFecha] = useState(false)
-  const [confirmar, setConfirmar] = useState(false)
 
   const handleRegistrarAbono = async () => {
     if (monto <= 0) { toast.error('El monto debe ser mayor a 0'); return }
     if (monto > credito.saldo_pendiente) { toast.error('El monto supera el saldo pendiente'); return }
     const suma = fuentes.reduce((s, f) => s + f.monto, 0)
     if (Math.abs(suma - monto) > 1) { toast.error('La suma de fuentes no coincide con el monto'); return }
+    const nombreFuente = (v: string) => FUENTES.find(f => f.value === v)?.label ?? v
+    const ok = await confirmar({
+      titulo: `¿Registrar el abono de ${fmt(monto)}?`,
+      mensaje: 'El dinero entra por las fuentes elegidas y baja la deuda del cliente.',
+      detalle: [
+        { etiqueta: 'Saldo pendiente', valor: fmt(credito.saldo_pendiente) },
+        ...fuentes.filter(f => f.monto > 0).map(f => ({ etiqueta: `Entra por ${nombreFuente(f.fuente)}`, valor: fmt(f.monto) })),
+        { etiqueta: 'Queda debiendo', valor: fmt(credito.saldo_pendiente - monto), fuerte: true },
+      ],
+      textoConfirmar: 'Registrar abono',
+    })
+    if (!ok) return
 
     setRegistrando(true)
     try {
@@ -90,12 +102,11 @@ function CreditoCard({ credito }: { credito: Credito }) {
         p_observaciones: observaciones || undefined,
       })
       if (error) throw error
-      toast.success('Abono registrado')
+      toast.success(`Abono de ${fmt(monto)} registrado`, { description: credito.saldo_pendiente - monto <= 0 ? 'El crédito quedó pagado.' : `Queda debiendo ${fmt(credito.saldo_pendiente - monto)}.` })
       setMostrarAbono(false)
-      setConfirmar(false)
       router.refresh()
     } catch (err: any) {
-      toast.error('Error: ' + err.message)
+      toast.error('No se pudo completar la acción', { description: err.message })
     } finally {
       setRegistrando(false)
     }
@@ -115,7 +126,7 @@ function CreditoCard({ credito }: { credito: Credito }) {
       setMostrarFecha(false)
       router.refresh()
     } catch (err: any) {
-      toast.error('Error: ' + err.message)
+      toast.error('No se pudo completar la acción', { description: err.message })
     } finally {
       setActualizandoFecha(false)
     }
@@ -257,22 +268,12 @@ function CreditoCard({ credito }: { credito: Credito }) {
                 <Textarea value={observaciones} onChange={e => setObservaciones(e.target.value)} rows={2} className="border-linea bg-superficie text-tinta placeholder:text-tenue" />
               </div>
 
-              {!confirmar ? (
-                <div className="flex gap-2">
-                  <Button type="button" size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={() => setConfirmar(true)}>Registrar abono</Button>
-                  <Button type="button" size="sm" variant="outline" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => { setMostrarAbono(false); setConfirmar(false) }}>Cancelar</Button>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-tinta">¿Confirmas el abono de {fmt(monto)}?</p>
-                  <div className="flex gap-2">
-                    <Button type="button" size="sm" className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={handleRegistrarAbono} disabled={registrando}>
-                      {registrando ? 'Registrando…' : 'Sí, registrar'}
-                    </Button>
-                    <Button type="button" size="sm" variant="outline" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setConfirmar(false)}>Cancelar</Button>
-                  </div>
-                </div>
-              )}
+              <div className="grid grid-cols-2 gap-2">
+                <Button type="button" variant="outline" className="h-11 border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setMostrarAbono(false)}>Cancelar</Button>
+                <Button type="button" className="h-11 bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={handleRegistrarAbono} disabled={registrando}>
+                  {registrando ? 'Registrando…' : 'Registrar abono'}
+                </Button>
+              </div>
             </div>
           )}
 

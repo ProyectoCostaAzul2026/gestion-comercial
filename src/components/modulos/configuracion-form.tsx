@@ -91,7 +91,7 @@ export function ConfiguracionForm({ config }: { config: ConfigNegocio | null }) 
       if (error) throw error
       toast.success('Configuración guardada')
     } catch (err: any) {
-      toast.error('Error al guardar: ' + err.message)
+      toast.error('No se pudo guardar', { description: err.message })
     } finally {
       setSaving(false)
     }

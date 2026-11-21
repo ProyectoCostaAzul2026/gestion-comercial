@@ -9,6 +9,7 @@ import {
 import { createClient } from '@/lib/supabase/client'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { PRIORIDADES, ordenarPendientes, textoVencimiento, type PlantillaTarea, type Prioridad, type Tarea } from '@/lib/tareas'
+import { confirmar } from '@/components/ui/confirmar'
 
 interface Persona { id: string; nombre: string; rol: string }
 
@@ -123,7 +124,7 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
   }
 
   async function borrarTarea(t: Tarea) {
-    if (!window.confirm(`¿Borrar la tarea "${t.titulo}"?`)) return
+    if (!(await confirmar({ titulo: '¿Borrar esta tarea?', mensaje: `"${t.titulo}". No se puede deshacer.`, tono: 'peligro', textoConfirmar: 'Borrar' }))) return
     const { error } = await supabase.from('tareas').delete().eq('id', t.id)
     if (error) { toast.error('No se pudo borrar: ' + error.message); return }
     toast.success('Tarea borrada')
@@ -131,7 +132,7 @@ export function TareasPanel({ pendientes, hechas, plantillas, personas, esAdmin,
   }
 
   async function borrarPlantilla(p: PlantillaTarea) {
-    if (!window.confirm(`¿Borrar la plantilla "${p.titulo}"? Las tareas ya creadas no cambian.`)) return
+    if (!(await confirmar({ titulo: '¿Borrar esta plantilla?', mensaje: `"${p.titulo}". Las tareas ya creadas con ella no cambian.`, tono: 'peligro', textoConfirmar: 'Borrar' }))) return
     const { error } = await supabase.from('tareas_plantillas').delete().eq('id', p.id)
     if (error) { toast.error('No se pudo borrar: ' + error.message); return }
     toast.success('Plantilla borrada')

@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation'
 import { useNavegacion } from '@/lib/navegacion'
 import { CampoImagen } from '@/components/ui/campo-imagen'
 import { imagenVisible, valorImagen, type ValorImagen } from '@/lib/imagenes'
+import { confirmar } from '@/components/ui/confirmar'
 
 export interface EmpleadoExistente {
   id: string
@@ -90,7 +91,7 @@ export function EmpleadoForm({ empleado }: EmpleadoFormProps) {
         setEnlaceNuevo(enlace)
       }
     } catch (err: any) {
-      toast.error('Error: ' + err.message)
+      toast.error('No se pudo completar la acción', { description: err.message })
     } finally {
       setSaving(false)
     }
@@ -98,14 +99,14 @@ export function EmpleadoForm({ empleado }: EmpleadoFormProps) {
 
   const handleDesactivar = async () => {
     if (!empleado) return
-    if (!window.confirm(`¿Desactivar a "${empleado.nombre_completo}"? No podrá iniciar sesión.`)) return
+    if (!(await confirmar({ titulo: `¿Desactivar a "${empleado.nombre_completo}"?`, mensaje: 'No podrá iniciar sesión ni aparecerá en el horario y la nómina. Su historial se conserva.', tono: 'peligro', textoConfirmar: 'Desactivar' }))) return
     setAccionando(true)
     try {
       await desactivarEmpleado(empleado.id)
       toast.success('Empleado desactivado')
       volver('/dashboard/empleados', { refrescar: true })
     } catch (err: any) {
-      toast.error('Error: ' + err.message)
+      toast.error('No se pudo completar la acción', { description: err.message })
     } finally {
       setAccionando(false)
     }
@@ -119,7 +120,7 @@ export function EmpleadoForm({ empleado }: EmpleadoFormProps) {
       toast.success('Empleado reactivado')
       router.refresh()
     } catch (err: any) {
-      toast.error('Error: ' + err.message)
+      toast.error('No se pudo completar la acción', { description: err.message })
     } finally {
       setAccionando(false)
     }

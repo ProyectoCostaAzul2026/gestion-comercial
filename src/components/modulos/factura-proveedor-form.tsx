@@ -133,7 +133,7 @@ export function FacturaProveedorForm({ proveedorId, facturaId, inicial, onSucces
       router.refresh()
       onSuccess?.()
     } catch (err: any) {
-      toast.error('Error: ' + err.message)
+      toast.error('No se pudo completar la acción', { description: err.message })
     } finally {
       setSaving(false)
     }

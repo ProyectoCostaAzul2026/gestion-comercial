@@ -109,7 +109,7 @@ function FondoEditor({
       setModo(null)
       router.refresh()
     } catch (err: any) {
-      toast.error('Error: ' + err.message)
+      toast.error('No se pudo completar la acción', { description: err.message })
     } finally {
       setGuardando(false)
     }
