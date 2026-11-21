@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { ArrowDown } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useNavegacion } from '@/lib/navegacion'

@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { useRouter } from 'next/navigation'
 import { Plus, X, Check } from 'lucide-react'
 

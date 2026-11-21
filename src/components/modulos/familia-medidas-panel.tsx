@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { parseUnidadMedida, SEPARADOR_FAMILIA, INPUT_CLS, LABEL_CLS } from './producto-form'
 import { TEMAS_AYUDA } from '@/lib/temas-ayuda'
 

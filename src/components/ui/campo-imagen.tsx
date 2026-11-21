@@ -1,7 +1,7 @@
 'use client'
 
 import { useId, useMemo, useRef, useState } from 'react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { ImagePlus, Loader2, Package, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/input'

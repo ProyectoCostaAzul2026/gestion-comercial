@@ -3,7 +3,7 @@
 import { MiniaturaProducto } from '@/components/ui/producto-miniatura'
 import { useState, useMemo, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'

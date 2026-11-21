@@ -73,7 +73,7 @@ http.createServer(async (req, res) => {
   if (url.pathname === '/rest/v1/rpc/registrar_venta' || url.pathname === '/rest/v1/rpc/registrar_venta_credito') { console.log('RPC venta', cuerpo.slice(0, 300)); return enviar(200, 'v1200') }
   if (url.pathname === '/rest/v1/rpc/calcular_rotacion_productos') return enviar(200, productos.map((p, i) => ({ producto_id: p.id, unidades_vendidas: (i * 7) % 40, rotacion_diaria: ((i * 7) % 40) / 90 })))
   if (url.pathname === '/rest/v1/rpc/is_admin') return enviar(200, ROL === 'administrador')
-  if (url.pathname.startsWith('/rest/v1/rpc/')) return enviar(200, [])
+  if (url.pathname.startsWith('/rest/v1/rpc/')) { console.log('RPC', url.pathname.slice(13), cuerpo.slice(0, 400)); return enviar(200, []) }
 
   const tabla = url.pathname.replace('/rest/v1/', '')
   if (req.method === 'PATCH' && tabla === 'productos') {

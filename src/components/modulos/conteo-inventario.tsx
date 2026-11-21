@@ -3,7 +3,7 @@
 import { MiniaturaProducto, ProductoConFoto, EnlaceA } from '@/components/ui/producto-miniatura'
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { Check, ClipboardCheck, Search, Trash2, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/input'

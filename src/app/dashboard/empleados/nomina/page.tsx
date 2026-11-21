@@ -20,7 +20,7 @@ export default async function NominaPage() {
 
   const { data: nominasHoy } = await supabase
     .from('nominas')
-    .select('id, empleado_id, total_pago, estado, horas_trabajadas')
+    .select('id, empleado_id, total_pago, estado, horas_trabajadas, bonificaciones, deducciones')
     .eq('periodo_inicio', hoy)
     .eq('periodo_fin', hoy)
 
@@ -28,7 +28,7 @@ export default async function NominaPage() {
     .from('nominas')
     .select(`
       id, periodo_inicio, periodo_fin, total_pago, estado,
-      salario_base, horas_trabajadas, bonificaciones, deducciones, notas, empleado_id,
+      salario_base, horas_trabajadas, bonificaciones, deducciones, concepto_bonificacion, concepto_deduccion, notas, empleado_id,
       profiles(nombre_completo)
     `)
     .order('periodo_inicio', { ascending: false })

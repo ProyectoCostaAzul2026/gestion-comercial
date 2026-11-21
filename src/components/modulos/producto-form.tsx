@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Plus, Trash2, ArrowLeftRight, AlertTriangle } from 'lucide-react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { useRouter } from 'next/navigation'
 import { useNavegacion } from '@/lib/navegacion'
 

@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Download, ChevronDown, ChevronUp, FileSpreadsheet, Plus } from 'lucide-react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { hoyBogota } from '@/lib/fechas'
 import { cantidadVendida, costoLineaVenta, costoPorUnidadVendida } from '@/lib/costo-venta'
 import type { Periodo } from '@/lib/periodos'

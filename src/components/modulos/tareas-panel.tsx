@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import {
   BookmarkPlus, Check, ChevronDown, ChevronUp, CopyPlus, Flag, Pencil, Plus, RotateCcw, Trash2, User, Users, X,
 } from 'lucide-react'

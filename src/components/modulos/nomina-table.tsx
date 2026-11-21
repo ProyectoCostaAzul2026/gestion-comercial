@@ -8,9 +8,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Label } from '@/components/ui/label'
+import { confirmar } from '@/components/ui/confirmar'
+import { DetalleDialogo, Dialogo, PieDialogo } from '@/components/ui/dialogo'
 import { calcularPagoDia, horasPagarPorFecha, turnoEnFecha } from '@/lib/festivos-colombia'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { useRouter } from 'next/navigation'
+import { Minus, Plus, SlidersHorizontal } from 'lucide-react'
 
 interface TurnoSemana {
   dia_semana: string
@@ -23,7 +27,19 @@ interface NominaHoy {
   total_pago: number
   estado: string
   horas_trabajadas: number | null
+  bonificaciones?: number | null
+  deducciones?: number | null
 }
+
+/** Bono y deducción de un empleado para el pago de hoy (se mandan a registrar_nomina) */
+interface Ajuste {
+  bono: number
+  conceptoBono: string
+  deduccion: number
+  conceptoDeduccion: string
+}
+const SIN_AJUSTE: Ajuste = { bono: 0, conceptoBono: '', deduccion: 0, conceptoDeduccion: '' }
+const pesos = (n: number) => `$${Math.round(n).toLocaleString('es-CO')}`
 
 interface EmpleadoNomina {
   id: string
@@ -44,6 +60,8 @@ interface HistorialNomina {
   horas_trabajadas: number | null
   bonificaciones: number
   deducciones: number
+  concepto_bonificacion?: string | null
+  concepto_deduccion?: string | null
   notas: string | null
   profiles: { nombre_completo: string } | null
 }
@@ -81,9 +99,10 @@ export function NominaTable({
   const [filtroFechaHasta, setFiltroFechaHasta] = useState('')
   const [filtroEmpleado, setFiltroEmpleado] = useState('')
   const [pagandoTodos, setPagandoTodos] = useState(false)
-  const [confirmandoTodos, setConfirmandoTodos] = useState(false)
-  const [confirmandoEmpleado, setConfirmandoEmpleado] = useState<string | null>(null)
+  const [pagando, setPagando] = useState<string | null>(null)
   const [metodosPago, setMetodosPago] = useState<Record<string, string>>({})
+  const [ajustes, setAjustes] = useState<Record<string, Ajuste>>({})
+  const [ajustando, setAjustando] = useState<string | null>(null)
 
   const diaHoy = new Date(fechaHoy + 'T12:00:00').getDay()
   const horasEstandarHoy = horasPagarPorFecha(fechaHoy)
@@ -107,16 +126,35 @@ export function NominaTable({
     [empleadosConCalculo])
 
   const pendientes = empleadosEnTurno.filter(e => !e.nominaHoy)
-  const totalPagarTodos = pendientes.reduce((s, e) => s + e.pagoSugerido, 0)
-
   const getMetodo = (id: string) => metodosPago[id] ?? 'efectivo'
+  const nombreMetodo = (id: string) => METODOS_NOMINA.find(m => m.value === getMetodo(id))?.label ?? getMetodo(id)
+  const ajusteDe = (id: string) => ajustes[id] ?? SIN_AJUSTE
+  const totalDe = (e: { id: string; pagoSugerido: number }) => e.pagoSugerido + ajusteDe(e.id).bono - ajusteDe(e.id).deduccion
+  const totalPagarTodos = pendientes.reduce((s, e) => s + totalDe(e), 0)
+
+  /** Filas del resumen de un pago: día, bono, deducción y total */
+  const filasPago = (e: typeof empleadosConCalculo[0]) => {
+    const a = ajusteDe(e.id)
+    return [
+      { etiqueta: `Pago del día${e.horasTurno != null ? ` (${e.horasTurno.toFixed(1)} h)` : ''}`, valor: pesos(e.pagoSugerido) },
+      ...(a.bono > 0 ? [{ etiqueta: `Bono: ${a.conceptoBono}`, valor: <span className="text-entra">+{pesos(a.bono)}</span> }] : []),
+      ...(a.deduccion > 0 ? [{ etiqueta: `Deducción: ${a.conceptoDeduccion}`, valor: <span className="text-sale">−{pesos(a.deduccion)}</span> }] : []),
+      { etiqueta: 'Sale de', valor: nombreMetodo(e.id) },
+      { etiqueta: 'Total a pagar', valor: pesos(totalDe(e)), fuerte: true },
+    ]
+  }
 
   const pagarEmpleado = async (e: typeof empleadosConCalculo[0], metodo: string) => {
+    const a = ajusteDe(e.id)
     const { error } = await supabase.rpc('registrar_nomina', {
       p_empleado_id: e.id,
       p_fecha: fechaHoy,
       p_horas_trabajadas: e.horasTurno ?? horasEstandarHoy,
       p_salario_base: e.pagoSugerido,
+      p_bonificaciones: a.bono,
+      p_concepto_bonificacion: a.bono > 0 ? a.conceptoBono.trim() : undefined,
+      p_deducciones: a.deduccion,
+      p_concepto_deduccion: a.deduccion > 0 ? a.conceptoDeduccion.trim() : undefined,
       p_metodo_pago: metodo,
     })
     if (error) throw new Error(error.message)
@@ -125,38 +163,65 @@ export function NominaTable({
   const handlePagarUno = async (empleadoId: string) => {
     const emp = empleadosConCalculo.find(e => e.id === empleadoId)
     if (!emp) return
+    const ok = await confirmar({
+      titulo: `¿Pagar la nómina de ${emp.nombre_completo}?`,
+      mensaje: 'El pago queda registrado en la nómina de hoy y sale del medio elegido.',
+      detalle: filasPago(emp),
+      textoConfirmar: `Pagar ${pesos(totalDe(emp))}`,
+    })
+    if (!ok) return
+    setPagando(emp.id)
     try {
       await pagarEmpleado(emp, getMetodo(empleadoId))
-      toast.success(`Nómina de ${emp.nombre_completo} registrada`)
+      toast.success(`Nómina de ${emp.nombre_completo} pagada`, { description: `${pesos(totalDe(emp))} desde ${nombreMetodo(emp.id)}.` })
+      setAjustes(prev => { const { [emp.id]: _, ...resto } = prev; return resto })
       router.refresh()
     } catch (err: any) {
-      toast.error('Error: ' + err.message)
+      toast.error('No se pudo registrar la nómina', { description: err.message })
     } finally {
-      setConfirmandoEmpleado(null)
+      setPagando(null)
     }
   }
 
   const handlePagarTodos = async () => {
     if (pendientes.length === 0) {
-      toast.info('Todos los empleados en turno ya tienen nómina registrada hoy')
-      setConfirmandoTodos(false)
+      toast.info('Todos los empleados en turno ya tienen la nómina de hoy')
       return
     }
+    const ok = await confirmar({
+      titulo: `¿Pagar la nómina a ${pendientes.length} empleado${pendientes.length === 1 ? '' : 's'}?`,
+      mensaje: 'Cada pago sale del medio elegido para ese empleado, con sus bonos y deducciones.',
+      detalle: [
+        ...pendientes.map(e => {
+          const a = ajusteDe(e.id)
+          const extra = [a.bono > 0 ? `+${pesos(a.bono)}` : '', a.deduccion > 0 ? `−${pesos(a.deduccion)}` : ''].filter(Boolean).join(' ')
+          return { etiqueta: <span>{e.nombre_completo}<span className="block text-xs text-tenue">{nombreMetodo(e.id)}{extra ? ` · ${extra}` : ''}</span></span>, valor: pesos(totalDe(e)) }
+        }),
+        { etiqueta: 'Total', valor: pesos(totalPagarTodos), fuerte: true },
+      ],
+      textoConfirmar: `Pagar ${pesos(totalPagarTodos)}`,
+    })
+    if (!ok) return
     setPagandoTodos(true)
-    let errores = 0
+    const fallos: string[] = []
     for (const emp of pendientes) {
       try {
         await pagarEmpleado(emp, getMetodo(emp.id))
-      } catch {
-        errores++
-        toast.error(`Error al pagar a ${emp.nombre_completo}`)
+      } catch (err: any) {
+        fallos.push(`${emp.nombre_completo}: ${err.message}`)
       }
     }
     setPagandoTodos(false)
-    setConfirmandoTodos(false)
-    if (errores === 0) toast.success(`Nómina registrada para ${pendientes.length} empleados`)
+    if (fallos.length === 0) {
+      toast.success(`Nómina pagada a ${pendientes.length} empleado${pendientes.length === 1 ? '' : 's'}`, { description: `Total ${pesos(totalPagarTodos)}.` })
+      setAjustes({})
+    } else {
+      toast.error(`No se pudo pagar a ${fallos.length} empleado${fallos.length === 1 ? '' : 's'}`, { description: fallos.join(' · ') })
+    }
     router.refresh()
   }
+
+  const empleadoAjustando = empleadosConCalculo.find(e => e.id === ajustando) ?? null
 
   const historialFiltrado = useMemo(() => {
     return historial.filter(n => {
@@ -196,129 +261,111 @@ export function NominaTable({
           )}
 
           {pendientes.length > 0 && (
-            <div className="rounded-2xl bg-superficie p-4">
-              {!confirmandoTodos ? (
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-tinta">
-                      {pendientes.length} empleado{pendientes.length !== 1 ? 's' : ''} en turno pendiente{pendientes.length !== 1 ? 's' : ''}
-                    </p>
-                    <p className="text-xs text-steel-300">Total: ${totalPagarTodos.toLocaleString('es-CO')}</p>
-                  </div>
-                  <Button className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={() => setConfirmandoTodos(true)} disabled={pagandoTodos}>
-                    Pagar a todos
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <p className="text-sm font-medium text-tinta">¿Confirmas el pago para {pendientes.length} empleados en turno?</p>
-                  <ul className="space-y-0.5 text-xs text-steel-300">
-                    {pendientes.map(e => (
-                      <li key={e.id} className="flex justify-between">
-                        <span>{e.nombre_completo} · {getMetodo(e.id)}</span>
-                        <span>${e.pagoSugerido.toLocaleString('es-CO')}</span>
-                      </li>
-                    ))}
-                    <li className="mt-1 flex justify-between border-t border-linea pt-1 font-bold text-tinta">
-                      <span>Total</span><span>${totalPagarTodos.toLocaleString('es-CO')}</span>
-                    </li>
-                  </ul>
-                  <div className="flex gap-2">
-                    <Button className="bg-brand-yellow font-bold text-steel-900 hover:brightness-105" onClick={handlePagarTodos} disabled={pagandoTodos}>
-                      {pagandoTodos ? 'Pagando…' : 'Sí, pagar a todos'}
-                    </Button>
-                    <Button variant="outline" className="border-linea bg-transparent text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setConfirmandoTodos(false)} disabled={pagandoTodos}>Cancelar</Button>
-                  </div>
-                </div>
-              )}
+            <div className="flex flex-col gap-3 rounded-2xl bg-superficie p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-medium text-tinta">
+                  {pendientes.length} empleado{pendientes.length !== 1 ? 's' : ''} en turno pendiente{pendientes.length !== 1 ? 's' : ''}
+                </p>
+                <p className="text-sm text-suave">Total con ajustes: <span className="cifra font-bold text-tinta">{pesos(totalPagarTodos)}</span></p>
+              </div>
+              <Button className="h-12 w-full bg-brand-yellow px-5 font-bold text-steel-900 hover:brightness-105 sm:w-auto" onClick={handlePagarTodos} disabled={pagandoTodos}>
+                {pagandoTodos ? 'Pagando…' : 'Pagar a todos'}
+              </Button>
             </div>
           )}
 
-          <div className="overflow-hidden rounded-2xl bg-superficie">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-superficie-2 hover:bg-superficie-2 [&_th]:text-sm [&_th]:font-semibold [&_th]:text-suave">
-                    <TableHead>Empleado</TableHead>
-                    <TableHead className="text-right">Salario base</TableHead>
-                    <TableHead className="text-right">Horas hoy</TableHead>
-                    <TableHead className="text-right">Pago sugerido</TableHead>
-                    <TableHead>Método pago</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead className="text-right">Acción</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {empleadosEnTurno.map(e => (
-                    <TableRow key={e.id} className="border-linea hover:bg-velo/5">
-                      <TableCell className="text-sm font-medium text-tinta"><Link href={`/dashboard/empleados/${e.id}`} className="underline-offset-2 hover:text-enlace hover:underline">{e.nombre_completo}</Link></TableCell>
-                      <TableCell className="text-right text-xs text-tinta">${e.salario_base.toLocaleString('es-CO')}</TableCell>
-                      <TableCell className="text-right text-xs text-steel-300">
-                        {e.horasTurno != null ? `${e.horasTurno.toFixed(1)}h / ${horasEstandarHoy}h` : 'Sin turno'}
-                      </TableCell>
-                      <TableCell className="text-right font-display text-sm font-bold text-tinta">${e.pagoSugerido.toLocaleString('es-CO')}</TableCell>
-                      <TableCell>
-                        {!e.nominaHoy && (
-                          <Select
-                            items={METODOS_NOMINA}
-                            value={getMetodo(e.id)}
-                            onValueChange={v => v && setMetodosPago(prev => ({ ...prev, [e.id]: v }))}>
-                            <SelectTrigger className="h-8 w-40 border-linea bg-superficie-2 text-xs text-tinta"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              {METODOS_NOMINA.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {e.nominaHoy
-                          ? <span className="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-400">Pagado</span>
-                          : <span className="inline-flex items-center rounded-full border border-brand-yellow/30 bg-brand-yellow/20 px-2.5 py-0.5 text-xs font-semibold text-brand-yellow">Pendiente</span>}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {e.nominaHoy ? (
-                          <span className="text-xs text-steel-500">${Number(e.nominaHoy.total_pago).toLocaleString('es-CO')}</span>
-                        ) : confirmandoEmpleado === e.id ? (
-                          <div className="flex items-center justify-end gap-2">
-                            <span className="text-xs text-steel-300">¿Confirmar ${e.pagoSugerido.toLocaleString('es-CO')}?</span>
-                            <button onClick={() => handlePagarUno(e.id)} className="text-xs font-medium text-emerald-400 hover:underline">Sí</button>
-                            <button onClick={() => setConfirmandoEmpleado(null)} className="text-xs text-steel-300 hover:underline">No</button>
-                          </div>
-                        ) : (
-                          <button onClick={() => setConfirmandoEmpleado(e.id)}
-                            className="text-sm text-enlace hover:underline">
-                            Pagar
-                          </button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {empleadosEnTurno.length === 0 && (
-                    <TableRow className="border-linea">
-                      <TableCell colSpan={7} className="py-8 text-center text-steel-500">Sin empleados en turno hoy</TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
+          {empleadosEnTurno.length > 0 && (
+            <ul className="divide-y divide-linea overflow-hidden rounded-2xl bg-superficie">
+              {empleadosEnTurno.map(e => {
+                const a = ajusteDe(e.id)
+                const pagado = e.nominaHoy
+                return (
+                  <li key={e.id} className="space-y-3 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <Link href={`/dashboard/empleados/${e.id}`} className="font-semibold text-tinta underline-offset-2 hover:text-enlace hover:underline">{e.nombre_completo}</Link>
+                        <p className="text-sm text-suave">
+                          {e.horasTurno != null ? `${e.horasTurno.toFixed(1)} h de ${horasEstandarHoy} h` : 'Sin turno'} · base {pesos(e.salario_base)}
+                        </p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="cifra text-xl font-bold text-tinta">{pesos(pagado ? Number(pagado.total_pago) : totalDe(e))}</p>
+                        {pagado
+                          ? <span className="inline-flex items-center rounded-full bg-entra/15 px-2.5 py-0.5 text-xs font-semibold text-entra">Pagado</span>
+                          : <span className="inline-flex items-center rounded-full bg-aviso/15 px-2.5 py-0.5 text-xs font-semibold text-aviso">Pendiente</span>}
+                      </div>
+                    </div>
+
+                    {/* Ajustes del pago */}
+                    {!pagado && (a.bono > 0 || a.deduccion > 0) && (
+                      <div className="flex flex-wrap gap-2 text-sm">
+                        {a.bono > 0 && <span className="inline-flex items-center gap-1 rounded-lg bg-entra/12 px-2.5 py-1 text-entra"><Plus className="size-3.5" aria-hidden />{pesos(a.bono)} · {a.conceptoBono}</span>}
+                        {a.deduccion > 0 && <span className="inline-flex items-center gap-1 rounded-lg bg-sale/12 px-2.5 py-1 text-sale"><Minus className="size-3.5" aria-hidden />{pesos(a.deduccion)} · {a.conceptoDeduccion}</span>}
+                      </div>
+                    )}
+                    {pagado && (Number(pagado.bonificaciones) > 0 || Number(pagado.deducciones) > 0) && (
+                      <p className="text-sm text-suave">
+                        {Number(pagado.bonificaciones) > 0 && <span className="text-entra">+{pesos(Number(pagado.bonificaciones))} bono </span>}
+                        {Number(pagado.deducciones) > 0 && <span className="text-sale">−{pesos(Number(pagado.deducciones))} deducción</span>}
+                      </p>
+                    )}
+
+                    {!pagado && (
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
+                        <Select
+                          items={METODOS_NOMINA}
+                          value={getMetodo(e.id)}
+                          onValueChange={v => v && setMetodosPago(prev => ({ ...prev, [e.id]: v }))}>
+                          <SelectTrigger className="col-span-2 h-11 w-full border-linea bg-superficie-2 text-sm text-tinta sm:col-span-1" aria-label={`Medio de pago de ${e.nombre_completo}`}><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {METODOS_NOMINA.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                        <Button type="button" variant="outline" className="h-11 border-linea bg-superficie-2 px-4 text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setAjustando(e.id)}>
+                          <SlidersHorizontal className="size-4" aria-hidden />Bono o deducción
+                        </Button>
+                        <Button type="button" className="h-11 bg-brand-yellow px-5 font-bold text-steel-900 hover:brightness-105" onClick={() => handlePagarUno(e.id)} disabled={pagando === e.id || pagandoTodos}>
+                          {pagando === e.id ? 'Pagando…' : 'Pagar'}
+                        </Button>
+                      </div>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          )}
         </div>
+      )}
+
+      {empleadoAjustando && (
+        <AjusteDialogo
+          key={empleadoAjustando.id}
+          nombre={empleadoAjustando.nombre_completo}
+          pagoDia={empleadoAjustando.pagoSugerido}
+          inicial={ajusteDe(empleadoAjustando.id)}
+          alCerrar={() => setAjustando(null)}
+          alGuardar={a => {
+            setAjustes(prev => ({ ...prev, [empleadoAjustando.id]: a }))
+            setAjustando(null)
+            toast.success(`Ajuste guardado para ${empleadoAjustando.nombre_completo}`, { description: `Total a pagar: ${pesos(empleadoAjustando.pagoSugerido + a.bono - a.deduccion)}. Se aplica al pagar.` })
+          }}
+        />
       )}
 
       {tabActiva === 'historial' && (
         <div className="space-y-3">
-          <div className="flex flex-wrap gap-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-[1fr_1fr_2fr]">
             <div className="space-y-1">
-              <label className="text-sm font-semibold text-suave">Desde</label>
-              <Input type="date" value={filtroFechaDesde} onChange={e => setFiltroFechaDesde(e.target.value)} className="w-36 border-linea bg-superficie-2 text-tinta" />
+              <label htmlFor="nomina-desde" className="text-sm font-semibold text-suave">Desde</label>
+              <Input id="nomina-desde" type="date" value={filtroFechaDesde} onChange={e => setFiltroFechaDesde(e.target.value)} className="h-11 w-full border-linea bg-superficie-2 text-tinta" />
             </div>
             <div className="space-y-1">
-              <label className="text-sm font-semibold text-suave">Hasta</label>
-              <Input type="date" value={filtroFechaHasta} onChange={e => setFiltroFechaHasta(e.target.value)} className="w-36 border-linea bg-superficie-2 text-tinta" />
+              <label htmlFor="nomina-hasta" className="text-sm font-semibold text-suave">Hasta</label>
+              <Input id="nomina-hasta" type="date" value={filtroFechaHasta} onChange={e => setFiltroFechaHasta(e.target.value)} className="h-11 w-full border-linea bg-superficie-2 text-tinta" />
             </div>
-            <div className="space-y-1">
-              <label className="text-sm font-semibold text-suave">Empleado</label>
-              <Input placeholder="Buscar…" value={filtroEmpleado} onChange={e => setFiltroEmpleado(e.target.value)} className="w-48 border-linea bg-superficie-2 text-tinta placeholder:text-tenue" />
+            <div className="col-span-2 space-y-1 sm:col-span-1">
+              <label htmlFor="nomina-empleado" className="text-sm font-semibold text-suave">Empleado</label>
+              <Input id="nomina-empleado" placeholder="Buscar…" value={filtroEmpleado} onChange={e => setFiltroEmpleado(e.target.value)} className="h-11 w-full border-linea bg-superficie-2 text-tinta placeholder:text-tenue" />
             </div>
           </div>
           <div className="overflow-hidden rounded-2xl bg-superficie">
@@ -342,8 +389,8 @@ export function NominaTable({
                       <TableCell className="text-xs text-steel-300">{n.periodo_inicio}</TableCell>
                       <TableCell className="text-right text-xs text-steel-300">{n.horas_trabajadas != null ? `${n.horas_trabajadas}h` : '—'}</TableCell>
                       <TableCell className="text-right text-xs text-tinta">${Number(n.salario_base).toLocaleString('es-CO')}</TableCell>
-                      <TableCell className="text-right text-xs text-emerald-400">{Number(n.bonificaciones) > 0 ? `+$${Number(n.bonificaciones).toLocaleString('es-CO')}` : '—'}</TableCell>
-                      <TableCell className="text-right text-xs text-sale">{Number(n.deducciones) > 0 ? `-$${Number(n.deducciones).toLocaleString('es-CO')}` : '—'}</TableCell>
+                      <TableCell className="text-right text-xs text-emerald-400">{Number(n.bonificaciones) > 0 ? <>+${Number(n.bonificaciones).toLocaleString('es-CO')}{n.concepto_bonificacion && <span className="block text-tenue">{n.concepto_bonificacion}</span>}</> : '—'}</TableCell>
+                      <TableCell className="text-right text-xs text-sale">{Number(n.deducciones) > 0 ? <>−${Number(n.deducciones).toLocaleString('es-CO')}{n.concepto_deduccion && <span className="block text-tenue">{n.concepto_deduccion}</span>}</> : '—'}</TableCell>
                       <TableCell className="text-right font-display font-bold text-tinta">${Number(n.total_pago).toLocaleString('es-CO')}</TableCell>
                     </TableRow>
                   ))}
@@ -357,5 +404,68 @@ export function NominaTable({
         </div>
       )}
     </div>
+  )
+}
+/** Ventana para poner bono y deducción al pago de hoy de un empleado */
+function AjusteDialogo({ nombre, pagoDia, inicial, alCerrar, alGuardar }: {
+  nombre: string
+  pagoDia: number
+  inicial: Ajuste
+  alCerrar: () => void
+  alGuardar: (a: Ajuste) => void
+}) {
+  const [a, setA] = useState<Ajuste>(inicial)
+  const total = pagoDia + a.bono - a.deduccion
+  const errores = [
+    a.bono < 0 || a.deduccion < 0 ? 'Los montos no pueden ser negativos.' : '',
+    a.bono > 0 && !a.conceptoBono.trim() ? 'Escribe el motivo del bono.' : '',
+    a.deduccion > 0 && !a.conceptoDeduccion.trim() ? 'Escribe el motivo de la deducción.' : '',
+    total < 0 ? 'La deducción no puede ser mayor que el pago del día más el bono.' : '',
+  ].filter(Boolean)
+  const num = (v: string) => Math.max(0, Math.round(Number(v.replace(/[^0-9]/g, '')) || 0))
+  const campo = 'h-11 border-linea bg-superficie-2 text-tinta placeholder:text-tenue'
+
+  return (
+    <Dialogo abierto alCambiar={ab => { if (!ab) alCerrar() }} titulo={`Bono o deducción de ${nombre}`} descripcion="Se suma o se resta al pago de hoy. El motivo queda en el historial de nómina.">
+      <div className="space-y-4">
+        <fieldset className="space-y-2">
+          <legend className="mb-1 text-sm font-semibold text-entra">Bono</legend>
+          <div className="grid grid-cols-[8.5rem_1fr] gap-2">
+            <div>
+              <Label htmlFor="ajuste-bono" className="sr-only">Monto del bono</Label>
+              <Input id="ajuste-bono" inputMode="numeric" placeholder="$0" value={a.bono ? a.bono.toLocaleString('es-CO') : ''} onChange={ev => setA({ ...a, bono: num(ev.target.value) })} className={`${campo} cifra text-right`} />
+            </div>
+            <div>
+              <Label htmlFor="ajuste-concepto-bono" className="sr-only">Motivo del bono</Label>
+              <Input id="ajuste-concepto-bono" placeholder="Motivo (ej.: horas extra)" value={a.conceptoBono} onChange={ev => setA({ ...a, conceptoBono: ev.target.value })} className={campo} />
+            </div>
+          </div>
+        </fieldset>
+        <fieldset className="space-y-2">
+          <legend className="mb-1 text-sm font-semibold text-sale">Deducción</legend>
+          <div className="grid grid-cols-[8.5rem_1fr] gap-2">
+            <div>
+              <Label htmlFor="ajuste-deduccion" className="sr-only">Monto de la deducción</Label>
+              <Input id="ajuste-deduccion" inputMode="numeric" placeholder="$0" value={a.deduccion ? a.deduccion.toLocaleString('es-CO') : ''} onChange={ev => setA({ ...a, deduccion: num(ev.target.value) })} className={`${campo} cifra text-right`} />
+            </div>
+            <div>
+              <Label htmlFor="ajuste-concepto-deduccion" className="sr-only">Motivo de la deducción</Label>
+              <Input id="ajuste-concepto-deduccion" placeholder="Motivo (ej.: adelanto)" value={a.conceptoDeduccion} onChange={ev => setA({ ...a, conceptoDeduccion: ev.target.value })} className={campo} />
+            </div>
+          </div>
+        </fieldset>
+        <DetalleDialogo filas={[
+          { etiqueta: 'Pago del día', valor: pesos(pagoDia) },
+          { etiqueta: 'Bono', valor: <span className="text-entra">+{pesos(a.bono)}</span> },
+          { etiqueta: 'Deducción', valor: <span className="text-sale">−{pesos(a.deduccion)}</span> },
+          { etiqueta: 'Total a pagar', valor: pesos(total), fuerte: true },
+        ]} />
+        {errores.length > 0 && <p role="alert" className="rounded-xl bg-sale/10 px-3.5 py-2.5 text-sm text-sale">{errores[0]}</p>}
+      </div>
+      <PieDialogo>
+        <Button type="button" variant="outline" className="border-linea bg-superficie-2 text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setA(SIN_AJUSTE)}>Quitar ajustes</Button>
+        <Button type="button" className="bg-accion font-bold text-sobre-accion hover:brightness-105" disabled={errores.length > 0} onClick={() => alGuardar({ ...a, conceptoBono: a.conceptoBono.trim(), conceptoDeduccion: a.conceptoDeduccion.trim() })}>Guardar</Button>
+      </PieDialogo>
+    </Dialogo>
   )
 }

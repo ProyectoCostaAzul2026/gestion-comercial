@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { jsPDF } from 'jspdf'
 import { autoTable } from 'jspdf-autotable'
 import { createClient } from '@/lib/supabase/client'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { cantidadSugerida } from '@/lib/pedido'
 import { MiniaturaProducto } from '@/components/ui/producto-miniatura'
 import { hoyBogota } from '@/lib/fechas'

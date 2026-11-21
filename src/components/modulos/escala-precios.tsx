@@ -2,7 +2,7 @@
 
 import { Fragment, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { AlertTriangle, ArrowDownRight, Equal, TrendingUp } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'

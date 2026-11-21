@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next"
 import { cookies } from "next/headers"
 import { Geist_Mono, Barlow, Barlow_Condensed, Barlow_Semi_Condensed } from "next/font/google"
 import { ToasterTema } from "@/components/tema/toaster-tema"
+import { ProveedorConfirmaciones } from "@/components/ui/confirmar"
 import { COLOR_BARRA, COOKIE_TEMA, leerTema, SCRIPT_TEMA_SISTEMA } from "@/lib/tema"
 import "./globals.css"
 
@@ -61,6 +62,7 @@ export default async function RootLayout({
       <body className={`${barlow.variable} ${barlowSemi.variable} ${barlowCond.variable} ${geistMono.variable} min-h-full flex flex-col antialiased font-sans`}>
         {children}
         <ToasterTema />
+        <ProveedorConfirmaciones />
       </body>
     </html>
   )
