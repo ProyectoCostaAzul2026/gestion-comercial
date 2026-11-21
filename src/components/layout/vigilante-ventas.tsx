@@ -30,7 +30,7 @@ export function VigilanteVentas({ usuarioId }: { usuarioId: string }) {
   const [ventas, setVentas] = useState<VentaEnCurso[]>([])
   const enVenta = ruta?.startsWith('/dashboard/ventas/nueva') ?? false
   const enVentaRef = useRef(enVenta)
-  enVentaRef.current = enVenta
+  useEffect(() => { enVentaRef.current = enVenta }, [enVenta])
   const ocupado = useRef(false)
   const sinTabla = useRef(false)
   const anteriores = useRef<Map<string, VentaEnCurso>>(new Map())

@@ -700,7 +700,7 @@ export function NuevaVentaForm({ clienteGeneral, catalogo, maxDescuentoPct = 0.1
 
   // Avisa cada cambio de la venta (no en el primer dibujo)
   const onCambioRef = useRef(onCambio)
-  onCambioRef.current = onCambio
+  useEffect(() => { onCambioRef.current = onCambio }, [onCambio])
   const primerDibujo = useRef(true)
   useEffect(() => {
     if (primerDibujo.current) { primerDibujo.current = false; return }

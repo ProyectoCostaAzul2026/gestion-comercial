@@ -42,6 +42,7 @@ export const ACCION_BITACORA: Record<RegistroBitacora['accion'], string> = {
 
 /** Nombre para mostrar de cada tabla vigilada */
 export const TABLA_BITACORA: Record<string, string> = {
+  ventas_en_curso: 'Ventas sin registrar',
   productos: 'Productos',
   producto_familias: 'Familias',
   categorias_producto: 'Categorías',

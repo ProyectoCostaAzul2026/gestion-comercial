@@ -74,7 +74,7 @@ export function VentasParalelas({ usuarioId, guardadas, abrir, vendedores, ...fo
   const guardadasIds = useRef(new Set(guardadas.map(v => v.id)))
   const temporizadores = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
   const paraleloRef = useRef(paralelo)
-  paraleloRef.current = paralelo
+  useEffect(() => { paraleloRef.current = paralelo }, [paralelo])
 
   // ── Guardar en la base (solo en modo paralelo y con algo en la venta) ──
   const guardarAhora = useCallback(async (id: string) => {

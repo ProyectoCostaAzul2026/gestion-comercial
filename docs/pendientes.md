@@ -1,6 +1,6 @@
 # Pendientes
 
-Lista viva de lo que falta. Se actualiza al cerrar cada tarea. Última revisión: 2026-11-19.
+Lista viva de lo que falta. Se actualiza al cerrar cada tarea. Última revisión: 2026-11-21.
 
 ## Dependen del dueño o del administrador
 
@@ -17,7 +17,10 @@ Lista viva de lo que falta. Se actualiza al cerrar cada tarea. Última revisión
 6. **Logo del negocio en la base**: `configuracion_negocio.logo_url` apunta a una dirección que ya expiró. La app usa el
    logo local, pero conviene subir el logo a Supabase Storage para recibos y documentos.
 7. **Repositorio público**: valorar hacerlo privado (y entonces instalar la app de Claude en GitHub).
-8. **Plan gratuito de Supabase**: se pausa tras unos 7 días sin uso y no tiene copias de seguridad diarias; la protección
+8. **Probar en producción lo del 2026-11-21**: ventas paralelas en dos celulares (pasar una venta a otro vendedor,
+   aceptarla y registrarla), el aviso de borrador (dejar una venta paralela 15 minutos sin tocar), tomar y recortar una
+   foto, y los bonos por ventas (poner los topes en Configuración y revisar la nómina del día).
+9. **Plan gratuito de Supabase**: se pausa tras unos 7 días sin uso y no tiene copias de seguridad diarias; la protección
    de contraseñas filtradas requiere el plan Pro.
 
 ## Técnicos
@@ -25,6 +28,9 @@ Lista viva de lo que falta. Se actualiza al cerrar cada tarea. Última revisión
 - Imágenes subidas: al cambiar o quitar una foto, el archivo anterior se queda en el bucket `imagenes`. Cuando pese,
   limpiar los archivos que ningún registro usa (el plan gratuito trae 1 GB de almacenamiento).
 - Probar en producción la subida de una foto desde el celular (la prueba se hizo con un servidor que imita a Supabase).
+- Ventas paralelas: el aviso de venta recibida llega en hasta 15 segundos (la app revisa cada 15 s). Si hace falta que
+  sea inmediato, activar Supabase Realtime en `ventas_en_curso`.
+- Las ventas en curso no apartan stock: se valida al registrar, como siempre.
 - Imágenes: unos 1190 grupos sin foto específica y 458 productos sin imagen; algunas fotos son de productos equivalentes.
 - Recepción de mercancía: adjuntar la foto o el PDF de la factura y repartir fletes y descuentos en el costo de los renglones.
 - Reportes en celular: las secciones de gráficos y tablas de productos son largas; separarlas en vistas propias.

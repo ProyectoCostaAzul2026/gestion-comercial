@@ -24,12 +24,13 @@ export function RecortarDialogo({ archivo, redonda = false, lado, alCancelar, al
   const [zoom, setZoom] = useState(1)
   const [pos, setPos] = useState({ x: 0, y: 0 })
   const arrastre = useRef<{ x: number; y: number; px: number; py: number } | null>(null)
+  const [arrastrando, setArrastrando] = useState(false)
   const dedos = useRef(new Map<number, { x: number; y: number }>())
   const pellizco = useRef<{ dist: number; zoom: number } | null>(null)
 
   // Carga la imagen y la centra cubriendo el marco
   useEffect(() => {
-    if (!archivo) { setImg(null); return }
+    if (!archivo) return
     const url = URL.createObjectURL(archivo)
     const i = new Image()
     i.onload = () => {
@@ -72,6 +73,7 @@ export function RecortarDialogo({ archivo, redonda = false, lado, alCancelar, al
       arrastre.current = null
     } else {
       arrastre.current = { x: e.clientX, y: e.clientY, px: pos.x, py: pos.y }
+      setArrastrando(true)
     }
   }
   const alMover = (e: React.PointerEvent) => {
@@ -88,7 +90,7 @@ export function RecortarDialogo({ archivo, redonda = false, lado, alCancelar, al
   const alSoltar = (e: React.PointerEvent) => {
     dedos.current.delete(e.pointerId)
     if (dedos.current.size < 2) pellizco.current = null
-    if (dedos.current.size === 0) arrastre.current = null
+    if (dedos.current.size === 0) { arrastre.current = null; setArrastrando(false) }
   }
 
   const recortar = () => {
@@ -114,12 +116,12 @@ export function RecortarDialogo({ archivo, redonda = false, lado, alCancelar, al
       <div className="flex flex-col items-center gap-4">
         <div
           className="relative touch-none overflow-hidden rounded-2xl bg-[repeating-conic-gradient(#e7ebf0_0_25%,#fff_0_50%)] bg-[length:20px_20px] select-none"
-          style={{ width: MARCO, height: MARCO, cursor: arrastre.current ? 'grabbing' : 'grab' }}
+          style={{ width: MARCO, height: MARCO, cursor: arrastrando ? 'grabbing' : 'grab' }}
           onPointerDown={alBajar} onPointerMove={alMover} onPointerUp={alSoltar} onPointerCancel={alSoltar}
           onWheel={e => cambiarZoom(zoom * (e.deltaY < 0 ? 1.08 : 1 / 1.08))}
           role="img" aria-label="Vista previa del recorte"
         >
-          {img && (
+          {img && archivo && (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={img.src} alt="" draggable={false} className="pointer-events-none absolute max-w-none"
               style={{ left: pos.x, top: pos.y, width: ancho, height: alto }} />

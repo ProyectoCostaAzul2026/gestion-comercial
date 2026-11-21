@@ -3,12 +3,10 @@
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Label } from '@/components/ui/label'
 import { confirmar } from '@/components/ui/confirmar'
 import { DetalleDialogo, Dialogo, PieDialogo } from '@/components/ui/dialogo'
 import { calcularPagoDia, horasPagarPorFecha, turnoEnFecha } from '@/lib/festivos-colombia'
@@ -223,11 +221,11 @@ export function NominaTable({
     try {
       await pagarEmpleado(emp, getMetodo(empleadoId))
       toast.success(`Nómina de ${emp.nombre_completo} pagada`, { description: `${pesos(totalDe(emp))} desde ${nombreMetodo(emp.id)}.` })
-      setAjustes(prev => { const { [emp.id]: _, ...resto } = prev; return resto })
-      setQuitados(prev => { const { [emp.id]: _, ...resto } = prev; return resto })
+      setAjustes(prev => Object.fromEntries(Object.entries(prev).filter(([k]) => k !== emp.id)))
+      setQuitados(prev => Object.fromEntries(Object.entries(prev).filter(([k]) => k !== emp.id)))
       router.refresh()
-    } catch (err: any) {
-      toast.error('No se pudo registrar la nómina', { description: err.message })
+    } catch (err) {
+      toast.error('No se pudo registrar la nómina', { description: (err as Error).message })
     } finally {
       setPagando(null)
     }
@@ -258,8 +256,8 @@ export function NominaTable({
     for (const emp of pendientes) {
       try {
         await pagarEmpleado(emp, getMetodo(emp.id))
-      } catch (err: any) {
-        fallos.push(`${emp.nombre_completo}: ${err.message}`)
+      } catch (err) {
+        fallos.push(`${emp.nombre_completo}: ${(err as Error).message}`)
       }
     }
     setPagandoTodos(false)

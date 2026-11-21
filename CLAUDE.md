@@ -3,7 +3,7 @@
 # Contexto del proyecto — Gestión Comercial Ferreléctricos Costa Azul
 
 > Claude Code carga este archivo en cada sesión. Mantenerlo al día cuando cambie algo importante
-> (esquema de la BD, convenciones, estado de los datos). Última revisión: 2026-11-18.
+> (esquema de la BD, convenciones, estado de los datos). Última revisión: 2026-11-21.
 
 ## Qué es
 
@@ -159,6 +159,28 @@ nómina).
   girada. Medios de pago es una barra de proporciones con lista, no un pastel.
 - **Fechas**: "hoy" siempre con `hoyBogota()` / `bogotaEnDias()` de `src/lib/fechas.ts`. Nunca
   `new Date().toISOString().slice(0, 10)` (es UTC: desde las 7 p. m. de Bogotá ya es mañana).
+- **Ventanas modales y avisos** (2026-11-21): toda confirmación importante usa `confirmar({ titulo, mensaje, detalle,
+  tono, textoConfirmar })` o `elegir({ opciones })` de `src/components/ui/confirmar.tsx` (promesa; la ventana la dibuja
+  `ProveedorConfirmaciones` en el layout raíz), nunca `window.confirm` ni "¿Seguro? Sí / No" en línea. Ventanas propias con
+  `Dialogo`, `PieDialogo` y `DetalleDialogo` (`src/components/ui/dialogo.tsx`). Los avisos se importan de `@/lib/avisos`
+  (no de `sonner`): título corto y el detalle en `description`; la duración se calcula según lo largo del texto.
+- **Botones y filtros parejos**: `rejilla-2` (dos columnas; si quedan impares, el último a lo ancho) y `rejilla-3` (tres
+  columnas sin huecos en el celular; desde `sm` manda su `sm:grid-cols-*`), en `globals.css`. Filas de Guardar y Cancelar
+  con `grid grid-cols-2`; fechas "desde" y "hasta" lado a lado con el mismo ancho.
+- **Fotos**: `CampoImagen` tiene "Tomar foto" (en el celular, `input capture`; en el computador, `CamaraDialogo` con la
+  cámara) y toda foto nueva pasa por `RecortarDialogo` (cuadrado; círculo para personas; los logos no se recortan). Toda
+  persona se muestra con `AvatarPersona` (`src/components/ui/avatar-persona.tsx`; la consulta debe traer `foto_url`).
+- **Ventas paralelas** (`ventas-paralelas.tsx` envuelve a `NuevaVentaForm`, que recibe `inicial`, `onCambio`,
+  `onRegistrada`, `onSalir`): hasta 3 ventas en pestañas; en modo paralelo se guardan en `ventas_en_curso`
+  (`src/lib/ventas-en-curso.ts`). Una venta normal no se guarda: al salir con productos pregunta si se cancela.
+  `VigilanteVentas` (en `NavigationShell`) revisa cada 15 s y avisa en ventana de borradores (15 min sin cambios; se
+  eliminan a los 15 min más), ventas recibidas de otro vendedor (aceptar o rechazar) y devueltas; muestra «Ventas
+  abiertas». Las reglas de tiempo también las aplica la tarea `pg_cron` `vencer-ventas-en-curso` (nota 25 de `DATABASE.md`).
+- **Nómina › Pago de hoy**: por empleado, "Ajustes" (llegada tarde y tiempo extra por minutos, con el sueldo por hora =
+  sueldo del día / horas trabajadas, que son las del turno menos 1 hora de almuerzo; tiempo extra con recargo 0, 25 o
+  75 %; otro bono y otra deducción con motivo) y los bonos por ventas sugeridos (`src/lib/bonos-ventas.ts`, topes en
+  Configuración › Bonos por ventas, columna `configuracion_negocio.bonos_ventas`) que el administrador aprueba o quita.
+  Todo va a `registrar_nomina` como bonificación o deducción con su motivo.
 - **Video promocional del sistema** (`videos/promo-app`, proyecto Remotion aparte, excluido del `tsconfig` y del lint de la
   app): graba la app con datos ficticios (`demo/`, servidor que imita a Supabase en el 54321) y arma el video con
   `src/linea.json` (pulsos a 120 por minuto), la música de `musica/generar.py` y los efectos de `musica/efectos.py` (las

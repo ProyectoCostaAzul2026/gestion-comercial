@@ -62,12 +62,15 @@ export function CamaraDialogo({ abierto, alCerrar, alCapturar, frontal = false }
     }
   }, [apagar])
 
+  // La cámara se enciende al abrir la ventana y se apaga al cerrarla
   useEffect(() => {
-    if (!abierto) { apagar(); setCaptura(null); return }
-    encender(deFrente)
-    return apagar
+    if (!abierto) return
+    const t = setTimeout(() => encender(deFrente), 0)
+    return () => { clearTimeout(t); apagar() }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [abierto])
+
+  const cerrar = () => { setCaptura(null); alCerrar() }
 
   useEffect(() => () => { if (captura) URL.revokeObjectURL(captura.url) }, [captura])
 
@@ -95,9 +98,8 @@ export function CamaraDialogo({ abierto, alCerrar, alCapturar, frontal = false }
   }
 
   return (
-    <Dialogo abierto={abierto} alCambiar={a => { if (!a) alCerrar() }} titulo="Tomar foto" descripcion="Centra el producto o la persona y toca Capturar." className="max-w-xl">
+    <Dialogo abierto={abierto} alCambiar={a => { if (!a) cerrar() }} titulo="Tomar foto" descripcion="Centra el producto o la persona y toca Capturar." className="max-w-xl">
       <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-black">
-        {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
         <video ref={video} playsInline muted className={`h-full w-full object-cover ${deFrente ? '-scale-x-100' : ''} ${captura ? 'hidden' : ''}`} />
         {captura && (
           // eslint-disable-next-line @next/next/no-img-element
@@ -118,13 +120,13 @@ export function CamaraDialogo({ abierto, alCerrar, alCapturar, frontal = false }
             <Button type="button" variant="outline" className="border-linea bg-superficie-2 text-tinta hover:bg-velo/5 hover:text-tinta" onClick={() => setCaptura(null)}>
               <RefreshCw className="size-4" aria-hidden />Repetir
             </Button>
-            <Button type="button" className="bg-accion font-bold text-sobre-accion hover:brightness-105" onClick={() => { alCapturar(captura.archivo); alCerrar() }}>
+            <Button type="button" className="bg-accion font-bold text-sobre-accion hover:brightness-105" onClick={() => { const f = captura.archivo; cerrar(); alCapturar(f) }}>
               Usar esta foto
             </Button>
           </>
         ) : (
           <>
-            <Button type="button" variant="outline" className="border-linea bg-superficie-2 text-tinta hover:bg-velo/5 hover:text-tinta" onClick={alCerrar}>Cancelar</Button>
+            <Button type="button" variant="outline" className="border-linea bg-superficie-2 text-tinta hover:bg-velo/5 hover:text-tinta" onClick={cerrar}>Cancelar</Button>
             <Button type="button" className="bg-accion font-bold text-sobre-accion hover:brightness-105" onClick={capturar} disabled={!lista}>
               <Camera className="size-4" aria-hidden />Capturar
             </Button>
